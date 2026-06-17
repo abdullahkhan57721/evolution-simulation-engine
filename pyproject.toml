@@ -1,0 +1,9 @@
+[project]
+name = "evolution-simulation-engine"
+version = "0.1.0"
+description = "A beginner evolution simulation engine starting with a one-trait energy survival scenario."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
