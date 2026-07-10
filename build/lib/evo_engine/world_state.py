@@ -29,4 +29,3 @@ class WorldState:
 
     def advance_time(self) -> None:
         self.time_step += 1
-

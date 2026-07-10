@@ -1,0 +1,94 @@
+{
+    "folders":
+    [
+        {
+            "path": ".",
+            "folder_exclude_patterns":
+            [
+                ".git",
+                ".venv",
+                "__pycache__",
+                ".pytest_cache",
+                ".ruff_cache",
+                ".mypy_cache"
+            ],
+            "file_exclude_patterns":
+            [
+                "*.pyc",
+                ".DS_Store"
+            ]
+        }
+    ],
+
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true,
+        "rulers": [88],
+        "word_wrap": false,
+        "lsp_format_on_save": true,
+        "lsp_code_actions_on_save":
+        {
+            "source.organizeImports": true
+        },
+        "git_diff_target": "head"
+    },
+
+    "build_systems":
+    [
+        {
+            "name": "Pytest: Full Suite",
+            "cmd":
+            [
+                "$folder/.venv/bin/python",
+                "-m",
+                "pytest",
+                "-q"
+            ],
+            "working_dir": "$folder"
+        },
+
+        {
+            "name": "Pytest: Current File",
+            "cmd":
+            [
+                "$folder/.venv/bin/python",
+                "-m",
+                "pytest",
+                "-q",
+                "$file"
+            ],
+            "working_dir": "$folder"
+        },
+
+        {
+            "name": "Python: Current File",
+            "cmd":
+            [
+                "$folder/.venv/bin/python",
+                "$file"
+            ],
+            "working_dir": "$folder",
+            "selector": "source.python"
+        },
+
+        {
+            "name": "Pytest: Last Failed",
+            "cmd":
+            [
+                "$folder/.venv/bin/python",
+                "-m",
+                "pytest",
+                "--lf",
+                "-q"
+            ],
+            "working_dir": "$folder"
+        },
+
+        {
+            "name": "Quality: Ruff + Pyright + Pytest",
+            "shell_cmd": "\"$folder/.venv/bin/ruff\" check . && \"$folder/.venv/bin/pyright\" && \"$folder/.venv/bin/python\" -m pytest",
+            "working_dir": "$folder"
+        }
+    ]
+}
