@@ -1,5 +1,6 @@
 """Energy-cost models for simulation processes."""
 
+from evo_engine.energetics.growth import GrowthCostModel, LinearGrowthCost
 from evo_engine.energetics.locomotion import (
     FixedLocomotionCost,
     LocomotionCostModel,
@@ -14,6 +15,8 @@ from evo_engine.energetics.metabolism import (
 __all__ = [
     "FixedLocomotionCost",
     "FixedMetabolicCost",
+    "GrowthCostModel",
+    "LinearGrowthCost",
     "LocomotionCostModel",
     "MetabolicCostModel",
     "PowerLawLocomotionCost",
