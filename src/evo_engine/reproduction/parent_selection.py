@@ -145,7 +145,7 @@ class PairwiseMating:
         preference_function: Function returning an integer preference score
             for a candidate pair. If parent roles are interchangeable, this
             function should be symmetric in its two parent arguments.
-        required_traits: Phenotype traits read by custom mating callbacks.
+        required_traits: Genetic phenotype traits read by custom mating callbacks.
     """
 
     neighborhood: Neighborhood

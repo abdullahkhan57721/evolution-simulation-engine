@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Run pytest with line and branch coverage reporting.
+#
+# Usage:
+#   ./scripts/coverage
+#   ./scripts/coverage tests/development
+#   COVERAGE_FAIL_UNDER=90 ./scripts/coverage
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'HELP'
+Usage:
+  ./scripts/coverage
+  ./scripts/coverage tests/development
+  COVERAGE_FAIL_UNDER=90 ./scripts/coverage
+
+Runs pytest with:
+  line coverage
+  branch coverage
+  terminal missing-line report
+  XML report at outputs/coverage/coverage.xml
+  HTML report at outputs/coverage/html/
+
+COVERAGE_FAIL_UNDER defaults to 0. Set it to enforce a minimum percentage.
+HELP
+    exit 0
+fi
+
+if [[ -x "$REPO_ROOT/venv/bin/python" ]]; then
+    PYTHON="$REPO_ROOT/venv/bin/python"
+elif [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
+    PYTHON="$REPO_ROOT/.venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON="$(command -v python3)"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON="$(command -v python)"
+else
+    echo "Error: Python is not available."
+    exit 127
+fi
+
+if ! "$PYTHON" -c 'import pytest, pytest_cov' >/dev/null 2>&1; then
+    echo "Error: pytest and pytest-cov must be installed for: $PYTHON"
+    echo "Install them with: $PYTHON -m pip install pytest pytest-cov"
+    exit 127
+fi
+
+FAIL_UNDER="${COVERAGE_FAIL_UNDER:-0}"
+mkdir -p "$REPO_ROOT/outputs/coverage"
+
+printf '\n%s\n' "======================================================================"
+echo "PYTEST — LINE + BRANCH COVERAGE"
+printf '%s\n' "======================================================================"
+
+"$PYTHON" -m pytest \
+    -ra \
+    --strict-config \
+    --strict-markers \
+    --cov=evo_engine \
+    --cov-branch \
+    --cov-report=term-missing \
+    --cov-report=xml:outputs/coverage/coverage.xml \
+    --cov-report=html:outputs/coverage/html \
+    --cov-fail-under="$FAIL_UNDER" \
+    "$@"

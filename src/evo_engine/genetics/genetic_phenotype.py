@@ -1,4 +1,4 @@
-"""Phenotype representation for expressed organism traits."""
+"""Genetic phenotype representation for genetically expressed traits."""
 
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ from evo_engine.validation import validators
 
 
 @attrs.frozen(slots=True, kw_only=True)
-class Phenotype(Mapping[str, Any]):
-    """Represent an immutable mapping of expressed trait values.
+class GeneticPhenotype(Mapping[str, Any]):
+    """Represent an immutable mapping of genetically expressed trait values.
 
     Attributes:
         trait_values: Ordered ``(trait_name, value)`` pairs.
@@ -21,7 +21,7 @@ class Phenotype(Mapping[str, Any]):
     trait_values: tuple[tuple[str, Any], ...]
 
     def __attrs_post_init__(self) -> None:
-        """Validate phenotype trait-value entries."""
+        """Validate genetic phenotype trait-value entries."""
         validators.validate_tuple(
             self.trait_values,
             name="trait_values",
@@ -70,13 +70,13 @@ class Phenotype(Mapping[str, Any]):
             Expressed trait value.
 
         Raises:
-            KeyError: If the phenotype has no trait with the name.
+            KeyError: If the genetic phenotype has no trait with the name.
         """
         for name, value in self.trait_values:
             if name == trait_name:
                 return value
 
-        raise KeyError(f"phenotype has no trait named {trait_name!r}.")
+        raise KeyError(f"genetic phenotype has no trait named {trait_name!r}.")
 
     def int_value(self, trait_name: str) -> int:
         """Return an expressed trait value as an integer.
@@ -88,16 +88,16 @@ class Phenotype(Mapping[str, Any]):
             Integer trait value.
 
         Raises:
-            KeyError: If the phenotype has no trait with the name.
+            KeyError: If the genetic phenotype has no trait with the name.
             TypeError: If the expressed value is not an integer.
         """
         return validators.validate_int(
             self[trait_name],
-            name=f"phenotype[{trait_name!r}]",
+            name=f"genetic_phenotype[{trait_name!r}]",
         )
 
     def __iter__(self) -> Iterator[str]:
-        """Iterate over trait names in phenotype order."""
+        """Iterate over trait names in genetic phenotype order."""
         return (trait_name for trait_name, _ in self.trait_values)
 
     def __len__(self) -> int:

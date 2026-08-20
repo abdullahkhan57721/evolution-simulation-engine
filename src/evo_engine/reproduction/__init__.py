@@ -13,8 +13,8 @@ from evo_engine.reproduction.eligibility import (
 )
 from evo_engine.reproduction.investment import (
     FixedEnergyInvestment,
+    GeneticPhenotypeEnergyInvestment,
     ParentalInvestment,
-    PhenotypeEnergyInvestment,
 )
 from evo_engine.reproduction.parent_selection import (
     PairwiseMating,
@@ -33,6 +33,7 @@ __all__ = [
     "FixedBodyMassAtBirth",
     "FixedEnergyInvestment",
     "FractionOfAdultBodyMassAtBirth",
+    "GeneticPhenotypeEnergyInvestment",
     "MinimumEnergyEligibility",
     "OffspringBodyMassModel",
     "OffspringPlacement",
@@ -40,7 +41,6 @@ __all__ = [
     "ParentalInvestment",
     "ParentGroup",
     "ParentSelection",
-    "PhenotypeEnergyInvestment",
     "RandomParentLocation",
     "ReproductiveEligibility",
     "SingleParent",

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
+# Run ./scripts/docs --help to see common wrapper and raw tool commands.
 # Build MkDocs documentation in strict mode.
-# Any MkDocs warning causes this check to fail.
 #
 # Usage:
 #   ./scripts/docs
@@ -12,21 +12,45 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage:
+  ./scripts/docs
+  ./scripts/docs -v
+
+What this wrapper runs:
+  venv/bin/mkdocs build --strict --clean
+
+Most useful MkDocs commands:
+  venv/bin/mkdocs build                         # Build documentation
+  venv/bin/mkdocs build --strict --clean        # Strict clean verification build
+  venv/bin/mkdocs serve                         # Run the local documentation server
+  venv/bin/mkdocs serve -a 127.0.0.1:8000       # Serve on an explicit local address
+
+Recommended verification command:
+  ./scripts/docs
+EOF
+    exit 0
+fi
+
 if [[ -x "$REPO_ROOT/venv/bin/mkdocs" ]]; then
     MKDOCS="$REPO_ROOT/venv/bin/mkdocs"
+elif [[ -x "$REPO_ROOT/.venv/bin/mkdocs" ]]; then
+    MKDOCS="$REPO_ROOT/.venv/bin/mkdocs"
 elif command -v mkdocs >/dev/null 2>&1; then
     MKDOCS="$(command -v mkdocs)"
 else
     echo "Error: MkDocs is not installed."
+    echo "Install your project's documentation dependencies first."
     exit 127
 fi
 
 if [[ ! -f "$REPO_ROOT/mkdocs.yml" && ! -f "$REPO_ROOT/mkdocs.yaml" ]]; then
-    echo "Error: no mkdocs.yml or mkdocs.yaml found in the repository root."
+    echo "Error: no mkdocs.yml or mkdocs.yaml found at the repository root."
     exit 2
 fi
 
-printf '%s\n' "======================================================================"
-printf '%s\n' "MKDOCS — STRICT DOCUMENTATION BUILD"
+printf '\n%s\n' "======================================================================"
+echo "MKDOCS — STRICT BUILD"
 printf '%s\n' "======================================================================"
 "$MKDOCS" build --strict --clean "$@"

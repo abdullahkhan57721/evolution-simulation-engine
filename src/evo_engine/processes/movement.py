@@ -19,7 +19,7 @@ class Movement:
 
     ``max_speed`` is interpreted as maximum Euclidean grid-distance per
     timestep. The process validates that every configured movement pattern
-    respects that phenotype-level capability before recording the event.
+    respects that genetically expressed capability before recording the event.
 
     Attributes:
         movement_pattern: Pattern used to choose movement displacements.
@@ -33,7 +33,7 @@ class Movement:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return phenotype traits required by movement and its policies."""
+        """Return genetic phenotype traits required by movement and its policies."""
         return frozenset({MAX_SPEED}) | collect_required_traits(
             self.movement_pattern,
             self.boundary_condition,
@@ -109,7 +109,7 @@ class Movement:
         world = simulation_state.world
 
         for organism in world.organisms.values():
-            max_speed = organism.phenotype.int_value(MAX_SPEED)
+            max_speed = organism.genetic_phenotype.int_value(MAX_SPEED)
             validators.validate_int_ge(
                 max_speed,
                 bound=0,

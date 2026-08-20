@@ -10,12 +10,12 @@ from evo_engine.engine import SimulationState
 from evo_engine.genetics import (
     Chromosome,
     GeneticArchitecture,
+    GeneticPhenotype,
     Genome,
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
     NoMutation,
-    Phenotype,
     Trait,
 )
 from evo_engine.world import Organism, WorldState
@@ -170,9 +170,9 @@ def add_organism(
     return organism
 
 
-def phenotype(**trait_values: int) -> Phenotype:
-    """Return a simple integer phenotype."""
-    return Phenotype(
+def genetic_phenotype(**trait_values: int) -> GeneticPhenotype:
+    """Return a simple integer genetic phenotype."""
+    return GeneticPhenotype(
         trait_values=tuple(trait_values.items()),
     )
 

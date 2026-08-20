@@ -12,11 +12,11 @@ from evo_engine.genetics.expression import ExpressionModel
 from evo_engine.genetics.genome import Genome
 from evo_engine.validation import validators
 
-PhenotypeT = TypeVar("PhenotypeT")
+TraitValueT = TypeVar("TraitValueT")
 
 
 @attrs.frozen(slots=True, kw_only=True)
-class Trait(Generic[PhenotypeT]):
+class Trait(Generic[TraitValueT]):
     """Define an expressed trait and its genetic contributors.
 
     Attributes:
@@ -27,7 +27,7 @@ class Trait(Generic[PhenotypeT]):
 
     name: str
     locus_names: tuple[str, ...]
-    expression: ExpressionModel[PhenotypeT]
+    expression: ExpressionModel[TraitValueT]
 
     def __attrs_post_init__(self) -> None:
         """Validate trait identity and locus references."""
@@ -73,7 +73,7 @@ class Trait(Generic[PhenotypeT]):
         if not callable(express):
             raise TypeError("expression must provide a callable express method.")
 
-    def express(self, genome: Genome) -> PhenotypeT:
+    def express(self, genome: Genome) -> TraitValueT:
         """Express this trait from an organism genome.
 
         Args:

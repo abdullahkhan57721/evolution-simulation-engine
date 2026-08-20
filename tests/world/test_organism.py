@@ -8,7 +8,7 @@ import pytest
 from attrs.exceptions import FrozenAttributeError
 
 from evo_engine.development import DevelopmentalProfile
-from evo_engine.genetics import Genome, Phenotype
+from evo_engine.genetics import GeneticPhenotype, Genome
 from evo_engine.world import Organism
 from tests.helpers import (
     make_diploid_genome,
@@ -48,8 +48,8 @@ def test_assign_id_rejects_invalid_ids(organism_id: object) -> None:
         organism._assign_id(organism_id)  # type: ignore[arg-type]
 
 
-def test_from_genome_expresses_phenotype() -> None:
-    """Test that from_genome derives phenotype from the architecture."""
+def test_from_genome_expresses_genetic_phenotype() -> None:
+    """Test that from_genome derives the genetic phenotype from the architecture."""
     architecture = make_integer_architecture("adult_body_mass")
     genome = make_diploid_genome(
         architecture,
@@ -62,10 +62,10 @@ def test_from_genome_expresses_phenotype() -> None:
     )
 
     assert organism.genome is genome
-    assert organism.phenotype["adult_body_mass"] == 8
+    assert organism.genetic_phenotype["adult_body_mass"] == 8
 
 
-def test_genome_and_phenotype_are_frozen_on_organism() -> None:
+def test_genome_and_genetic_phenotype_are_frozen_on_organism() -> None:
     """Test that lifetime genetic state cannot be replaced directly."""
     organism = make_organism()
 
@@ -73,10 +73,22 @@ def test_genome_and_phenotype_are_frozen_on_organism() -> None:
         organism.genome = Genome(chromosomes=())
 
     with pytest.raises(FrozenAttributeError):
-        organism.phenotype = Phenotype(trait_values=())
+        organism.genetic_phenotype = GeneticPhenotype(trait_values=())
 
     with pytest.raises(FrozenAttributeError):
         organism.developmental_profile = DevelopmentalProfile(target_values=())
+
+
+def test_organism_rejects_developmental_profile_with_changed_trait_set() -> None:
+    """Test an organism cannot store mismatched genetic/developmental traits."""
+    with pytest.raises(ValueError, match="complete ordered trait set"):
+        Organism(
+            genome=Genome(chromosomes=()),
+            genetic_phenotype=GeneticPhenotype(
+                trait_values=(("adult_body_mass", 8),),
+            ),
+            developmental_profile=DevelopmentalProfile(target_values=()),
+        )
 
 
 def test_age_step_increments_age() -> None:
@@ -126,7 +138,7 @@ def test_deepcopy_shares_immutable_genetics() -> None:
         age=2,
         energy=30,
         genome=make_empty_genome(),
-        phenotype=architecture.express(make_empty_genome()),
+        genetic_phenotype=architecture.express(make_empty_genome()),
         developmental_profile=DevelopmentalProfile(target_values=()),
         x=1,
         y=2,
@@ -137,7 +149,7 @@ def test_deepcopy_shares_immutable_genetics() -> None:
 
     assert copied is not organism
     assert copied.genome is organism.genome
-    assert copied.phenotype is organism.phenotype
+    assert copied.genetic_phenotype is organism.genetic_phenotype
     assert copied.developmental_profile is organism.developmental_profile
     assert copied.id == organism.id
 
@@ -157,11 +169,11 @@ def test_from_genome_initializes_current_mass_from_adult_mass_trait() -> None:
     )
 
     assert organism.body_mass == 8
-    assert organism.phenotype["adult_body_mass"] == 8
+    assert organism.genetic_phenotype["adult_body_mass"] == 8
 
 
 def test_current_body_mass_can_differ_from_heritable_adult_target() -> None:
-    """Test mutable developmental state is separate from fixed phenotype."""
+    """Test mutable physical state is separate from the fixed genetic phenotype."""
     architecture = make_integer_architecture("adult_body_mass")
     organism = make_organism(
         genetic_architecture=architecture,
@@ -172,7 +184,7 @@ def test_current_body_mass_can_differ_from_heritable_adult_target() -> None:
     organism.body_mass = 5
 
     assert organism.body_mass == 5
-    assert organism.phenotype["adult_body_mass"] == 12
+    assert organism.genetic_phenotype["adult_body_mass"] == 12
 
 
 def test_deepcopy_copies_current_mass_independently() -> None:
@@ -187,7 +199,7 @@ def test_deepcopy_copies_current_mass_independently() -> None:
     assert organism.body_mass == 4
     assert copied.body_mass == 7
     assert copied.genome is organism.genome
-    assert copied.phenotype is organism.phenotype
+    assert copied.genetic_phenotype is organism.genetic_phenotype
     assert copied.developmental_profile is organism.developmental_profile
 
 
@@ -224,7 +236,7 @@ def test_from_genome_can_realize_developmental_target() -> None:
         rng=random.Random(1),
     )
 
-    assert organism.phenotype[ADULT_BODY_MASS] == 20
+    assert organism.genetic_phenotype[ADULT_BODY_MASS] == 20
     assert organism.developmental_profile[ADULT_BODY_MASS] == 23
     assert organism.body_mass == 23
 

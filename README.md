@@ -46,7 +46,7 @@ Organisms separate inherited genetic state from developmental realization:
 ```text
 Genome
     → GeneticArchitecture
-        → Phenotype                 genetic expectation
+        → GeneticPhenotype          genetic expectation
             → DevelopmentModel
                 → DevelopmentalProfile   individual target values
                     → mutable organism state
@@ -73,6 +73,11 @@ been resolved, so rejected mating candidates consume no developmental RNG.
 
 ## Development
 
+A `DevelopmentModel` may change trait values, but it must preserve the complete
+ordered trait-name sequence from `GeneticPhenotype` into `DevelopmentalProfile`.
+This invariant is checked whenever development is realized and whenever an
+`Organism` is constructed.
+
 Install the project and development tools into the project virtual
 environment:
 
@@ -86,8 +91,15 @@ Run the active tests:
 python -m pytest
 ```
 
-Run the complete quality gate (Ruff safe fixes/formatting, Ruff verification,
-Pyright, Complexipy cognitive complexity, pytest, and MkDocs):
+Apply safe Ruff fixes and formatting when desired:
+
+```bash
+./scripts/fix
+```
+
+Run the complete quality gate (Ruff lint/format verification, Pyright, Import
+Linter when configured, Complexipy cognitive complexity, pytest with line and
+branch coverage, and MkDocs):
 
 ```bash
 ./scripts/check_all

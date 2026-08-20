@@ -7,6 +7,7 @@ from typing import Any
 
 import attrs
 
+from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.validation import validators
 
 
@@ -14,8 +15,8 @@ from evo_engine.validation import validators
 class DevelopmentalProfile(Mapping[str, Any]):
     """Represent immutable organism-specific developmental target values.
 
-    A phenotype stores values expressed deterministically from a genome under
-    a genetic architecture. A developmental profile stores the realized
+    A genetic phenotype stores values expressed deterministically from a genome
+    under a genetic architecture. A developmental profile stores the realized
     individual targets produced from those values after developmental and
     environmental variation is applied.
 
@@ -63,6 +64,36 @@ class DevelopmentalProfile(Mapping[str, Any]):
                 )
 
             target_names.add(target_name)
+
+    def validate_against(self, genetic_phenotype: GeneticPhenotype) -> None:
+        """Validate preservation of the genetic phenotype's ordered trait set.
+
+        Development may change trait values, but a ``DevelopmentModel`` must
+        return exactly one developmental target for every genetically expressed
+        trait and preserve the original trait order.
+
+        Args:
+            genetic_phenotype: Genetic phenotype whose traits were developed.
+
+        Raises:
+            TypeError: If genetic_phenotype is not a GeneticPhenotype.
+            ValueError: If this profile adds, removes, or reorders traits.
+        """
+        if not isinstance(genetic_phenotype, GeneticPhenotype):
+            raise TypeError(
+                "genetic_phenotype must be an instance of GeneticPhenotype."
+            )
+
+        expected_trait_names = tuple(genetic_phenotype)
+        actual_target_names = tuple(self)
+
+        if actual_target_names != expected_trait_names:
+            raise ValueError(
+                "developmental profile must preserve the complete ordered "
+                "trait set from the genetic phenotype; "
+                f"expected {expected_trait_names!r}, received "
+                f"{actual_target_names!r}."
+            )
 
     def __getitem__(self, target_name: str) -> Any:
         """Return a developmental target by name.

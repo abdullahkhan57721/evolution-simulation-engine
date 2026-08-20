@@ -1,4 +1,4 @@
-"""Tests for canonical trait names and phenotype dependency declarations."""
+"""Tests for canonical trait names and genetic phenotype dependency declarations."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from evo_engine.genetics.requirements import validate_required_traits
 
 
 def test_builtin_trait_catalog_contains_core_traits() -> None:
-    """Test the canonical vocabulary exposes foundational phenotype names."""
+    """Test the canonical vocabulary exposes foundational genetic phenotype names."""
     assert ADULT_BODY_MASS in BUILTIN_TRAITS
     assert MAX_SPEED in BUILTIN_TRAITS
     assert OFFSPRING_ENERGY in BUILTIN_TRAITS
@@ -33,7 +33,7 @@ def test_builtin_trait_names_are_unique_nonblank_strings() -> None:
 
 
 class RequiresSpeed:
-    """Test provider declaring one phenotype dependency."""
+    """Test provider declaring one genetic phenotype dependency."""
 
     @property
     def required_traits(self) -> frozenset[str]:
@@ -42,7 +42,7 @@ class RequiresSpeed:
 
 
 class RequiresMassAndSpeed:
-    """Test provider declaring two phenotype dependencies."""
+    """Test provider declaring two genetic phenotype dependencies."""
 
     @property
     def required_traits(self) -> frozenset[str]:

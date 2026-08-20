@@ -140,7 +140,7 @@ def test_simulation_engine_runs_until_stopping_condition() -> None:
 
 
 def test_simulation_engine_rejects_missing_process_trait_before_step_zero() -> None:
-    """Test phenotype dependencies fail fast before simulation execution."""
+    """Test genetic phenotype dependencies fail fast before simulation execution."""
     from evo_engine.energetics import FixedLocomotionCost
     from evo_engine.genetics import MAX_SPEED
     from evo_engine.processes import Movement

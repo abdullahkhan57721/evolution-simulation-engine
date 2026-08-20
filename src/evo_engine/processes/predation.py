@@ -53,7 +53,7 @@ class Predation:
         can_predate: Function determining whether a predator may consume prey.
         preference_function: Function returning an integer preference score
             for a predator-prey pairing.
-        required_traits: Phenotype traits read by custom predation callbacks.
+        required_traits: Genetic phenotype traits read by custom predation callbacks.
     """
 
     neighborhood: Neighborhood
@@ -76,7 +76,7 @@ class Predation:
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate explicitly declared phenotype dependencies."""
+        """Validate explicitly declared genetic phenotype dependencies."""
         validate_required_traits(
             self.required_traits,
             name="required_traits",

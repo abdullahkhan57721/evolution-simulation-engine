@@ -13,12 +13,12 @@ from evo_engine.genetics import (
     Chromosome,
     CompleteDominanceExpression,
     GeneticArchitecture,
+    GeneticPhenotype,
     Genome,
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
     NoMutation,
-    Phenotype,
     Trait,
 )
 from tests.helpers import (
@@ -272,9 +272,9 @@ def test_architecture_expresses_all_traits_in_configured_order() -> None:
     )
 
 
-def test_phenotype_behaves_as_immutable_mapping() -> None:
+def test_genetic_phenotype_behaves_as_immutable_mapping() -> None:
     """Test phenotype lookup, iteration, and integer convenience access."""
-    phenotype = Phenotype(
+    phenotype = GeneticPhenotype(
         trait_values=(
             ("adult_body_mass", 10),
             ("color", "A"),

@@ -25,7 +25,7 @@ class WeightedShare:
     Attributes:
         weight_function: Function returning a nonnegative integer allocation
             weight for an organism.
-        required_traits: Phenotype traits read by the custom weight function.
+        required_traits: Genetic phenotype traits read by the custom weight function.
     """
 
     weight_function: Callable[
@@ -37,7 +37,7 @@ class WeightedShare:
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate explicitly declared phenotype dependencies."""
+        """Validate explicitly declared genetic phenotype dependencies."""
         validate_required_traits(
             self.required_traits,
             name="required_traits",

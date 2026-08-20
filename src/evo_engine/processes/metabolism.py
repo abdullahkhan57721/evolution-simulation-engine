@@ -26,7 +26,7 @@ class Metabolism:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return phenotype traits required by the configured cost model."""
+        """Return genetic phenotype traits required by the configured cost model."""
         return collect_required_traits(self.cost_model)
 
     @property

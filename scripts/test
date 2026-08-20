@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Run the full pytest suite with useful reporting and strict configuration checks.
+# Run ./scripts/test --help to see common wrapper and raw tool commands.
+# Run the normal pytest correctness suite with strict configuration checking.
 #
 # Usage:
 #   ./scripts/test
@@ -12,23 +13,50 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage:
+  ./scripts/test
+  ./scripts/test tests/test_organism.py
+  ./scripts/test -k energy
+
+What this wrapper runs:
+  venv/bin/python -m pytest -ra --strict-config --strict-markers
+
+Most useful pytest commands:
+  venv/bin/python -m pytest                              # Run all tests
+  venv/bin/python -m pytest -q                           # Quieter output
+  venv/bin/python -m pytest -vv                          # More verbose test names
+  venv/bin/python -m pytest tests/test_organism.py       # Run one test file
+  venv/bin/python -m pytest -k energy                    # Run tests matching an expression
+  venv/bin/python -m pytest -x                           # Stop after first failure
+  venv/bin/python -m pytest --lf                         # Rerun last failures first
+
+Recommended normal command:
+  ./scripts/test
+EOF
+    exit 0
+fi
+
 if [[ -x "$REPO_ROOT/venv/bin/python" ]]; then
     PYTHON="$REPO_ROOT/venv/bin/python"
+elif [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
+    PYTHON="$REPO_ROOT/.venv/bin/python"
 elif command -v python3 >/dev/null 2>&1; then
     PYTHON="$(command -v python3)"
-elif command -v python >/dev/null 2>&1; then
-    PYTHON="$(command -v python)"
 else
     echo "Error: Python is not available."
     exit 127
 fi
 
 if ! "$PYTHON" -c 'import pytest' >/dev/null 2>&1; then
-    echo "Error: pytest is not installed for: $PYTHON"
+    echo "Error: pytest is not installed in the selected Python environment."
+    echo "Install it with:"
+    echo "  venv/bin/python -m pip install pytest"
     exit 127
 fi
 
-printf '%s\n' "======================================================================"
-printf '%s\n' "PYTEST — TEST SUITE"
+printf '\n%s\n' "======================================================================"
+echo "PYTEST — CORRECTNESS SUITE"
 printf '%s\n' "======================================================================"
 "$PYTHON" -m pytest -ra --strict-config --strict-markers "$@"

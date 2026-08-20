@@ -1,5 +1,24 @@
 #!/usr/bin/env bash
-# Apply safe automated fixes, then run the repository's full quality suite.
+# Run ./scripts/check_all --help to see common wrapper and raw tool commands.
+# Run the repository's routine full quality suite.
+#
+# Runs every check even after failures and summarizes results at the end.
+# By default, pauses after each check so you can review its output before continuing.
+# Diagnostics that are intentionally excluded because they are slow/on-demand:
+#   diagrams, benchmark, profile, memory, mutation
+#
+# Current routine checks:
+#   1. Ruff lint + formatting verification
+#   2. Pyright static type checking
+#   3. Import Linter architecture contracts (SKIP until configured)
+#   4. Complexipy cognitive complexity + threshold gate
+#   5. pytest with line + branch coverage
+#   6. MkDocs strict documentation build
+#
+# Usage:
+#   ./scripts/check_all
+#   ./scripts/check_all --no-pause
+#   COVERAGE_FAIL_UNDER=90 ./scripts/check_all
 
 set -uo pipefail
 
@@ -7,59 +26,151 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage:
+  ./scripts/check_all
+  ./scripts/check_all --no-pause
+  COVERAGE_FAIL_UNDER=90 ./scripts/check_all
+
+Default behavior:
+  Runs all six routine checks.
+  After each check finishes, pauses so you can review the output.
+  Press Enter when you are ready to continue to the next check.
+
+Options:
+  --no-pause    Run all checks continuously without interactive pauses.
+  -h, --help    Show this help.
+
+Routine quality gates run by check_all:
+  ./scripts/lint
+  ./scripts/typecheck
+  ./scripts/architecture
+  ./scripts/complexity
+  ./scripts/coverage
+  ./scripts/docs
+
+Useful individual commands:
+  ./scripts/lint --help
+  ./scripts/typecheck --help
+  ./scripts/test --help
+  ./scripts/coverage --help
+  ./scripts/architecture --help
+  ./scripts/complexity --help
+  ./scripts/docs --help
+
+On-demand diagnostics not run by check_all:
+  ./scripts/diagrams --help
+  ./scripts/benchmark --help
+  ./scripts/profile --help
+  ./scripts/memory --help
+  ./scripts/mutation --help
+
+Typical workflow:
+  venv/bin/ruff check . --fix && venv/bin/ruff format .
+  ./scripts/check_all
+
+For CI/non-interactive use:
+  ./scripts/check_all --no-pause
+EOF
+    exit 0
+fi
+
+pause_between_checks=1
+if [[ "${1:-}" == "--no-pause" ]]; then
+    pause_between_checks=0
+    shift
+elif [[ $# -gt 0 ]]; then
+    echo "Error: unknown argument: $1" >&2
+    echo "Run ./scripts/check_all --help for usage." >&2
+    exit 2
+fi
+
 separator() {
     printf '\n%s\n' "========================================================================"
+}
+
+pause_for_review() {
+    next_label="$1"
+
+    if [[ $pause_between_checks -eq 0 ]]; then
+        return
+    fi
+
+    printf '\n%s\n' "------------------------------------------------------------------------"
+    printf 'Review the output above. Press Enter when you are ready for %s...' "$next_label"
+    IFS= read -r _
 }
 
 run_check() {
     check_name="$1"
     check_script="$2"
+    result_var="$3"
 
     separator
     printf '%s\n' "$check_name"
     printf '%s\n' "========================================================================"
 
     "$check_script"
-    exit_code=$?
+    status=$?
 
-    if [[ $exit_code -eq 0 ]]; then
-        printf -v "$3" '%s' "PASS"
+    if [[ $status -eq 0 ]]; then
+        printf -v "$result_var" '%s' "PASS"
+    elif [[ $status -eq 3 ]]; then
+        printf -v "$result_var" '%s' "SKIP"
+        skips=$((skips + 1))
     else
-        printf -v "$3" '%s' "FAIL ($exit_code)"
+        printf -v "$result_var" '%s' "FAIL ($status)"
         failures=$((failures + 1))
     fi
 }
 
 failures=0
-fix_result=""
+skips=0
 ruff_result=""
 pyright_result=""
+architecture_result=""
 complexity_result=""
-pytest_result=""
+coverage_result=""
 docs_result=""
 
-run_check "1/6 — RUFF SAFE FIXES + FORMAT" "$SCRIPT_DIR/fix" fix_result
-run_check "2/6 — RUFF VERIFICATION" "$SCRIPT_DIR/lint" ruff_result
-run_check "3/6 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
+run_check "1/6 — RUFF" "$SCRIPT_DIR/lint" ruff_result
+pause_for_review "2/6 — PYRIGHT"
+
+run_check "2/6 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
+pause_for_review "3/6 — IMPORT LINTER"
+
+run_check "3/6 — IMPORT LINTER" "$SCRIPT_DIR/architecture" architecture_result
+pause_for_review "4/6 — COMPLEXIPY"
+
 run_check "4/6 — COMPLEXIPY" "$SCRIPT_DIR/complexity" complexity_result
-run_check "5/6 — PYTEST" "$SCRIPT_DIR/test" pytest_result
+pause_for_review "5/6 — PYTEST + COVERAGE"
+
+run_check "5/6 — PYTEST + COVERAGE" "$SCRIPT_DIR/coverage" coverage_result
+pause_for_review "6/6 — MKDOCS"
+
 run_check "6/6 — MKDOCS" "$SCRIPT_DIR/docs" docs_result
+pause_for_review "the final summary"
 
 separator
 printf '%s\n' "CHECK_ALL — FINAL SUMMARY"
 printf '%s\n' "========================================================================"
-printf '%-16s %s\n' "Ruff fixes" "$fix_result"
-printf '%-16s %s\n' "Ruff verify" "$ruff_result"
-printf '%-16s %s\n' "Pyright" "$pyright_result"
-printf '%-16s %s\n' "Complexipy" "$complexity_result"
-printf '%-16s %s\n' "pytest" "$pytest_result"
-printf '%-16s %s\n' "MkDocs" "$docs_result"
+printf '%-20s %s\n' "Ruff" "$ruff_result"
+printf '%-20s %s\n' "Pyright" "$pyright_result"
+printf '%-20s %s\n' "Import Linter" "$architecture_result"
+printf '%-20s %s\n' "Complexipy" "$complexity_result"
+printf '%-20s %s\n' "pytest + coverage" "$coverage_result"
+printf '%-20s %s\n' "MkDocs" "$docs_result"
 printf '%s\n' "------------------------------------------------------------------------"
 
 if [[ $failures -eq 0 ]]; then
-    echo "ALL CHECKS PASSED"
+    if [[ $skips -gt 0 ]]; then
+        echo "ALL CONFIGURED CHECKS PASSED ($skips SKIPPED)"
+    else
+        echo "ALL CHECKS PASSED"
+    fi
     exit 0
 fi
 
-echo "$failures CHECK(S) FAILED"
+echo "$failures CHECK(S) FAILED; $skips SKIPPED"
 exit 1

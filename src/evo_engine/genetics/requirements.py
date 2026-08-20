@@ -1,4 +1,4 @@
-"""Phenotype-trait dependency declarations and aggregation helpers."""
+"""Genetic phenotype trait dependency declarations and aggregation helpers."""
 
 from __future__ import annotations
 
@@ -9,11 +9,11 @@ from evo_engine.validation import validators
 
 @runtime_checkable
 class TraitRequirementProvider(Protocol):
-    """Expose phenotype traits required by a configured component."""
+    """Expose genetic phenotype traits required by a configured component."""
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return phenotype trait names required by the component."""
+        """Return genetic phenotype trait names required by the component."""
         ...
 
 
@@ -22,7 +22,7 @@ def validate_required_traits(
     *,
     name: str = "required_traits",
 ) -> frozenset[str]:
-    """Return validated phenotype-trait requirements.
+    """Return validated genetic phenotype trait requirements.
 
     Args:
         required_traits: Required trait-name collection.
@@ -71,7 +71,7 @@ def collect_required_traits(*components: object) -> frozenset[str]:
         components: Configured engine components or policies.
 
     Returns:
-        Union of all declared phenotype trait names.
+        Union of all declared genetic phenotype trait names.
     """
     required_traits: set[str] = set()
 
