@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from evo_engine.development import DevelopmentalProfile
-from evo_engine.energetics import LinearGrowthCost
+from evo_engine.energetics import GrowthCostModel, LinearGrowthCost
 from evo_engine.engine import SimulationState
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
-from evo_engine.growth import FixedGrowthRate
+from evo_engine.growth import FixedGrowthRate, GrowthModel
 from evo_engine.processes import Growth
 from evo_engine.world import Organism
 from tests.helpers import (
@@ -165,10 +167,13 @@ def test_growth_requires_full_energy_cost() -> None:
         energy=5,
     )
 
-    assert _growth(
-        gain=3,
-        energy_per_unit=2,
-    ).propose_events(state) == []
+    assert (
+        _growth(
+            gain=3,
+            energy_per_unit=2,
+        ).propose_events(state)
+        == []
+    )
 
 
 def test_growth_allows_exact_energy_expenditure() -> None:
@@ -302,7 +307,10 @@ def test_growth_rejects_invalid_growth_model_return(returned_gain: object) -> No
         body_mass=10,
     )
     process = Growth(
-        growth_model=InvalidGrowthModel(),
+        growth_model=cast(
+            GrowthModel,
+            InvalidGrowthModel(),
+        ),
         growth_cost_model=LinearGrowthCost(
             energy_per_body_mass_unit=1,
         ),
@@ -346,7 +354,10 @@ def test_growth_rejects_invalid_cost_model_return(returned_cost: object) -> None
         growth_model=FixedGrowthRate(
             amount_per_timestep=1,
         ),
-        growth_cost_model=InvalidCostModel(),
+        growth_cost_model=cast(
+            GrowthCostModel,
+            InvalidCostModel(),
+        ),
     )
 
     with pytest.raises((TypeError, ValueError)):
