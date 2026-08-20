@@ -6,7 +6,7 @@ import pytest
 
 from evo_engine.development import DevelopmentalProfile
 from evo_engine.energetics import LinearGrowthCost
-from evo_engine.genetics import GeneticPhenotype
+from evo_engine.engine import SimulationState
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
 from evo_engine.growth import FixedGrowthRate
 from evo_engine.processes import Growth
@@ -25,7 +25,7 @@ def _add_developmentally_varied_organism(
     developmental_adult_mass: int,
     body_mass: int,
     energy: int = 100,
-) -> tuple[object, Organism]:
+) -> tuple[SimulationState, Organism]:
     architecture = make_integer_architecture(ADULT_BODY_MASS)
     state = make_state(
         genetic_architecture=architecture,
