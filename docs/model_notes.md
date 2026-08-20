@@ -43,6 +43,41 @@ Every `DevelopmentModel` must preserve the complete ordered trait-name sequence
 from `GeneticPhenotype` into `DevelopmentalProfile`; development may change values
 but cannot add, remove, or reorder traits.
 
+### Growth
+
+Growth operates on mutable current `Organism.body_mass` while treating the
+corresponding `DevelopmentalProfile` value as an immutable individual target.
+This preserves the separation between inherited expectation, developmental
+realization, and lifetime physical state:
+
+```text
+Genome
+    → GeneticArchitecture
+        → GeneticPhenotype
+            → DevelopmentModel
+                → DevelopmentalProfile
+                    → GrowthModel
+                        → current body_mass
+```
+
+`GrowthModel` determines potential mass gain. The `Growth` process caps that
+gain at the developmental target before asking a `GrowthCostModel` to price the
+actual gain. The initial affordability policy is all-or-nothing: if the full
+capped gain is unaffordable, no Growth event is proposed.
+
+Growth is an energetic process but not a mortality process. An organism may
+spend its final energy on growth and reach `energy == 0`; a later `Starvation`
+stage is responsible for removing it. Because starvation derives carcass
+resource units from current body mass, any successfully grown mass is preserved
+in the resulting carcass.
+
+Energy-consuming processes placed in the same stage all propose from the same
+pre-stage energy state. Growth therefore rechecks affordability when applying a
+resolved event. If another same-stage event has already spent the required
+energy, Growth raises instead of adding unpaid tissue. Under
+`SequentialStepCoordinator`, that failure occurs on the transactional working
+copy, leaving the authoritative state unchanged.
+
 ### Inheritance
 
 The genetics subsystem currently supports:
