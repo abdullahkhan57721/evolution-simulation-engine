@@ -11,8 +11,28 @@ from evo_engine.development import (
     DevelopmentalProfile,
     GaussianIntegerDevelopment,
     IndependentDevelopment,
+    realize_developmental_profile,
 )
-from evo_engine.genetics import ADULT_BODY_MASS, MAX_SPEED, Phenotype
+from evo_engine.genetics import ADULT_BODY_MASS, MAX_SPEED, GeneticPhenotype
+
+
+class _StaticDevelopmentModel:
+    """Return a preconfigured developmental profile for contract tests."""
+
+    required_traits = frozenset()
+
+    def __init__(self, profile: DevelopmentalProfile) -> None:
+        self.profile = profile
+
+    def develop(
+        self,
+        genetic_phenotype: GeneticPhenotype,
+        *,
+        rng: random.Random,
+        simulation_state=None,
+    ) -> DevelopmentalProfile:
+        """Return the preconfigured profile regardless of trait values."""
+        return self.profile
 
 
 def test_developmental_profile_is_mapping() -> None:
@@ -43,9 +63,9 @@ def test_developmental_profile_rejects_duplicate_names() -> None:
         )
 
 
-def test_deterministic_development_copies_phenotype() -> None:
+def test_deterministic_development_copies_genetic_phenotype() -> None:
     """Test the null developmental model preserves genetic values."""
-    phenotype = Phenotype(
+    genetic_phenotype = GeneticPhenotype(
         trait_values=(
             (ADULT_BODY_MASS, 20),
             (MAX_SPEED, 3),
@@ -53,11 +73,65 @@ def test_deterministic_development_copies_phenotype() -> None:
     )
 
     profile = DeterministicDevelopment().develop(
-        phenotype,
+        genetic_phenotype,
         rng=random.Random(1),
     )
 
-    assert profile.target_values == phenotype.trait_values
+    assert profile.target_values == genetic_phenotype.trait_values
+
+
+def test_realize_developmental_profile_preserves_complete_ordered_trait_set() -> None:
+    """Test development may change values while preserving trait identity/order."""
+    genetic_phenotype = GeneticPhenotype(
+        trait_values=(
+            (ADULT_BODY_MASS, 20),
+            (MAX_SPEED, 3),
+        ),
+    )
+    expected = DevelopmentalProfile(
+        target_values=(
+            (ADULT_BODY_MASS, 23),
+            (MAX_SPEED, 4),
+        ),
+    )
+
+    result = realize_developmental_profile(
+        _StaticDevelopmentModel(expected),
+        genetic_phenotype,
+        rng=random.Random(1),
+    )
+
+    assert result is expected
+
+
+@pytest.mark.parametrize(
+    "target_values",
+    [
+        ((ADULT_BODY_MASS, 23),),
+        ((ADULT_BODY_MASS, 23), (MAX_SPEED, 4), ("extra_trait", 1)),
+        ((MAX_SPEED, 4), (ADULT_BODY_MASS, 23)),
+    ],
+)
+def test_realize_developmental_profile_rejects_changed_trait_set_or_order(
+    target_values: tuple[tuple[str, int], ...],
+) -> None:
+    """Test development cannot add, remove, or reorder genetic traits."""
+    genetic_phenotype = GeneticPhenotype(
+        trait_values=(
+            (ADULT_BODY_MASS, 20),
+            (MAX_SPEED, 3),
+        ),
+    )
+    model = _StaticDevelopmentModel(
+        DevelopmentalProfile(target_values=target_values),
+    )
+
+    with pytest.raises(ValueError, match="complete ordered trait set"):
+        realize_developmental_profile(
+            model,
+            genetic_phenotype,
+            rng=random.Random(1),
+        )
 
 
 def test_gaussian_integer_development_is_seed_reproducible() -> None:
@@ -100,8 +174,8 @@ def test_gaussian_integer_development_clamps_bounds() -> None:
 
 
 def test_independent_development_varies_only_configured_traits() -> None:
-    """Test unconfigured phenotype traits remain deterministic."""
-    phenotype = Phenotype(
+    """Test unconfigured genetic phenotype traits remain deterministic."""
+    genetic_phenotype = GeneticPhenotype(
         trait_values=(
             (ADULT_BODY_MASS, 20),
             (MAX_SPEED, 3),
@@ -120,7 +194,7 @@ def test_independent_development_varies_only_configured_traits() -> None:
     )
 
     profile = model.develop(
-        phenotype,
+        genetic_phenotype,
         rng=random.Random(1),
     )
 
@@ -144,6 +218,6 @@ def test_independent_development_rejects_missing_configured_trait() -> None:
 
     with pytest.raises(KeyError):
         model.develop(
-            Phenotype(trait_values=()),
+            GeneticPhenotype(trait_values=()),
             rng=random.Random(1),
         )

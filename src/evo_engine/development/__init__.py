@@ -7,6 +7,7 @@ from evo_engine.development.models import (
     GaussianIntegerDevelopment,
     IndependentDevelopment,
     TraitDevelopmentModel,
+    realize_developmental_profile,
 )
 from evo_engine.development.profile import DevelopmentalProfile
 
@@ -18,4 +19,5 @@ __all__ = [
     "GaussianIntegerDevelopment",
     "IndependentDevelopment",
     "TraitDevelopmentModel",
+    "realize_developmental_profile",
 ]

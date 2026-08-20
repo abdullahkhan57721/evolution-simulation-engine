@@ -10,8 +10,13 @@ printf '%s\n' "Evolution Simulation Engine — Project Check"
 printf '%s\n' "==========================================="
 printf '\nProject root:\n%s\n\n' "$PROJECT_ROOT"
 
-./scripts/check_all
-exit_code=$?
+if [[ ! -x "$PROJECT_ROOT/scripts/check_all" ]]; then
+    echo "ERROR: scripts/check_all is missing or is not executable."
+    exit_code=1
+else
+    "$PROJECT_ROOT/scripts/check_all"
+    exit_code=$?
+fi
 
 printf '\n===========================================\n'
 if [[ $exit_code -eq 0 ]]; then

@@ -27,7 +27,7 @@ class Simulation:
 
         Raises:
             TypeError: If an input has an invalid type.
-            ValueError: If an initial organism's phenotype is inconsistent
+            ValueError: If an initial organism's genetic phenotype is inconsistent
                 with its genome under the supplied genetic architecture.
         """
         if not isinstance(initial_world_state, WorldState):
@@ -42,15 +42,15 @@ class Simulation:
         # simulation's authoritative mutable state.
         world = initial_world_state.copy()
 
-        # Phenotype is cached on each organism for fast ecological access.
+        # Genetic phenotype is cached on each organism for fast ecological access.
         # Validate the cache once at the simulation boundary so processes can
         # trust it for the rest of the run.
         for organism in world.organisms.values():
-            expected_phenotype = genetic_architecture.express(organism.genome)
+            expected_genetic_phenotype = genetic_architecture.express(organism.genome)
 
-            if organism.phenotype != expected_phenotype:
+            if organism.genetic_phenotype != expected_genetic_phenotype:
                 raise ValueError(
-                    f"Organism {organism.id} phenotype is inconsistent "
+                    f"Organism {organism.id} genetic phenotype is inconsistent "
                     "with its genome under the simulation's genetic "
                     "architecture."
                 )

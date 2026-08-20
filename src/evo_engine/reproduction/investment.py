@@ -34,18 +34,18 @@ class ParentalInvestment(Protocol):
 
 
 @attrs.frozen(slots=True, kw_only=True)
-class PhenotypeEnergyInvestment:
-    """Use an integer phenotype trait as each parent's energy investment.
+class GeneticPhenotypeEnergyInvestment:
+    """Use an integer genetic phenotype trait as each parent's energy investment.
 
     Attributes:
-        trait_name: Name of the phenotype trait specifying parental energy
+        trait_name: Name of the genetic phenotype trait specifying parental energy
             investment.
     """
 
     trait_name: str = OFFSPRING_ENERGY
 
     def __attrs_post_init__(self) -> None:
-        """Validate the phenotype trait name."""
+        """Validate the genetic phenotype trait name."""
         validators.validate_str(
             self.trait_name,
             name="trait_name",
@@ -56,7 +56,7 @@ class PhenotypeEnergyInvestment:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return the phenotype trait used for parental investment."""
+        """Return the genetic phenotype trait used for parental investment."""
         return frozenset({self.trait_name})
 
     def determine_investments(
@@ -65,7 +65,7 @@ class PhenotypeEnergyInvestment:
         *,
         simulation_state: SimulationState,
     ) -> tuple[int, ...]:
-        """Return each parent's expressed trait value as its investment.
+        """Return each parent's genetically expressed trait value as its investment.
 
         Args:
             parents: One or two reproductive parents.
@@ -75,16 +75,16 @@ class PhenotypeEnergyInvestment:
             Energy investments aligned with the parent tuple.
 
         Raises:
-            ValueError: If a configured phenotype value is negative.
+            ValueError: If a configured genetic phenotype value is negative.
         """
         investments = tuple(
-            parent.phenotype.int_value(self.trait_name) for parent in parents
+            parent.genetic_phenotype.int_value(self.trait_name) for parent in parents
         )
 
         for investment in investments:
             if investment < 0:
                 raise ValueError(
-                    f"phenotype trait {self.trait_name!r} must be "
+                    f"genetic phenotype trait {self.trait_name!r} must be "
                     "non-negative for parental investment."
                 )
 

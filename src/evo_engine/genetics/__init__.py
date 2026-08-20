@@ -43,6 +43,7 @@ from evo_engine.genetics.gamete_formation import (
     MeioticGameteFormation,
 )
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
+from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.inheritance import (
     ClonalInheritance,
@@ -56,7 +57,6 @@ from evo_engine.genetics.mutation import (
     NoMutation,
     UniformIntegerMutation,
 )
-from evo_engine.genetics.phenotype import Phenotype
 from evo_engine.genetics.recombination import (
     NoRecombination,
     RecombinationModel,
@@ -103,6 +103,7 @@ __all__ = [
     "GameteFormation",
     "GaussianIntegerMutation",
     "GeneticArchitecture",
+    "GeneticPhenotype",
     "Genome",
     "InheritanceModel",
     "IntegerAlleleDomain",
@@ -112,7 +113,6 @@ __all__ = [
     "MutationPolicy",
     "NoMutation",
     "NoRecombination",
-    "Phenotype",
     "RecombinationModel",
     "SexualInheritance",
     "SingleCrossoverRecombination",

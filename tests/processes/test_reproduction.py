@@ -146,7 +146,7 @@ def test_materialize_clonal_event_produces_genome_phenotype_and_location() -> No
 
     assert event.parent_ids == (parent.id,)
     assert event.initial_energy == 5
-    assert event.offspring_phenotype["adult_body_mass"] == 8
+    assert event.offspring_genetic_phenotype["adult_body_mass"] == 8
     assert (event.x, event.y) == (3, 4)
 
 
@@ -348,13 +348,13 @@ def test_default_reproduction_materializes_current_mass_from_adult_target() -> N
 def test_reproduction_declares_only_configured_policy_trait_dependencies() -> None:
     """Test trait requirements emerge from the chosen reproduction policies."""
     from evo_engine.genetics import ADULT_BODY_MASS, OFFSPRING_ENERGY
-    from evo_engine.reproduction import PhenotypeEnergyInvestment
+    from evo_engine.reproduction import GeneticPhenotypeEnergyInvestment
 
     default_process = Reproduction(
         eligibility=AlwaysEligible(),
         parent_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=PhenotypeEnergyInvestment(),
+        parental_investment=GeneticPhenotypeEnergyInvestment(),
     )
     fixed_process = Reproduction(
         eligibility=AlwaysEligible(),
@@ -428,13 +428,13 @@ def test_reproduction_materializes_development_after_genetic_expression() -> Non
         process.propose_events(state)[0],
     )
 
-    assert event.offspring_phenotype[ADULT_BODY_MASS] == 20
+    assert event.offspring_genetic_phenotype[ADULT_BODY_MASS] == 20
     assert event.offspring_developmental_profile[ADULT_BODY_MASS] == 23
     assert event.initial_body_mass == 11
 
     process.apply_event(state, event)
     offspring = state.world.organisms[1]
 
-    assert offspring.phenotype[ADULT_BODY_MASS] == 20
+    assert offspring.genetic_phenotype[ADULT_BODY_MASS] == 20
     assert offspring.developmental_profile[ADULT_BODY_MASS] == 23
     assert offspring.body_mass == 11

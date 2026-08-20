@@ -7,12 +7,13 @@ import attrs
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
+    realize_developmental_profile,
 )
 from evo_engine.development.profile import DevelopmentalProfile
 from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.inheritance import InheritanceModel
-from evo_engine.genetics.phenotype import Phenotype
 from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.reproduction.birth_mass import (
     AdultBodyMassAtBirth,
@@ -20,8 +21,8 @@ from evo_engine.reproduction.birth_mass import (
 )
 from evo_engine.reproduction.eligibility import ReproductiveEligibility
 from evo_engine.reproduction.investment import (
+    GeneticPhenotypeEnergyInvestment,
     ParentalInvestment,
-    PhenotypeEnergyInvestment,
 )
 from evo_engine.reproduction.parent_selection import ParentSelection
 from evo_engine.reproduction.placement import (
@@ -54,7 +55,7 @@ class Reproduction:
     chooses which competing proposals may occur.
 
     Resolved proposals are materialized before any stage event is applied.
-    Materialization performs inheritance, phenotype expression, and offspring
+    Materialization performs inheritance, genetic phenotype expression, and offspring
     placement. Application then only pays the recorded energy investments and
     inserts the already-defined offspring into the world.
 
@@ -75,7 +76,7 @@ class Reproduction:
     parent_selection: ParentSelection
     inheritance_model: InheritanceModel
     parental_investment: ParentalInvestment = attrs.field(
-        factory=PhenotypeEnergyInvestment,
+        factory=GeneticPhenotypeEnergyInvestment,
     )
     development_model: DevelopmentModel = attrs.field(
         factory=DeterministicDevelopment,
@@ -156,7 +157,7 @@ class Reproduction:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return phenotype traits required by reproduction policies."""
+        """Return genetic phenotype traits required by reproduction policies."""
         return collect_required_traits(
             self.eligibility,
             self.parent_selection,
@@ -313,9 +314,10 @@ class Reproduction:
         Attributes:
             proposal: Resolved proposal from which this event was materialized.
             offspring_genome: Fully determined offspring genome.
-            offspring_phenotype: Genetic phenotype expressed from the offspring genome.
+            offspring_genetic_phenotype: Genetic phenotype expressed from the
+                offspring genome.
             offspring_developmental_profile: Individual developmental targets
-                realized from the offspring phenotype.
+                realized from the offspring genetic phenotype.
             initial_body_mass: Current physical mass assigned at birth.
             x: Final offspring horizontal birth coordinate.
             y: Final offspring vertical birth coordinate.
@@ -327,8 +329,8 @@ class Reproduction:
         offspring_genome: Genome = attrs.field(
             validator=attrs.validators.instance_of(Genome),
         )
-        offspring_phenotype: Phenotype = attrs.field(
-            validator=attrs.validators.instance_of(Phenotype),
+        offspring_genetic_phenotype: GeneticPhenotype = attrs.field(
+            validator=attrs.validators.instance_of(GeneticPhenotype),
         )
         offspring_developmental_profile: DevelopmentalProfile = attrs.field(
             validator=attrs.validators.instance_of(DevelopmentalProfile),
@@ -507,7 +509,7 @@ class Reproduction:
     ) -> Reproduction.Event:
         """Materialize a resolved Reproduction proposal.
 
-        Inheritance, mutation, recombination, phenotype expression,
+        Inheritance, mutation, recombination, genetic phenotype expression,
         developmental realization, and random offspring placement happen here,
         after resolution but before any event
         in the stage is applied.
@@ -556,13 +558,14 @@ class Reproduction:
             rng=simulation_state.rng,
         )
 
-        offspring_phenotype = architecture.express(offspring_genome)
+        offspring_genetic_phenotype = architecture.express(offspring_genome)
 
         # Developmental variation is sampled only for resolved births, just
         # like inheritance and placement, so rejected proposals do not consume
         # random draws or create unused individual targets.
-        offspring_developmental_profile = self.development_model.develop(
-            offspring_phenotype,
+        offspring_developmental_profile = realize_developmental_profile(
+            self.development_model,
+            offspring_genetic_phenotype,
             rng=simulation_state.rng,
             simulation_state=simulation_state,
         )
@@ -587,7 +590,7 @@ class Reproduction:
         return self.Event(
             proposal=resolved_event,
             offspring_genome=offspring_genome,
-            offspring_phenotype=offspring_phenotype,
+            offspring_genetic_phenotype=offspring_genetic_phenotype,
             offspring_developmental_profile=(offspring_developmental_profile),
             initial_body_mass=initial_body_mass,
             x=x,
@@ -631,7 +634,7 @@ class Reproduction:
             energy=materialized_event.initial_energy,
             body_mass=materialized_event.initial_body_mass,
             genome=materialized_event.offspring_genome,
-            phenotype=materialized_event.offspring_phenotype,
+            genetic_phenotype=materialized_event.offspring_genetic_phenotype,
             developmental_profile=(materialized_event.offspring_developmental_profile),
             x=materialized_event.x,
             y=materialized_event.y,

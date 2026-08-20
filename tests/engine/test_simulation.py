@@ -6,7 +6,7 @@ import pytest
 
 from evo_engine.development import DevelopmentalProfile
 from evo_engine.engine import Simulation
-from evo_engine.genetics import Genome, Phenotype
+from evo_engine.genetics import GeneticPhenotype, Genome
 from evo_engine.world import Organism, WorldState
 from tests.helpers import (
     make_diploid_genome,
@@ -81,7 +81,7 @@ def test_simulation_rejects_invalid_world(initial_world_state: object) -> None:
         )
 
 
-def test_simulation_rejects_phenotype_inconsistent_with_architecture() -> None:
+def test_simulation_rejects_genetic_phenotype_inconsistent_with_architecture() -> None:
     """Test that initial organisms cannot carry stale expressed traits."""
     architecture = make_integer_architecture("adult_body_mass")
     genome = make_diploid_genome(
@@ -91,7 +91,7 @@ def test_simulation_rejects_phenotype_inconsistent_with_architecture() -> None:
     world = WorldState(width=2, height=2)
     organism = Organism(
         genome=genome,
-        phenotype=Phenotype(
+        genetic_phenotype=GeneticPhenotype(
             trait_values=(("adult_body_mass", 99),),
         ),
         developmental_profile=DevelopmentalProfile(
@@ -114,7 +114,7 @@ def test_simulation_accepts_empty_genetics() -> None:
     world.add_organism(
         Organism(
             genome=Genome(chromosomes=()),
-            phenotype=architecture.express(make_empty_genome()),
+            genetic_phenotype=architecture.express(make_empty_genome()),
             developmental_profile=DevelopmentalProfile(target_values=()),
         )
     )

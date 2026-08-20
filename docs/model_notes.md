@@ -12,9 +12,9 @@ ecological processes, and event-resolution policy.
 to continuation of the simulation. Dead organisms are removed. Ecologically
 relevant remains may persist as `Carcass` entities.
 
-### Genetics and phenotype
+### Genetics and genetic phenotype
 
-An organism carries a `Genome` and an expressed `Phenotype`.
+An organism carries a `Genome` and an expressed `GeneticPhenotype`.
 
 Shared `GeneticArchitecture` configuration defines:
 
@@ -27,7 +27,7 @@ alleles retain phase for segregation and recombination.
 
 ### Development
 
-`Phenotype` stores values expressed deterministically from the genome. A
+`GeneticPhenotype` stores values expressed deterministically from the genome. A
 `DevelopmentModel` then realizes an organism-specific `DevelopmentalProfile`.
 This keeps genetic inheritance separate from nonheritable developmental or
 environmental variation.
@@ -39,6 +39,9 @@ For example, a genome may express `adult_body_mass = 20`, while
 
 `IndependentDevelopment` allows different traits to use different
 developmental models while unconfigured traits pass through deterministically.
+Every `DevelopmentModel` must preserve the complete ordered trait-name sequence
+from `GeneticPhenotype` into `DevelopmentalProfile`; development may change values
+but cannot add, remove, or reorder traits.
 
 ### Inheritance
 

@@ -1,4 +1,4 @@
-"""Canonical names for commonly modeled heritable phenotype traits.
+"""Canonical names for commonly modeled heritable genetic phenotype traits.
 
 These constants provide a shared vocabulary for built-in engine policies. They
 are plain strings rather than an enum so simulations remain free to introduce

@@ -10,20 +10,20 @@ import attrs
 from evo_engine.genetics.allele import Allele
 from evo_engine.validation import validators
 
-PhenotypeT_co = TypeVar("PhenotypeT_co", covariant=True)
+TraitValueT_co = TypeVar("TraitValueT_co", covariant=True)
 AlleleValueT = TypeVar("AlleleValueT")
 
 AllelesByLocus = Mapping[str, tuple[Allele[Any], ...]]
 
 
-class ExpressionModel(Protocol[PhenotypeT_co]):
+class ExpressionModel(Protocol[TraitValueT_co]):
     """Define how genetic information is expressed as a trait value."""
 
     def express(
         self,
         *,
         alleles_by_locus: AllelesByLocus,
-    ) -> PhenotypeT_co:
+    ) -> TraitValueT_co:
         """Express a phenotypic trait value from locus alleles.
 
         Args:

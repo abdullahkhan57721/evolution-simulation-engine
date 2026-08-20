@@ -9,12 +9,13 @@ import attrs
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
+    realize_developmental_profile,
 )
 from evo_engine.development.profile import DevelopmentalProfile
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
+from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
-from evo_engine.genetics.phenotype import Phenotype
 from evo_engine.validation import attrs_validators, validators
 
 
@@ -28,17 +29,17 @@ class Organism:
     change during simulation.
 
     ``body_mass`` represents current physical mass. A heritable
-    ``adult_body_mass`` phenotype defines a genetic expectation, while the
-    developmental profile can realize an individual-specific adult target.
+    ``adult_body_mass`` genetic phenotype defines a genetic expectation, while
+    the developmental profile can realize an individual-specific adult target.
     Those concepts are intentionally separate so a Growth process can change
-    current mass without changing the organism's genotype or phenotype.
+    current mass without changing the organism's genome or genetic phenotype.
 
     Attributes:
         age: Organism age in simulation timesteps.
         energy: Current organism energy.
         body_mass: Current positive physical mass/biomass.
         genome: Inherited genetic state.
-        phenotype: Genetic trait values expressed from the genome.
+        genetic_phenotype: Genetic trait values expressed from the genome.
         developmental_profile: Individual developmental targets realized from
             the genetic phenotype.
         x: Horizontal world coordinate.
@@ -66,8 +67,8 @@ class Organism:
         validator=attrs.validators.instance_of(Genome),
         on_setattr=attrs.setters.frozen,
     )
-    phenotype: Phenotype = attrs.field(
-        validator=attrs.validators.instance_of(Phenotype),
+    genetic_phenotype: GeneticPhenotype = attrs.field(
+        validator=attrs.validators.instance_of(GeneticPhenotype),
         on_setattr=attrs.setters.frozen,
     )
     developmental_profile: DevelopmentalProfile = attrs.field(
@@ -83,16 +84,20 @@ class Organism:
         validator=attrs_validators.validate_int_ge(0),
     )
 
+    def __attrs_post_init__(self) -> None:
+        """Validate immutable genetic/developmental cross-field invariants."""
+        self.developmental_profile.validate_against(self.genetic_phenotype)
+
     def __deepcopy__(self, memo: dict[int, object]) -> Organism:
         """Return a deep copy while sharing immutable genetic state."""
-        # Genome and phenotype are frozen value objects, so sharing them is
-        # cheaper and just as safe as recursively copying them each timestep.
+        # Genome and genetic phenotype are frozen value objects, so sharing them
+        # is cheaper and just as safe as recursively copying them each timestep.
         copied = type(self)(
             age=self.age,
             energy=self.energy,
             body_mass=self.body_mass,
             genome=self.genome,
-            phenotype=self.phenotype,
+            genetic_phenotype=self.genetic_phenotype,
             developmental_profile=self.developmental_profile,
             x=self.x,
             y=self.y,
@@ -115,10 +120,11 @@ class Organism:
         x: int = 0,
         y: int = 0,
     ) -> Organism:
-        """Create an organism and express its phenotype from its genome.
+        """Create an organism and express its genetic phenotype from its genome.
 
-        When ``body_mass`` is omitted and the phenotype defines the canonical
-        ``adult_body_mass`` trait, current mass initially matches that target.
+        When ``body_mass`` is omitted and the genetic phenotype defines the
+        canonical ``adult_body_mass`` trait, current mass initially matches that
+        target.
         This preserves fixed-size behavior until a developmental model is
         configured. Genomes without that trait default to one mass unit.
 
@@ -139,14 +145,14 @@ class Organism:
             y: Initial vertical world coordinate.
 
         Returns:
-            Organism with a phenotype consistent with its genome.
+            Organism with a genetic phenotype consistent with its genome.
         """
         if not isinstance(genetic_architecture, GeneticArchitecture):
             raise TypeError(
                 "genetic_architecture must be an instance of GeneticArchitecture."
             )
 
-        phenotype = genetic_architecture.express(genome)
+        genetic_phenotype = genetic_architecture.express(genome)
 
         if development_model is None:
             development_model = DeterministicDevelopment()
@@ -158,8 +164,9 @@ class Organism:
                 raise TypeError("rng must be an instance of random.Random.")
             development_rng = rng
 
-        developmental_profile = development_model.develop(
-            phenotype,
+        developmental_profile = realize_developmental_profile(
+            development_model,
+            genetic_phenotype,
             rng=development_rng,
         )
 
@@ -180,7 +187,7 @@ class Organism:
             energy=energy,
             body_mass=body_mass,
             genome=genome,
-            phenotype=phenotype,
+            genetic_phenotype=genetic_phenotype,
             developmental_profile=developmental_profile,
             x=x,
             y=y,

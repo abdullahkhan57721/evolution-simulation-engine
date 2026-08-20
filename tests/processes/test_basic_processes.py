@@ -321,7 +321,7 @@ def test_starvation_removes_organism_and_creates_carcass() -> None:
 
 
 def test_movement_uses_expressed_max_speed() -> None:
-    """Test phenotype-driven movement capability."""
+    """Test genetic-phenotype-driven movement capability."""
     architecture = make_integer_architecture("max_speed")
     state = make_state(
         width=10,
@@ -415,7 +415,7 @@ def test_movement_rejects_pattern_that_exceeds_max_speed() -> None:
 
 
 def test_movement_rejects_negative_expressed_max_speed() -> None:
-    """Test the max-speed phenotype semantic invariant."""
+    """Test the max-speed genetic phenotype semantic invariant."""
     architecture = make_integer_architecture("max_speed")
     state = make_state(
         genetic_architecture=architecture,

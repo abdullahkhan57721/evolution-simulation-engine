@@ -9,10 +9,10 @@ import pytest
 from evo_engine.reproduction import (
     AlwaysEligible,
     FixedEnergyInvestment,
+    GeneticPhenotypeEnergyInvestment,
     MinimumEnergyEligibility,
     PairwiseMating,
     ParentGroup,
-    PhenotypeEnergyInvestment,
     RandomParentLocation,
     SingleParent,
 )
@@ -264,7 +264,7 @@ def test_phenotype_energy_investment_reads_each_parent_trait() -> None:
         trait_values={"offspring_energy": 12},
     )
 
-    assert PhenotypeEnergyInvestment().determine_investments(
+    assert GeneticPhenotypeEnergyInvestment().determine_investments(
         (
             first,
             second,
@@ -356,7 +356,7 @@ def test_fixed_body_mass_at_birth_requires_no_phenotype_trait() -> None:
 
 
 def test_pairwise_mating_exposes_explicit_custom_callback_dependencies() -> None:
-    """Test opaque mating callbacks can declare phenotype traits they read."""
+    """Test opaque mating callbacks can declare genetic phenotype traits they read."""
     from evo_engine.genetics import CHOOSINESS, MATING_SIGNAL
 
     policy = PairwiseMating(

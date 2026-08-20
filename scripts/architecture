@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# Run Import Linter architecture contracts when the project has them configured.
+#
+# Usage:
+#   ./scripts/architecture
+#
+# Exit status 3 means the check is intentionally skipped because no Import
+# Linter contracts are configured yet. scripts/check_all reports that as SKIP.
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'HELP'
+Usage:
+  ./scripts/architecture
+
+Runs Import Linter when architecture contracts are configured in either:
+  .importlinter
+  pyproject.toml ([tool.importlinter] or [tool.importlinter.contracts...])
+
+Exit status 3 means no contracts are configured yet, so check_all reports SKIP.
+HELP
+    exit 0
+fi
+
+if [[ $# -gt 0 ]]; then
+    echo "Error: architecture does not accept positional arguments." >&2
+    exit 2
+fi
+
+has_config=0
+if [[ -f "$REPO_ROOT/.importlinter" ]]; then
+    has_config=1
+elif [[ -f "$REPO_ROOT/pyproject.toml" ]] && \
+    grep -Eq '^\[tool\.importlinter(\]|[.])' "$REPO_ROOT/pyproject.toml"; then
+    has_config=1
+fi
+
+printf '\n%s\n' "======================================================================"
+echo "IMPORT LINTER — ARCHITECTURE CONTRACTS"
+printf '%s\n' "======================================================================"
+
+if [[ $has_config -eq 0 ]]; then
+    echo "SKIP: no Import Linter contracts are configured yet."
+    exit 3
+fi
+
+if [[ -x "$REPO_ROOT/venv/bin/lint-imports" ]]; then
+    LINT_IMPORTS="$REPO_ROOT/venv/bin/lint-imports"
+elif [[ -x "$REPO_ROOT/.venv/bin/lint-imports" ]]; then
+    LINT_IMPORTS="$REPO_ROOT/.venv/bin/lint-imports"
+elif command -v lint-imports >/dev/null 2>&1; then
+    LINT_IMPORTS="$(command -v lint-imports)"
+else
+    echo "Error: Import Linter is not installed."
+    echo "Install it with your project Python: python -m pip install import-linter"
+    exit 127
+fi
+
+"$LINT_IMPORTS"

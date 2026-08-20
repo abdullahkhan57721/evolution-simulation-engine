@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 import attrs
 
 from evo_engine.development.profile import DevelopmentalProfile
-from evo_engine.genetics.phenotype import Phenotype
+from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.requirements import validate_required_traits
 from evo_engine.validation import attrs_validators, validators
 
@@ -43,16 +43,20 @@ class TraitDevelopmentModel(Protocol[ValueT]):
 
 
 class DevelopmentModel(Protocol):
-    """Define how a genetic phenotype becomes a developmental profile."""
+    """Define how a genetic phenotype becomes a developmental profile.
+
+    Implementations may change trait values, but must preserve the complete
+    ordered trait-name sequence from the supplied ``GeneticPhenotype``.
+    """
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return phenotype traits required by the model."""
+        """Return genetic phenotype traits required by the model."""
         ...
 
     def develop(
         self,
-        phenotype: Phenotype,
+        genetic_phenotype: GeneticPhenotype,
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
@@ -60,14 +64,59 @@ class DevelopmentModel(Protocol):
         """Return organism-specific developmental targets.
 
         Args:
-            phenotype: Genetically expressed phenotype.
+            genetic_phenotype: Genetically expressed phenotype.
             rng: Simulation random-number generator.
             simulation_state: Optional state for environment-aware models.
 
         Returns:
-            Realized developmental profile.
+            Realized developmental profile with the same complete ordered
+                trait set as ``genetic_phenotype``.
         """
         ...
+
+
+def realize_developmental_profile(
+    development_model: DevelopmentModel,
+    genetic_phenotype: GeneticPhenotype,
+    *,
+    rng: random.Random,
+    simulation_state: SimulationState | None = None,
+) -> DevelopmentalProfile:
+    """Realize and validate developmental targets for a genetic phenotype.
+
+    This is the engine boundary for the ``DevelopmentModel`` invariant. A
+    development model may alter target values, but it may not add, remove, or
+    reorder traits relative to the genetic phenotype.
+
+    Args:
+        development_model: Model used to realize developmental targets.
+        genetic_phenotype: Genetically expressed trait values.
+        rng: Simulation random-number generator.
+        simulation_state: Optional state for environment-aware models.
+
+    Returns:
+        Validated developmental profile preserving the complete ordered trait
+        set from ``genetic_phenotype``.
+
+    Raises:
+        TypeError: If the model returns a non-DevelopmentalProfile value.
+        ValueError: If the returned profile changes the genetic phenotype's
+            trait names or order.
+    """
+    developmental_profile = development_model.develop(
+        genetic_phenotype,
+        rng=rng,
+        simulation_state=simulation_state,
+    )
+
+    if not isinstance(developmental_profile, DevelopmentalProfile):
+        raise TypeError(
+            "development_model.develop must return a DevelopmentalProfile; "
+            f"received {developmental_profile!r}."
+        )
+
+    developmental_profile.validate_against(genetic_phenotype)
+    return developmental_profile
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -101,7 +150,7 @@ class GaussianIntegerDevelopment:
     The Gaussian is centered on the genetically expressed value. The sampled
     result is rounded to the nearest integer and then clamped to optional
     inclusive bounds. This models nonheritable developmental variation; it
-    does not modify the organism's genome or phenotype.
+    does not modify the organism's genome or genetic phenotype.
 
     Attributes:
         standard_deviation: Gaussian standard deviation in trait-value units.
@@ -191,29 +240,31 @@ class DeterministicDevelopment:
 
     def develop(
         self,
-        phenotype: Phenotype,
+        genetic_phenotype: GeneticPhenotype,
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
     ) -> DevelopmentalProfile:
-        """Return developmental targets identical to the phenotype.
+        """Return developmental targets identical to the genetic phenotype.
 
         Args:
-            phenotype: Genetically expressed phenotype.
+            genetic_phenotype: Genetically expressed phenotype.
             rng: Simulation random-number generator.
             simulation_state: Optional simulation state.
 
         Returns:
             Developmental profile containing unchanged trait values.
         """
-        if not isinstance(phenotype, Phenotype):
-            raise TypeError("phenotype must be an instance of Phenotype.")
+        if not isinstance(genetic_phenotype, GeneticPhenotype):
+            raise TypeError(
+                "genetic_phenotype must be an instance of GeneticPhenotype."
+            )
 
         if not isinstance(rng, random.Random):
             raise TypeError("rng must be an instance of random.Random.")
 
         return DevelopmentalProfile(
-            target_values=phenotype.trait_values,
+            target_values=genetic_phenotype.trait_values,
         )
 
 
@@ -273,14 +324,14 @@ class IndependentDevelopment:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return phenotype traits explicitly configured for development."""
+        """Return genetic phenotype traits explicitly configured for development."""
         return validate_required_traits(
             frozenset(trait_name for trait_name, _ in self.trait_models)
         )
 
     def develop(
         self,
-        phenotype: Phenotype,
+        genetic_phenotype: GeneticPhenotype,
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
@@ -288,18 +339,20 @@ class IndependentDevelopment:
         """Return independently realized developmental targets.
 
         Args:
-            phenotype: Genetically expressed phenotype.
+            genetic_phenotype: Genetically expressed phenotype.
             rng: Simulation random-number generator.
             simulation_state: Optional state for environment-aware models.
 
         Returns:
-            Developmental profile preserving phenotype trait order.
+            Developmental profile preserving genetic phenotype trait order.
 
         Raises:
-            KeyError: If a configured trait is absent from the phenotype.
+            KeyError: If a configured trait is absent from the genetic phenotype.
         """
-        if not isinstance(phenotype, Phenotype):
-            raise TypeError("phenotype must be an instance of Phenotype.")
+        if not isinstance(genetic_phenotype, GeneticPhenotype):
+            raise TypeError(
+                "genetic_phenotype must be an instance of GeneticPhenotype."
+            )
 
         if not isinstance(rng, random.Random):
             raise TypeError("rng must be an instance of random.Random.")
@@ -308,9 +361,9 @@ class IndependentDevelopment:
 
         # Fail early on misspelled or unavailable configured trait names.
         for trait_name in models_by_trait:
-            if trait_name not in phenotype:
+            if trait_name not in genetic_phenotype:
                 raise KeyError(
-                    f"phenotype has no trait named {trait_name!r}, which is "
+                    f"genetic phenotype has no trait named {trait_name!r}, which is "
                     "required by the development model."
                 )
 
@@ -325,7 +378,7 @@ class IndependentDevelopment:
                     simulation_state=simulation_state,
                 ),
             )
-            for trait_name, value in phenotype.trait_values
+            for trait_name, value in genetic_phenotype.trait_values
         )
 
         return DevelopmentalProfile(

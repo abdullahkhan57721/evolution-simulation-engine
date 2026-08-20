@@ -6,20 +6,20 @@ from typing import Any
 
 import attrs
 
+from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.locus import Locus
-from evo_engine.genetics.phenotype import Phenotype
 from evo_engine.genetics.requirements import validate_required_traits
 from evo_engine.genetics.trait import Trait
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class GeneticArchitecture:
-    """Define loci, traits, and genotype-to-phenotype relationships.
+    """Define loci, traits, and genotype-to-genetic phenotype relationships.
 
     A genetic architecture is shared simulation configuration. Organisms carry
     genomes; the architecture validates those genomes and expresses them as
-    phenotypes.
+    genetic phenotypes.
 
     Attributes:
         loci: Genetic loci available in the architecture. May be empty.
@@ -100,7 +100,7 @@ class GeneticArchitecture:
 
     @property
     def trait_names(self) -> frozenset[str]:
-        """Return all phenotype trait names defined by the architecture."""
+        """Return all genetic phenotype trait names defined by the architecture."""
         return frozenset(trait.name for trait in self.traits)
 
     def require_traits(
@@ -109,10 +109,10 @@ class GeneticArchitecture:
         *,
         context: str = "simulation configuration",
     ) -> None:
-        """Require phenotype traits before a simulation begins.
+        """Require genetic phenotype traits before a simulation begins.
 
         Args:
-            required_traits: Phenotype trait names required by configured
+            required_traits: GeneticPhenotype trait names required by configured
                 engine components.
             context: Description used in configuration error messages.
 
@@ -127,7 +127,7 @@ class GeneticArchitecture:
 
         missing_list = ", ".join(repr(name) for name in sorted(missing_traits))
         raise ValueError(
-            f"{context} requires undefined phenotype trait(s): {missing_list}."
+            f"{context} requires undefined genetic phenotype trait(s): {missing_list}."
         )
 
     def locus(self, name: str) -> Locus[Any]:
@@ -198,7 +198,7 @@ class GeneticArchitecture:
             except KeyError as error:
                 raise ValueError(
                     f"genome is missing locus {locus_name!r}, "
-                    "which is required for phenotype expression."
+                    "which is required for genetic phenotype expression."
                 ) from error
 
     def _validate_chromosome(
@@ -231,20 +231,20 @@ class GeneticArchitecture:
         """Return loci needed to express all configured traits."""
         return {locus_name for trait in self.traits for locus_name in trait.locus_names}
 
-    def express(self, genome: Genome) -> Phenotype:
-        """Express a validated genome as a phenotype.
+    def express(self, genome: Genome) -> GeneticPhenotype:
+        """Express a validated genome as a genetic phenotype.
 
         Args:
             genome: Genome to validate and express.
 
         Returns:
-            Phenotype containing all configured trait values.
+            GeneticPhenotype containing all configured trait values.
         """
         self.validate_genome(genome)
 
-        # Preserve configured trait order so phenotype serialization and
+        # Preserve configured trait order so genetic phenotype serialization and
         # deterministic comparisons remain stable.
-        return Phenotype(
+        return GeneticPhenotype(
             trait_values=tuple(
                 (
                     trait.name,
