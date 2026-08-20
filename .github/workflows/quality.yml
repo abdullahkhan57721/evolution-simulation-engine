@@ -1,0 +1,115 @@
+name: Quality Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Ruff, Pyright, Architecture, Complexity, Tests, Docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Create virtual environment
+        run: python -m venv venv
+
+      - name: Install project and quality tools
+        run: |
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/python -m pip install -e ".[dev,docs]"
+
+      - name: Ruff
+        id: ruff
+        continue-on-error: true
+        run: ./scripts/lint
+
+      - name: Pyright
+        id: pyright
+        continue-on-error: true
+        run: ./scripts/typecheck
+
+      - name: Import Linter
+        id: architecture
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          ./scripts/architecture
+          status=$?
+          if [[ $status -eq 3 ]]; then
+            echo "Import Linter skipped because no architecture contracts are configured."
+            exit 0
+          fi
+          exit "$status"
+
+      - name: Complexipy
+        id: complexipy
+        continue-on-error: true
+        run: ./scripts/complexity
+
+      - name: pytest + coverage
+        id: coverage
+        continue-on-error: true
+        env:
+          COVERAGE_FAIL_UNDER: "90"
+        run: ./scripts/coverage
+
+      - name: MkDocs strict build
+        id: docs
+        continue-on-error: true
+        run: ./scripts/docs
+
+      - name: Quality gate summary
+        if: always()
+        shell: bash
+        run: |
+          cat <<'EOF'
+          Quality check outcomes:
+            Ruff:             ${{ steps.ruff.outcome }}
+            Pyright:          ${{ steps.pyright.outcome }}
+            Import Linter:    ${{ steps.architecture.outcome }}
+            Complexipy:       ${{ steps.complexipy.outcome }}
+            pytest+coverage:  ${{ steps.coverage.outcome }}
+            MkDocs:           ${{ steps.docs.outcome }}
+          EOF
+
+          failed=0
+          for outcome in \
+            "${{ steps.ruff.outcome }}" \
+            "${{ steps.pyright.outcome }}" \
+            "${{ steps.architecture.outcome }}" \
+            "${{ steps.complexipy.outcome }}" \
+            "${{ steps.coverage.outcome }}" \
+            "${{ steps.docs.outcome }}"; do
+            if [[ "$outcome" != "success" ]]; then
+              failed=1
+            fi
+          done
+
+          if [[ $failed -ne 0 ]]; then
+            echo "One or more quality checks failed."
+            exit 1
+          fi
+
+          echo "All configured quality checks passed."
