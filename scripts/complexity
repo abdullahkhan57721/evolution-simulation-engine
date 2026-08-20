@@ -29,8 +29,7 @@ Most useful Complexipy commands:
   venv/bin/complexipy src/evo_engine --top 15
   venv/bin/complexipy src/evo_engine --failed
   venv/bin/complexipy src/evo_engine --failed --suggest-refactors
-  venv/bin/complexipy src/evo_engine --diff-only HEAD
-  venv/bin/complexipy src/evo_engine --staged
+  venv/bin/complexipy src/evo_engine --diff HEAD
 
 Recommended comprehensive report:
   ./scripts/complexity
@@ -43,8 +42,6 @@ TOP_N="${COMPLEXIPY_TOP_N:-15}"
 
 if [[ -x "$REPO_ROOT/venv/bin/complexipy" ]]; then
     COMPLEXIPY="$REPO_ROOT/venv/bin/complexipy"
-elif [[ -x "$REPO_ROOT/.venv/bin/complexipy" ]]; then
-    COMPLEXIPY="$REPO_ROOT/.venv/bin/complexipy"
 elif command -v complexipy >/dev/null 2>&1; then
     COMPLEXIPY="$(command -v complexipy)"
 else
@@ -80,18 +77,13 @@ heading "COMPLEXIPY — TOP ${TOP_N} MOST COMPLEX FUNCTIONS"
 heading "COMPLEXIPY — THRESHOLD VIOLATIONS + REFACTOR SUGGESTIONS"
 "$COMPLEXIPY" "$TARGET" --failed --suggest-refactors --ignore-complexity || report_error=1
 
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    if git rev-parse HEAD >/dev/null 2>&1; then
-        heading "COMPLEXIPY — UNCOMMITTED WORKTREE CHANGES VS HEAD"
-        "$COMPLEXIPY" "$TARGET" --diff-only HEAD --ignore-complexity || report_error=1
-    fi
-
-    if ! git diff --cached --quiet -- "$TARGET" 2>/dev/null; then
-        heading "COMPLEXIPY — STAGED CHANGES VS HEAD"
-        "$COMPLEXIPY" "$TARGET" --staged --ignore-complexity || report_error=1
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
+    && git rev-parse HEAD >/dev/null 2>&1; then
+    heading "COMPLEXIPY — WORKTREE CHANGES VS HEAD"
+    if git diff --quiet HEAD -- "$TARGET" 2>/dev/null; then
+        echo "No changes under $TARGET relative to HEAD. Skipping diff comparison."
     else
-        heading "COMPLEXIPY — STAGED CHANGES"
-        echo "No staged changes under $TARGET. Skipping staged comparison."
+        "$COMPLEXIPY" "$TARGET" --diff HEAD --ignore-complexity || report_error=1
     fi
 fi
 
@@ -103,7 +95,6 @@ heading "COMPLEXIPY — SUMMARY"
 echo "Target:     $TARGET"
 echo "Top count:  $TOP_N"
 echo "Version:    $($COMPLEXIPY --version 2>/dev/null || echo unknown)"
-
 echo "Report:     $([[ $report_error -eq 0 ]] && echo PASS || echo ERROR)"
 echo "Threshold:  $([[ $threshold_status -eq 0 ]] && echo PASS || echo FAIL)"
 
