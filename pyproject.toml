@@ -17,7 +17,7 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.9",
     "pyright>=1.1",
-    "complexipy>=5.2,<6",
+    "complexipy>=5.2,<8",
     "import-linter>=2.0",
     "pytest-cov>=5.0",
 ]
