@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
-from evo_engine.energetics import FixedMetabolicCost
+import pytest
+
+from evo_engine.energetics import FixedMetabolicCost, LinearGrowthCost
 from evo_engine.engine import SequentialStepCoordinator, Simulation, StageCoordinator
 from evo_engine.genetics import ClonalInheritance
+from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
+from evo_engine.growth import FixedGrowthRate
 from evo_engine.processes import (
+    Growth,
     Metabolism,
     Reproduction,
     ResourceConsumption,
@@ -73,14 +78,14 @@ def test_resource_competition_resolves_before_application() -> None:
 
 def test_metabolism_then_starvation_across_sequential_stages() -> None:
     """Test later stages observe mutations from earlier stages in a step."""
-    architecture = make_integer_architecture("adult_body_mass")
+    architecture = make_integer_architecture(ADULT_BODY_MASS)
     world = WorldState(
         width=3,
         height=3,
     )
     organism = make_organism(
         genetic_architecture=architecture,
-        trait_values={"adult_body_mass": 4},
+        trait_values={ADULT_BODY_MASS: 4},
         energy=2,
     )
     world.add_organism(organism)
@@ -154,3 +159,100 @@ def test_reproduction_materializes_only_resolved_births() -> None:
     assert len(simulation.state.world.organisms) == 2
     assert simulation.state.world.organisms[0].energy == 15
     assert simulation.state.world.organisms[1].energy == 5
+
+
+def test_growth_then_starvation_uses_grown_body_mass_for_carcass() -> None:
+    """Test final growth energy can cause later starvation at updated mass."""
+    architecture = make_integer_architecture(ADULT_BODY_MASS)
+    world = WorldState(
+        width=3,
+        height=3,
+    )
+    organism = make_organism(
+        genetic_architecture=architecture,
+        trait_values={ADULT_BODY_MASS: 5},
+        body_mass=3,
+        energy=2,
+    )
+    world.add_organism(organism)
+    simulation = Simulation(
+        initial_world_state=world,
+        genetic_architecture=architecture,
+    )
+    coordinator = SequentialStepCoordinator(
+        stages=(
+            StageCoordinator(
+                processes=(
+                    Growth(
+                        growth_model=FixedGrowthRate(
+                            amount_per_timestep=2,
+                        ),
+                        growth_cost_model=LinearGrowthCost(
+                            energy_per_body_mass_unit=1,
+                        ),
+                    ),
+                ),
+                resolver=AcceptAll(),
+            ),
+            StageCoordinator(
+                processes=(Starvation(),),
+                resolver=AcceptAll(),
+            ),
+        )
+    )
+
+    simulation.state = coordinator.coordinate(simulation.state)
+
+    assert not simulation.state.world.organisms
+    carcass = next(iter(simulation.state.world.carcasses.values()))
+    assert carcass.resource_units == 5
+
+
+def test_same_stage_growth_energy_oversubscription_rolls_back_step() -> None:
+    """Test stale Growth affordability fails transactionally within a step."""
+    architecture = make_integer_architecture(ADULT_BODY_MASS)
+    world = WorldState(
+        width=3,
+        height=3,
+    )
+    organism = make_organism(
+        genetic_architecture=architecture,
+        trait_values={ADULT_BODY_MASS: 12},
+        body_mass=10,
+        energy=5,
+    )
+    world.add_organism(organism)
+    simulation = Simulation(
+        initial_world_state=world,
+        genetic_architecture=architecture,
+    )
+    coordinator = SequentialStepCoordinator(
+        stages=(
+            StageCoordinator(
+                processes=(
+                    Metabolism(
+                        cost_model=FixedMetabolicCost(
+                            amount=3,
+                        ),
+                    ),
+                    Growth(
+                        growth_model=FixedGrowthRate(
+                            amount_per_timestep=2,
+                        ),
+                        growth_cost_model=LinearGrowthCost(
+                            energy_per_body_mass_unit=2,
+                        ),
+                    ),
+                ),
+                resolver=AcceptAll(),
+            ),
+        )
+    )
+
+    with pytest.raises(RuntimeError, match="no longer affordable"):
+        coordinator.coordinate(simulation.state)
+
+    authoritative = simulation.state.world.organisms[organism.id]
+    assert authoritative.body_mass == 10
+    assert authoritative.energy == 5
+    assert simulation.state.step_index == 0
