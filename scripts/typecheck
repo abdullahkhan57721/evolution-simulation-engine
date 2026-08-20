@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Run Pyright using the repository configuration.
+#
+# Usage:
+#   ./scripts/typecheck
+#   ./scripts/typecheck src/evo_engine/core/engine.py
+#
+# With no path arguments, Pyright uses the include/exclude scope configured
+# for the project. Supplying paths intentionally narrows the check.
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ -x "$REPO_ROOT/venv/bin/pyright" ]]; then
+    PYRIGHT="$REPO_ROOT/venv/bin/pyright"
+elif command -v pyright >/dev/null 2>&1; then
+    PYRIGHT="$(command -v pyright)"
+else
+    echo "Error: Pyright CLI is not installed or not on PATH."
+    exit 127
+fi
+
+PYRIGHT_ARGS=()
+if [[ -x "$REPO_ROOT/venv/bin/python" ]]; then
+    PYRIGHT_ARGS+=(--pythonpath "$REPO_ROOT/venv/bin/python")
+fi
+
+printf '%s\n' "======================================================================"
+printf '%s\n' "PYRIGHT — TYPE CHECK"
+printf '%s\n' "======================================================================"
+"$PYRIGHT" "${PYRIGHT_ARGS[@]}" "$@"

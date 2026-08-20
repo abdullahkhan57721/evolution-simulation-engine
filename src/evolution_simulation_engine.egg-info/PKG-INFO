@@ -4,10 +4,15 @@ Version: 0.1.0
 Summary: A beginner evolution simulation engine starting with
 Requires-Python: >=3.12
 Description-Content-Type: text/markdown
+Requires-Dist: attrs>=25.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.0; extra == "dev"
 Requires-Dist: ruff>=0.9; extra == "dev"
 Requires-Dist: pyright>=1.1; extra == "dev"
+Provides-Extra: docs
+Requires-Dist: mkdocs<2,>=1.6; extra == "docs"
+Requires-Dist: mkdocs-material; extra == "docs"
+Requires-Dist: mkdocstrings[python]; extra == "docs"
 
 # Evolution Simulation Engine
 

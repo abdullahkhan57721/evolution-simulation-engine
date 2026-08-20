@@ -1,30 +1,84 @@
 # Model Notes
 
-## Version 1 Scenario
+## Current Modeling Architecture
 
-The first version of the simulation models a one-trait energy survival scenario.
+The engine distinguishes inherited genetic state, deterministic genetic
+expression, individual developmental realization, mutable organism state,
+ecological processes, and event-resolution policy.
 
-Each organism has one inherited trait:
+### Active world state
 
-- `energy_efficiency`
+`WorldState` contains only organisms and other entities that currently matter
+to continuation of the simulation. Dead organisms are removed. Ecologically
+relevant remains may persist as `Carcass` entities.
 
-Higher `energy_efficiency` means the organism is better at conserving energy.
+### Genetics and phenotype
 
-## TraitSet
+An organism carries a `Genome` and an expressed `Phenotype`.
 
-`TraitSet` stores inherited trait values for one organism.
+Shared `GeneticArchitecture` configuration defines:
 
-Version 1 has one trait:
+- loci and allele domains
+- locus-specific mutation policies
+- traits and genotype-to-phenotype expression
 
-- `energy_efficiency: float`
+The genetic representation preserves separate chromosome copies so linked
+alleles retain phase for segregation and recombination.
 
-Higher `energy_efficiency` means the organism conserves more energy per time step.
+### Development
 
-Default value:
+`Phenotype` stores values expressed deterministically from the genome. A
+`DevelopmentModel` then realizes an organism-specific `DevelopmentalProfile`.
+This keeps genetic inheritance separate from nonheritable developmental or
+environmental variation.
 
-- `0.50`
+For example, a genome may express `adult_body_mass = 20`, while
+`GaussianIntegerDevelopment` can realize an individual adult target of 18,
+20, or 23. The genome and genetic phenotype remain unchanged. Current mutable
+`Organism.body_mass` can later grow toward that realized target.
 
-Allowed range:
+`IndependentDevelopment` allows different traits to use different
+developmental models while unconfigured traits pass through deterministically.
 
-- minimum: `0.0`
-- maximum: `1.0`
+### Inheritance
+
+The genetics subsystem currently supports:
+
+- `ClonalInheritance` for one-parent reproduction
+- `SexualInheritance` for two-parent reproduction
+- `MeioticGameteFormation`
+- no-recombination and single-crossover recombination policies
+
+Mutation acts on transmitted alleles according to each locus's mutation
+policy.
+
+### Reproduction
+
+The `Reproduction` process composes independent policies for individual
+eligibility, parent selection, parental investment, inheritance, and
+offspring placement, developmental realization, and newborn body-mass policy.
+
+Exactly one- or two-parent reproduction is supported.
+
+### Event processing
+
+Each simulation stage follows:
+
+1. processes propose events from the same pre-application state
+2. a resolver reconciles the proposals
+3. all resolved events are materialized from that same pre-application state
+4. materialized events are applied in resolver order
+
+Materialization is optional. Processes whose resolved events already contain every
+decision needed for application require no materialization hook. Processes such as
+`Reproduction` use `materialize_event()` for post-resolution stochastic work such
+as inheritance, mutation, recombination, phenotype expression, and offspring
+placement.
+
+The coordinator materializes every resolved event before applying any event. This
+preserves stage simultaneity: no materializer observes mutations produced by an
+earlier event in the same stage. Application is therefore reserved for
+mechanical state mutation.
+
+A `SequentialStepCoordinator` runs ordered stages on a transactional copy of
+`SimulationState`.

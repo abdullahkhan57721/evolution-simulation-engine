@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+# Apply safe automated fixes, then run the repository's full quality suite.
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+separator() {
+    printf '\n%s\n' "========================================================================"
+}
+
+run_check() {
+    check_name="$1"
+    check_script="$2"
+
+    separator
+    printf '%s\n' "$check_name"
+    printf '%s\n' "========================================================================"
+
+    "$check_script"
+    exit_code=$?
+
+    if [[ $exit_code -eq 0 ]]; then
+        printf -v "$3" '%s' "PASS"
+    else
+        printf -v "$3" '%s' "FAIL ($exit_code)"
+        failures=$((failures + 1))
+    fi
+}
+
+failures=0
+fix_result=""
+ruff_result=""
+pyright_result=""
+complexity_result=""
+pytest_result=""
+docs_result=""
+
+run_check "1/6 — RUFF SAFE FIXES + FORMAT" "$SCRIPT_DIR/fix" fix_result
+run_check "2/6 — RUFF VERIFICATION" "$SCRIPT_DIR/lint" ruff_result
+run_check "3/6 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
+run_check "4/6 — COMPLEXIPY" "$SCRIPT_DIR/complexity" complexity_result
+run_check "5/6 — PYTEST" "$SCRIPT_DIR/test" pytest_result
+run_check "6/6 — MKDOCS" "$SCRIPT_DIR/docs" docs_result
+
+separator
+printf '%s\n' "CHECK_ALL — FINAL SUMMARY"
+printf '%s\n' "========================================================================"
+printf '%-16s %s\n' "Ruff fixes" "$fix_result"
+printf '%-16s %s\n' "Ruff verify" "$ruff_result"
+printf '%-16s %s\n' "Pyright" "$pyright_result"
+printf '%-16s %s\n' "Complexipy" "$complexity_result"
+printf '%-16s %s\n' "pytest" "$pytest_result"
+printf '%-16s %s\n' "MkDocs" "$docs_result"
+printf '%s\n' "------------------------------------------------------------------------"
+
+if [[ $failures -eq 0 ]]; then
+    echo "ALL CHECKS PASSED"
+    exit 0
+fi
+
+echo "$failures CHECK(S) FAILED"
+exit 1

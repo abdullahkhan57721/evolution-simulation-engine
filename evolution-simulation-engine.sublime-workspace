@@ -4,12 +4,56 @@
 		"selected_items":
 		[
 			[
-				"boo",
-				"bool_value"
+				"organism",
+				"organism_id="
+			],
+			[
+				"validate_int",
+				"validate_int_ge"
+			],
+			[
+				"is",
+				"isinstance"
+			],
+			[
+				"_validate",
+				"_validate_energy"
 			],
 			[
 				"non",
-				"non_bool_value"
+				"non_negative_float"
+			],
+			[
+				"age",
+				"age_one_timestep"
+			],
+			[
+				"NEGA",
+				"NEGATIVE_INTS"
+			],
+			[
+				"valid",
+				"_validate_age"
+			],
+			[
+				"organi",
+				"organism_ids"
+			],
+			[
+				"_vali",
+				"_validate_organisms"
+			],
+			[
+				"_valid",
+				"_validate_time_step"
+			],
+			[
+				"_valida",
+				"_validate_is_alive"
+			],
+			[
+				"boo",
+				"bool_value"
 			],
 			[
 				"negative",
@@ -320,700 +364,64 @@
 	"buffers":
 	[
 		{
-			"file": "tests/test_organism.py",
+			"file": "src/evo_engine/processes/reproduction.py",
 			"settings":
 			{
-				"buffer_size": 1743,
+				"buffer_size": 5500,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			},
 			"undo_stack":
 			[
 				[
-					10,
-					1,
-					"insert",
-					{
-						"characters": "\n\n"
-					},
-					"AgAAAJMGAAAAAAAAmAYAAAAAAAAAAAAAmAYAAAAAAACdBgAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACTBgAAAAAAAJMGAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					11,
+					9,
 					1,
 					"left_delete",
 					null,
-					"AQAAAJkGAAAAAAAAmQYAAAAAAAAEAAAAICAgIA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACdBgAAAAAAAJ0GAAAAAAAAAAAAAAAA8L8"
+					"AQAAAAAAAAAAAAAAAAAAAAAAAADjEAAAIiIiQXNleHVhbCBSZXByb2R1Y3Rpb24gc2ltdWxhdGlvbiBwcm9jZXNzLiIiIgoKZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKaW1wb3J0IGF0dHJzCgpmcm9tIGV2b19lbmdpbmUgaW1wb3J0IGF0dHJzX3ZhbGlkYXRvcnMKZnJvbSBldm9fZW5naW5lLm9yZ2FuaXNtIGltcG9ydCBPcmdhbmlzbQpmcm9tIGV2b19lbmdpbmUuc2ltdWxhdGlvbl9zdGF0ZSBpbXBvcnQgU2ltdWxhdGlvblN0YXRlCgoKQGF0dHJzLmZyb3plbihzbG90cz1UcnVlLCBrd19vbmx5PVRydWUpCmNsYXNzIFJlcHJvZHVjdGlvbjoKICAgICIiIlJlcHJlc2VudCB0aGUgYXNleHVhbCBSZXByb2R1Y3Rpb24gc2ltdWxhdGlvbiBwcm9jZXNzLgoKICAgIEF0dHJpYnV0ZXM6CiAgICAgICAgZW5lcmd5X3RocmVzaG9sZDogTWluaW11bSBwYXJlbnQgZW5lcmd5IHJlcXVpcmVkIGZvciByZXByb2R1Y3Rpb24uCiAgICAiIiIKCiAgICBlbmVyZ3lfdGhyZXNob2xkOiBpbnQgPSBhdHRycy5maWVsZCgKICAgICAgICB2YWxpZGF0b3I9YXR0cnNfdmFsaWRhdG9ycy52YWxpZGF0ZV9pbnRfZ2UoMCksCiAgICApCgogICAgQHByb3BlcnR5CiAgICBkZWYgZXZlbnRfdHlwZShzZWxmKSAtPiB0eXBlW1JlcHJvZHVjdGlvbi5FdmVudF06CiAgICAgICAgIiIiUmV0dXJuIHRoZSBSZXByb2R1Y3Rpb24gZXZlbnQgdHlwZS4iIiIKICAgICAgICByZXR1cm4gc2VsZi5FdmVudAoKICAgIEBhdHRycy5mcm96ZW4oc2xvdHM9VHJ1ZSwga3dfb25seT1UcnVlKQogICAgY2xhc3MgRXZlbnQ6CiAgICAgICAgIiIiUmVwcmVzZW50IGEgcHJvcG9zZWQgUmVwcm9kdWN0aW9uIGV2ZW50LgoKICAgICAgICBBdHRyaWJ1dGVzOgogICAgICAgICAgICBzdGVwX2luZGV4OiBTaW11bGF0aW9uIHN0ZXAgYXNzb2NpYXRlZCB3aXRoIHRoZSBldmVudC4KICAgICAgICAgICAgcGFyZW50X2lkOiBJRCBvZiB0aGUgcmVwcm9kdWNpbmcgb3JnYW5pc20uCiAgICAgICAgICAgIHg6IEhvcml6b250YWwgY29vcmRpbmF0ZSB3aGVyZSB0aGUgb2Zmc3ByaW5nIGlzIGNyZWF0ZWQuCiAgICAgICAgICAgIHk6IFZlcnRpY2FsIGNvb3JkaW5hdGUgd2hlcmUgdGhlIG9mZnNwcmluZyBpcyBjcmVhdGVkLgogICAgICAgICAgICBpbml0aWFsX2VuZXJneTogRW5lcmd5IHRyYW5zZmVycmVkIGZyb20gcGFyZW50IHRvIG9mZnNwcmluZy4KICAgICAgICAgICAgYm9keV9zaXplOiBCb2R5IHNpemUgaW5oZXJpdGVkIGJ5IHRoZSBvZmZzcHJpbmcuCiAgICAgICAgICAgIG1vdmVtZW50X3JhbmdlOiBNb3ZlbWVudCByYW5nZSBpbmhlcml0ZWQgYnkgdGhlIG9mZnNwcmluZy4KICAgICAgICAgICAgb2Zmc3ByaW5nX2VuZXJneTogUmVwcm9kdWN0aXZlIGVuZXJneSBpbnZlc3RtZW50IGluaGVyaXRlZCBieQogICAgICAgICAgICAgICAgdGhlIG9mZnNwcmluZy4KICAgICAgICAiIiIKCiAgICAgICAgc3RlcF9pbmRleDogaW50ID0gYXR0cnMuZmllbGQoCiAgICAgICAgICAgIHZhbGlkYXRvcj1hdHRyc192YWxpZGF0b3JzLnZhbGlkYXRlX2ludF9nZSgwKSwKICAgICAgICApCiAgICAgICAgcGFyZW50X2lkOiBpbnQgPSBhdHRycy5maWVsZCgKICAgICAgICAgICAgdmFsaWRhdG9yPWF0dHJzX3ZhbGlkYXRvcnMudmFsaWRhdGVfaW50X2dlKDApLAogICAgICAgICkKICAgICAgICB4OiBpbnQgPSBhdHRycy5maWVsZCgKICAgICAgICAgICAgdmFsaWRhdG9yPWF0dHJzX3ZhbGlkYXRvcnMudmFsaWRhdGVfaW50X2dlKDApLAogICAgICAgICkKICAgICAgICB5OiBpbnQgPSBhdHRycy5maWVsZCgKICAgICAgICAgICAgdmFsaWRhdG9yPWF0dHJzX3ZhbGlkYXRvcnMudmFsaWRhdGVfaW50X2dlKDApLAogICAgICAgICkKICAgICAgICBpbml0aWFsX2VuZXJneTogaW50ID0gYXR0cnMuZmllbGQoCiAgICAgICAgICAgIHZhbGlkYXRvcj1hdHRyc192YWxpZGF0b3JzLnZhbGlkYXRlX2ludF9nZSgxKSwKICAgICAgICApCiAgICAgICAgYm9keV9zaXplOiBpbnQgPSBhdHRycy5maWVsZCgKICAgICAgICAgICAgdmFsaWRhdG9yPWF0dHJzX3ZhbGlkYXRvcnMudmFsaWRhdGVfaW50X2dlKDEpLAogICAgICAgICkKICAgICAgICBtb3ZlbWVudF9yYW5nZTogaW50ID0gYXR0cnMuZmllbGQoCiAgICAgICAgICAgIHZhbGlkYXRvcj1hdHRyc192YWxpZGF0b3JzLnZhbGlkYXRlX2ludF9nZSgwKSwKICAgICAgICApCiAgICAgICAgb2Zmc3ByaW5nX2VuZXJneTogaW50ID0gYXR0cnMuZmllbGQoCiAgICAgICAgICAgIHZhbGlkYXRvcj1hdHRyc192YWxpZGF0b3JzLnZhbGlkYXRlX2ludF9nZSgxKSwKICAgICAgICApCgogICAgZGVmIHByb3Bvc2VfZXZlbnRzKAogICAgICAgIHNlbGYsCiAgICAgICAgc2ltdWxhdGlvbl9zdGF0ZTogU2ltdWxhdGlvblN0YXRlLAogICAgKSAtPiBsaXN0W1JlcHJvZHVjdGlvbi5FdmVudF06CiAgICAgICAgIiIiUHJvcG9zZSBSZXByb2R1Y3Rpb24gZXZlbnRzIGZvciBlbGlnaWJsZSBvcmdhbmlzbXMuCgogICAgICAgIE9mZnNwcmluZyBpbmhlcml0IHRoZWlyIHBhcmVudCdzIGhlcml0YWJsZSB0cmFpdHMgd2l0aG91dCBtdXRhdGlvbi4KCiAgICAgICAgQXJnczoKICAgICAgICAgICAgc2ltdWxhdGlvbl9zdGF0ZTogQ3VycmVudCBzaW11bGF0aW9uIHN0YXRlLgoKICAgICAgICBSZXR1cm5zOgogICAgICAgICAgICBQcm9wb3NlZCBSZXByb2R1Y3Rpb24gZXZlbnRzLgogICAgICAgICIiIgogICAgICAgIGV2ZW50czogbGlzdFtSZXByb2R1Y3Rpb24uRXZlbnRdID0gW10KCiAgICAgICAgZm9yIHBhcmVudCBpbiBzaW11bGF0aW9uX3N0YXRlLndvcmxkLm9yZ2FuaXNtcy52YWx1ZXMoKToKICAgICAgICAgICAgaWYgcGFyZW50LmVuZXJneSA8IHNlbGYuZW5lcmd5X3RocmVzaG9sZDoKICAgICAgICAgICAgICAgIGNvbnRpbnVlCgogICAgICAgICAgICBpZiBwYXJlbnQuZW5lcmd5IDwgcGFyZW50Lm9mZnNwcmluZ19lbmVyZ3k6CiAgICAgICAgICAgICAgICBjb250aW51ZQoKICAgICAgICAgICAgZXZlbnRzLmFwcGVuZCgKICAgICAgICAgICAgICAgIHNlbGYuRXZlbnQoCiAgICAgICAgICAgICAgICAgICAgc3RlcF9pbmRleD1zaW11bGF0aW9uX3N0YXRlLnN0ZXBfaW5kZXgsCiAgICAgICAgICAgICAgICAgICAgcGFyZW50X2lkPXBhcmVudC5pZCwKICAgICAgICAgICAgICAgICAgICB4PXBhcmVudC54LAogICAgICAgICAgICAgICAgICAgIHk9cGFyZW50LnksCiAgICAgICAgICAgICAgICAgICAgaW5pdGlhbF9lbmVyZ3k9cGFyZW50Lm9mZnNwcmluZ19lbmVyZ3ksCiAgICAgICAgICAgICAgICAgICAgYm9keV9zaXplPXBhcmVudC5ib2R5X3NpemUsCiAgICAgICAgICAgICAgICAgICAgbW92ZW1lbnRfcmFuZ2U9cGFyZW50Lm1vdmVtZW50X3JhbmdlLAogICAgICAgICAgICAgICAgICAgIG9mZnNwcmluZ19lbmVyZ3k9cGFyZW50Lm9mZnNwcmluZ19lbmVyZ3ksCiAgICAgICAgICAgICAgICApCiAgICAgICAgICAgICkKCiAgICAgICAgcmV0dXJuIGV2ZW50cwoKICAgIGRlZiBhcHBseV9ldmVudCgKICAgICAgICBzZWxmLAogICAgICAgIHNpbXVsYXRpb25fc3RhdGU6IFNpbXVsYXRpb25TdGF0ZSwKICAgICAgICByZXNvbHZlZF9ldmVudDogUmVwcm9kdWN0aW9uLkV2ZW50LAogICAgKSAtPiBOb25lOgogICAgICAgICIiIkFwcGx5IGEgcmVzb2x2ZWQgUmVwcm9kdWN0aW9uIGV2ZW50LgoKICAgICAgICBBcmdzOgogICAgICAgICAgICBzaW11bGF0aW9uX3N0YXRlOiBDdXJyZW50IHNpbXVsYXRpb24gc3RhdGUuCiAgICAgICAgICAgIHJlc29sdmVkX2V2ZW50OiBSZXNvbHZlZCBSZXByb2R1Y3Rpb24gZXZlbnQgdG8gYXBwbHkuCiAgICAgICAgIiIiCiAgICAgICAgcGFyZW50ID0gc2ltdWxhdGlvbl9zdGF0ZS53b3JsZC5vcmdhbmlzbXNbcmVzb2x2ZWRfZXZlbnQucGFyZW50X2lkXQoKICAgICAgICBwYXJlbnQuZW5lcmd5IC09IHJlc29sdmVkX2V2ZW50LmluaXRpYWxfZW5lcmd5CgogICAgICAgIG9mZnNwcmluZyA9IE9yZ2FuaXNtKAogICAgICAgICAgICBhZ2U9MCwKICAgICAgICAgICAgZW5lcmd5PXJlc29sdmVkX2V2ZW50LmluaXRpYWxfZW5lcmd5LAogICAgICAgICAgICB4PXJlc29sdmVkX2V2ZW50LngsCiAgICAgICAgICAgIHk9cmVzb2x2ZWRfZXZlbnQueSwKICAgICAgICAgICAgYm9keV9zaXplPXJlc29sdmVkX2V2ZW50LmJvZHlfc2l6ZSwKICAgICAgICAgICAgbW92ZW1lbnRfcmFuZ2U9cmVzb2x2ZWRfZXZlbnQubW92ZW1lbnRfcmFuZ2UsCiAgICAgICAgICAgIG9mZnNwcmluZ19lbmVyZ3k9cmVzb2x2ZWRfZXZlbnQub2Zmc3ByaW5nX2VuZXJneSwKICAgICAgICApCgogICAgICAgIHNpbXVsYXRpb25fc3RhdGUud29ybGQuYWRkX29yZ2FuaXNtKG9mZnNwcmluZykK",
+					"AQAAAAAAAAABAAAAAAAAAAAAAADjEAAAAAAAAAAAAAAAAPC/"
+				],
+				[
+					10,
+					1,
+					"paste",
+					null,
+					"AQAAAAAAAAAAAAAApxUAAAAAAAAAAAAA",
+					"AQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/"
 				],
 				[
 					12,
 					1,
-					"insert",
+					"lsp_apply_text_document_edit",
 					{
-						"characters": "py"
-					},
-					"AgAAAJkGAAAAAAAAmgYAAAAAAAAAAAAAmgYAAAAAAACbBgAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACZBgAAAAAAAJkGAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					13,
-					1,
-					"left_delete",
-					null,
-					"AQAAAJoGAAAAAAAAmgYAAAAAAAABAAAAeQ",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACbBgAAAAAAAJsGAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					14,
-					1,
-					"insert",
-					{
-						"characters": "test"
-					},
-					"BAAAAJoGAAAAAAAAmwYAAAAAAAAAAAAAmwYAAAAAAACcBgAAAAAAAAAAAACcBgAAAAAAAJ0GAAAAAAAAAAAAAJ0GAAAAAAAAngYAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACaBgAAAAAAAJoGAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					15,
-					5,
-					"left_delete",
-					null,
-					"BQAAAJ0GAAAAAAAAnQYAAAAAAAABAAAAdJwGAAAAAAAAnAYAAAAAAAABAAAAc5sGAAAAAAAAmwYAAAAAAAABAAAAZZoGAAAAAAAAmgYAAAAAAAABAAAAdJkGAAAAAAAAmQYAAAAAAAABAAAAcA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACeBgAAAAAAAJ4GAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					16,
-					1,
-					"insert",
-					{
-						"characters": "ptest"
-					},
-					"BQAAAJkGAAAAAAAAmgYAAAAAAAAAAAAAmgYAAAAAAACbBgAAAAAAAAAAAACbBgAAAAAAAJwGAAAAAAAAAAAAAJwGAAAAAAAAnQYAAAAAAAAAAAAAnQYAAAAAAACeBgAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACZBgAAAAAAAJkGAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					17,
-					1,
-					"insert_completion",
-					{
-						"completion": "lsp_select_completion {\"index\":65,\"session_name\":\"LSP-pyright\"}",
-						"format": "command",
-						"keep_prefix": true,
-						"must_insert": false,
-						"query_change_id":
+						"edits":
 						[
-							9,
-							16,
-							5
+							{
+								"newText": "        parent = simulation_state.world.organisms[resolved_event.parent_id]\n\n        parent.energy -= resolved_event.initial_energy\n\n        offspring = Organism(\n            age=0,\n            energy=resolved_event.initial_energy,\n            x=resolved_event.x,\n            y=resolved_event.y,\n            body_size=resolved_event.body_size,\n            movement_range=resolved_event.movement_range,\n            offspring_energy=resolved_event.offspring_energy,\n        )\n\n        simulation_state.world.add_organism(offspring)\n",
+								"range":
+								{
+									"end":
+									{
+										"character": 9,
+										"line": 165
+									},
+									"start":
+									{
+										"character": 0,
+										"line": 147
+									}
+								}
+							}
 						],
-						"trigger": "pytest_generate_tests"
+						"label": "Format on Save"
 					},
-					"AwAAAJkGAAAAAAAAmQYAAAAAAAAFAAAAcHRlc3SZBgAAAAAAAK4GAAAAAAAAAAAAAAAAAAAAAAAAMQAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACeBgAAAAAAAJ4GAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					18,
-					18,
-					"left_delete",
-					null,
-					"EgAAAN4GAAAAAAAA3gYAAAAAAAABAAAAc90GAAAAAAAA3QYAAAAAAAABAAAAdNwGAAAAAAAA3AYAAAAAAAABAAAAc9sGAAAAAAAA2wYAAAAAAAABAAAAZdoGAAAAAAAA2gYAAAAAAAABAAAAdNkGAAAAAAAA2QYAAAAAAAABAAAAX9gGAAAAAAAA2AYAAAAAAAABAAAAZdcGAAAAAAAA1wYAAAAAAAABAAAAdNYGAAAAAAAA1gYAAAAAAAABAAAAYdUGAAAAAAAA1QYAAAAAAAABAAAActQGAAAAAAAA1AYAAAAAAAABAAAAZdMGAAAAAAAA0wYAAAAAAAABAAAAbtIGAAAAAAAA0gYAAAAAAAABAAAAZdEGAAAAAAAA0QYAAAAAAAABAAAAZ9AGAAAAAAAA0AYAAAAAAAABAAAAX88GAAAAAAAAzwYAAAAAAAABAAAAdM4GAAAAAAAAzgYAAAAAAAABAAAAc80GAAAAAAAAzQYAAAAAAAABAAAAZQ",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADfBgAAAAAAAN8GAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					19,
-					3,
-					"left_delete",
-					null,
-					"AwAAAMwGAAAAAAAAzAYAAAAAAAABAAAAdMsGAAAAAAAAywYAAAAAAAABAAAAecoGAAAAAAAAygYAAAAAAAABAAAAcA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADNBgAAAAAAAM0GAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					19,
-					1,
-					"insert",
-					{
-						"characters": "\n\n"
-					},
-					"AgAAAMQGAAAAAAAAyQYAAAAAAAAAAAAAyQYAAAAAAADOBgAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAxAYAAAAAAADEBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					20,
-					1,
-					"left_delete",
-					null,
-					"AQAAAMoGAAAAAAAAygYAAAAAAAAEAAAAICAgIA",
-					"AQAAAAAAAAABAAAAzgYAAAAAAADOBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					21,
-					1,
-					"insert",
-					{
-						"characters": "def"
-					},
-					"AwAAAMoGAAAAAAAAywYAAAAAAAAAAAAAywYAAAAAAADMBgAAAAAAAAAAAADMBgAAAAAAAM0GAAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAygYAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					22,
-					1,
-					"insert",
-					{
-						"characters": " m"
-					},
-					"AgAAAM0GAAAAAAAAzgYAAAAAAAAAAAAAzgYAAAAAAADPBgAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzQYAAAAAAADNBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					23,
-					1,
-					"insert_completion",
-					{
-						"completion": "mark",
-						"format": "text",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "mark"
-					},
-					"AgAAAM4GAAAAAAAAzgYAAAAAAAABAAAAbc4GAAAAAAAA0gYAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzwYAAAAAAADPBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					24,
-					8,
-					"left_delete",
-					null,
-					"CAAAANEGAAAAAAAA0QYAAAAAAAABAAAAa9AGAAAAAAAA0AYAAAAAAAABAAAAcs8GAAAAAAAAzwYAAAAAAAABAAAAYc4GAAAAAAAAzgYAAAAAAAABAAAAbc0GAAAAAAAAzQYAAAAAAAABAAAAIMwGAAAAAAAAzAYAAAAAAAABAAAAZssGAAAAAAAAywYAAAAAAAABAAAAZcoGAAAAAAAAygYAAAAAAAABAAAAZA",
-					"AQAAAAAAAAABAAAA0gYAAAAAAADSBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					25,
-					1,
-					"insert",
-					{
-						"characters": "defm"
-					},
-					"BAAAAMoGAAAAAAAAywYAAAAAAAAAAAAAywYAAAAAAADMBgAAAAAAAAAAAADMBgAAAAAAAM0GAAAAAAAAAAAAAM0GAAAAAAAAzgYAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAygYAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					26,
-					1,
-					"insert_completion",
-					{
-						"completion": "def ${1:method_name}(\n    self,\n    ${2:argument}: ${3:ArgumentType},\n) -> ${4:ReturnType}:\n    \"\"\"${5:Describe what the method returns or changes.}\"\"\"\n    ${0}",
-						"format": "snippet",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "def m"
-					},
-					"AgAAAMoGAAAAAAAAygYAAAAAAAAEAAAAZGVmbcoGAAAAAAAATQcAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzgYAAAAAAADOBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					31,
-					1,
-					"insert",
-					{
-						"characters": "def"
-					},
-					"AwAAAMoGAAAAAAAAywYAAAAAAAB+AAAAZGVmIG1ldGhvZF9uYW1lKAogICAgc2VsZiwKICAgIGFyZ3VtZW50OiBBcmd1bWVudFR5cGUsCikgLT4gUmV0dXJuVHlwZToKICAgICIiIkRlc2NyaWJlIHdoYXQgdGhlIG1ldGhvZCByZXR1cm5zIG9yIGNoYW5nZXMuIiIiywYAAAAAAADMBgAAAAAAAAAAAADMBgAAAAAAAM0GAAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAASAcAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					32,
-					1,
-					"insert",
-					{
-						"characters": "s"
-					},
-					"AQAAAM0GAAAAAAAAzgYAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzQYAAAAAAADNBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					33,
-					1,
-					"insert_completion",
-					{
-						"completion": "def ${1:function}(self${2}):\n\t${0:pass}",
-						"format": "snippet",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "defs"
-					},
-					"AgAAAMoGAAAAAAAAygYAAAAAAAAEAAAAZGVmc8oGAAAAAAAA5gYAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzgYAAAAAAADOBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					34,
-					2,
-					"left_delete",
-					null,
-					"AgAAAM4GAAAAAAAAzgYAAAAAAAAIAAAAZnVuY3Rpb27NBgAAAAAAAM0GAAAAAAAAAQAAACA",
-					"AQAAAAAAAAABAAAAzgYAAAAAAADWBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					37,
-					1,
-					"insert",
-					{
-						"characters": "def"
-					},
-					"AwAAAMoGAAAAAAAAywYAAAAAAAATAAAAZGVmKHNlbGYpOgogICAgcGFzc8sGAAAAAAAAzAYAAAAAAAAAAAAAzAYAAAAAAADNBgAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAA3QYAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					38,
-					1,
-					"insert",
-					{
-						"characters": "m"
-					},
-					"AQAAAM0GAAAAAAAAzgYAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzQYAAAAAAADNBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					39,
-					1,
-					"insert_completion",
-					{
-						"completion": "def ${1:method_name}(\n    self,\n    ${2:argument}: ${3:ArgumentType},\n) -> ${4:ReturnType}:\n    \"\"\"${5:Describe what the method returns or changes.}\"\"\"\n    ${0}",
-						"format": "snippet",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "def m"
-					},
-					"AgAAAMoGAAAAAAAAygYAAAAAAAAEAAAAZGVmbcoGAAAAAAAATQcAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzgYAAAAAAADOBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					48,
-					1,
-					"left_delete",
-					null,
-					"AQAAAMoGAAAAAAAAygYAAAAAAAB+AAAAZGVmIG1ldGhvZF9uYW1lKAogICAgc2VsZiwKICAgIGFyZ3VtZW50OiBBcmd1bWVudFR5cGUsCikgLT4gUmV0dXJuVHlwZToKICAgICIiIkRlc2NyaWJlIHdoYXQgdGhlIG1ldGhvZCByZXR1cm5zIG9yIGNoYW5nZXMuIiIi",
-					"AQAAAAAAAAABAAAASAcAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					49,
-					1,
-					"insert",
-					{
-						"characters": "def"
-					},
-					"AwAAAMoGAAAAAAAAywYAAAAAAAAAAAAAywYAAAAAAADMBgAAAAAAAAAAAADMBgAAAAAAAM0GAAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAygYAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					50,
-					1,
-					"insert_completion",
-					{
-						"completion": "def ${1:function}($2):\n\t${0:pass}",
-						"format": "snippet",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "def"
-					},
-					"AgAAAMoGAAAAAAAAygYAAAAAAAADAAAAZGVmygYAAAAAAADiBgAAAAAAAAAAAAA",
-					"AQAAAAAAAAABAAAAzQYAAAAAAADNBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					51,
-					1,
-					"left_delete",
-					null,
-					"AQAAAM4GAAAAAAAAzgYAAAAAAAAIAAAAZnVuY3Rpb24",
-					"AQAAAAAAAAABAAAAzgYAAAAAAADWBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					54,
-					1,
-					"left_delete",
-					null,
-					"AQAAAMoGAAAAAAAAygYAAAAAAAAQAAAAZGVmICgpOgogICAgcGFzcw",
-					"AQAAAAAAAAABAAAA2gYAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				],
-				[
-					58,
-					1,
-					"trim_trailing_white_space",
-					null,
-					"AwAAANAGAAAAAAAA0AYAAAAAAAAEAAAAICAgIMsGAAAAAAAAywYAAAAAAAAEAAAAICAgIMUGAAAAAAAAxQYAAAAAAAAEAAAAICAgIA",
-					"AQAAAAAAAAABAAAAygYAAAAAAADKBgAAAAAAAAAAAAAAAPC/"
-				]
-			]
-		},
-		{
-			"file": "src/evo_engine/organism.py",
-			"settings":
-			{
-				"buffer_size": 738,
-				"line_ending": "Unix"
-			},
-			"undo_stack":
-			[
-				[
-					44,
-					1,
-					"revert",
-					null,
-					"BAAAAAAAAAAAAAAAAAAAAAAAAAAZAwAAZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKZnJvbSBkYXRhY2xhc3NlcyBpbXBvcnQgZGF0YWNsYXNzCgoKQGRhdGFjbGFzcwpjbGFzcyBPcmdhbmlzbToKICAgIGlkOiBpbnQKICAgIGFnZTogaW50ID0gMAogICAgaXNfYWxpdmU6IGJvb2wgPSBUcnVlCiAgICAKICAgIGRlZiBfX3Bvc3RfaW5pdF9fKHNlbGYpIC0+IE5vbmU6CiAgICAgICAgc2VsZi52YWxpZGF0ZSgpCiAgICAgICAgCiAgICBkZWYgdmFsaWRhdGUoc2VsZikgLT4gTm9uZToKICAgICAgICBpZiBzZWxmLmlkIDwgMDoKICAgICAgICAgICAgcmFpc2UgVmFsdWVFcnJvcigiT3JnYW5pc20gaWQgbXVzdCBiZSBub24tbmVnYXRpdmUuIikKICAgICAgICAKICAgICAgICBpZiBzZWxmLmFnZSA8IDA6CiAgICAgICAgICAgIHJhaXNlIFZhbHVlRXJyb3IoIk9yZ2FuaXNtIGFnZSBtdXN0IGJlIG5vbi1uZWdhdGl2ZS4iKQogICAgICAgICAgICAKICAgICAgICBpZiB0eXBlKHNlbGYuaXNfYWxpdmUpIGlzIG5vdCBib29sOgogICAgICAgICAgICByYWlzZSBUeXBlRXJyb3IoIk9yZ2FuaXNtIGlzX2FsaXZlIG11c3QgYmUgYSBib29sLiIpCiAgICAgICAgICAgIAogICAgICAgIGlmIHR5cGUoc2VsZi5pZCkgaXMgbm90IGludDoKICAgICAgICAgICAgcmFpc2UgVHlwZUVycm9yKCJPcmdhbmlzbSBpZCBtdXN0IGJlIGFuIGludC4iKQogICAgICAgICAgICAKICAgICAgICBpZiB0eXBlKHNlbGYuYWdlKSBpcyBub3QgaW50OgogICAgICAgICAgICByYWlzZSBUeXBlRXJyb3IoIk9yZ2FuaXNtIGFnZSBtdXN0IGJlIGFuIGludC4iKQAAAAAAAAAA4gIAAAAAAAAAAAAAAAAAAAAAAADiAgAAAAAAAAAAAAAAAAAAAAAAAOICAAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAAQBAAAAAAAABAEAAAAAAAAAAAAAAADwvw"
-				]
-			]
-		},
-		{
-			"file": "src/evo_engine/world_state.py",
-			"settings":
-			{
-				"buffer_size": 885,
-				"encoding": "UTF-8",
-				"line_ending": "Unix"
-			},
-			"undo_stack":
-			[
-				[
-					7,
-					1,
-					"revert",
-					null,
-					"AwAAAAAAAAAAAAAAAAAAAAAAAAAGAwAAZnJvbSBfX2Z1dHVyZV9fIGltcG9ydCBhbm5vdGF0aW9ucwoKZnJvbSBkYXRhY2xhc3NlcyBpbXBvcnQgZGF0YWNsYXNzCgpmcm9tIGV2b19lbmdpbmUub3JnYW5pc20gaW1wb3J0IE9yZ2FuaXNtCgpAZGF0YWNsYXNzCmNsYXNzIFdvcmxkU3RhdGU6Cgl0aW1lX3N0ZXA6IGludAoJb3JnYW5pc21zOiBsaXN0W09yZ2FuaXNtXQoJCglkZWYgY29weShzZWxmKSAtPiBXb3JsZFN0YXRlOgoJCWNvcGllZF9vcmdhbmlzbXMgPSBbCgkJCU9yZ2FuaXNtKAoJCQkJaWQ9b3JnYW5pc20uaWQsCgkJCQlhZ2U9b3JnYW5pc20uYWdlLAoJCQkJaXNfYWxpdmU9b3JnYW5pc20uaXNfYWxpdmUsCgkJCSkKCQkJZm9yIG9yZ2FuaXNtIGluIHNlbGYub3JnYW5pc21zCgkJXQoJCQoJCSMgVGhpcyBpcyB0byBlbnN1cmUgdGhhdCB0aGUgY29waWVkIFdvcmxkU3RhdGUgZG9lc24ndCBoYXZlIHRoZSBzYW1lCgkJIyBvcmdhbmlzbXMgYXMgdGhlIG9yaWdpbmFsIFdvcmxkU3RhdGUsIHNvIHRoYXQgY2hhbmdpbmcgb3JnYW5pc21zCgkJIyBpbiBvbmUgV29ybGRTdGF0ZSBkb2Vzbid0IGNoYW5nZSBpdCBpbiB0aGUgb3RoZXIgV29ybGRTdGF0ZS4KCQkjIEludGVnZXJzIGxpa2UgdGltZV9zdGVwIGFyZSBub3Qgc3ViamVjdCB0byB0aGlzLgoJCQoJCXJldHVybiBXb3JsZFN0YXRlKAoJCQl0aW1lX3N0ZXA9c2VsZi50aW1lX3N0ZXAsIAoJCQlvcmdhbmlzbXM9Y29waWVkX29yZ2FuaXNtcykKCQkKCWRlZiBhZHZhbmNlX3RpbWUoc2VsZikgLT4gTm9uZToKCQlzZWxmLnRpbWVfc3RlcCArPSAxAAAAAAAAAAB0AwAAAAAAAAAAAAAAAAAAAAAAAHQDAAAAAAAAAAAAAA",
-					"AwAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8L8AAAAAAQAAAIIAAAAAAAAAggAAAAAAAAAAAAAAAADwvw"
-				],
-				[
-					4,
-					1,
-					"insert",
-					{
-						"characters": "\n\n"
-					},
-					"AgAAAL8AAAAAAAAAxAAAAAAAAAAAAAAAxAAAAAAAAADJAAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC/AAAAAAAAAL8AAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					5,
-					1,
-					"insert",
-					{
-						"characters": "def"
-					},
-					"AwAAAMkAAAAAAAAAygAAAAAAAAAAAAAAygAAAAAAAADLAAAAAAAAAAAAAADLAAAAAAAAAMwAAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADJAAAAAAAAAMkAAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					6,
-					1,
-					"insert",
-					{
-						"characters": " ini"
-					},
-					"BAAAAMwAAAAAAAAAzQAAAAAAAAAAAAAAzQAAAAAAAADOAAAAAAAAAAAAAADOAAAAAAAAAM8AAAAAAAAAAAAAAM8AAAAAAAAA0AAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADMAAAAAAAAAMwAAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					7,
-					7,
-					"left_delete",
-					null,
-					"BwAAAM8AAAAAAAAAzwAAAAAAAAABAAAAac4AAAAAAAAAzgAAAAAAAAABAAAAbs0AAAAAAAAAzQAAAAAAAAABAAAAacwAAAAAAAAAzAAAAAAAAAABAAAAIMsAAAAAAAAAywAAAAAAAAABAAAAZsoAAAAAAAAAygAAAAAAAAABAAAAZckAAAAAAAAAyQAAAAAAAAABAAAAZA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADQAAAAAAAAANAAAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					8,
-					1,
-					"insert",
-					{
-						"characters": "init"
-					},
-					"BAAAAMkAAAAAAAAAygAAAAAAAAAAAAAAygAAAAAAAADLAAAAAAAAAAAAAADLAAAAAAAAAMwAAAAAAAAAAAAAAMwAAAAAAAAAzQAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADJAAAAAAAAAMkAAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					10,
-					4,
-					"left_delete",
-					null,
-					"BAAAAMwAAAAAAAAAzAAAAAAAAAABAAAAdMsAAAAAAAAAywAAAAAAAAABAAAAacoAAAAAAAAAygAAAAAAAAABAAAAbskAAAAAAAAAyQAAAAAAAAABAAAAaQ",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADNAAAAAAAAAM0AAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					11,
-					4,
-					"left_delete",
-					null,
-					"BAAAAMUAAAAAAAAAxQAAAAAAAAAEAAAAICAgIMQAAAAAAAAAxAAAAAAAAAABAAAACsAAAAAAAAAAwAAAAAAAAAAEAAAAICAgIL8AAAAAAAAAvwAAAAAAAAABAAAACg",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAADJAAAAAAAAAMkAAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					29,
-					1,
-					"insert",
-					{
-						"characters": "\n\n"
-					},
-					"AgAAAHMDAAAAAAAAfAMAAAAAAAAAAAAAfAMAAAAAAACFAwAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAABzAwAAAAAAAHMDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					30,
-					3,
-					"left_delete",
-					null,
-					"AwAAAIEDAAAAAAAAgQMAAAAAAAAEAAAAICAgIH0DAAAAAAAAfQMAAAAAAAAEAAAAICAgIHwDAAAAAAAAfAMAAAAAAAABAAAACg",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACFAwAAAAAAAIUDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					31,
-					1,
-					"insert",
-					{
-						"characters": "\n"
-					},
-					"AQAAAHwDAAAAAAAAhQMAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAB8AwAAAAAAAHwDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					32,
-					2,
-					"left_delete",
-					null,
-					"AgAAAIEDAAAAAAAAgQMAAAAAAAAEAAAAICAgIH0DAAAAAAAAfQMAAAAAAAAEAAAAICAgIA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACFAwAAAAAAAIUDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					33,
-					1,
-					"insert",
-					{
-						"characters": "class"
-					},
-					"BQAAAH0DAAAAAAAAfgMAAAAAAAAAAAAAfgMAAAAAAAB/AwAAAAAAAAAAAAB/AwAAAAAAAIADAAAAAAAAAAAAAIADAAAAAAAAgQMAAAAAAAAAAAAAgQMAAAAAAACCAwAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAB9AwAAAAAAAH0DAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					34,
-					1,
-					"insert_completion",
-					{
-						"completion": "class ${1:ClassName}(${2:object}):\n\t${3/.+/\"\"\"/}${3:docstring for $1}${3/.+/\"\"\"\\n/}${3/.+/\\t/}def __init__(self${4/([^,])?(.*)/(?1:, )/}${4:arg}):\n\t\t${5:super($1, self).__init__()}\n${4/(\\A\\s*,\\s*\\Z)|,?\\s*([A-Za-z_][a-zA-Z0-9_]*)\\s*(=[^,]*)?(,\\s*|$)/(?2:\\t\\tself.$2 = $2\\n)/g}\t\t$0",
-						"format": "snippet",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "class"
-					},
-					"AgAAAH0DAAAAAAAAfQMAAAAAAAAFAAAAY2xhc3N9AwAAAAAAAB4EAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACCAwAAAAAAAIIDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					42,
-					1,
-					"insert",
-					{
-						"characters": "ckass"
-					},
-					"BQAAAH0DAAAAAAAAfgMAAAAAAACYAAAAY2xhc3MgQ2xhc3NOYW1lKG9iamVjdCk6CiAgICAiIiJkb2NzdHJpbmcgZm9yIENsYXNzTmFtZSIiIgogICAgZGVmIF9faW5pdF9fKHNlbGYsIGFyZyk6CiAgICAgICAgc3VwZXIoQ2xhc3NOYW1lLCBzZWxmKS5fX2luaXRfXygpCiAgICAgICAgc2VsZi5hcmcgPSBhcmd+AwAAAAAAAH8DAAAAAAAAAAAAAH8DAAAAAAAAgAMAAAAAAAAAAAAAgAMAAAAAAACBAwAAAAAAAAAAAACBAwAAAAAAAIIDAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAAVBAAAAAAAAH0DAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					43,
-					4,
-					"left_delete",
-					null,
-					"BAAAAIEDAAAAAAAAgQMAAAAAAAABAAAAc4ADAAAAAAAAgAMAAAAAAAABAAAAc38DAAAAAAAAfwMAAAAAAAABAAAAYX4DAAAAAAAAfgMAAAAAAAABAAAAaw",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACCAwAAAAAAAIIDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					44,
-					1,
-					"insert",
-					{
-						"characters": "lass"
-					},
-					"BAAAAH4DAAAAAAAAfwMAAAAAAAAAAAAAfwMAAAAAAACAAwAAAAAAAAAAAACAAwAAAAAAAIEDAAAAAAAAAAAAAIEDAAAAAAAAggMAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAB+AwAAAAAAAH4DAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					45,
-					1,
-					"insert_completion",
-					{
-						"completion": "class ${1:ClassName}(${2:object}):\n\t${3/.+/\"\"\"/}${3:docstring for $1}${3/.+/\"\"\"\\n/}${3/.+/\\t/}def __init__(self${4/([^,])?(.*)/(?1:, )/}${4:arg}):\n\t\t${5:super($1, self).__init__()}\n${4/(\\A\\s*,\\s*\\Z)|,?\\s*([A-Za-z_][a-zA-Z0-9_]*)\\s*(=[^,]*)?(,\\s*|$)/(?2:\\t\\tself.$2 = $2\\n)/g}\t\t$0",
-						"format": "snippet",
-						"keep_prefix": false,
-						"must_insert": false,
-						"trigger": "class"
-					},
-					"AgAAAH0DAAAAAAAAfQMAAAAAAAAFAAAAY2xhc3N9AwAAAAAAAB4EAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACCAwAAAAAAAIIDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					46,
-					1,
-					"insert",
-					{
-						"characters": "hello"
-					},
-					"DwAAAOMDAAAAAAAA5AMAAAAAAAAJAAAAQ2xhc3NOYW1lqwMAAAAAAACsAwAAAAAAAAkAAABDbGFzc05hbWWDAwAAAAAAAIQDAAAAAAAACQAAAENsYXNzTmFtZdQDAAAAAAAA1QMAAAAAAAAAAAAApAMAAAAAAAClAwAAAAAAAAAAAACEAwAAAAAAAIUDAAAAAAAAAAAAANcDAAAAAAAA2AMAAAAAAAAAAAAApgMAAAAAAACnAwAAAAAAAAAAAACFAwAAAAAAAIYDAAAAAAAAAAAAANoDAAAAAAAA2wMAAAAAAAAAAAAAqAMAAAAAAACpAwAAAAAAAAAAAACGAwAAAAAAAIcDAAAAAAAAAAAAAN0DAAAAAAAA3gMAAAAAAAAAAAAAqgMAAAAAAACrAwAAAAAAAAAAAACHAwAAAAAAAIgDAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAMAAACDAwAAAAAAAIwDAAAAAAAAAAAAAAAA8L+rAwAAAAAAALQDAAAAAAAAAAAAAAAA8L/jAwAAAAAAAOwDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					47,
-					4,
-					"left_delete",
-					null,
-					"DAAAAN8DAAAAAAAA3wMAAAAAAAABAAAAb6sDAAAAAAAAqwMAAAAAAAABAAAAb4cDAAAAAAAAhwMAAAAAAAABAAAAb9wDAAAAAAAA3AMAAAAAAAABAAAAbKkDAAAAAAAAqQMAAAAAAAABAAAAbIYDAAAAAAAAhgMAAAAAAAABAAAAbNkDAAAAAAAA2QMAAAAAAAABAAAAbKcDAAAAAAAApwMAAAAAAAABAAAAbIUDAAAAAAAAhQMAAAAAAAABAAAAbNYDAAAAAAAA1gMAAAAAAAABAAAAZaUDAAAAAAAApQMAAAAAAAABAAAAZYQDAAAAAAAAhAMAAAAAAAABAAAAZQ",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAMAAACIAwAAAAAAAIgDAAAAAAAAAAAAAAAA8L+sAwAAAAAAAKwDAAAAAAAAAAAAAAAA8L/gAwAAAAAAAOADAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					48,
-					1,
-					"insert",
-					{
-						"characters": "H"
-					},
-					"AwAAANQDAAAAAAAA1QMAAAAAAAAAAAAApAMAAAAAAAClAwAAAAAAAAAAAACEAwAAAAAAAIUDAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAMAAACEAwAAAAAAAIQDAAAAAAAAAAAAAAAA8L+kAwAAAAAAAKQDAAAAAAAAAAAAAAAA8L/UAwAAAAAAANQDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					49,
-					2,
-					"left_delete",
-					null,
-					"BgAAANYDAAAAAAAA1gMAAAAAAAABAAAASKUDAAAAAAAApQMAAAAAAAABAAAASIQDAAAAAAAAhAMAAAAAAAABAAAASNMDAAAAAAAA0wMAAAAAAAABAAAAaKMDAAAAAAAAowMAAAAAAAABAAAAaIMDAAAAAAAAgwMAAAAAAAABAAAAaA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAMAAACFAwAAAAAAAIUDAAAAAAAAAAAAAAAA8L+mAwAAAAAAAKYDAAAAAAAAAAAAAAAA8L/XAwAAAAAAANcDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					50,
-					1,
-					"insert",
-					{
-						"characters": "Hello"
-					},
-					"DwAAANEDAAAAAAAA0gMAAAAAAAAAAAAAogMAAAAAAACjAwAAAAAAAAAAAACDAwAAAAAAAIQDAAAAAAAAAAAAANQDAAAAAAAA1QMAAAAAAAAAAAAApAMAAAAAAAClAwAAAAAAAAAAAACEAwAAAAAAAIUDAAAAAAAAAAAAANcDAAAAAAAA2AMAAAAAAAAAAAAApgMAAAAAAACnAwAAAAAAAAAAAACFAwAAAAAAAIYDAAAAAAAAAAAAANoDAAAAAAAA2wMAAAAAAAAAAAAAqAMAAAAAAACpAwAAAAAAAAAAAACGAwAAAAAAAIcDAAAAAAAAAAAAAN0DAAAAAAAA3gMAAAAAAAAAAAAAqgMAAAAAAACrAwAAAAAAAAAAAACHAwAAAAAAAIgDAAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAMAAACDAwAAAAAAAIMDAAAAAAAAAAAAAAAA8L+iAwAAAAAAAKIDAAAAAAAAAAAAAAAA8L/RAwAAAAAAANEDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					59,
-					1,
-					"left_delete",
-					null,
-					"AQAAAIkDAAAAAAAAiQMAAAAAAAAGAAAAb2JqZWN0",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACJAwAAAAAAAI8DAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					60,
-					1,
-					"next_field",
-					null,
-					"BgAAAJADAAAAAAAAkwMAAAAAAAAAAAAAkwMAAAAAAACTAwAAAAAAAAMAAAAiIiKmAwAAAAAAAKoDAAAAAAAAAAAAAKoDAAAAAAAAqgMAAAAAAAAEAAAAIiIiCqoDAAAAAAAArgMAAAAAAAAAAAAArgMAAAAAAACuAwAAAAAAAAQAAAAgICAg",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACJAwAAAAAAAIkDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					61,
-					1,
-					"insert",
-					{
-						"characters": "hello"
-					},
-					"IwAAAJMDAAAAAAAAlAMAAAAAAAATAAAAZG9jc3RyaW5nIGZvciBIZWxsb5ADAAAAAAAAkwMAAAAAAAAAAAAAkwMAAAAAAACTAwAAAAAAAAMAAAAiIiKUAwAAAAAAAJgDAAAAAAAAAAAAAJgDAAAAAAAAmAMAAAAAAAAEAAAAIiIiCpgDAAAAAAAAnAMAAAAAAAAAAAAAnAMAAAAAAACcAwAAAAAAAAQAAAAgICAglAMAAAAAAACVAwAAAAAAAAAAAACQAwAAAAAAAJMDAAAAAAAAAAAAAJMDAAAAAAAAkwMAAAAAAAADAAAAIiIilQMAAAAAAACZAwAAAAAAAAAAAACZAwAAAAAAAJkDAAAAAAAABAAAACIiIgqZAwAAAAAAAJ0DAAAAAAAAAAAAAJ0DAAAAAAAAnQMAAAAAAAAEAAAAICAgIJUDAAAAAAAAlgMAAAAAAAAAAAAAkAMAAAAAAACTAwAAAAAAAAAAAACTAwAAAAAAAJMDAAAAAAAAAwAAACIiIpYDAAAAAAAAmgMAAAAAAAAAAAAAmgMAAAAAAACaAwAAAAAAAAQAAAAiIiIKmgMAAAAAAACeAwAAAAAAAAAAAACeAwAAAAAAAJ4DAAAAAAAABAAAACAgICCWAwAAAAAAAJcDAAAAAAAAAAAAAJADAAAAAAAAkwMAAAAAAAAAAAAAkwMAAAAAAACTAwAAAAAAAAMAAAAiIiKXAwAAAAAAAJsDAAAAAAAAAAAAAJsDAAAAAAAAmwMAAAAAAAAEAAAAIiIiCpsDAAAAAAAAnwMAAAAAAAAAAAAAnwMAAAAAAACfAwAAAAAAAAQAAAAgICAglwMAAAAAAACYAwAAAAAAAAAAAACQAwAAAAAAAJMDAAAAAAAAAAAAAJMDAAAAAAAAkwMAAAAAAAADAAAAIiIimAMAAAAAAACcAwAAAAAAAAAAAACcAwAAAAAAAJwDAAAAAAAABAAAACIiIgqcAwAAAAAAAKADAAAAAAAAAAAAAKADAAAAAAAAoAMAAAAAAAAEAAAAICAgIA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACTAwAAAAAAAKYDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					62,
-					1,
-					"next_field",
-					null,
-					"BAAAALEDAAAAAAAAswMAAAAAAAAAAAAAswMAAAAAAACzAwAAAAAAAAIAAAAsIN8DAAAAAAAA9gMAAAAAAAAAAAAA9gMAAAAAAAD2AwAAAAAAABcAAAAgICAgICAgIHNlbGYuYXJnID0gYXJnCg",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACYAwAAAAAAAJgDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					63,
-					1,
-					"insert",
-					{
-						"characters": "age"
-					},
-					"DwAAALMDAAAAAAAAtAMAAAAAAAADAAAAYXJnsQMAAAAAAACzAwAAAAAAAAAAAACzAwAAAAAAALMDAAAAAAAAAgAAACwg3QMAAAAAAADwAwAAAAAAAAAAAADwAwAAAAAAAPADAAAAAAAAFwAAACAgICAgICAgc2VsZi5hcmcgPSBhcmcKtAMAAAAAAAC1AwAAAAAAAAAAAACxAwAAAAAAALMDAAAAAAAAAAAAALMDAAAAAAAAswMAAAAAAAACAAAALCDeAwAAAAAAAPMDAAAAAAAAAAAAAPMDAAAAAAAA8wMAAAAAAAATAAAAICAgICAgICBzZWxmLmEgPSBhCrUDAAAAAAAAtgMAAAAAAAAAAAAAsQMAAAAAAACzAwAAAAAAAAAAAACzAwAAAAAAALMDAAAAAAAAAgAAACwg3wMAAAAAAAD2AwAAAAAAAAAAAAD2AwAAAAAAAPYDAAAAAAAAFQAAACAgICAgICAgc2VsZi5hZyA9IGFnCg",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACzAwAAAAAAALYDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					70,
-					1,
-					"insert",
-					{
-						"characters": ","
-					},
-					"AQAAALYDAAAAAAAAtwMAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC2AwAAAAAAALYDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					71,
-					1,
-					"insert",
-					{
-						"characters": " len"
-					},
-					"BAAAALcDAAAAAAAAuAMAAAAAAAAAAAAAuAMAAAAAAAC5AwAAAAAAAAAAAAC5AwAAAAAAALoDAAAAAAAAAAAAALoDAAAAAAAAuwMAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC3AwAAAAAAALcDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					72,
-					3,
-					"left_delete",
-					null,
-					"AwAAALoDAAAAAAAAugMAAAAAAAABAAAAbrkDAAAAAAAAuQMAAAAAAAABAAAAZbgDAAAAAAAAuAMAAAAAAAABAAAAbA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC7AwAAAAAAALsDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					83,
-					1,
-					"insert",
-					{
-						"characters": "\t"
-					},
-					"AQAAALgDAAAAAAAAvAMAAAAAAAAAAAAA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC4AwAAAAAAALgDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					84,
-					5,
-					"left_delete",
-					null,
-					"BQAAALsDAAAAAAAAuwMAAAAAAAABAAAAILoDAAAAAAAAugMAAAAAAAABAAAAILkDAAAAAAAAuQMAAAAAAAABAAAAILgDAAAAAAAAuAMAAAAAAAABAAAAILcDAAAAAAAAtwMAAAAAAAABAAAAIA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC8AwAAAAAAALwDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					85,
-					1,
-					"left_delete",
-					null,
-					"AQAAALYDAAAAAAAAtgMAAAAAAAABAAAALA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAC3AwAAAAAAALcDAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					94,
-					5,
-					"left_delete",
-					null,
-					"BQAAAH0DAAAAAAAAfQMAAAAAAACBAAAAY2xhc3MgSGVsbG8oKToKICAgICIiImhlbGxvIiIiCiAgICBkZWYgX19pbml0X18oc2VsZiwgYWdlKToKICAgICAgICBzdXBlcihIZWxsbywgc2VsZikuX19pbml0X18oKQogICAgICAgIHNlbGYuYWdlID0gYWdlCiAgICAgICAgfAMAAAAAAAB8AwAAAAAAAAEAAAAKeAMAAAAAAAB4AwAAAAAAAAQAAAAgICAgdAMAAAAAAAB0AwAAAAAAAAQAAAAgICAgcwMAAAAAAABzAwAAAAAAAAEAAAAK",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAAD+AwAAAAAAAH0DAAAAAAAAAAAAAAAA8L8"
-				],
-				[
-					98,
-					1,
-					"trim_trailing_white_space",
-					null,
-					"AQAAAHQDAAAAAAAAdAMAAAAAAAAIAAAAICAgICAgICA",
-					"AgAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPC/AAAAAAEAAACRAQAAAAAAAJEBAAAAAAAAAAAAAAAA8L8"
+					"AQAAAGoTAAAAAAAAfBUAAAAAAAA9AgAAICAgICAgICBwYXJlbnQgPSBzaW11bGF0aW9uX3N0YXRlLndvcmxkLm9yZ2FuaXNtc1sKICAgICAgICAgICAgcmVzb2x2ZWRfZXZlbnQucGFyZW50X2lkCiAgICAgICAgXQoKICAgICAgICBwYXJlbnQuZW5lcmd5IC09IHJlc29sdmVkX2V2ZW50LmluaXRpYWxfZW5lcmd5CgogICAgICAgIG9mZnNwcmluZyA9IE9yZ2FuaXNtKAogICAgICAgICAgICBhZ2U9MCwKICAgICAgICAgICAgZW5lcmd5PXJlc29sdmVkX2V2ZW50LmluaXRpYWxfZW5lcmd5LAogICAgICAgICAgICB4PXJlc29sdmVkX2V2ZW50LngsCiAgICAgICAgICAgIHk9cmVzb2x2ZWRfZXZlbnQueSwKICAgICAgICAgICAgYm9keV9zaXplPXJlc29sdmVkX2V2ZW50LmJvZHlfc2l6ZSwKICAgICAgICAgICAgbW92ZW1lbnRfcmFuZ2U9cmVzb2x2ZWRfZXZlbnQubW92ZW1lbnRfcmFuZ2UsCiAgICAgICAgICAgIG9mZnNwcmluZ19lbmVyZ3k9cmVzb2x2ZWRfZXZlbnQub2Zmc3ByaW5nX2VuZXJneSwKICAgICAgICApCgogICAgICAgIHNpbXVsYXRpb25fc3RhdGUud29ybGQuYWRkX29yZ2FuaXNtKAogICAgICAgICAgICBvZmZzcHJpbmcKICAgICAgICAp",
+					"AQAAAAAAAAABAAAApxUAAAAAAACnFQAAAAAAAAAAAAAAAPC/"
 				]
 			]
 		}
 	],
-	"build_system": "",
+	"build_system": "Packages/Python/Python.sublime-build",
 	"build_system_choices":
 	[
 		[
@@ -1031,6 +439,42 @@
 				"Packages/C++/C++ Single File.sublime-build",
 				"Run"
 			]
+		],
+		[
+			[
+				[
+					"Pytest: Current File",
+					""
+				],
+				[
+					"Pytest: Full Suite",
+					""
+				],
+				[
+					"Pytest: Last Failed",
+					""
+				],
+				[
+					"Python: Current File",
+					""
+				],
+				[
+					"Quality: Ruff + Pyright + Pytest",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					""
+				],
+				[
+					"Packages/Python/Python.sublime-build",
+					"Syntax Check"
+				]
+			],
+			[
+				"Packages/Python/Python.sublime-build",
+				""
+			]
 		]
 	],
 	"build_varint": "",
@@ -1041,12 +485,148 @@
 		"selected_items":
 		[
 			[
-				"Snippet: ",
-				"Snippet: Method"
+				"brow",
+				"Preferences: Browse Packages"
+			],
+			[
+				"browse",
+				"Preferences: Browse Packages"
+			],
+			[
+				"brose ",
+				"Preferences: Browse Packages"
+			],
+			[
+				"brows",
+				"Preferences: Browse Packages"
+			],
+			[
+				"packages",
+				"Preferences: Browse Packages"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"codu",
+				"Codeium: Provide Auth Token"
+			],
+			[
+				"code",
+				"Codeium: Sign In"
+			],
+			[
+				"package control: remove package",
+				"Package Control: Remove Package"
+			],
+			[
+				"remove package",
+				"Package Control: Remove Package"
+			],
+			[
+				"remove ",
+				"Package Control: Remove Package"
+			],
+			[
+				"list packa",
+				"Package Control: List Packages"
+			],
+			[
+				"cod",
+				"Codeium: Enable Plugin"
+			],
+			[
+				"codeium",
+				"Codeium: Sign In"
+			],
+			[
+				"list packages",
+				"Package Control: List Packages"
 			],
 			[
 				"install",
 				"Package Control: Install Package"
+			],
+			[
+				"list package",
+				"Package Control: List Packages"
+			],
+			[
+				"list pa",
+				"Package Control: List Packages"
+			],
+			[
+				"terminus: open",
+				"Terminus: Open Default Shell in Tab (View)"
+			],
+			[
+				"ter",
+				"Terminus: Open Default Shell in Panel"
+			],
+			[
+				"lsp ",
+				"LSP: Format File"
+			],
+			[
+				"package con",
+				"Package Control: List Packages"
+			],
+			[
+				"termin",
+				"Terminus: Open Default Shell in Panel"
+			],
+			[
+				"lsp trou",
+				"LSP: Troubleshoot Server"
+			],
+			[
+				"package",
+				"Package Control: List Packages"
+			],
+			[
+				"list ",
+				"Package Control: List Packages"
+			],
+			[
+				"install package",
+				"Package Control: Install Package"
+			],
+			[
+				"customize",
+				"UI: Customize Theme"
+			],
+			[
+				"list pack",
+				"Package Control: List Packages"
+			],
+			[
+				"package control: inst",
+				"Package Control: Install Package"
+			],
+			[
+				"ui:",
+				"UI: Select Color Scheme"
+			],
+			[
+				"ui",
+				"UI: Customize Color Scheme"
+			],
+			[
+				"package control: list",
+				"Package Control: List Packages"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"packa",
+				"Preferences: Browse Packages"
+			],
+			[
+				"Snippet: ",
+				"Snippet: Method"
 			],
 			[
 				" insta",
@@ -1064,13 +644,14 @@
 		"height": 202.0,
 		"history":
 		[
+			"sublime.active_window().active_view().run_command(\n    \"toggle_python_function_fold\"\n)"
 		]
 	},
 	"distraction_free":
 	{
 		"menu_visible": true,
 		"show_minimap": false,
-		"show_open_files": false,
+		"show_open_files": true,
 		"show_tabs": false,
 		"side_bar_visible": false,
 		"status_bar_visible": false
@@ -1078,145 +659,157 @@
 	"expanded_folders":
 	[
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/archived",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/references",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/scratch",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests"
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/evolution",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/predation",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evolution_simulation_engine.egg-info",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/integration",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/mechanisms"
 	],
 	"file_history":
 	[
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/reproduction.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial/movement_patterns.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/predation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/starvation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/evolution/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/evolution/mutation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/movement.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/decomposition.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/organism.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/predation/preference_order.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/world_state.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/protocols.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/carcass.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/_common.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/predation/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/predation/random_order.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial/predation_strategies.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial/neighborhoods.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial/distances.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/random_order.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/random_priority.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/fitness_share.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/proposal_order.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/equal_share.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/spatial/boundary_conditions.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/movement_patterns.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/boundary_conditions.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/mutation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/resource_generation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/resource_consumption.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/death.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/energy_loss.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/aging.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/validators.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/attrs_validators.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource_allocation/fitness_weighted.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stage_coordinator.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/accept_all.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stage_resolvers/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stage_resolvers/accept_all.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stage_resolvers/resource_allocation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/resolvers/resource.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/disease.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/growth.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/examples/aging_simulation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/examples/aging_energy_loss_death_simulation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/examples/aging_and_death_simulation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/death.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/simulation_engine.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/pyproject.toml",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/.gitignore",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/mechanisms/aging.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stopping_conditions.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stage_resolvers.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/step_coordinator.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/mechanism.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/simulation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/mechanisms/test_death.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/simulation_state.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/mechanisms/mechanism.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/mechanisms/death.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_world_state.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_organism.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/integration/test_aging_simulation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/integration/test_step_coordinator.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/mechanisms/test_aging.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/integration/test_aging_stage.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_stage_coordinator.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_attrs_validators.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_stage_resolvers.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_stopping_conditions.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_events.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_simulation.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events_resolvers.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/stage.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/state_updaters.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/update_stages.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/mechanisms/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_update_stages.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_state_updater.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events_proposers.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/state_updater.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_events_proposer.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events_resolver.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events_proposer.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_events",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_validators.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/archived/organism_archived_2.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_new_organism.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/index.md",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/attrs_organism",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/__init__.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/validation/validators.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/validation/attrs_validators.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/references/validators.md",
+		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/toggle_python_function_fold.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/mkdocs.yml",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/new_organism.py",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/timestep_coordinator.py",
+		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/Pytest Project.sublime-build",
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/.venv/lib/python3.12/site-packages/pytest/__init__.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/evolution-simulation-engine.sublime-project",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/scratch/basic_aging_run.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/timestep_coordinator.py",
 		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/Pytest Parametrized Test",
 		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/Method Skeleton",
 		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/Init",
 		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/Pytest Exception Test",
 		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/Pytest Basic Test",
 		"/Users/abdullahkhan/Library/Caches/Sublime Text/Package Storage/LSP-pyright/language-server/node_modules/pyright/dist/typeshed-fallback/stdlib/builtins.pyi",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/__init__.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/pyproject.toml",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/organism.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_organism.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/engine_builders.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_basic_aging_engine.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/observation.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/history.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/observer.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/update_stage.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/simulation_engine.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/__init__.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_traits.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/world_state.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/.gitignore",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/timestep_result.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events_resolver.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/engine.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/state_updater.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/stopping_condition.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/event.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/events_proposer.py",
 		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/event_proposer.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/scratch/scratch.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/worker_classes",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/data_classes",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/coordinator_classes",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/model_notes.md",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/traits.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/development_log.md",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/README.md",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/requirements.txt",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/config.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/v1_model_assumptions.md",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/docs/architecture.md",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/scratch_test_engine.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/scratch_test.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/observation/observers.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/engine.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/state.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/states.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/events.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/entities.py",
-		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/core/engine",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/README.md",
-		"/Users/abdullahkhan/Documents/README.md",
-		"/Users/abdullahkhan/Documents/v1_model_assumptions.md",
-		"/Users/abdullahkhan/Documents/state.py",
-		"/Users/abdullahkhan/Documents/engine.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/core/events.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/core/entities.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/docs/v1_model_assumptions.md",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/io/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/experiments/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/visualization/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/analysis/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/observation/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/updating/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/resolving/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/initialization/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/interactions/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/rules/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/scheduling/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/src/evo_engine/core/__init__.py",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/requirements.txt",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/pyproject.toml",
-		"/Users/abdullahkhan/Desktop/Coding Projects/evolution-simulation-engine/.gitignore",
-		"/Users/abdullahkhan/Downloads/Evolution_Sim_Prototype_1_updated_equilibrium_cycles (1).ipynb",
-		"/Users/abdullahkhan/Downloads/natural_selection_simulation_dashboard_documented_one_button_with_program_map.ipynb",
-		"/Users/abdullahkhan/Downloads/messages/Searra Mascaro_0.json",
-		"/Users/abdullahkhan/Desktop/Finance-Repo/Finance-Repo/No-Arbitrage-Price-Binomial-Stock-European-Option.cpp",
-		"/Users/abdullahkhan/Desktop/test.py",
-		"/Users/abdullahkhan/Desktop/Monte-Carlo-Pi.cpp",
-		"/Users/abdullahkhan/Desktop/test2.cpp",
-		"/Users/abdullahkhan/Desktop/test.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/No-Arbitrage-Price-Binomial-Stock-European-Option.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/covering_segments.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/sorting.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/scratch.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/p1.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/points_and_segments.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/quicksort_duplicates",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/binary_search_duplicates.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/Sorting Algorithms.cpp",
-		"/Users/abdullahkhan/Desktop/scratch.cpp",
-		"/Users/abdullahkhan/Library/Application Support/Sublime Text/Packages/User/template.sublime-snippet",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/change_dp.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fibonacci_huge.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fibonacci_solution.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/hi.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/hello.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/largest_number.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/different_summands.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/dot_product.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Starter Codes/week3_greedy_algorithms/4_maximum_advertisement_revenue/dot_product.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/car_fueling.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fibonacci_sum_squares.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fibonacci_partial_sum.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fibonacci_sum_last_digit.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fibonacci_last_digit.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/placing_parentheses.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/knapsack.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/edit_distance.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Starter Codes/week5_dynamic_programming1/3_edit_distance/by_learners/edit_distance.rb",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Starter Codes/week5_dynamic_programming1/2_primitive_calculator/primitive_calculator.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/primitive_calculator.cpp",
-		"/Users/abdullahkhan/Desktop/closest.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/closest.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/inversions.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/majority_element.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Starter Codes/week4_divide_and_conquer/3_majority_element/majority_element.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/binary_search.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/fractional_knapsack.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/change.cpp",
-		"/Users/abdullahkhan/Desktop/dsa/Abdullah+Searra.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/gcd.cpp",
-		"/Users/abdullahkhan/Desktop/Data Science and Algorithms/Solutions/lcm.cpp"
+		"/Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/scratch/scratch.py"
 	],
 	"find":
 	{
-		"height": 36.0
+		"height": 32.0
 	},
 	"find_in_files":
 	{
@@ -1231,6 +824,47 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"int",
+			"Death",
+			"Aging",
+			"event_types",
+			"self.stages",
+			"self.mechanisms",
+			"TestEvent",
+			"TestMechanism",
+			"evo_engine",
+			"run",
+			"events",
+			"test_state_updater.py",
+			"        \n",
+			"value_type",
+			"set",
+			"list",
+			"tuple",
+			"list",
+			"age_one_step",
+			"AttrsValidator",
+			"bool",
+			"validate_bool",
+			"bool",
+			"numberical",
+			"\"Return",
+			"int",
+			"number",
+			"name: str",
+			"tuple",
+			"list",
+			"validated_number",
+			"number",
+			"text",
+			"probability",
+			"number",
+			"validated_number",
+			"number",
+			"param",
+			"non-negative",
+			"positive",
+			")\n",
 			"history",
 			"update_stages",
 			"events"
@@ -1241,6 +875,7 @@
 		"regex": false,
 		"replace_history":
 		[
+			"nonnegative"
 		],
 		"reverse": false,
 		"scrollbar_highlights": true,
@@ -1257,120 +892,20 @@
 			[
 				{
 					"buffer": 0,
-					"file": "tests/test_organism.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1743,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								290,
-								290
-							]
-						],
-						"settings":
-						{
-							"auto_complete_triggers":
-							[
-								{
-									"characters": "<",
-									"selector": "text.html, text.xml"
-								},
-								{
-									"rhs_empty": true,
-									"selector": "punctuation.accessor"
-								},
-								{
-									"characters": ".[\"'",
-									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
-									"server": "LSP-pyright"
-								}
-							],
-							"lsp_active": true,
-							"lsp_uri": "file:///Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/tests/test_organism.py",
-							"show_definitions": false,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 116.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"stack_multiselect": false,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "src/evo_engine/organism.py",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 738,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								248,
-								248
-							]
-						],
-						"settings":
-						{
-							"auto_complete_triggers":
-							[
-								{
-									"characters": "<",
-									"selector": "text.html, text.xml"
-								},
-								{
-									"rhs_empty": true,
-									"selector": "punctuation.accessor"
-								},
-								{
-									"characters": ".[\"'",
-									"selector": "meta.tag, source - comment - string.quoted.double.block - string.quoted.single.block - string.unquoted.heredoc",
-									"server": "LSP-pyright"
-								}
-							],
-							"lsp_active": true,
-							"lsp_uri": "file:///Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/organism.py",
-							"show_definitions": false,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"stack_multiselect": false,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/evo_engine/world_state.py",
+					"file": "src/evo_engine/processes/reproduction.py",
 					"selected": true,
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 885,
+						"buffer_size": 5500,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								401,
-								401
+								5500,
+								5500
 							]
 						],
 						"settings":
@@ -1392,14 +927,12 @@
 								}
 							],
 							"lsp_active": true,
-							"lsp_uri": "file:///Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/world_state.py",
+							"lsp_uri": "file:///Users/abdullahkhan/Desktop/coding/evolution-simulation-engine/src/evo_engine/processes/reproduction.py",
 							"show_definitions": false,
-							"syntax": "Packages/Python/Python.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Python/Python.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2951.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -1411,7 +944,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 36.0
+		"height": 32.0
 	},
 	"input":
 	{
@@ -1447,6 +980,20 @@
 		[
 		]
 	},
+	"output.Terminus":
+	{
+		"height": 124.0,
+		"history":
+		[
+		]
+	},
+	"output.Terminus 2":
+	{
+		"height": 124.0,
+		"history":
+		[
+		]
+	},
 	"output.diagnostics":
 	{
 		"height": 0.0,
@@ -1475,11 +1022,18 @@
 		[
 		]
 	},
-	"pinned_build_system": "Quality: Ruff + Pyright + Pytest",
+	"output.mdpopups-dummy":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"pinned_build_system": "Python: Current File",
 	"project": "evolution-simulation-engine.sublime-project",
 	"replace":
 	{
-		"height": 68.0
+		"height": 60.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1488,6 +1042,22 @@
 		"last_filter": "",
 		"selected_items":
 		[
+			[
+				"ornga",
+				"src/evo_engine/new_organism.py"
+			],
+			[
+				"organ",
+				"src/evo_engine/organism.py"
+			],
+			[
+				"test",
+				"tests/test_organism.py"
+			],
+			[
+				"worl",
+				"src/evo_engine/world_state.py"
+			]
 		],
 		"width": 0.0
 	},
@@ -1512,14 +1082,17 @@
 	"selected_group": 0,
 	"settings":
 	{
+		"_vintageous_last_char_search_character": " ",
+		"_vintageous_last_char_search_command": "vi_f",
+		"_vintageous_reset_during_init": true,
 		"lsp_show_inlay_hints": false
 	},
-	"show_minimap": true,
+	"show_minimap": false,
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 141.0,
-	"status_bar_visible": true,
+	"side_bar_width": 93.0,
+	"status_bar_visible": false,
 	"template_settings":
 	{
 	}

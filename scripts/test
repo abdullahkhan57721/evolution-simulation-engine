@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Run the full pytest suite with useful reporting and strict configuration checks.
+#
+# Usage:
+#   ./scripts/test
+#   ./scripts/test tests/test_organism.py
+#   ./scripts/test -k energy
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ -x "$REPO_ROOT/venv/bin/python" ]]; then
+    PYTHON="$REPO_ROOT/venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+    PYTHON="$(command -v python3)"
+elif command -v python >/dev/null 2>&1; then
+    PYTHON="$(command -v python)"
+else
+    echo "Error: Python is not available."
+    exit 127
+fi
+
+if ! "$PYTHON" -c 'import pytest' >/dev/null 2>&1; then
+    echo "Error: pytest is not installed for: $PYTHON"
+    exit 127
+fi
+
+printf '%s\n' "======================================================================"
+printf '%s\n' "PYTEST — TEST SUITE"
+printf '%s\n' "======================================================================"
+"$PYTHON" -m pytest -ra --strict-config --strict-markers "$@"

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Run ./scripts/typecheck --help to see common wrapper and raw tool commands.
+# Run Pyright static type checking.
+#
+# Usage:
+#   ./scripts/typecheck
+#   ./scripts/typecheck src/evo_engine/core/engine.py
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage:
+  ./scripts/typecheck
+  ./scripts/typecheck src/evo_engine/core/engine.py
+
+What this wrapper runs:
+  venv/bin/pyright --pythonpath venv/bin/python
+
+Most useful Pyright commands:
+  venv/bin/pyright                                      # Type-check configured project scope
+  venv/bin/pyright src/evo_engine                      # Type-check one package/tree
+  venv/bin/pyright src/evo_engine/core/engine.py       # Type-check one file
+  venv/bin/pyright --pythonpath venv/bin/python        # Explicitly use this project's venv
+
+Recommended normal command:
+  ./scripts/typecheck
+EOF
+    exit 0
+fi
+
+if [[ -x "$REPO_ROOT/venv/bin/pyright" ]]; then
+    PYRIGHT="$REPO_ROOT/venv/bin/pyright"
+elif [[ -x "$REPO_ROOT/.venv/bin/pyright" ]]; then
+    PYRIGHT="$REPO_ROOT/.venv/bin/pyright"
+elif command -v pyright >/dev/null 2>&1; then
+    PYRIGHT="$(command -v pyright)"
+else
+    echo "Error: Pyright is not installed."
+    echo "Install it with:"
+    echo "  venv/bin/python -m pip install pyright"
+    exit 127
+fi
+
+args=()
+if [[ -x "$REPO_ROOT/venv/bin/python" ]]; then
+    args+=(--pythonpath "$REPO_ROOT/venv/bin/python")
+elif [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
+    args+=(--pythonpath "$REPO_ROOT/.venv/bin/python")
+fi
+
+if [[ $# -gt 0 ]]; then
+    args+=("$@")
+fi
+
+printf '\n%s\n' "======================================================================"
+echo "PYRIGHT — STATIC TYPE CHECK"
+printf '%s\n' "======================================================================"
+"$PYRIGHT" "${args[@]}"

@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Run ./scripts/lint --help to see common wrapper and raw tool commands.
+# Run Ruff linting and formatting verification without modifying source files.
+#
+# Usage:
+#   ./scripts/lint
+#   ./scripts/lint src tests
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage:
+  ./scripts/lint
+  ./scripts/lint src tests
+
+What this wrapper runs:
+  venv/bin/ruff check .
+  venv/bin/ruff format --check .
+
+Most useful Ruff commands:
+  venv/bin/ruff check .                       # Check the whole repository
+  venv/bin/ruff check . --fix                 # Apply safe automatic lint fixes
+  venv/bin/ruff check . --select I --fix      # Fix/sort imports only
+  venv/bin/ruff format .                      # Format the whole repository
+  venv/bin/ruff format --check .              # Check formatting without changing files
+  venv/bin/ruff check src tests --fix         # Fix selected paths
+
+Typical cleanup workflow:
+  venv/bin/ruff check . --fix && venv/bin/ruff format .
+
+Then verify everything with:
+  ./scripts/check_all
+EOF
+    exit 0
+fi
+
+if [[ -x "$REPO_ROOT/venv/bin/ruff" ]]; then
+    RUFF="$REPO_ROOT/venv/bin/ruff"
+elif command -v ruff >/dev/null 2>&1; then
+    RUFF="$(command -v ruff)"
+else
+    echo "Error: Ruff is not installed."
+    echo "Install it with:"
+    echo "  venv/bin/python -m pip install ruff"
+    exit 127
+fi
+
+if [[ $# -gt 0 ]]; then
+    TARGETS=("$@")
+else
+    TARGETS=(.)
+fi
+
+printf '\n%s\n' "======================================================================"
+echo "RUFF — LINT"
+printf '%s\n' "======================================================================"
+"$RUFF" check "${TARGETS[@]}"
+lint_status=$?
+
+printf '\n%s\n' "======================================================================"
+echo "RUFF — FORMAT CHECK"
+printf '%s\n' "======================================================================"
+"$RUFF" format --check "${TARGETS[@]}"
+format_status=$?
+
+printf '\n%s\n' "======================================================================"
+echo "RUFF — SUMMARY"
+printf '%s\n' "======================================================================"
+echo "Lint:    $([[ $lint_status -eq 0 ]] && echo PASS || echo FAIL)"
+echo "Format:  $([[ $format_status -eq 0 ]] && echo PASS || echo FAIL)"
+
+if [[ $lint_status -ne 0 || $format_status -ne 0 ]]; then
+    exit 1
+fi

@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Run Ruff linting and verify Ruff formatting without modifying files.
+#
+# Usage:
+#   ./scripts/lint
+#   ./scripts/lint src tests
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ -x "$REPO_ROOT/venv/bin/ruff" ]]; then
+    RUFF="$REPO_ROOT/venv/bin/ruff"
+elif command -v ruff >/dev/null 2>&1; then
+    RUFF="$(command -v ruff)"
+else
+    echo "Error: Ruff is not installed."
+    echo "Install it in the project environment, then rerun this script."
+    exit 127
+fi
+
+if [[ $# -eq 0 ]]; then
+    set -- .
+fi
+
+printf '%s\n' "======================================================================"
+printf '%s\n' "RUFF — LINT"
+printf '%s\n' "======================================================================"
+"$RUFF" check "$@"
+lint_status=$?
+
+printf '\n%s\n' "======================================================================"
+printf '%s\n' "RUFF — FORMAT CHECK"
+printf '%s\n' "======================================================================"
+"$RUFF" format --check "$@"
+format_status=$?
+
+printf '\n%s\n' "======================================================================"
+printf '%s\n' "RUFF — SUMMARY"
+printf '%s\n' "======================================================================"
+if [[ $lint_status -eq 0 ]]; then
+    echo "Lint:   PASS"
+else
+    echo "Lint:   FAIL (exit $lint_status)"
+fi
+
+if [[ $format_status -eq 0 ]]; then
+    echo "Format: PASS"
+else
+    echo "Format: FAIL (exit $format_status)"
+fi
+
+if [[ $lint_status -ne 0 || $format_status -ne 0 ]]; then
+    exit 1
+fi

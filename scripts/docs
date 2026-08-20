@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Build MkDocs documentation in strict mode.
+# Any MkDocs warning causes this check to fail.
+#
+# Usage:
+#   ./scripts/docs
+#   ./scripts/docs -v
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ -x "$REPO_ROOT/venv/bin/mkdocs" ]]; then
+    MKDOCS="$REPO_ROOT/venv/bin/mkdocs"
+elif command -v mkdocs >/dev/null 2>&1; then
+    MKDOCS="$(command -v mkdocs)"
+else
+    echo "Error: MkDocs is not installed."
+    exit 127
+fi
+
+if [[ ! -f "$REPO_ROOT/mkdocs.yml" && ! -f "$REPO_ROOT/mkdocs.yaml" ]]; then
+    echo "Error: no mkdocs.yml or mkdocs.yaml found in the repository root."
+    exit 2
+fi
+
+printf '%s\n' "======================================================================"
+printf '%s\n' "MKDOCS — STRICT DOCUMENTATION BUILD"
+printf '%s\n' "======================================================================"
+"$MKDOCS" build --strict --clean "$@"

@@ -5,17 +5,25 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "evolution-simulation-engine"
 version = "0.1.0"
-description = """A beginner evolution simulation engine starting with
-a one-trait energy survival scenario."""
+description = """An extensible engine for spatial ecological and evolutionary simulations."""
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "attrs>=25.0",
+]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
     "ruff>=0.9",
     "pyright>=1.1",
+    "complexipy>=5.2,<6",
+]
+
+docs = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-material",
+    "mkdocstrings[python]",
 ]
 
 [tool.setuptools.packages.find]
@@ -34,8 +42,14 @@ line-length = 88
 select = ["E4", "E7", "E9", "F", "I", "B"]
 
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src", "tests", "examples"]
 pythonVersion = "3.12"
 typeCheckingMode = "basic"
 venvPath = "."
-venv = ".venv"
+venv = "venv"
+
+[tool.complexipy]
+paths = ["src/evo_engine"]
+max-complexity-allowed = 15
+check-script = false
+exclude = []

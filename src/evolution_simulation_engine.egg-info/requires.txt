@@ -1,5 +1,11 @@
+attrs>=25.0
 
 [dev]
 pytest>=8.0
 ruff>=0.9
 pyright>=1.1
+
+[docs]
+mkdocs<2,>=1.6
+mkdocs-material
+mkdocstrings[python]

@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# Run ./scripts/complexity --help to see common wrapper and raw tool commands.
+# Run a comprehensive Complexipy report and enforce the configured threshold.
+#
+# Usage:
+#   ./scripts/complexity
+#   ./scripts/complexity src/evo_engine/core
+#   ./scripts/complexity src/evo_engine/core/engine.py
+#
+# Environment:
+#   COMPLEXIPY_TOP_N=25 ./scripts/complexity
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT" || exit 1
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage:
+  ./scripts/complexity
+  ./scripts/complexity src/evo_engine/core
+  ./scripts/complexity src/evo_engine/core/engine.py
+  COMPLEXIPY_TOP_N=25 ./scripts/complexity
+
+Most useful Complexipy commands:
+  venv/bin/complexipy src/evo_engine --sort desc
+  venv/bin/complexipy src/evo_engine --top 15
+  venv/bin/complexipy src/evo_engine --failed
+  venv/bin/complexipy src/evo_engine --failed --suggest-refactors
+  venv/bin/complexipy src/evo_engine --diff-only HEAD
+  venv/bin/complexipy src/evo_engine --staged
+
+Recommended comprehensive report:
+  ./scripts/complexity
+EOF
+    exit 0
+fi
+
+TARGET="${1:-src/evo_engine}"
+TOP_N="${COMPLEXIPY_TOP_N:-15}"
+
+if [[ -x "$REPO_ROOT/venv/bin/complexipy" ]]; then
+    COMPLEXIPY="$REPO_ROOT/venv/bin/complexipy"
+elif command -v complexipy >/dev/null 2>&1; then
+    COMPLEXIPY="$(command -v complexipy)"
+else
+    echo "Error: Complexipy is not installed."
+    echo "Install it with:"
+    echo "  venv/bin/python -m pip install complexipy"
+    exit 127
+fi
+
+if [[ ! -e "$TARGET" ]]; then
+    echo "Error: target does not exist: $TARGET"
+    exit 2
+fi
+
+separator() {
+    printf '\n%s\n' "======================================================================"
+}
+
+heading() {
+    separator
+    printf '%s\n' "$1"
+    printf '%s\n' "======================================================================"
+}
+
+report_error=0
+
+heading "COMPLEXIPY — FULL COMPLEXITY REPORT"
+"$COMPLEXIPY" "$TARGET" --sort desc --ignore-complexity || report_error=1
+
+heading "COMPLEXIPY — TOP ${TOP_N} MOST COMPLEX FUNCTIONS"
+"$COMPLEXIPY" "$TARGET" --top "$TOP_N" --ignore-complexity || report_error=1
+
+heading "COMPLEXIPY — THRESHOLD VIOLATIONS + REFACTOR SUGGESTIONS"
+"$COMPLEXIPY" "$TARGET" --failed --suggest-refactors --ignore-complexity || report_error=1
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    if git rev-parse HEAD >/dev/null 2>&1; then
+        heading "COMPLEXIPY — UNCOMMITTED WORKTREE CHANGES VS HEAD"
+        "$COMPLEXIPY" "$TARGET" --diff-only HEAD --ignore-complexity || report_error=1
+    fi
+
+    if ! git diff --cached --quiet -- "$TARGET" 2>/dev/null; then
+        heading "COMPLEXIPY — STAGED CHANGES VS HEAD"
+        "$COMPLEXIPY" "$TARGET" --staged --ignore-complexity || report_error=1
+    else
+        heading "COMPLEXIPY — STAGED CHANGES"
+        echo "No staged changes under $TARGET. Skipping staged comparison."
+    fi
+fi
+
+heading "COMPLEXIPY — COMPLEXITY THRESHOLD GATE"
+"$COMPLEXIPY" "$TARGET" --failed --quiet
+threshold_status=$?
+
+heading "COMPLEXIPY — SUMMARY"
+echo "Target:     $TARGET"
+echo "Top count:  $TOP_N"
+echo "Version:    $($COMPLEXIPY --version 2>/dev/null || echo unknown)"
+
+echo "Report:     $([[ $report_error -eq 0 ]] && echo PASS || echo ERROR)"
+echo "Threshold:  $([[ $threshold_status -eq 0 ]] && echo PASS || echo FAIL)"
+
+if [[ $report_error -ne 0 ]]; then
+    exit 2
+fi
+
+if [[ $threshold_status -ne 0 ]]; then
+    exit 1
+fi
