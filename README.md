@@ -16,6 +16,8 @@ src/evo_engine/
 ├── genetics/      alleles, loci, chromosomes, genomes, inheritance,
 │                  recombination, expression, and genetic phenotype
 ├── development/   developmental variation and individual target profiles
+├── growth/        policies that determine potential body-mass gain
+├── energetics/    energetic cost models for metabolism, movement, and growth
 ├── reproduction/ reproductive eligibility, parent selection, investment,
 │                  and offspring placement
 ├── spatial/       neighborhoods, distances, boundaries, movement patterns
@@ -46,10 +48,11 @@ Organisms separate inherited genetic state from developmental realization:
 ```text
 Genome
     → GeneticArchitecture
-        → GeneticPhenotype          genetic expectation
+        → GeneticPhenotype              genetic expectation
             → DevelopmentModel
-                → DevelopmentalProfile   individual target values
-                    → mutable organism state
+                → DevelopmentalProfile  individual target values
+                    → GrowthModel
+                        → mutable organism body mass
 ```
 
 The genetics subsystem supports configurable allele domains, mutation
@@ -77,6 +80,19 @@ A `DevelopmentModel` may change trait values, but it must preserve the complete
 ordered trait-name sequence from `GeneticPhenotype` into `DevelopmentalProfile`.
 This invariant is checked whenever development is realized and whenever an
 `Organism` is constructed.
+
+## Growth
+
+`Organism.body_mass` is mutable physical state, while the corresponding adult
+body-mass value in `DevelopmentalProfile` remains an immutable individual
+target. `Growth` composes a `GrowthModel` for potential mass gain with a
+`GrowthCostModel` for energetic cost.
+
+Potential growth is capped at the developmental target before energetic
+pricing. The initial affordability rule is all-or-nothing: an organism grows
+only when it can pay the full cost of the capped gain. Spending the final unit
+of energy is allowed; mortality remains a separate process such as
+`Starvation`, which therefore observes the organism's updated current mass.
 
 Install the project and development tools into the project virtual
 environment:
