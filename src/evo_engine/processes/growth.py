@@ -103,9 +103,7 @@ class Growth:
         events: list[Growth.Event] = []
 
         for organism in simulation_state.world.organisms.values():
-            target_body_mass = organism.developmental_profile.int_value(
-                self.trait_name
-            )
+            target_body_mass = organism.developmental_profile.int_value(self.trait_name)
             validators.validate_int_ge(
                 target_body_mass,
                 bound=1,
