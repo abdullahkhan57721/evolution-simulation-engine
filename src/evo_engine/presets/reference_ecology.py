@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import attrs
 
 from evo_engine.behavior import (
@@ -19,6 +21,7 @@ from evo_engine.energetics import (
 )
 from evo_engine.engine import (
     MaxSteps,
+    Process,
     Simulation,
     SimulationEngine,
     StageCoordinator,
@@ -76,7 +79,7 @@ from evo_engine.resolvers.reproduction import (
 from evo_engine.resolvers.resource_allocation import EqualShare
 from evo_engine.spatial.boundary_conditions import Clamped
 from evo_engine.spatial.movement_patterns import MooreRandom
-from evo_engine.spatial.neighborhoods import Moore, SameCell
+from evo_engine.spatial.neighborhoods import Moore
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world import Organism, WorldState
 
@@ -190,7 +193,7 @@ class ReferenceEcologyConfig:
         locomotion_distance_exponent: Locomotion distance exponent.
         growth_amount_per_step: Potential body-mass gain per timestep.
         growth_energy_per_mass: Energy cost per gained body-mass unit.
-        predation_radius: Same-species predation interaction radius.
+        predation_radius: Chebyshev radius for predation interactions.
         predation_consumption_percent: Fraction of prey biomass converted directly
             to predator energy, expressed as an integer percentage.
         mating_radius: Maximum Chebyshev distance for candidate mates.
@@ -222,7 +225,10 @@ class ReferenceEcologyConfig:
         default=42,
         validator=attrs_validators.validate_int,
     )
-    traits: ReferenceTraitValues = attrs.field(factory=ReferenceTraitValues)
+    traits: ReferenceTraitValues = attrs.field(
+        factory=ReferenceTraitValues,
+        validator=attrs.validators.instance_of(ReferenceTraitValues),
+    )
     mutation_probability_ppm: int = attrs.field(
         default=10_000,
         validator=attrs_validators.validate_int_in_range(0, 1_000_000),
@@ -327,9 +333,15 @@ class ReferenceEcology:
         engine: Engine wired with the standard ecological lifecycle.
     """
 
-    config: ReferenceEcologyConfig
-    simulation: Simulation
-    engine: SimulationEngine
+    config: ReferenceEcologyConfig = attrs.field(
+        validator=attrs.validators.instance_of(ReferenceEcologyConfig),
+    )
+    simulation: Simulation = attrs.field(
+        validator=attrs.validators.instance_of(Simulation),
+    )
+    engine: SimulationEngine = attrs.field(
+        validator=attrs.validators.instance_of(SimulationEngine),
+    )
 
 
 def _trait_domains() -> dict[str, tuple[int, int]]:
@@ -565,7 +577,9 @@ def build_reference_engine(
     predation_stage = StageCoordinator(
         processes=(
             Predation(
-                neighborhood=SameCell(),
+                neighborhood=Moore(
+                    radius=config.predation_radius,
+                ),
                 consumption_percent=config.predation_consumption_percent,
             ),
         ),
@@ -613,7 +627,7 @@ def build_reference_engine(
                 inheritance_model=SexualInheritance(
                     gamete_formation=MeioticGameteFormation(
                         recombination=SingleCrossoverRecombination(
-                            probability_ppm=(config.recombination_probability_ppm),
+                            probability_ppm=config.recombination_probability_ppm,
                         )
                     )
                 ),
@@ -680,7 +694,9 @@ def _resolve_config(
     return config
 
 
-def _accept_all_stage(*processes: object) -> StageCoordinator:
+def _accept_all_stage(
+    *processes: Process[Any, Any],
+) -> StageCoordinator:
     return StageCoordinator(
         processes=processes,
         resolver=AcceptAll(),
