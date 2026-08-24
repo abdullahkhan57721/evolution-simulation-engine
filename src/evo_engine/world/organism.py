@@ -23,9 +23,10 @@ from evo_engine.validation import attrs_validators, validators
 class Organism:
     """Represent an organism's mutable, genetic, and expressed state.
 
-    Genetic state, genetic phenotype, developmental targets, and birth timestep
-    are fixed for the lifetime of an organism. Mutable state such as age,
-    energy, current body mass, and position may change during simulation.
+    Genetic state, genetic phenotype, and developmental targets are fixed for
+    the lifetime of an organism. Mutable state such as age, energy, current
+    body mass, and position may
+    change during simulation.
 
     ``body_mass`` represents current physical mass. A heritable
     ``adult_body_mass`` genetic phenotype defines a genetic expectation, while
@@ -34,10 +35,7 @@ class Organism:
     current mass without changing the organism's genome or genetic phenotype.
 
     Attributes:
-        age: Completed simulation timesteps lived by the organism.
-        birth_step_index: Simulation step during which the organism was born,
-            or None for founders/preexisting organisms whose birth step is not
-            represented by the current simulation.
+        age: Organism age in simulation timesteps.
         energy: Current organism energy.
         body_mass: Current positive physical mass/biomass.
         genome: Inherited genetic state.
@@ -56,13 +54,6 @@ class Organism:
     age: int = attrs.field(
         default=0,
         validator=attrs_validators.validate_int_ge(0),
-    )
-    birth_step_index: int | None = attrs.field(
-        default=None,
-        validator=attrs.validators.optional(
-            attrs_validators.validate_int_ge(0),
-        ),
-        on_setattr=attrs.setters.frozen,
     )
     energy: int = attrs.field(
         default=100,
@@ -103,7 +94,6 @@ class Organism:
         # is cheaper and just as safe as recursively copying them each timestep.
         copied = type(self)(
             age=self.age,
-            birth_step_index=self.birth_step_index,
             energy=self.energy,
             body_mass=self.body_mass,
             genome=self.genome,
@@ -123,7 +113,6 @@ class Organism:
         genetic_architecture: GeneticArchitecture,
         genome: Genome,
         age: int = 0,
-        birth_step_index: int | None = None,
         energy: int = 100,
         body_mass: int | None = None,
         development_model: DevelopmentModel | None = None,
@@ -135,16 +124,15 @@ class Organism:
 
         When ``body_mass`` is omitted and the genetic phenotype defines the
         canonical ``adult_body_mass`` trait, current mass initially matches that
-        target. This preserves fixed-size behavior until a developmental model
-        is configured. Genomes without that trait default to one mass unit.
+        target.
+        This preserves fixed-size behavior until a developmental model is
+        configured. Genomes without that trait default to one mass unit.
 
         Args:
             genetic_architecture: Shared architecture used to validate and
                 express the genome.
             genome: Inherited genetic state.
-            age: Initial completed age in simulation timesteps.
-            birth_step_index: Optional simulation step during which the organism
-                was born. Founders normally leave this as None.
+            age: Initial organism age in simulation timesteps.
             energy: Initial organism energy.
             body_mass: Optional initial current physical mass. If omitted,
                 the realized adult-body-mass target is used when available,
@@ -196,7 +184,6 @@ class Organism:
 
         return cls(
             age=age,
-            birth_step_index=birth_step_index,
             energy=energy,
             body_mass=body_mass,
             genome=genome,
@@ -234,7 +221,7 @@ class Organism:
         self._id = organism_id
 
     def age_step(self) -> None:
-        """Increase the organism's age by one completed timestep."""
+        """Increase the organism's age by one timestep."""
         self.age += 1
 
     def change_energy(self, delta: int) -> None:
