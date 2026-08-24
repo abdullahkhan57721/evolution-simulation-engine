@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import attrs
 
+from evo_engine.behavior import SOMATIC_INVESTMENT
 from evo_engine.energetics.growth import GrowthCostModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
@@ -26,6 +29,8 @@ class Growth:
         growth_cost_model: Model used to calculate energetic growth cost.
         trait_name: Developmental target that defines adult body mass.
     """
+
+    behavioral_purpose: ClassVar[str] = SOMATIC_INVESTMENT
 
     growth_model: GrowthModel
     growth_cost_model: GrowthCostModel
