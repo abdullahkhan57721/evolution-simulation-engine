@@ -112,7 +112,7 @@ def test_standard_lifecycle_omits_optional_stages_without_dummy_placeholders() -
     )
 
 
-def test_entry_maximum_age_checkpoint_removes_overage_organism_before_metabolism() -> None:
+def test_entry_max_age_checkpoint_prevents_overage_turn() -> None:
     """Test an organism already at maximum age cannot begin another timestep."""
     state = make_state()
     organism = add_organism(
