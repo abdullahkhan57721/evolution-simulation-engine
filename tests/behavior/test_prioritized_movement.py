@@ -17,15 +17,32 @@ from evo_engine.behavior import (
     determine_movement_purpose,
     determine_movement_target,
 )
+from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.world.organism import Organism
 from tests.helpers import add_organism, make_state
 
 
 class _FixedCondition:
-    def __init__(self, decision: object) -> None:
+    def __init__(self, decision: bool) -> None:
         self.decision = decision
 
-    def matches(self, organism, *, simulation_state):
+    def matches(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> bool:
         return self.decision
+
+
+class _InvalidCondition:
+    def matches(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> int:
+        return 1
 
 
 class _FixedTarget:
@@ -40,11 +57,11 @@ class _FixedTarget:
 
     def choose_target(
         self,
-        organism,
+        organism: Organism,
         *,
-        behavioral_purpose,
-        simulation_state,
-    ):
+        behavioral_purpose: str,
+        simulation_state: SimulationState,
+    ) -> MovementTarget | None:
         return self.target
 
 
@@ -130,7 +147,7 @@ def test_prioritized_movement_intent_requires_exact_boolean_condition() -> None:
         rules=(
             MovementIntentRule(
                 behavioral_purpose=REPRODUCTION,
-                condition=_FixedCondition(1),
+                condition=_InvalidCondition(),  # type: ignore[arg-type]
             ),
         ),
     )
