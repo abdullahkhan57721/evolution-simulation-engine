@@ -1,5 +1,6 @@
 """Simulation orchestration and run-state components."""
 
+from evo_engine.engine.lifecycle import build_standard_lifecycle
 from evo_engine.engine.protocols import (
     EventMaterializer,
     Process,
@@ -28,4 +29,5 @@ __all__ = [
     "StageCoordinator",
     "StepCoordinator",
     "StoppingCondition",
+    "build_standard_lifecycle",
 ]
