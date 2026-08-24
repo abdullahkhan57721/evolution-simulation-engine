@@ -6,7 +6,12 @@ import pytest
 
 from evo_engine.behavior import EnergyConservationBehavior
 from evo_engine.energetics import DevelopmentalEnergyThreshold
-from evo_engine.engine import MaxSteps, SequentialStepCoordinator, Simulation, SimulationEngine
+from evo_engine.engine import (
+    MaxSteps,
+    SequentialStepCoordinator,
+    Simulation,
+    SimulationEngine,
+)
 from evo_engine.genetics import ENERGY_CONSERVATION_THRESHOLD
 from evo_engine.world import WorldState
 from tests.helpers import make_empty_architecture, make_integer_architecture
