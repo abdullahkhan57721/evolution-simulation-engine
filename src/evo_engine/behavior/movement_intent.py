@@ -11,7 +11,12 @@ from evo_engine.behavior.purposes import (
     EXPLORATION,
     validate_behavioral_purpose,
 )
-from evo_engine.validation import attrs_validators
+from evo_engine.energetics.thresholds import (
+    EnergyThresholdSource,
+    determine_energy_threshold,
+    validate_energy_threshold_source,
+)
+from evo_engine.genetics.requirements import collect_required_traits
 
 if TYPE_CHECKING:
     from evo_engine.engine.simulation_state import SimulationState
@@ -81,31 +86,34 @@ class FixedMovementIntent:
 
 @attrs.frozen(slots=True, kw_only=True)
 class EnergyThresholdMovementIntent:
-    """Choose movement purpose from the organism's current energy.
+    """Choose movement purpose from current energy and a threshold source.
 
-    Energy strictly below ``energy_threshold`` selects ``low_energy_purpose``.
-    Energy at or above the threshold selects ``otherwise_purpose``. The default
-    configuration therefore makes depleted organisms forage while sufficiently
-    energized organisms explore.
+    Energy strictly below the resolved ``energy_threshold`` selects
+    ``low_energy_purpose``. Energy at or above it selects ``otherwise_purpose``.
+    The threshold may be fixed or organism-specific. The default purposes make
+    depleted organisms forage while sufficiently energized organisms explore.
 
     This model determines motivation only. It does not decide whether the
     behavior is permitted, what environmental targets can be perceived, or how
     movement is performed.
 
     Attributes:
-        energy_threshold: Energy below which the low-energy purpose is selected.
+        energy_threshold: Fixed value or model determining when low-energy
+            movement intent is active.
         low_energy_purpose: Purpose selected below the threshold.
         otherwise_purpose: Purpose selected at or above the threshold.
     """
 
-    energy_threshold: int = attrs.field(
-        validator=attrs_validators.validate_int_ge(0),
-    )
+    energy_threshold: EnergyThresholdSource
     low_energy_purpose: str = ENERGY_ACQUISITION
     otherwise_purpose: str = EXPLORATION
 
     def __attrs_post_init__(self) -> None:
-        """Validate configured movement purposes."""
+        """Validate the threshold source and configured movement purposes."""
+        validate_energy_threshold_source(
+            self.energy_threshold,
+            name="energy_threshold",
+        )
         validate_behavioral_purpose(
             self.low_energy_purpose,
             name="low_energy_purpose",
@@ -114,6 +122,11 @@ class EnergyThresholdMovementIntent:
             self.otherwise_purpose,
             name="otherwise_purpose",
         )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the configured threshold model."""
+        return collect_required_traits(self.energy_threshold)
 
     def determine_purpose(
         self,
@@ -131,7 +144,14 @@ class EnergyThresholdMovementIntent:
             Low-energy purpose below the threshold; otherwise the configured
             non-low-energy purpose.
         """
-        if organism.energy < self.energy_threshold:
+        energy_threshold = determine_energy_threshold(
+            self.energy_threshold,
+            organism,
+            simulation_state=simulation_state,
+            name="energy_threshold",
+        )
+
+        if organism.energy < energy_threshold:
             return self.low_energy_purpose
 
         return self.otherwise_purpose
