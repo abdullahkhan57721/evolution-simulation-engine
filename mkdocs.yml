@@ -6,6 +6,7 @@ theme:
 nav:
   - Home: index.md
   - Model Notes: model_notes.md
+  - Energy Expenditure: energy_expenditure.md
   - Development Log: development_log.md
   - API Reference:
       - Validators: references/validators.md
