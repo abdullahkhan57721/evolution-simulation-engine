@@ -8,7 +8,6 @@ import attrs
 
 from evo_engine.behavior import (
     ENERGY_ACQUISITION,
-    REPRODUCTION as REPRODUCTION_PURPOSE,
     EnergyBelowThresholdMovementCondition,
     EnergyConservationBehavior,
     GeneticPhenotypeSensoryAccuracy,
@@ -17,6 +16,9 @@ from evo_engine.behavior import (
     PrioritizedMovementIntent,
     PurposeMovementTargetRouter,
     PurposeTargetRoute,
+)
+from evo_engine.behavior import (
+    REPRODUCTION as REPRODUCTION_PURPOSE,
 )
 from evo_engine.energetics import (
     DevelopmentalEnergyThreshold,
@@ -242,9 +244,7 @@ def build_reference_engine(
                     PurposeTargetRoute(
                         behavioral_purpose=ENERGY_ACQUISITION,
                         target_model=NearestResourceTarget(
-                            sensory_accuracy_model=(
-                                GeneticPhenotypeSensoryAccuracy()
-                            ),
+                            sensory_accuracy_model=(GeneticPhenotypeSensoryAccuracy()),
                         ),
                     ),
                     PurposeTargetRoute(
