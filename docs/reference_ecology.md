@@ -32,7 +32,7 @@ founder genome, world, simulation, and engine.
 
 ## Founder genetic architecture
 
-The reference population begins homozygous for fourteen integer traits:
+The reference population begins homozygous for seventeen integer traits:
 
 | Trait | Default | Role |
 | --- | ---: | --- |
@@ -46,6 +46,9 @@ The reference population begins homozygous for fourteen integer traits:
 | `energy_reserve` | 5 | Reserve protected from growth and reproduction |
 | `attack_strength` | 8 | Predator performance opposed by prey defense |
 | `defense` | 5 | Prey resistance to predator attack |
+| `mate_search_range` | 3 | Distance within which both parents can discover one another |
+| `choosiness` | 5 | Minimum partner mating signal accepted |
+| `mating_signal` | 8 | Signal presented to potential mates |
 | `maturity_age` | 4 | Reproductive maturity |
 | `reproduction_energy_threshold` | 20 | Minimum energy for reproductive eligibility |
 | `offspring_energy` | 4 | Energy invested by each reproductive parent |
@@ -164,6 +167,43 @@ these scores influence prey choice and interaction conflicts.
 The reference contains one generic population, so this remains opportunistic
 within-population predation rather than a species or trophic-role system.
 
+## Mate choice and sexual selection
+
+Reference mating now separates individual eligibility, encounter range,
+acceptance, and preference:
+
+```text
+maturity + reproduction energy eligibility
+        ↓
+hard mating neighborhood
+        ↓
+both parents within each other's mate_search_range
+        ↓
+each parent's mating_signal >= the other's choosiness
+        ↓
+mutual signal-surplus preference score
+        ↓
+PreferenceOrder conflict resolution
+        ↓
+sexual inheritance and birth
+```
+
+The hard `mating_radius` defaults to 20 and acts as a broad geometry cap. The
+organism-specific founder `mate_search_range` is three and therefore supplies the
+meaningful local encounter limit in the default 12 × 12 world.
+
+`MutualSignalCompatibility` requires two-way acceptance. A candidate pair forms
+only when each partner's expressed signal meets the other's expressed choosiness.
+`MutualSignalMarginPreference` then scores the total amount by which both signals
+exceed those thresholds. The reproduction resolver selects the highest-scoring
+non-conflicting proposals first, so mate-search range, choosiness, and mating
+signal can all alter realized reproductive success.
+
+The current sexual-selection model is role-symmetric because reproductive parents
+are interchangeable. It does not yet represent sexes, mating types, or asymmetric
+courtship roles. Those can be added through different parent-selection policies
+without changing sexual inheritance.
+
 ## Energy priorities
 
 The preset deliberately uses different expenditure policies for different kinds
@@ -237,6 +277,9 @@ The defaults compose:
 - genetic resource-to-energy assimilation efficiency,
 - fixed-rate growth with linear energy cost,
 - maturity- and energy-gated sexual reproduction,
+- genetic mutual mate-search range,
+- genetic choosiness and mating signal,
+- mutual signal-surplus mating preference,
 - meiotic segregation with single crossover,
 - mutation of transmitted alleles,
 - developmental energy reserves,
@@ -274,6 +317,9 @@ config = ReferenceEcologyConfig(
         energy_reserve=6,
         attack_strength=10,
         defense=7,
+        mate_search_range=5,
+        choosiness=6,
+        mating_signal=10,
         maturity_age=5,
         reproduction_energy_threshold=24,
         offspring_energy=5,
@@ -309,7 +355,8 @@ The reference ecology intentionally exposes several areas for future model work:
 - predation success is deterministic once size and attack/defense eligibility
   are satisfied,
 - sexual reproduction has interchangeable parent roles and no sex trait,
-- mate seeking does not yet drive movement,
+- mate search affects reproduction-stage encounter but does not yet drive
+  movement toward potential mates,
 - growth rate is fixed rather than heritable, and
 - the preset provides no observer/analytics layer yet.
 

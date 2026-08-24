@@ -9,7 +9,10 @@ from typing import Protocol
 import attrs
 
 from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.genetics.requirements import validate_required_traits
+from evo_engine.genetics.requirements import (
+    collect_required_traits,
+    validate_required_traits,
+)
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
@@ -139,13 +142,21 @@ def _neutral_pair_preference(
 class PairwiseMating:
     """Propose every eligible two-parent mating pair.
 
+    Callable mating collaborators may optionally expose ``required_traits``.
+    Those nested requirements are aggregated automatically with explicitly
+    declared callback dependencies, preserving support for plain functions and
+    lambdas while enabling structured trait-aware sexual-selection policies.
+
     Attributes:
-        neighborhood: Spatial neighborhood within which mating is possible.
-        can_mate: Function determining biological pair compatibility.
-        preference_function: Function returning an integer preference score
+        neighborhood: Hard spatial neighborhood within which mating is possible.
+        can_mate: Callable determining biological pair compatibility. This can
+            include organism-specific mate-search or sexual-selection rules.
+        preference_function: Callable returning an integer preference score
             for a candidate pair. If parent roles are interchangeable, this
             function should be symmetric in its two parent arguments.
-        required_traits: Genetic phenotype traits read by custom mating callbacks.
+        required_traits: Additional genetic phenotype traits read by opaque
+            custom mating callbacks. Structured policies contribute their own
+            requirements automatically.
     """
 
     neighborhood: Neighborhood
@@ -162,7 +173,7 @@ class PairwiseMating:
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate mating-policy collaborators."""
+        """Validate mating-policy collaborators and aggregate dependencies."""
         try:
             contains = self.neighborhood.contains
         except AttributeError as error:
@@ -173,9 +184,18 @@ class PairwiseMating:
         if not callable(contains):
             raise TypeError("neighborhood must provide a callable contains method.")
 
-        validate_required_traits(
+        declared_requirements = validate_required_traits(
             self.required_traits,
             name="required_traits",
+        )
+        nested_requirements = collect_required_traits(
+            self.can_mate,
+            self.preference_function,
+        )
+        object.__setattr__(
+            self,
+            "required_traits",
+            declared_requirements | nested_requirements,
         )
 
     @property

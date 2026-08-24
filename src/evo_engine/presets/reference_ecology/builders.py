@@ -70,10 +70,14 @@ from evo_engine.processes import (
 )
 from evo_engine.reproduction import (
     AllOfEligibility,
+    AllOfMatingCompatibility,
     DevelopmentalMaturityEligibility,
     FractionOfAdultBodyMassAtBirth,
     GeneticPhenotypeEnergyInvestment,
     MinimumEnergyEligibility,
+    MutualMateSearchRange,
+    MutualSignalCompatibility,
+    MutualSignalMarginPreference,
     PairwiseMating,
 )
 from evo_engine.resolvers import AcceptAll
@@ -257,7 +261,14 @@ def build_reference_engine(
                 parent_selection=PairwiseMating(
                     neighborhood=Moore(
                         radius=config.mating_radius,
-                    )
+                    ),
+                    can_mate=AllOfMatingCompatibility(
+                        compatibilities=(
+                            MutualMateSearchRange(),
+                            MutualSignalCompatibility(),
+                        )
+                    ),
+                    preference_function=MutualSignalMarginPreference(),
                 ),
                 inheritance_model=SexualInheritance(
                     gamete_formation=MeioticGameteFormation(
