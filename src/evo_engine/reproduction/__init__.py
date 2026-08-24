@@ -19,6 +19,14 @@ from evo_engine.reproduction.investment import (
     GeneticPhenotypeEnergyInvestment,
     ParentalInvestment,
 )
+from evo_engine.reproduction.mating import (
+    AllOfMatingCompatibility,
+    MatingCompatibility,
+    MatingPreference,
+    MutualMateSearchRange,
+    MutualSignalCompatibility,
+    MutualSignalMarginPreference,
+)
 from evo_engine.reproduction.parent_selection import (
     PairwiseMating,
     ParentGroup,
@@ -33,14 +41,20 @@ from evo_engine.reproduction.placement import (
 __all__ = [
     "AdultBodyMassAtBirth",
     "AllOfEligibility",
+    "AllOfMatingCompatibility",
     "AlwaysEligible",
     "DevelopmentalMaturityEligibility",
     "FixedBodyMassAtBirth",
     "FixedEnergyInvestment",
     "FractionOfAdultBodyMassAtBirth",
     "GeneticPhenotypeEnergyInvestment",
+    "MatingCompatibility",
+    "MatingPreference",
     "MinimumAgeEligibility",
     "MinimumEnergyEligibility",
+    "MutualMateSearchRange",
+    "MutualSignalCompatibility",
+    "MutualSignalMarginPreference",
     "OffspringBodyMassModel",
     "OffspringPlacement",
     "PairwiseMating",
