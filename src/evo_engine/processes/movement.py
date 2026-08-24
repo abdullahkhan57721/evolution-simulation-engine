@@ -16,6 +16,11 @@ from evo_engine.behavior import (
     determine_movement_target,
     validate_behavioral_purpose,
 )
+from evo_engine.energetics import (
+    EnergyExpenditurePolicy,
+    SpendToZero,
+    energy_expenditure_is_allowed,
+)
 from evo_engine.energetics.locomotion import LocomotionCostModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.builtin_traits import MAX_SPEED
@@ -58,10 +63,18 @@ class Movement:
     movement attempt. Targeted attempts use ``targeted_movement_model``;
     attempts without a selected target fall back to ``movement_pattern``.
 
+    Locomotion is voluntary energy expenditure. The configured
+    ``energy_expenditure_policy`` decides whether the fully priced movement may
+    be paid. The default ``SpendToZero`` allows an affordable movement to spend
+    the organism to exactly zero energy, but does not allow a full movement
+    whose cost exceeds available energy.
+
     Attributes:
         movement_pattern: Pattern used for untargeted movement displacements.
         boundary_condition: Rule used to resolve world-boundary crossings.
         locomotion_cost_model: Model used to calculate movement energy cost.
+        energy_expenditure_policy: Policy deciding whether the organism may pay
+            the locomotion cost.
         movement_intent_model: Model determining the behavioral purpose of each
             organism's movement attempt.
         movement_target_model: Model selecting an optional spatial target for
@@ -73,6 +86,9 @@ class Movement:
     movement_pattern: MovementPattern
     boundary_condition: BoundaryCondition
     locomotion_cost_model: LocomotionCostModel
+    energy_expenditure_policy: EnergyExpenditurePolicy = attrs.field(
+        factory=SpendToZero,
+    )
     movement_intent_model: MovementIntentModel = attrs.field(
         factory=FixedMovementIntent,
     )
@@ -86,6 +102,11 @@ class Movement:
     def __attrs_post_init__(self) -> None:
         """Validate Movement configuration."""
         required_methods = (
+            (
+                self.energy_expenditure_policy,
+                "can_spend",
+                "energy_expenditure_policy",
+            ),
             (
                 self.movement_intent_model,
                 "determine_purpose",
@@ -116,6 +137,7 @@ class Movement:
             self.movement_pattern,
             self.boundary_condition,
             self.locomotion_cost_model,
+            self.energy_expenditure_policy,
             self.movement_intent_model,
             self.movement_target_model,
             self.targeted_movement_model,
@@ -192,7 +214,7 @@ class Movement:
         self,
         simulation_state: SimulationState,
     ) -> list[Movement.Event]:
-        """Propose behaviorally selected Movement events.
+        """Propose behaviorally selected and energetically permitted movement.
 
         Each organism's movement intent is determined first. If behavior
         selection suppresses that purpose, no target selection, movement RNG,
@@ -201,8 +223,9 @@ class Movement:
         For selected attempts, expressed ``max_speed`` limits displacement
         magnitude. An optional ecological target is selected next. Targeted
         attempts use the targeted-movement policy; untargeted attempts use the
-        ordinary movement pattern. The boundary condition resolves the final
-        destination and the locomotion model determines energy cost.
+        ordinary movement pattern. The locomotion model determines the cost,
+        and the expenditure policy must permit payment before an event is
+        recorded.
 
         Args:
             simulation_state: Current simulation state.
@@ -270,6 +293,14 @@ class Movement:
                 bound=0,
                 name="locomotion energy cost",
             )
+
+            if not energy_expenditure_is_allowed(
+                self.energy_expenditure_policy,
+                organism,
+                energy_cost=energy_cost,
+                simulation_state=simulation_state,
+            ):
+                continue
 
             proposed_x = organism.x + dx
             proposed_y = organism.y + dy
@@ -353,24 +384,38 @@ class Movement:
         simulation_state: SimulationState,
         resolved_event: Movement.Event,
     ) -> None:
-        """Apply a resolved Movement event.
+        """Apply an energetically valid resolved Movement event.
 
-        The destination and energy expenditure were both decided during
-        proposal, so application only performs the recorded state changes.
+        The expenditure policy is rechecked against current energy before any
+        state mutation. This prevents a stale same-stage event from moving an
+        organism and only afterward discovering that its locomotion cost is no
+        longer permitted.
 
         Args:
             simulation_state: Current simulation state.
             resolved_event: Resolved Movement event to apply.
+
+        Raises:
+            RuntimeError: If the organism can no longer pay the recorded cost
+                under the configured expenditure policy.
         """
         world = simulation_state.world
         organism = world.organisms[resolved_event.organism_id]
+
+        if not energy_expenditure_is_allowed(
+            self.energy_expenditure_policy,
+            organism,
+            energy_cost=resolved_event.energy_cost,
+            simulation_state=simulation_state,
+        ):
+            raise RuntimeError(
+                f"Organism {organism.id} cannot pay its recorded locomotion "
+                "energy cost under the configured expenditure policy."
+            )
 
         world.move_organism(
             organism_id=resolved_event.organism_id,
             x=resolved_event.new_x,
             y=resolved_event.new_y,
         )
-        organism.energy = max(
-            0,
-            organism.energy - resolved_event.energy_cost,
-        )
+        organism.energy -= resolved_event.energy_cost
