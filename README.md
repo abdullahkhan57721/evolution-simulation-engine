@@ -17,6 +17,7 @@ src/evo_engine/
 │                  recombination, expression, and genetic phenotype
 ├── development/   developmental variation and individual target profiles
 ├── growth/        policies that determine potential body-mass gain
+├── behavior/      behavioral-purpose vocabulary and capability protocols
 ├── energetics/    energetic cost models for metabolism, movement, and growth
 ├── reproduction/ reproductive eligibility, parent selection, investment,
 │                  and offspring placement
@@ -93,6 +94,19 @@ pricing. The initial affordability rule is all-or-nothing: an organism grows
 only when it can pay the full cost of the capped gain. Spending the final unit
 of energy is allowed; mortality remains a separate process such as
 `Starvation`, which therefore observes the organism's updated current mass.
+
+## Behavioral purpose
+
+Behavioral processes may optionally expose a `behavioral_purpose` through the
+runtime-checkable `BehavioralPurposeProvider` protocol. Fixed-purpose processes
+use class-level declarations: growth is somatic investment, reproduction is
+reproduction, and predation/resource consumption are energy acquisition.
+
+Behavioral-purpose names are extensible strings rather than a closed enum. The
+engine provides canonical names for common purposes while allowing simulations
+to introduce custom purposes such as thermoregulation. `Movement` intentionally
+has no generic purpose because future movement actions may represent foraging,
+escape, mate search, exploration, or other context-dependent intent.
 
 Install the project and development tools into the project virtual
 environment:
