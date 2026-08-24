@@ -2,8 +2,8 @@
 
 from evo_engine.energetics.expenditure import (
     EnergyExpenditurePolicy,
-    KeepFixedReserve,
     KeepEnergyReserve,
+    KeepFixedReserve,
     SpendToZero,
     energy_expenditure_is_allowed,
 )
@@ -18,7 +18,7 @@ from evo_engine.energetics.metabolism import (
     MetabolicCostModel,
     PowerLawMetabolicCost,
 )
-from evo_engine.energetics.thresholds import (
+from evo_engine.life_history import (
     DevelopmentalEnergyThreshold,
     EnergyThresholdModel,
     EnergyThresholdSource,
