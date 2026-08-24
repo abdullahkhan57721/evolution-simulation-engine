@@ -210,8 +210,8 @@ class ReferenceEcologyConfig:
         predation_radius: Chebyshev radius for predation interactions.
         predation_consumption_percent: Percentage of prey biomass converted
             directly to predator energy.
-        mating_radius: Hard maximum Chebyshev distance for candidate mates,
-            applied before organism-specific mate-search compatibility.
+        mating_radius: Maximum Chebyshev distance at which compatible parents
+            may actually reproduce after mate-seeking movement.
         newborn_mass_numerator: Numerator of newborn/adult body-mass fraction.
         newborn_mass_denominator: Denominator of newborn/adult body-mass fraction.
     """
@@ -291,7 +291,7 @@ class ReferenceEcologyConfig:
         validator=attrs_validators.validate_int_in_range(0, 100),
     )
     mating_radius: int = attrs.field(
-        default=20,
+        default=1,
         validator=attrs_validators.validate_int_ge(0),
     )
     newborn_mass_numerator: int = attrs.field(
