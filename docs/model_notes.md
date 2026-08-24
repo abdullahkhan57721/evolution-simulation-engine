@@ -78,6 +78,30 @@ energy, Growth raises instead of adding unpaid tissue. Under
 `SequentialStepCoordinator`, that failure occurs on the transactional working
 copy, leaving the authoritative state unchanged.
 
+### Behavioral purpose
+
+Behavioral purpose is modeled as an optional component capability rather than a
+requirement of every simulation process. Components that expose a
+`behavioral_purpose` satisfy the runtime-checkable `BehavioralPurposeProvider`
+protocol. Fixed-purpose processes use class-level declarations, while future
+components may calculate purpose dynamically.
+
+Behavioral purposes are extensible nonblank strings. Canonical engine purposes
+currently include energy acquisition, survival, somatic investment,
+reproduction, and exploration. Growth declares somatic investment;
+Reproduction declares reproduction; Predation and ResourceConsumption declare
+energy acquisition.
+
+`Movement` deliberately has no single generic purpose. A future movement action
+may represent foraging, escape, mate search, exploration, migration, or another
+context-dependent intent. This leaves room for action-level purpose to override
+or refine process-level defaults when the behavioral system becomes richer.
+
+This capability is intended to support low-energy behavior policies without
+coupling those policies to concrete process classes. A conservation policy can
+reason about purpose categories rather than asking whether a process is a
+specific `Growth`, `Reproduction`, `Predation`, or other implementation.
+
 ### Inheritance
 
 The genetics subsystem currently supports:
