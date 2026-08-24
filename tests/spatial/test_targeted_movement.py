@@ -38,17 +38,17 @@ def test_straight_line_approaches_distant_axis_aligned_target() -> None:
     assert displacement == (2, 0)
 
 
-def test_straight_line_respects_euclidean_limit_for_diagonal_target() -> None:
-    """Test integer projection remains inside the Euclidean speed disk."""
+def test_straight_line_corrects_diagonal_rounding_overshoot() -> None:
+    """Test rounded projection is corrected back inside the speed disk."""
     dx, dy = StraightLineTowardTarget().choose_displacement(
         current_x=0,
         current_y=0,
         target_x=9,
         target_y=9,
-        max_speed=2,
+        max_speed=1,
     )
 
-    assert dx * dx + dy * dy <= 4
+    assert dx * dx + dy * dy <= 1
     assert dx >= 0
     assert dy >= 0
     assert dx + dy > 0
