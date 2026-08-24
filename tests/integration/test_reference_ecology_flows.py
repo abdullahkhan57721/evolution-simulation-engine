@@ -156,12 +156,14 @@ def test_reference_ecology_mutation_creates_bounded_offspring_variation() -> Non
         for organism in ecology.simulation.state.world.organisms.values()
         if organism.age == 0
     )
-    offspring_values = dict(newborn.genetic_phenotype.trait_values)
-
-    assert any(
-        offspring_values[trait_name] != founder_value
-        for trait_name, founder_value in founder_values.items()
+    mutated_alleles = tuple(
+        allele
+        for chromosome in newborn.genome.chromosomes
+        for allele in chromosome.alleles
+        if allele.value != founder_values[allele.locus_name]
     )
 
-    for trait_name, value in offspring_values.items():
+    assert mutated_alleles
+
+    for trait_name, value in newborn.genetic_phenotype.trait_values:
         ecology.simulation.genetic_architecture.locus(trait_name).domain.validate(value)
