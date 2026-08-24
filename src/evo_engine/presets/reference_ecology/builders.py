@@ -27,6 +27,10 @@ from evo_engine.engine import (
     StageCoordinator,
     build_standard_lifecycle,
 )
+from evo_engine.feeding import (
+    GeneticPhenotypeAssimilationEfficiency,
+    GeneticPhenotypeIntakeCapacity,
+)
 from evo_engine.genetics import (
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
@@ -202,6 +206,8 @@ def build_reference_engine(
         processes=(
             ResourceConsumption(
                 requested_amount=config.resource_request_amount,
+                intake_capacity_model=GeneticPhenotypeIntakeCapacity(),
+                assimilation_model=GeneticPhenotypeAssimilationEfficiency(),
             ),
         ),
         resolver=EqualShare(),
