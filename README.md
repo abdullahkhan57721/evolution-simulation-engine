@@ -122,8 +122,13 @@ earlier stage and leave conservation mode later in the same step.
 Movement is intentionally different because the process itself has no single
 purpose. A `MovementIntentModel` determines why each organism is attempting to
 move before target selection or displacement RNG is consumed.
-`FixedMovementIntent` defaults to exploration, but can label movement as energy
-acquisition, survival, reproduction, or another extensible purpose.
+`FixedMovementIntent` assigns one configured purpose. `EnergyThresholdMovementIntent`
+derives purpose from current energy: below its threshold it defaults to energy
+acquisition, while at or above the threshold it defaults to exploration. Both
+purposes are configurable. The movement-intent threshold and
+`EnergyConservationBehavior` threshold are independent configuration because
+intent answers what the organism is trying to do, while behavior selection
+answers whether that purpose is attempted.
 
 Movement may then select an ecological target. `NearestResourceTarget` targets
 the nearest detectable resource deposit for energy-acquisition movement. By
@@ -180,12 +185,11 @@ simulation = Simulation(
 )
 ```
 
-Example resource-seeking movement configuration:
+Example state-dependent resource-seeking movement configuration:
 
 ```python
 from evo_engine.behavior import (
-    ENERGY_ACQUISITION,
-    FixedMovementIntent,
+    EnergyThresholdMovementIntent,
     NearestResourceTarget,
 )
 from evo_engine.processes import Movement
@@ -194,14 +198,17 @@ movement = Movement(
     movement_pattern=movement_pattern,
     boundary_condition=boundary_condition,
     locomotion_cost_model=locomotion_cost_model,
-    movement_intent_model=FixedMovementIntent(
-        behavioral_purpose=ENERGY_ACQUISITION,
+    movement_intent_model=EnergyThresholdMovementIntent(
+        energy_threshold=10,
     ),
     movement_target_model=NearestResourceTarget(),
 )
 ```
 
-With that configuration the simulation's genetic architecture must define both
+With that configuration, organisms below 10 energy attempt energy-acquisition
+movement and can target detectable resources. At or above 10 energy they attempt
+exploration, so `NearestResourceTarget` is inactive and the ordinary movement
+pattern is used. The simulation's genetic architecture must define both
 `max_speed` and `sensory_range`.
 
 Install the project and development tools into the project virtual
