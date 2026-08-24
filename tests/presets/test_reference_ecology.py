@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from evo_engine.engine import SequentialStepCoordinator
+from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ENERGY_CONSERVATION_THRESHOLD,
@@ -148,6 +148,7 @@ def test_reference_bundle_uses_one_resolved_configuration() -> None:
     assert ecology.simulation.state.world.width == 5
     assert ecology.simulation.state.world.height == 5
     assert len(ecology.simulation.state.world.organisms) == 4
+    assert isinstance(ecology.engine.stopping_condition, MaxSteps)
     assert ecology.engine.stopping_condition.max_steps == 3
 
 
