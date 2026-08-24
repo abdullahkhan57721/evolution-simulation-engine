@@ -113,7 +113,9 @@ class PurposeTargetRoute:
         )
 
         if not callable(getattr(self.target_model, "choose_target", None)):
-            raise TypeError("target_model must provide a callable choose_target method.")
+            raise TypeError(
+                "target_model must provide a callable choose_target method."
+            )
 
     @property
     def required_traits(self) -> frozenset[str]:
