@@ -17,7 +17,7 @@ src/evo_engine/
 │                  recombination, expression, and genetic phenotype
 ├── development/   developmental variation and individual target profiles
 ├── growth/        policies that determine potential body-mass gain
-├── behavior/      behavioral-purpose vocabulary and capability protocols
+├── behavior/      behavioral purposes and organism-level behavior selection
 ├── energetics/    energetic cost models for metabolism, movement, and growth
 ├── reproduction/ reproductive eligibility, parent selection, investment,
 │                  and offspring placement
@@ -95,7 +95,7 @@ only when it can pay the full cost of the capped gain. Spending the final unit
 of energy is allowed; mortality remains a separate process such as
 `Starvation`, which therefore observes the organism's updated current mass.
 
-## Behavioral purpose
+## Behavior selection
 
 Behavioral processes may optionally expose a `behavioral_purpose` through the
 runtime-checkable `BehavioralPurposeProvider` protocol. Fixed-purpose processes
@@ -107,6 +107,36 @@ engine provides canonical names for common purposes while allowing simulations
 to introduce custom purposes such as thermoregulation. `Movement` intentionally
 has no generic purpose because future movement actions may represent foraging,
 escape, mate search, exploration, or other context-dependent intent.
+
+`BehaviorSelectionModel` answers a separate organism-level question: given the
+organism's current state, should it attempt a behavior with a particular
+purpose? `UnrestrictedBehavior` preserves the engine's historical behavior and
+is the simulation default. `EnergyConservationBehavior` suppresses purposes
+such as growth and reproduction below a fixed energy threshold while, by
+default, still allowing energy-acquisition and survival behavior.
+
+Selection happens before fixed-purpose processes perform their domain-specific
+proposal work. The current fixed-purpose integrations are `Growth`,
+`Reproduction`, `Predation`, and `ResourceConsumption`. Selection is evaluated
+from current state each time a process proposes, so an organism may acquire
+energy in an earlier stage and leave conservation mode later in the same
+step. `Movement` remains unchanged until movement actions can declare their
+specific intent.
+
+Example configuration:
+
+```python
+from evo_engine.behavior import EnergyConservationBehavior
+from evo_engine.engine import Simulation
+
+simulation = Simulation(
+    initial_world_state=world,
+    genetic_architecture=architecture,
+    behavior_selection_model=EnergyConservationBehavior(
+        energy_threshold=10,
+    ),
+)
+```
 
 Install the project and development tools into the project virtual
 environment:

@@ -6,7 +6,7 @@ from typing import ClassVar
 
 import attrs
 
-from evo_engine.behavior import SOMATIC_INVESTMENT
+from evo_engine.behavior import SOMATIC_INVESTMENT, behavior_is_allowed
 from evo_engine.energetics.growth import GrowthCostModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
@@ -85,7 +85,7 @@ class Growth:
         self,
         simulation_state: SimulationState,
     ) -> list[Growth.Event]:
-        """Propose affordable growth toward developmental targets.
+        """Propose behaviorally selected, affordable growth events.
 
         Potential gain is capped before energetic pricing, so organisms never
         pay for model overshoot beyond their adult target. Growth is initially
@@ -96,18 +96,25 @@ class Growth:
             simulation_state: Current simulation state.
 
         Returns:
-            Affordable proposed Growth events.
+            Behaviorally selected, affordable proposed Growth events.
 
         Raises:
             KeyError: If an organism lacks the configured developmental target.
-            TypeError: If a growth model or cost model violates its integer
-                return contract.
-            ValueError: If a target, gain, or energy cost violates its
-                nonnegative/positive contract.
+            TypeError: If a behavior, growth, or cost model violates its return
+                contract.
+            ValueError: If a target, purpose, gain, or energy cost violates its
+                validation contract.
         """
         events: list[Growth.Event] = []
 
         for organism in simulation_state.world.organisms.values():
+            if not behavior_is_allowed(
+                organism,
+                behavioral_purpose=self.behavioral_purpose,
+                simulation_state=simulation_state,
+            ):
+                continue
+
             target_body_mass = organism.developmental_profile.int_value(self.trait_name)
             validators.validate_int_ge(
                 target_body_mass,

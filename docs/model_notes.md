@@ -78,7 +78,7 @@ energy, Growth raises instead of adding unpaid tissue. Under
 `SequentialStepCoordinator`, that failure occurs on the transactional working
 copy, leaving the authoritative state unchanged.
 
-### Behavioral purpose
+### Behavioral purpose and behavior selection
 
 Behavioral purpose is modeled as an optional component capability rather than a
 requirement of every simulation process. Components that expose a
@@ -97,10 +97,52 @@ may represent foraging, escape, mate search, exploration, migration, or another
 context-dependent intent. This leaves room for action-level purpose to override
 or refine process-level defaults when the behavioral system becomes richer.
 
-This capability is intended to support low-energy behavior policies without
-coupling those policies to concrete process classes. A conservation policy can
-reason about purpose categories rather than asking whether a process is a
-specific `Growth`, `Reproduction`, `Predation`, or other implementation.
+`BehaviorSelectionModel` is separate from process ordering and from
+process-specific eligibility. It answers whether a particular organism should
+attempt a behavioral purpose from its current state. The configured selector is
+shared simulation configuration stored on `SimulationState` and is re-used by
+transactional state copies.
+
+`UnrestrictedBehavior` always allows behavior and is the default, preserving
+existing simulation semantics. `EnergyConservationBehavior` activates when
+`organism.energy < energy_threshold`. At or above the threshold every purpose is
+allowed. Below the threshold, only configured low-energy purposes are allowed;
+by default these are energy acquisition and survival.
+
+The initial fixed-purpose integrations are:
+
+- `Growth` — somatic investment
+- `Reproduction` — reproduction
+- `Predation` — energy acquisition
+- `ResourceConsumption` — energy acquisition
+
+Selection occurs before those processes perform their normal proposal logic.
+A suppressed organism therefore does not proceed into growth models,
+reproductive eligibility/parent selection, predator-prey proposal generation,
+or resource-consumption proposals. Movement remains outside behavior selection
+until individual movement actions can declare their intent.
+
+Behavior selection is derived rather than stored on the organism. Every process
+consults the selector from current state when it proposes. Consequently, a
+low-energy organism may acquire energy in an earlier stage and automatically
+leave conservation mode before a later Growth or Reproduction stage in the same
+timestep.
+
+This distinction is intentional:
+
+```text
+Timestep/stage order
+    → when a process gets an opportunity
+BehaviorSelectionModel
+    → whether this organism attempts that behavioral purpose
+Process eligibility and domain rules
+    → whether the attempted behavior is biologically feasible
+Energetic affordability/reserve policy
+    → whether the resulting expenditure may be paid
+```
+
+The final energetic-reserve layer is not yet generalized; current processes
+retain their existing affordability rules.
 
 ### Inheritance
 

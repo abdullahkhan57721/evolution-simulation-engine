@@ -7,6 +7,7 @@ from typing import ClassVar
 import attrs
 
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
+from evo_engine.behavior import behavior_is_allowed
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
@@ -317,7 +318,7 @@ class Reproduction:
         """Represent a materialized Reproduction event.
 
         Attributes:
-            proposal: Resolved proposal from which this event was materialized.
+            proposal: Resolved proposal from which the event was materialized.
             offspring_genome: Fully determined offspring genome.
             offspring_genetic_phenotype: Genetic phenotype expressed from the
                 offspring genome.
@@ -412,10 +413,17 @@ class Reproduction:
         self,
         simulation_state: SimulationState,
     ) -> list[Organism]:
-        """Return organisms that satisfy individual reproductive eligibility."""
+        """Return behaviorally selected, individually eligible parents."""
         eligible_parents: list[Organism] = []
 
         for organism in simulation_state.world.organisms.values():
+            if not behavior_is_allowed(
+                organism,
+                behavioral_purpose=self.behavioral_purpose,
+                simulation_state=simulation_state,
+            ):
+                continue
+
             is_eligible = self.eligibility.is_eligible(
                 organism,
                 simulation_state=simulation_state,

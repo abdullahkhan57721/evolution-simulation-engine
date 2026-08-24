@@ -7,7 +7,7 @@ from typing import ClassVar
 
 import attrs
 
-from evo_engine.behavior import ENERGY_ACQUISITION
+from evo_engine.behavior import ENERGY_ACQUISITION, behavior_is_allowed
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import validate_required_traits
 from evo_engine.spatial.neighborhoods import Neighborhood
@@ -124,14 +124,22 @@ class Predation:
         self,
         simulation_state: SimulationState,
     ) -> list[Predation.Event]:
-        """Propose every spatially and biologically feasible predation event."""
+        """Propose behaviorally selected, feasible predation events."""
         world = simulation_state.world
         organisms = tuple(world.organisms.values())
         events: list[Predation.Event] = []
 
-        # Build the complete feasible interaction graph. Conflict resolution
-        # remains a separate stage concern.
+        # Build the complete feasible interaction graph for predators whose
+        # current behavioral policy permits energy-acquisition behavior.
+        # Conflict resolution remains a separate stage concern.
         for predator in organisms:
+            if not behavior_is_allowed(
+                predator,
+                behavioral_purpose=self.behavioral_purpose,
+                simulation_state=simulation_state,
+            ):
+                continue
+
             for prey in organisms:
                 event = self._propose_pair(
                     predator,

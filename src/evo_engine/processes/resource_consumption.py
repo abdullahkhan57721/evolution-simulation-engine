@@ -6,7 +6,7 @@ from typing import ClassVar
 
 import attrs
 
-from evo_engine.behavior import ENERGY_ACQUISITION
+from evo_engine.behavior import ENERGY_ACQUISITION, behavior_is_allowed
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators
 
@@ -54,17 +54,25 @@ class ResourceConsumption:
         self,
         simulation_state: SimulationState,
     ) -> list[ResourceConsumption.Event]:
-        """Propose Resource Consumption events for active organisms.
+        """Propose behaviorally selected Resource Consumption events.
 
         Args:
             simulation_state: Current simulation state.
 
         Returns:
-            Proposed Resource Consumption events.
+            Proposed Resource Consumption events for organisms whose current
+            behavior-selection model permits energy acquisition.
         """
         events: list[ResourceConsumption.Event] = []
 
         for organism in simulation_state.world.organisms.values():
+            if not behavior_is_allowed(
+                organism,
+                behavioral_purpose=self.behavioral_purpose,
+                simulation_state=simulation_state,
+            ):
+                continue
+
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
