@@ -9,7 +9,11 @@ import attrs
 
 from evo_engine.behavior import ENERGY_ACQUISITION, behavior_is_allowed
 from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.genetics.requirements import validate_required_traits
+from evo_engine.genetics.requirements import (
+    collect_required_traits,
+    validate_required_traits,
+)
+from evo_engine.predation import LargerPredatorEligibility, NeutralPredationPreference
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import attrs_validators
 from evo_engine.world.carcass import Carcass
@@ -26,36 +30,25 @@ PreferenceFunction = Callable[
 ]
 
 
-def _larger_predator_can_predate(
-    predator: Organism,
-    prey: Organism,
-    simulation_state: SimulationState,
-) -> bool:
-    """Return whether a predator is larger than its prey."""
-    return predator.body_mass > prey.body_mass
-
-
-def _neutral_preference(
-    predator: Organism,
-    prey: Organism,
-    simulation_state: SimulationState,
-) -> int:
-    """Return a neutral predation preference score."""
-    return 0
-
-
 @attrs.frozen(slots=True, kw_only=True)
 class Predation:
     """Represent the Predation simulation process.
+
+    Callable biological policies may optionally expose ``required_traits``.
+    Those nested requirements are aggregated automatically with explicitly
+    declared callback dependencies, preserving support for ordinary functions
+    and lambdas while enabling structured trait-aware policies.
 
     Attributes:
         neighborhood: Spatial neighborhood within which predation is possible.
         consumption_percent: Percentage of prey biomass consumed by a
             successful predator.
-        can_predate: Function determining whether a predator may consume prey.
-        preference_function: Function returning an integer preference score
+        can_predate: Callable determining whether a predator may consume prey.
+        preference_function: Callable returning an integer preference score
             for a predator-prey pairing.
-        required_traits: Genetic phenotype traits read by custom predation callbacks.
+        required_traits: Additional genetic phenotype traits read by opaque
+            custom callbacks. Trait-aware policy objects contribute their own
+            requirements automatically.
     """
 
     behavioral_purpose: ClassVar[str] = ENERGY_ACQUISITION
@@ -68,11 +61,11 @@ class Predation:
         ),
     )
     can_predate: CanPredate = attrs.field(
-        default=_larger_predator_can_predate,
+        factory=LargerPredatorEligibility,
         validator=attrs.validators.is_callable(),
     )
     preference_function: PreferenceFunction = attrs.field(
-        default=_neutral_preference,
+        factory=NeutralPredationPreference,
         validator=attrs.validators.is_callable(),
     )
     required_traits: frozenset[str] = attrs.field(
@@ -80,10 +73,19 @@ class Predation:
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate explicitly declared genetic phenotype dependencies."""
-        validate_required_traits(
+        """Validate and aggregate genetic phenotype dependencies."""
+        declared_requirements = validate_required_traits(
             self.required_traits,
             name="required_traits",
+        )
+        nested_requirements = collect_required_traits(
+            self.can_predate,
+            self.preference_function,
+        )
+        object.__setattr__(
+            self,
+            "required_traits",
+            declared_requirements | nested_requirements,
         )
 
     @property
@@ -129,9 +131,6 @@ class Predation:
         organisms = tuple(world.organisms.values())
         events: list[Predation.Event] = []
 
-        # Build the complete feasible interaction graph for predators whose
-        # current behavioral policy permits energy-acquisition behavior.
-        # Conflict resolution remains a separate stage concern.
         for predator in organisms:
             if not behavior_is_allowed(
                 predator,

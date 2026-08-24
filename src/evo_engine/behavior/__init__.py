@@ -29,6 +29,12 @@ from evo_engine.behavior.selection import (
     UnrestrictedBehavior,
     behavior_is_allowed,
 )
+from evo_engine.behavior.sensory_accuracy import (
+    FixedSensoryAccuracy,
+    GeneticPhenotypeSensoryAccuracy,
+    SensoryAccuracyModel,
+    determine_sensory_accuracy,
+)
 from evo_engine.behavior.sensory_range import (
     FixedSensoryRange,
     GeneticPhenotypeSensoryRange,
@@ -45,7 +51,9 @@ __all__ = [
     "EnergyConservationBehavior",
     "EnergyThresholdMovementIntent",
     "FixedMovementIntent",
+    "FixedSensoryAccuracy",
     "FixedSensoryRange",
+    "GeneticPhenotypeSensoryAccuracy",
     "GeneticPhenotypeSensoryRange",
     "MovementIntentModel",
     "MovementTarget",
@@ -55,11 +63,13 @@ __all__ = [
     "REPRODUCTION",
     "SOMATIC_INVESTMENT",
     "SURVIVAL",
+    "SensoryAccuracyModel",
     "SensoryRangeModel",
     "UnrestrictedBehavior",
     "behavior_is_allowed",
     "determine_movement_purpose",
     "determine_movement_target",
+    "determine_sensory_accuracy",
     "determine_sensory_range",
     "validate_behavioral_purpose",
 ]

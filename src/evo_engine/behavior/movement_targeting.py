@@ -10,6 +10,11 @@ from evo_engine.behavior.purposes import (
     ENERGY_ACQUISITION,
     validate_behavioral_purpose,
 )
+from evo_engine.behavior.sensory_accuracy import (
+    FixedSensoryAccuracy,
+    SensoryAccuracyModel,
+    determine_sensory_accuracy,
+)
 from evo_engine.behavior.sensory_range import (
     GeneticPhenotypeSensoryRange,
     SensoryRangeModel,
@@ -90,26 +95,35 @@ class NoMovementTarget:
 
 @attrs.frozen(slots=True, kw_only=True)
 class NearestResourceTarget:
-    """Target the nearest detectable environmental resource deposit.
+    """Target the nearest detected environmental resource deposit.
 
-    Direct squared Euclidean distance is used for both sensory-range filtering
-    and nearest-target ranking. If multiple deposits are equally near, the
-    deposit with more resource units is preferred; remaining ties are broken
-    deterministically by coordinate.
+    Direct squared Euclidean distance is used for sensory-range filtering and
+    nearest-target ranking. Deposits inside sensory range are independently
+    detected according to ``sensory_accuracy_model``. If multiple detected
+    deposits are equally near, the deposit with more resource units is
+    preferred; remaining ties are broken deterministically by coordinate.
 
     The model is active only for ``behavioral_purpose``. By default this is the
     engine's canonical energy-acquisition purpose, so exploratory or survival
     movement can compose a different targeting policy.
 
+    Perfect sensory accuracy is the generic default so existing simulations
+    preserve deterministic targeting and consume no additional RNG draws.
+
     Attributes:
         sensory_range_model: Model determining how far an organism can detect
             resource deposits.
+        sensory_accuracy_model: Model determining the probability of detecting
+            each in-range resource deposit.
         behavioral_purpose: Movement purpose for which resource targeting is
             active.
     """
 
     sensory_range_model: SensoryRangeModel = attrs.field(
         factory=GeneticPhenotypeSensoryRange,
+    )
+    sensory_accuracy_model: SensoryAccuracyModel = attrs.field(
+        factory=FixedSensoryAccuracy,
     )
     behavioral_purpose: str = ENERGY_ACQUISITION
 
@@ -126,6 +140,18 @@ class NearestResourceTarget:
                 "sensory_range_model must provide a callable determine_range method."
             )
 
+        if not callable(
+            getattr(
+                self.sensory_accuracy_model,
+                "determine_accuracy_percent",
+                None,
+            )
+        ):
+            raise TypeError(
+                "sensory_accuracy_model must provide a callable "
+                "determine_accuracy_percent method."
+            )
+
         validate_behavioral_purpose(
             self.behavioral_purpose,
             name="behavioral_purpose",
@@ -133,8 +159,11 @@ class NearestResourceTarget:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return traits required by the configured sensory-range model."""
-        return collect_required_traits(self.sensory_range_model)
+        """Return traits required by configured sensory models."""
+        return collect_required_traits(
+            self.sensory_range_model,
+            self.sensory_accuracy_model,
+        )
 
     def choose_target(
         self,
@@ -143,7 +172,7 @@ class NearestResourceTarget:
         behavioral_purpose: str,
         simulation_state: SimulationState,
     ) -> MovementTarget | None:
-        """Return the nearest detectable resource target.
+        """Return the nearest detected resource target.
 
         Args:
             organism: Organism attempting movement.
@@ -151,14 +180,19 @@ class NearestResourceTarget:
             simulation_state: Current simulation state.
 
         Returns:
-            Nearest detectable resource coordinate, or ``None`` when targeting
-            is inactive or no resource lies within sensory range.
+            Nearest detected resource coordinate, or ``None`` when targeting
+            is inactive or no resource is both in range and detected.
         """
         if behavioral_purpose != self.behavioral_purpose:
             return None
 
         sensory_range = determine_sensory_range(
             self.sensory_range_model,
+            organism,
+            simulation_state=simulation_state,
+        )
+        sensory_accuracy = determine_sensory_accuracy(
+            self.sensory_accuracy_model,
             organism,
             simulation_state=simulation_state,
         )
@@ -173,6 +207,12 @@ class NearestResourceTarget:
             distance_squared = dx * dx + dy * dy
 
             if distance_squared > maximum_distance_squared:
+                continue
+
+            if not _resource_is_detected(
+                sensory_accuracy,
+                simulation_state=simulation_state,
+            ):
                 continue
 
             candidate_key = (
@@ -190,6 +230,19 @@ class NearestResourceTarget:
                 )
 
         return best_target
+
+
+def _resource_is_detected(
+    accuracy_percent: int,
+    *,
+    simulation_state: SimulationState,
+) -> bool:
+    """Return whether one in-range resource deposit is detected."""
+    if accuracy_percent == 100:
+        return True
+    if accuracy_percent == 0:
+        return False
+    return simulation_state.rng.randrange(100) < accuracy_percent
 
 
 def determine_movement_target(

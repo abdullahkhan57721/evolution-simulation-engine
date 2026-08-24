@@ -8,6 +8,8 @@ from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ASSIMILATION_EFFICIENCY,
+    ATTACK_STRENGTH,
+    DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
     MATURITY_AGE,
@@ -16,6 +18,7 @@ from evo_engine.genetics import (
     MAXIMUM_AGE,
     OFFSPRING_ENERGY,
     REPRODUCTION_ENERGY_THRESHOLD,
+    SENSORY_ACCURACY,
     SENSORY_RANGE,
 )
 from evo_engine.presets import (
@@ -31,10 +34,13 @@ EXPECTED_REFERENCE_TRAITS = frozenset(
         ADULT_BODY_MASS,
         MAX_SPEED,
         SENSORY_RANGE,
+        SENSORY_ACCURACY,
         MAX_INTAKE_RATE,
         ASSIMILATION_EFFICIENCY,
         ENERGY_CONSERVATION_THRESHOLD,
         ENERGY_RESERVE,
+        ATTACK_STRENGTH,
+        DEFENSE,
         MATURITY_AGE,
         REPRODUCTION_ENERGY_THRESHOLD,
         OFFSPRING_ENERGY,
@@ -162,10 +168,13 @@ def test_reference_founder_values_are_customizable() -> None:
         adult_body_mass=12,
         max_speed=2,
         sensory_range=7,
+        sensory_accuracy=80,
         max_intake_rate=8,
         assimilation_efficiency=60,
         energy_conservation_threshold=18,
         energy_reserve=6,
+        attack_strength=11,
+        defense=9,
         maturity_age=3,
         reproduction_energy_threshold=22,
         offspring_energy=5,
@@ -179,6 +188,9 @@ def test_reference_founder_values_are_customizable() -> None:
     organism = next(iter(ecology.simulation.state.world.organisms.values()))
 
     assert organism.genetic_phenotype.int_value(ADULT_BODY_MASS) == 12
+    assert organism.genetic_phenotype.int_value(SENSORY_ACCURACY) == 80
     assert organism.genetic_phenotype.int_value(MAX_INTAKE_RATE) == 8
     assert organism.genetic_phenotype.int_value(ASSIMILATION_EFFICIENCY) == 60
+    assert organism.genetic_phenotype.int_value(ATTACK_STRENGTH) == 11
+    assert organism.genetic_phenotype.int_value(DEFENSE) == 9
     assert organism.developmental_profile.int_value(MAXIMUM_AGE) == 40
