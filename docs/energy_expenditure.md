@@ -22,15 +22,18 @@ biologically different meanings.
 
 ## Public policies
 
-`SpendToZero` preserves the engine's historical behavior. It permits a cost when
-current energy fully covers it, including a payment that leaves exactly zero
-energy. A later mortality process such as `Starvation` remains responsible for
-removing an organism that reaches zero.
+`SpendToZero` permits a cost when current energy fully covers it, including a
+payment that leaves exactly zero energy. A later mortality process such as
+`Starvation` remains responsible for removing an organism that reaches zero.
 
 `KeepFixedReserve` prevents a **positive** expenditure from lowering current
 energy below a configured fixed reserve. Payment may leave exactly the reserve.
 A zero-cost action is always permitted because it does not further deplete an
 organism that may already be below the configured threshold.
+
+`KeepEnergyReserve` provides the same reserve semantics but accepts either a
+fixed integer or an organism-specific energy-threshold model. It is the policy
+to use when reserve strategy should vary among organisms.
 
 For example:
 
@@ -49,8 +52,8 @@ minimum reserve = 3
 
 ## Growth
 
-`Growth` defaults to `SpendToZero`, so existing configurations retain their
-current semantics. A simulation can instead configure:
+`Growth` defaults to `SpendToZero`. A simulation can instead configure a fixed
+reserve:
 
 ```python
 from evo_engine.energetics import KeepFixedReserve, LinearGrowthCost
@@ -68,8 +71,8 @@ Growth first determines potential gain, caps it at the developmental target,
 prices the capped gain, and only then asks the expenditure policy whether the
 organism may pay the resulting cost.
 
-The policy is rechecked during event application. This protects fixed reserves
-when another same-stage event has consumed energy after Growth proposals were
+The policy is rechecked during event application. This protects reserves when
+another same-stage event has consumed energy after Growth proposals were
 created.
 
 ## Reproduction
@@ -90,15 +93,36 @@ process = Reproduction(
 )
 ```
 
-The policy is checked:
-
-1. before a parent group becomes a proposal,
-2. again before materialization performs inheritance/development/placement RNG,
-3. again before application charges any parent.
+The policy is checked before a parent group becomes a proposal, again before
+materialization performs inheritance/development/placement RNG, and again before
+application charges any parent.
 
 Application validates every contribution before charging any contribution, so a
 stale multi-parent event cannot partially debit one parent and then fail on
 another.
+
+## Movement
+
+`Movement` now uses the same expenditure contract as Growth and Reproduction.
+Its default `SpendToZero` policy permits locomotion that can be fully paid,
+including locomotion that leaves exactly zero energy, but rejects an attempted
+movement whose full locomotion cost exceeds current energy.
+
+A configured reserve policy is checked after displacement has been selected and
+priced but before the movement event is recorded. It is checked again before
+application mutates position or energy, so stale events fail atomically.
+
+This means:
+
+```text
+current energy == locomotion cost
+    → movement may occur
+    → energy becomes zero
+    → later Starvation may remove the organism
+
+current energy < locomotion cost
+    → movement is not proposed
+```
 
 ## Reproductive eligibility is different
 
@@ -120,20 +144,32 @@ KeepFixedReserve(minimum_energy=20)
 Simulations may compose both when they represent distinct biological
 constraints.
 
-## Trait-driven reserve strategies
+## Organism-specific reserve strategies
 
-Processes collect nested trait requirements from their expenditure policies.
-This means a future trait-driven implementation can make reserve strategy
-heritable without changing Growth or Reproduction themselves.
+`DevelopmentalEnergyThreshold` reads a nonnegative integer threshold from an
+organism's `DevelopmentalProfile`. Because developmental targets derive from the
+genetic phenotype, this allows reserve strategies to be heritable while still
+supporting developmental variation.
 
-Conceptually:
+For example:
 
-```text
-GeneticPhenotype
-    → energy_reserve trait
-    → trait-driven EnergyExpenditurePolicy
-    → conservative vs aggressive energy spending
+```python
+from evo_engine.energetics import (
+    DevelopmentalEnergyThreshold,
+    KeepEnergyReserve,
+)
+from evo_engine.genetics import ENERGY_RESERVE
+
+reserve_policy = KeepEnergyReserve(
+    minimum_energy=DevelopmentalEnergyThreshold(
+        trait_name=ENERGY_RESERVE,
+    ),
+)
 ```
 
-That extension is intentionally not included in the initial fixed-reserve
-implementation.
+Growth, Reproduction, and Movement all collect nested trait requirements from
+their expenditure policies, so the simulation engine can validate the required
+traits before step zero.
+
+See **Life-History Energy Strategy** for the larger behavioral and reproductive
+model built on these threshold and expenditure abstractions.

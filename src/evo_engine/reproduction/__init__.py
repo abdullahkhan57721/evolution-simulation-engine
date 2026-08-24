@@ -7,7 +7,10 @@ from evo_engine.reproduction.birth_mass import (
     OffspringBodyMassModel,
 )
 from evo_engine.reproduction.eligibility import (
+    AllOfEligibility,
     AlwaysEligible,
+    DevelopmentalMaturityEligibility,
+    MinimumAgeEligibility,
     MinimumEnergyEligibility,
     ReproductiveEligibility,
 )
@@ -29,11 +32,14 @@ from evo_engine.reproduction.placement import (
 
 __all__ = [
     "AdultBodyMassAtBirth",
+    "AllOfEligibility",
     "AlwaysEligible",
+    "DevelopmentalMaturityEligibility",
     "FixedBodyMassAtBirth",
     "FixedEnergyInvestment",
     "FractionOfAdultBodyMassAtBirth",
     "GeneticPhenotypeEnergyInvestment",
+    "MinimumAgeEligibility",
     "MinimumEnergyEligibility",
     "OffspringBodyMassModel",
     "OffspringPlacement",

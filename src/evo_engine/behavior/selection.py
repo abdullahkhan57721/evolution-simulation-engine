@@ -11,7 +11,12 @@ from evo_engine.behavior.purposes import (
     SURVIVAL,
     validate_behavioral_purpose,
 )
-from evo_engine.validation import attrs_validators
+from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.life_history import (
+    EnergyThresholdSource,
+    determine_energy_threshold,
+    validate_energy_threshold_source,
+)
 
 if TYPE_CHECKING:
     from evo_engine.engine.simulation_state import SimulationState
@@ -72,21 +77,21 @@ class UnrestrictedBehavior:
 
 @attrs.frozen(slots=True, kw_only=True)
 class EnergyConservationBehavior:
-    """Suppress nonessential behavior below a fixed energy threshold.
+    """Suppress nonessential behavior below an energy threshold.
 
-    At or above ``energy_threshold``, all behavioral purposes are allowed.
-    Below the threshold, only purposes in ``allowed_low_energy_purposes`` are
-    allowed. By default, depleted organisms may still attempt energy
-    acquisition and survival behavior.
+    ``energy_threshold`` may be a nonnegative integer or an organism-specific
+    threshold model. At or above the resolved threshold, all behavioral
+    purposes are allowed. Below it, only purposes in
+    ``allowed_low_energy_purposes`` are allowed. By default, depleted organisms
+    may still attempt energy acquisition and survival behavior.
 
     Attributes:
-        energy_threshold: Energy below which conservation behavior is active.
+        energy_threshold: Fixed value or model determining the energy below
+            which conservation behavior is active.
         allowed_low_energy_purposes: Purposes allowed while energy is low.
     """
 
-    energy_threshold: int = attrs.field(
-        validator=attrs_validators.validate_int_ge(0),
-    )
+    energy_threshold: EnergyThresholdSource
     allowed_low_energy_purposes: frozenset[str] = attrs.field(
         factory=lambda: frozenset(
             {
@@ -98,12 +103,22 @@ class EnergyConservationBehavior:
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate configured low-energy behavioral purposes."""
+        """Validate the threshold source and low-energy behavioral purposes."""
+        validate_energy_threshold_source(
+            self.energy_threshold,
+            name="energy_threshold",
+        )
+
         for purpose in self.allowed_low_energy_purposes:
             validate_behavioral_purpose(
                 purpose,
                 name="allowed_low_energy_purposes item",
             )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the configured threshold model."""
+        return collect_required_traits(self.energy_threshold)
 
     def allows_behavior(
         self,
@@ -123,7 +138,14 @@ class EnergyConservationBehavior:
             ``True`` when energy is not low or the purpose remains allowed in
             conservation mode; otherwise ``False``.
         """
-        if organism.energy >= self.energy_threshold:
+        energy_threshold = determine_energy_threshold(
+            self.energy_threshold,
+            organism,
+            simulation_state=simulation_state,
+            name="energy_threshold",
+        )
+
+        if organism.energy >= energy_threshold:
             return True
 
         return behavioral_purpose in self.allowed_low_energy_purposes
