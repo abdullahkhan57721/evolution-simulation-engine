@@ -17,7 +17,7 @@ src/evo_engine/
 │                  recombination, expression, and genetic phenotype
 ├── development/   developmental variation and individual target profiles
 ├── growth/        policies that determine potential body-mass gain
-├── behavior/      behavioral purposes and organism-level behavior selection
+├── behavior/      behavioral purposes, movement intent, behavior selection
 ├── energetics/    energetic cost models for metabolism, movement, and growth
 ├── reproduction/ reproductive eligibility, parent selection, investment,
 │                  and offspring placement
@@ -104,9 +104,7 @@ reproduction, and predation/resource consumption are energy acquisition.
 
 Behavioral-purpose names are extensible strings rather than a closed enum. The
 engine provides canonical names for common purposes while allowing simulations
-to introduce custom purposes such as thermoregulation. `Movement` intentionally
-has no generic purpose because future movement actions may represent foraging,
-escape, mate search, exploration, or other context-dependent intent.
+to introduce custom purposes such as thermoregulation.
 
 `BehaviorSelectionModel` answers a separate organism-level question: given the
 organism's current state, should it attempt a behavior with a particular
@@ -116,14 +114,21 @@ such as growth and reproduction below a fixed energy threshold while, by
 default, still allowing energy-acquisition and survival behavior.
 
 Selection happens before fixed-purpose processes perform their domain-specific
-proposal work. The current fixed-purpose integrations are `Growth`,
-`Reproduction`, `Predation`, and `ResourceConsumption`. Selection is evaluated
-from current state each time a process proposes, so an organism may acquire
-energy in an earlier stage and leave conservation mode later in the same
-step. `Movement` remains unchanged until movement actions can declare their
-specific intent.
+proposal work. The fixed-purpose integrations are `Growth`, `Reproduction`,
+`Predation`, and `ResourceConsumption`. Selection is evaluated from current
+state each time a process proposes, so an organism may acquire energy in an
+earlier stage and leave conservation mode later in the same step.
 
-Example configuration:
+Movement is intentionally different because the process itself has no single
+purpose. A `MovementIntentModel` determines why each organism is attempting to
+move before displacement RNG is consumed. `FixedMovementIntent` defaults to
+exploration, but can label a configured movement as energy acquisition,
+survival, reproduction, or another extensible purpose. The resulting
+`Movement.Event` records that purpose. Because intent is resolved per organism,
+a custom intent model can classify different organisms' movement differently
+within the same Movement process.
+
+Example conservation configuration:
 
 ```python
 from evo_engine.behavior import EnergyConservationBehavior
@@ -134,6 +139,22 @@ simulation = Simulation(
     genetic_architecture=architecture,
     behavior_selection_model=EnergyConservationBehavior(
         energy_threshold=10,
+    ),
+)
+```
+
+Example movement intent configuration:
+
+```python
+from evo_engine.behavior import ENERGY_ACQUISITION, FixedMovementIntent
+from evo_engine.processes import Movement
+
+movement = Movement(
+    movement_pattern=movement_pattern,
+    boundary_condition=boundary_condition,
+    locomotion_cost_model=locomotion_cost_model,
+    movement_intent_model=FixedMovementIntent(
+        behavioral_purpose=ENERGY_ACQUISITION,
     ),
 )
 ```
