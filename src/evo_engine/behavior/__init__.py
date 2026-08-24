@@ -1,5 +1,10 @@
 """Behavioral vocabulary, capabilities, and selection models."""
 
+from evo_engine.behavior.movement_intent import (
+    FixedMovementIntent,
+    MovementIntentModel,
+    determine_movement_purpose,
+)
 from evo_engine.behavior.protocols import BehavioralPurposeProvider
 from evo_engine.behavior.purposes import (
     BUILTIN_BEHAVIORAL_PURPOSES,
@@ -24,10 +29,13 @@ __all__ = [
     "ENERGY_ACQUISITION",
     "EXPLORATION",
     "EnergyConservationBehavior",
+    "FixedMovementIntent",
+    "MovementIntentModel",
     "REPRODUCTION",
     "SOMATIC_INVESTMENT",
     "SURVIVAL",
     "UnrestrictedBehavior",
     "behavior_is_allowed",
+    "determine_movement_purpose",
     "validate_behavioral_purpose",
 ]
