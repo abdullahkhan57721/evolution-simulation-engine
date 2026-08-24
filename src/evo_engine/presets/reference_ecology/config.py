@@ -8,9 +8,12 @@ from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ASSIMILATION_EFFICIENCY,
     ATTACK_STRENGTH,
+    CHOOSINESS,
     DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    MATE_SEARCH_RANGE,
+    MATING_SIGNAL,
     MATURITY_AGE,
     MAX_INTAKE_RATE,
     MAX_SPEED,
@@ -34,6 +37,9 @@ REFERENCE_TRAIT_DOMAINS: dict[str, tuple[int, int]] = {
     ENERGY_RESERVE: (0, 100),
     ATTACK_STRENGTH: (0, 50),
     DEFENSE: (0, 50),
+    MATE_SEARCH_RANGE: (0, 20),
+    CHOOSINESS: (0, 50),
+    MATING_SIGNAL: (0, 50),
     MATURITY_AGE: (0, 100),
     REPRODUCTION_ENERGY_THRESHOLD: (0, 200),
     OFFSPRING_ENERGY: (1, 50),
@@ -63,6 +69,10 @@ class ReferenceTraitValues:
         energy_reserve: Energy protected from growth and reproduction spending.
         attack_strength: Predator performance used against prey defense.
         defense: Prey defensive performance opposed to predator attack.
+        mate_search_range: Chebyshev distance within which both parents must be
+            able to discover one another for mating.
+        choosiness: Minimum partner mating signal accepted by an organism.
+        mating_signal: Signal strength presented to potential mates.
         maturity_age: Age at reproductive maturity.
         reproduction_energy_threshold: Minimum current energy for reproduction.
         offspring_energy: Energy invested by each reproductive parent.
@@ -109,6 +119,18 @@ class ReferenceTraitValues:
         default=5,
         validator=attrs_validators.validate_int_in_range(0, 50),
     )
+    mate_search_range: int = attrs.field(
+        default=3,
+        validator=attrs_validators.validate_int_in_range(0, 20),
+    )
+    choosiness: int = attrs.field(
+        default=5,
+        validator=attrs_validators.validate_int_in_range(0, 50),
+    )
+    mating_signal: int = attrs.field(
+        default=8,
+        validator=attrs_validators.validate_int_in_range(0, 50),
+    )
     maturity_age: int = attrs.field(
         default=4,
         validator=attrs_validators.validate_int_in_range(0, 100),
@@ -143,6 +165,9 @@ class ReferenceTraitValues:
             ENERGY_RESERVE: self.energy_reserve,
             ATTACK_STRENGTH: self.attack_strength,
             DEFENSE: self.defense,
+            MATE_SEARCH_RANGE: self.mate_search_range,
+            CHOOSINESS: self.choosiness,
+            MATING_SIGNAL: self.mating_signal,
             MATURITY_AGE: self.maturity_age,
             REPRODUCTION_ENERGY_THRESHOLD: self.reproduction_energy_threshold,
             OFFSPRING_ENERGY: self.offspring_energy,
@@ -185,7 +210,8 @@ class ReferenceEcologyConfig:
         predation_radius: Chebyshev radius for predation interactions.
         predation_consumption_percent: Percentage of prey biomass converted
             directly to predator energy.
-        mating_radius: Maximum Chebyshev distance for candidate mates.
+        mating_radius: Hard maximum Chebyshev distance for candidate mates,
+            applied before organism-specific mate-search compatibility.
         newborn_mass_numerator: Numerator of newborn/adult body-mass fraction.
         newborn_mass_denominator: Denominator of newborn/adult body-mass fraction.
     """
@@ -265,7 +291,7 @@ class ReferenceEcologyConfig:
         validator=attrs_validators.validate_int_in_range(0, 100),
     )
     mating_radius: int = attrs.field(
-        default=1,
+        default=20,
         validator=attrs_validators.validate_int_ge(0),
     )
     newborn_mass_numerator: int = attrs.field(
