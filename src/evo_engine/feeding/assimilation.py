@@ -152,8 +152,9 @@ class GeneticPhenotypeAssimilationEfficiency:
             TypeError: If the expressed efficiency is not an integer.
             ValueError: If the expressed efficiency is outside 0 through 100.
         """
-        efficiency_percent = validators.validate_int_in_range(
-            organism.genetic_phenotype.int_value(self.trait_name),
+        efficiency_percent = organism.genetic_phenotype.int_value(self.trait_name)
+        validators.validate_int_in_range(
+            efficiency_percent,
             lower=0,
             upper=100,
             name=f"genetic_phenotype[{self.trait_name!r}]",
@@ -215,7 +216,7 @@ def _percentage_energy_gain(
         bound=0,
         name="consumed_amount",
     )
-    efficiency_percent = validators.validate_int_in_range(
+    validators.validate_int_in_range(
         efficiency_percent,
         lower=0,
         upper=100,
