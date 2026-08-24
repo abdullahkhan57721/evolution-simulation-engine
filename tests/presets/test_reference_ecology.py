@@ -7,9 +7,11 @@ import pytest
 from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
+    ASSIMILATION_EFFICIENCY,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
     MATURITY_AGE,
+    MAX_INTAKE_RATE,
     MAX_SPEED,
     MAXIMUM_AGE,
     OFFSPRING_ENERGY,
@@ -29,6 +31,8 @@ EXPECTED_REFERENCE_TRAITS = frozenset(
         ADULT_BODY_MASS,
         MAX_SPEED,
         SENSORY_RANGE,
+        MAX_INTAKE_RATE,
+        ASSIMILATION_EFFICIENCY,
         ENERGY_CONSERVATION_THRESHOLD,
         ENERGY_RESERVE,
         MATURITY_AGE,
@@ -158,6 +162,8 @@ def test_reference_founder_values_are_customizable() -> None:
         adult_body_mass=12,
         max_speed=2,
         sensory_range=7,
+        max_intake_rate=8,
+        assimilation_efficiency=60,
         energy_conservation_threshold=18,
         energy_reserve=6,
         maturity_age=3,
@@ -173,4 +179,6 @@ def test_reference_founder_values_are_customizable() -> None:
     organism = next(iter(ecology.simulation.state.world.organisms.values()))
 
     assert organism.genetic_phenotype.int_value(ADULT_BODY_MASS) == 12
+    assert organism.genetic_phenotype.int_value(MAX_INTAKE_RATE) == 8
+    assert organism.genetic_phenotype.int_value(ASSIMILATION_EFFICIENCY) == 60
     assert organism.developmental_profile.int_value(MAXIMUM_AGE) == 40
