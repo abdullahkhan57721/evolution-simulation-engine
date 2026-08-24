@@ -8,6 +8,78 @@ from typing import Protocol, runtime_checkable
 from evo_engine.validation import validators
 
 
+def _validate_targeted_movement_inputs(
+    *,
+    current_x: int,
+    current_y: int,
+    target_x: int,
+    target_y: int,
+    max_speed: int,
+) -> None:
+    """Validate target-directed movement coordinates and speed."""
+    for name, value in (
+        ("current_x", current_x),
+        ("current_y", current_y),
+        ("target_x", target_x),
+        ("target_y", target_y),
+        ("max_speed", max_speed),
+    ):
+        validators.validate_int_ge(
+            value,
+            bound=0,
+            name=name,
+        )
+
+
+def _within_max_speed(
+    dx: int,
+    dy: int,
+    max_speed: int,
+) -> bool:
+    """Return whether a displacement lies inside the Euclidean speed disk."""
+    return dx * dx + dy * dy <= max_speed * max_speed
+
+
+def _project_to_max_speed(
+    dx: int,
+    dy: int,
+    max_speed: int,
+) -> tuple[int, int]:
+    """Project a nonzero displacement to the max-speed circle and round it."""
+    scale = max_speed / math.hypot(dx, dy)
+    return (
+        round(dx * scale),
+        round(dy * scale),
+    )
+
+
+def _move_component_toward_zero(value: int) -> int:
+    """Move a nonzero integer component one unit toward zero."""
+    return value - 1 if value > 0 else value + 1
+
+
+def _correct_rounding_overshoot(
+    dx: int,
+    dy: int,
+    max_speed: int,
+) -> tuple[int, int]:
+    """Shrink a rounded projection until it lies inside the speed disk."""
+    while not _within_max_speed(
+        dx,
+        dy,
+        max_speed,
+    ):
+        if abs(dx) >= abs(dy):
+            dx = _move_component_toward_zero(dx)
+        else:
+            dy = _move_component_toward_zero(dy)
+
+    return (
+        dx,
+        dy,
+    )
+
+
 @runtime_checkable
 class TargetedMovementModel(Protocol):
     """Choose a displacement toward a selected target coordinate."""
@@ -69,50 +141,37 @@ class StraightLineTowardTarget:
             TypeError: If a coordinate or max speed is not an integer.
             ValueError: If a coordinate or max speed is negative.
         """
-        for name, value in (
-            ("current_x", current_x),
-            ("current_y", current_y),
-            ("target_x", target_x),
-            ("target_y", target_y),
-            ("max_speed", max_speed),
-        ):
-            validators.validate_int_ge(
-                value,
-                bound=0,
-                name=name,
-            )
+        _validate_targeted_movement_inputs(
+            current_x=current_x,
+            current_y=current_y,
+            target_x=target_x,
+            target_y=target_y,
+            max_speed=max_speed,
+        )
 
         remaining_x = target_x - current_x
         remaining_y = target_y - current_y
-        distance_squared = remaining_x * remaining_x + remaining_y * remaining_y
 
-        if max_speed == 0 or distance_squared == 0:
+        if max_speed == 0 or (remaining_x == 0 and remaining_y == 0):
             return (0, 0)
 
-        if distance_squared <= max_speed * max_speed:
+        if _within_max_speed(
+            remaining_x,
+            remaining_y,
+            max_speed,
+        ):
             return (
                 remaining_x,
                 remaining_y,
             )
 
-        distance = math.sqrt(distance_squared)
-        scale = max_speed / distance
-        dx = round(remaining_x * scale)
-        dy = round(remaining_y * scale)
-
-        while dx * dx + dy * dy > max_speed * max_speed:
-            if abs(dx) >= abs(dy):
-                dx -= 1 if dx > 0 else -1
-            else:
-                dy -= 1 if dy > 0 else -1
-
-        if dx == 0 and dy == 0:
-            if abs(remaining_x) >= abs(remaining_y):
-                dx = 1 if remaining_x > 0 else -1
-            else:
-                dy = 1 if remaining_y > 0 else -1
-
-        return (
+        dx, dy = _project_to_max_speed(
+            remaining_x,
+            remaining_y,
+            max_speed,
+        )
+        return _correct_rounding_overshoot(
             dx,
             dy,
+            max_speed,
         )
