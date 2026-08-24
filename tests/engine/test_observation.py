@@ -102,13 +102,15 @@ def test_engine_does_not_observe_failed_transactional_step() -> None:
     simulation = _simulation_with_one_organism()
     observer = RecordingObserver()
 
-    class FailingCoordinator:
-        def coordinate(self, simulation_state):
+    class FailingStage:
+        def coordinate(self, simulation_state) -> None:
             simulation_state.world.organisms[0].age = 99
             raise RuntimeError("failed step")
 
     engine = SimulationEngine(
-        step_coordinator=FailingCoordinator(),
+        step_coordinator=SequentialStepCoordinator(
+            stages=(FailingStage(),),  # type: ignore[arg-type]
+        ),
         stopping_condition=MaxSteps(max_steps=1),
         observers=(observer,),
     )
@@ -162,6 +164,7 @@ def test_engine_respects_observer_schedule() -> None:
 
     engine.run(simulation)
 
-    assert tuple(
-        observation.step_index for observation in recorder.observations
-    ) == (2, 4)
+    assert tuple(observation.step_index for observation in recorder.observations) == (
+        2,
+        4,
+    )
