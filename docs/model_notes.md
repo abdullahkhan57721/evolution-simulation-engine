@@ -115,46 +115,119 @@ A suppressed organism therefore does not proceed into growth models,
 reproductive eligibility/parent selection, predator-prey proposal generation,
 or resource-consumption proposals.
 
+### Movement intent, sensing, and ecological targets
+
 Movement uses action-level purpose rather than a process-level declaration.
 `Movement` itself intentionally has no `behavioral_purpose`, because movement
 may represent foraging, escape, mate search, exploration, migration, or another
 context-dependent action.
 
 A `MovementIntentModel` determines the purpose of each organism's movement
-attempt from current state. `FixedMovementIntent` is the initial implementation
-and defaults to exploration. It may instead assign energy acquisition, survival,
-reproduction, or any other valid purpose. Custom intent models may determine
-purpose dynamically and independently for each organism.
+attempt from current state. `FixedMovementIntent` defaults to exploration and
+may instead assign energy acquisition, survival, reproduction, or another valid
+purpose. Custom intent models may determine purpose dynamically and
+independently for each organism.
 
-The movement proposal sequence is:
+Behavior selection runs immediately after intent. Suppressed movement stops at
+that point: target selection, sensing, movement-pattern RNG, boundary handling,
+and locomotion pricing are not evaluated.
+
+Allowed movement may then use a `MovementTargetModel`. `NoMovementTarget` is the
+default and preserves untargeted movement semantics. `NearestResourceTarget`
+provides the first ecological targeting policy. It is active for energy
+acquisition by default and selects the nearest resource deposit within the
+organism's sensory radius.
+
+Sensory ability is modeled separately from target selection through
+`SensoryRangeModel`. The initial implementations are:
+
+- `FixedSensoryRange` — experiment-level configuration with no trait requirement
+- `GeneticPhenotypeSensoryRange` — reads an integer genetic phenotype trait,
+  defaulting to the built-in `sensory_range` trait
+
+`NearestResourceTarget` composes `GeneticPhenotypeSensoryRange` by default.
+Consequently, sensory range is not a universal requirement of Movement. Nested
+trait requirements behave as follows:
+
+```text
+ordinary untargeted Movement
+    → max_speed
+
+Movement + NearestResourceTarget()
+    → max_speed
+    → sensory_range
+
+Movement + NearestResourceTarget(FixedSensoryRange(...))
+    → max_speed
+```
+
+This matters biologically and architecturally. Simulations can make sensing an
+evolvable trait when desired without forcing sensory genetics into every
+movement experiment.
+
+The engine already reserves the built-in trait name `sensory_accuracy`, but the
+initial resource-seeking model intentionally does not use it. Detection is
+currently perfect inside sensory range and absent outside it. Accuracy can later
+represent missed detections, localization noise, or directional error without
+changing the range abstraction.
+
+`NearestResourceTarget` currently measures direct squared Euclidean distance.
+A resource outside the sensory radius is not considered and therefore cannot
+influence movement. Among equally near deposits, more resource units are
+preferred; remaining ties are resolved deterministically by coordinate. A
+resource on the organism's current cell is detectable even when sensory range
+is zero.
+
+When a target is selected, `StraightLineTowardTarget` chooses an integer-grid
+displacement in the target's direction while respecting Euclidean `max_speed`.
+Targets within one timestep's movement capability are reached exactly. More
+distant targets are approached without exceeding the speed disk. If no target
+is selected, Movement falls back to its ordinary `MovementPattern`. For a hungry
+organism this fallback can represent undirected search rather than freezing or
+omniscient navigation.
+
+The resulting proposal sequence is:
 
 ```text
 MovementIntentModel
-    → determine movement purpose for this organism
+    → why is this organism moving?
 BehaviorSelectionModel
-    → allow or suppress that purpose
-MovementPattern
-    → choose displacement if allowed
+    → should it attempt that purpose now?
+MovementTargetModel
+    → is there a relevant target it can detect?
+        ├─ target found → TargetedMovementModel
+        └─ no target    → MovementPattern
 BoundaryCondition
     → resolve destination
 LocomotionCostModel
     → price movement
 Movement.Event
-    → record destination, cost, and behavioral purpose
+    → record purpose, selected target, destination, and cost
 ```
 
-Behavior selection is therefore checked before movement displacement RNG is
-consumed. A low-energy organism using the default exploratory intent is
-suppressed by `EnergyConservationBehavior`, while movement labeled energy
-acquisition or survival remains available by default. The recorded purpose also
-makes the resulting event self-describing for later observation or richer
-resolution logic.
+Movement target coordinates are recorded on `Movement.Event` when a target is
+selected. They are proposal metadata rather than application instructions: the
+event's resolved destination remains the only position applied to the organism.
+This keeps application mechanical while preserving why and toward what the
+movement was proposed for later observation or analysis.
 
-Movement intent remains distinct from movement geometry. A `MovementPattern`
-answers how displacement is chosen; a `MovementIntentModel` answers why the
-organism is attempting to move. Future foraging, escape, or mate-seeking
-movement policies may therefore become spatially targeted without collapsing
-behavioral motivation into geometric code.
+The current resource-seeking implementation is intentionally not toroidal-aware
+at the perception/navigation layer. It uses direct Euclidean target distance and
+direct straight-line approach. Toroidal shortest-path sensing and navigation can
+be added as separate policies rather than hidden inside the first model.
+
+Movement intent, sensing, targeting, and geometry remain distinct:
+
+```text
+MovementIntentModel
+    → why move?
+SensoryRangeModel
+    → how far can targets be detected?
+MovementTargetModel
+    → which detectable target matters?
+TargetedMovementModel / MovementPattern
+    → how is displacement chosen?
+```
 
 Behavior selection is derived rather than stored on the organism. Every process
 consults the selector from current state when it proposes. Consequently, a
@@ -171,6 +244,8 @@ MovementIntentModel / fixed process purpose
     → why this organism is attempting the behavior
 BehaviorSelectionModel
     → whether this organism attempts that behavioral purpose
+Perception and targeting policies
+    → what relevant environmental information can guide the attempt
 Process eligibility and domain rules
     → whether the attempted behavior is biologically feasible
 Energetic affordability/reserve policy
