@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
 import attrs
@@ -31,6 +32,7 @@ from evo_engine.energetics import (
 )
 from evo_engine.engine import (
     MaxSteps,
+    Observer,
     Process,
     Simulation,
     SimulationEngine,
@@ -52,6 +54,7 @@ from evo_engine.genetics import (
     SingleCrossoverRecombination,
 )
 from evo_engine.growth import GeneticPhenotypeGrowthRate
+from evo_engine.observation import PopulationRecorder
 from evo_engine.predation import (
     AllOfPredationEligibility,
     GeneticAttackAdvantagePreference,
@@ -112,6 +115,7 @@ class ReferenceEcology:
         config: Numerical configuration used to build the ecology.
         simulation: Mutable simulation state and shared behavior configuration.
         engine: Engine wired with the standard ecological lifecycle.
+        recorder: Population recorder attached to the reference engine.
     """
 
     config: ReferenceEcologyConfig = attrs.field(
@@ -122,6 +126,9 @@ class ReferenceEcology:
     )
     engine: SimulationEngine = attrs.field(
         validator=attrs.validators.instance_of(SimulationEngine),
+    )
+    recorder: PopulationRecorder = attrs.field(
+        validator=attrs.validators.instance_of(PopulationRecorder),
     )
 
 
@@ -158,15 +165,18 @@ def build_reference_simulation(
 
 def build_reference_engine(
     config: ReferenceEcologyConfig | None = None,
+    *,
+    observers: Iterable[Observer] = (),
 ) -> SimulationEngine:
     """Build a simulation engine containing the complete reference lifecycle.
 
     Args:
         config: Optional reference configuration. Defaults to standard values.
+        observers: Optional observers attached to committed reference states.
 
     Returns:
-        Engine wiring ecology, life history, and mortality into the standard
-        lifecycle.
+        Engine wiring ecology, life history, mortality, and observation into the
+        standard lifecycle.
     """
     config = resolve_reference_config(config)
     reserve = KeepEnergyReserve(
@@ -352,25 +362,35 @@ def build_reference_engine(
         stopping_condition=MaxSteps(
             max_steps=config.max_steps,
         ),
+        observers=observers,
     )
 
 
 def build_reference_ecology(
     config: ReferenceEcologyConfig | None = None,
 ) -> ReferenceEcology:
-    """Build the complete reference simulation and matching engine.
+    """Build the complete observable reference simulation and matching engine.
 
     Args:
         config: Optional reference configuration. Defaults to standard values.
 
     Returns:
-        Bundle containing the resolved configuration, simulation, and engine.
+        Bundle containing the resolved configuration, simulation, engine, and a
+        recorder tracking all reference integer traits each step.
     """
     config = resolve_reference_config(config)
+    recorder = PopulationRecorder(
+        trait_names=tuple(config.traits.as_mapping()),
+    )
+
     return ReferenceEcology(
         config=config,
         simulation=build_reference_simulation(config),
-        engine=build_reference_engine(config),
+        engine=build_reference_engine(
+            config,
+            observers=(recorder,),
+        ),
+        recorder=recorder,
     )
 
 
