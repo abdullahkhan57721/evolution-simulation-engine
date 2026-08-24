@@ -32,17 +32,20 @@ founder genome, world, simulation, and engine.
 
 ## Founder genetic architecture
 
-The reference population begins homozygous for eleven integer traits:
+The reference population begins homozygous for fourteen integer traits:
 
 | Trait | Default | Role |
 | --- | ---: | --- |
 | `adult_body_mass` | 8 | Adult developmental body-mass target |
 | `max_speed` | 1 | Maximum movement distance |
 | `sensory_range` | 4 | Resource-detection radius |
+| `sensory_accuracy` | 90 | Percent chance to detect each in-range resource deposit |
 | `max_intake_rate` | 4 | Maximum environmental resource intake per timestep |
 | `assimilation_efficiency` | 75 | Percent of consumed resources converted to usable energy |
 | `energy_conservation_threshold` | 15 | Switch to conservation / food-seeking behavior |
 | `energy_reserve` | 5 | Reserve protected from growth and reproduction |
+| `attack_strength` | 8 | Predator performance opposed by prey defense |
+| `defense` | 5 | Prey resistance to predator attack |
 | `maturity_age` | 4 | Reproductive maturity |
 | `reproduction_energy_threshold` | 20 | Minimum energy for reproductive eligibility |
 | `offspring_energy` | 4 | Energy invested by each reproductive parent |
@@ -82,8 +85,9 @@ threshold:
 ```text
 energy below threshold
     → energy_acquisition
-    → detect nearest resource within sensory_range
-    → move toward it
+    → consider resources within sensory_range
+    → detect each in-range resource using sensory_accuracy
+    → move toward the nearest detected resource
 
 energy at/above threshold
     → exploration
@@ -93,10 +97,15 @@ energy at/above threshold
 The shared threshold is a reference-model choice, not an engine invariant.
 Callers can compose different threshold models.
 
+The reference ecology uses genetic sensory range and genetic sensory accuracy.
+Accuracy 0 always misses an in-range deposit and accuracy 100 always detects it;
+intermediate values use the simulation RNG independently for each in-range
+deposit considered during targeting.
+
 ## Feeding physiology
 
-Environmental resource feeding now separates behavioral demand, physiological
-intake capacity, ecological allocation, and energy assimilation:
+Environmental resource feeding separates behavioral demand, physiological intake
+capacity, ecological allocation, and energy assimilation:
 
 ```text
 behavioral resource request = 10
@@ -128,6 +137,32 @@ The full allocated amount leaves the environmental resource pool. Any
 unassimilated fraction is currently outside the modeled pool rather than being
 returned as waste. A future excretion/decomposition layer can model that material
 without changing the intake or assimilation interfaces.
+
+## Predation performance
+
+Reference predation separates spatial opportunity, biological feasibility, and
+preference:
+
+```text
+predation neighborhood
+        ↓
+current predator body mass > current prey body mass
+        ↓
+predator attack_strength > prey defense
+        ↓
+preference score = attack_strength - defense
+        ↓
+PreferenceOrder conflict resolution
+```
+
+Size and combat performance are independent. A predator must currently be larger
+than its prey and also have sufficient expressed attack strength. Among feasible
+pairings, larger attack-defense advantages are considered first. Because each
+organism may participate in at most one resolved predation event in a stage,
+these scores influence prey choice and interaction conflicts.
+
+The reference contains one generic population, so this remains opportunistic
+within-population predation rather than a species or trophic-role system.
 
 ## Energy priorities
 
@@ -193,8 +228,10 @@ The defaults compose:
 - random resource generation,
 - carcass decomposition,
 - state-dependent resource-seeking/exploratory movement,
+- genetic sensory range and probabilistic sensory accuracy,
 - power-law locomotion costs,
-- same-cell predation by larger organisms,
+- size- and attack/defense-gated same-neighborhood predation,
+- attack-advantage predation preference,
 - genetic intake-capacity limits,
 - equal-share resource competition,
 - genetic resource-to-energy assimilation efficiency,
@@ -205,12 +242,6 @@ The defaults compose:
 - developmental energy reserves,
 - starvation mortality, and
 - developmental maximum-age mortality.
-
-Predation is intentionally simple. Because the reference contains one generic
-population, it currently represents opportunistic within-population predation:
-larger organisms can prey on smaller organisms occupying the configured
-predation neighborhood. Species, trophic roles, attack/defense traits, and prey
-choice are future model layers rather than hidden assumptions in this preset.
 
 ## Customization
 
@@ -236,10 +267,13 @@ config = ReferenceEcologyConfig(
         adult_body_mass=10,
         max_speed=2,
         sensory_range=6,
+        sensory_accuracy=85,
         max_intake_rate=8,
         assimilation_efficiency=70,
         energy_conservation_threshold=18,
         energy_reserve=6,
+        attack_strength=10,
+        defense=7,
         maturity_age=5,
         reproduction_energy_threshold=24,
         offspring_energy=5,
@@ -271,9 +305,9 @@ environmental-resource summaries.
 The reference ecology intentionally exposes several areas for future model work:
 
 - unassimilated food is not yet returned to the environment as waste,
-- resource sensing currently has perfect detection inside `sensory_range`,
 - sensing has no energetic cost,
-- predation uses body size rather than attack/defense traits,
+- predation success is deterministic once size and attack/defense eligibility
+  are satisfied,
 - sexual reproduction has interchangeable parent roles and no sex trait,
 - mate seeking does not yet drive movement,
 - growth rate is fixed rather than heritable, and
