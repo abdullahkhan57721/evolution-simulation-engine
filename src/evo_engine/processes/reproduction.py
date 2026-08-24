@@ -6,10 +6,8 @@ from typing import ClassVar
 
 import attrs
 
-from evo_engine.behavior import (
-    REPRODUCTION as REPRODUCTION_PURPOSE,
-    behavior_is_allowed,
-)
+from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
+from evo_engine.behavior import behavior_is_allowed
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
@@ -320,7 +318,7 @@ class Reproduction:
         """Represent a materialized Reproduction event.
 
         Attributes:
-            proposal: Resolved proposal from which this event was materialized.
+            proposal: Resolved proposal from which the event was materialized.
             offspring_genome: Fully determined offspring genome.
             offspring_genetic_phenotype: Genetic phenotype expressed from the
                 offspring genome.
