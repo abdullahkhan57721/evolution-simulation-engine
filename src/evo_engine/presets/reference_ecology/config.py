@@ -31,14 +31,14 @@ from evo_engine.validation import attrs_validators, validators
 REFERENCE_CHROMOSOME = "reference"
 REFERENCE_TRAIT_DOMAINS: dict[str, tuple[int, int]] = {
     ADULT_BODY_MASS: (1, 40),
-    GROWTH_RATE: (1, 4),
+    GROWTH_RATE: (0, 4),
     MAX_SPEED: (0, 4),
-    LOCOMOTION_COST_COEFFICIENT: (1, 200),
+    LOCOMOTION_COST_COEFFICIENT: (0, 200),
     SENSORY_RANGE: (0, 20),
     SENSORY_ACCURACY: (0, 100),
     MAX_INTAKE_RATE: (0, 50),
     ASSIMILATION_EFFICIENCY: (0, 100),
-    METABOLIC_COST_COEFFICIENT: (1, 200),
+    METABOLIC_COST_COEFFICIENT: (0, 200),
     ENERGY_CONSERVATION_THRESHOLD: (0, 100),
     ENERGY_RESERVE: (0, 100),
     ATTACK_STRENGTH: (0, 50),
@@ -101,7 +101,7 @@ class ReferenceTraitValues:
     )
     growth_rate: int = attrs.field(
         default=1,
-        validator=attrs_validators.validate_int_in_range(1, 4),
+        validator=attrs_validators.validate_int_in_range(0, 4),
     )
     max_speed: int = attrs.field(
         default=1,
@@ -109,7 +109,7 @@ class ReferenceTraitValues:
     )
     locomotion_cost_coefficient: int = attrs.field(
         default=20,
-        validator=attrs_validators.validate_int_in_range(1, 200),
+        validator=attrs_validators.validate_int_in_range(0, 200),
     )
     sensory_range: int = attrs.field(
         default=4,
@@ -129,7 +129,7 @@ class ReferenceTraitValues:
     )
     metabolic_cost_coefficient: int = attrs.field(
         default=30,
-        validator=attrs_validators.validate_int_in_range(1, 200),
+        validator=attrs_validators.validate_int_in_range(0, 200),
     )
     energy_conservation_threshold: int = attrs.field(
         default=15,
