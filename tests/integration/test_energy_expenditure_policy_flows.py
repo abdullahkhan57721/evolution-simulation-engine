@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from evo_engine.energetics import KeepFixedReserve, LinearGrowthCost
 from evo_engine.genetics import ClonalInheritance
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS
@@ -83,12 +85,8 @@ def test_growth_application_rechecks_fixed_reserve() -> None:
     event = process.propose_events(state)[0]
     organism.energy = 6
 
-    try:
+    with pytest.raises(RuntimeError, match="energy expenditure policy"):
         process.apply_event(state, event)
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("Expected stale Growth event to violate reserve policy.")
 
     assert organism.body_mass == 10
     assert organism.energy == 6
@@ -120,12 +118,8 @@ def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
     rng_state = state.rng.getstate()
     parent.energy = 9
 
-    try:
+    with pytest.raises(RuntimeError, match="energy expenditure policy"):
         process.materialize_event(state, proposal)
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("Expected stale Reproduction proposal to violate reserve.")
 
     assert state.rng.getstate() == rng_state
     assert len(state.world.organisms) == 1
@@ -140,12 +134,8 @@ def test_reproduction_application_rechecks_reserve_atomically() -> None:
     event = process.materialize_event(state, proposal)
     parent.energy = 9
 
-    try:
+    with pytest.raises(RuntimeError, match="energy expenditure policy"):
         process.apply_event(state, event)
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("Expected materialized birth to violate reserve policy.")
 
     assert parent.energy == 9
     assert len(state.world.organisms) == 1
