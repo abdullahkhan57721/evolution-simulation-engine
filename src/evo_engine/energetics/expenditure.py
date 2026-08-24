@@ -96,10 +96,7 @@ class KeepFixedReserve:
             ``True`` for zero-cost actions or when a positive payment leaves at
             least ``minimum_energy``.
         """
-        return (
-            energy_cost == 0
-            or organism.energy - energy_cost >= self.minimum_energy
-        )
+        return energy_cost == 0 or organism.energy - energy_cost >= self.minimum_energy
 
 
 def energy_expenditure_is_allowed(
