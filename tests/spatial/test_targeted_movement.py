@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from evo_engine.spatial.targeted_movement import (
@@ -75,29 +77,43 @@ def test_straight_line_stays_when_max_speed_is_zero() -> None:
 
 
 @pytest.mark.parametrize(
-    ("field", "value"),
+    ("current_x", "current_y", "target_x", "target_y", "max_speed"),
     [
-        ("current_x", -1),
-        ("current_y", -1),
-        ("target_x", -1),
-        ("target_y", -1),
-        ("max_speed", -1),
-        ("max_speed", 1.0),
+        (-1, 0, 1, 1, 1),
+        (0, -1, 1, 1, 1),
+        (0, 0, -1, 1, 1),
+        (0, 0, 1, -1, 1),
+        (0, 0, 1, 1, -1),
     ],
 )
-def test_straight_line_rejects_invalid_inputs(field: str, value: object) -> None:
-    """Test target-directed movement requires nonnegative integer inputs."""
-    arguments = {
-        "current_x": 0,
-        "current_y": 0,
-        "target_x": 1,
-        "target_y": 1,
-        "max_speed": 1,
-    }
-    arguments[field] = value
+def test_straight_line_rejects_negative_inputs(
+    current_x: int,
+    current_y: int,
+    target_x: int,
+    target_y: int,
+    max_speed: int,
+) -> None:
+    """Test target-directed movement rejects negative coordinates and speed."""
+    with pytest.raises(ValueError):
+        StraightLineTowardTarget().choose_displacement(
+            current_x=current_x,
+            current_y=current_y,
+            target_x=target_x,
+            target_y=target_y,
+            max_speed=max_speed,
+        )
 
-    with pytest.raises((TypeError, ValueError)):
-        StraightLineTowardTarget().choose_displacement(**arguments)  # type: ignore[arg-type]
+
+def test_straight_line_rejects_noninteger_max_speed() -> None:
+    """Test target-directed movement requires integer max speed."""
+    with pytest.raises(TypeError):
+        StraightLineTowardTarget().choose_displacement(
+            current_x=0,
+            current_y=0,
+            target_x=1,
+            target_y=1,
+            max_speed=cast(int, 1.0),
+        )
 
 
 def test_targeted_movement_protocol_accepts_structural_implementation() -> None:
