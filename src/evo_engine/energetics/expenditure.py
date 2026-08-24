@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import attrs
 
-from evo_engine.energetics.thresholds import (
+from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.life_history import (
     EnergyThresholdSource,
     determine_energy_threshold,
     validate_energy_threshold_source,
 )
-from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.validation import attrs_validators, validators
 
 if TYPE_CHECKING:
