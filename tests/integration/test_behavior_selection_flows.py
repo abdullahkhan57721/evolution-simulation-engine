@@ -18,7 +18,11 @@ from evo_engine.reproduction import (
 from evo_engine.resolvers import AcceptAll
 from evo_engine.spatial.neighborhoods import SameCell
 from evo_engine.world import WorldState
-from tests.helpers import add_organism, make_empty_architecture, make_integer_architecture
+from tests.helpers import (
+    add_organism,
+    make_empty_architecture,
+    make_integer_architecture,
+)
 
 
 def test_conservation_suppresses_growth_even_when_affordable() -> None:
@@ -45,7 +49,9 @@ def test_conservation_suppresses_growth_even_when_affordable() -> None:
     assert process.propose_events(simulation.state) == []
 
 
-def test_conservation_suppresses_reproduction_even_when_eligible_and_affordable() -> None:
+def test_conservation_suppresses_reproduction_even_when_eligible_and_affordable() -> (
+    None
+):
     """Test low-energy behavior is checked before reproductive eligibility."""
     architecture = make_empty_architecture()
     simulation = Simulation(
