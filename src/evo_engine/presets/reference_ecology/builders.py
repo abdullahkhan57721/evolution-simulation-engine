@@ -22,6 +22,7 @@ from evo_engine.behavior import (
 )
 from evo_engine.energetics import (
     DevelopmentalEnergyThreshold,
+    GeneticPhenotypeCoefficient,
     KeepEnergyReserve,
     LinearGrowthCost,
     PowerLawLocomotionCost,
@@ -43,12 +44,14 @@ from evo_engine.feeding import (
 from evo_engine.genetics import (
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    LOCOMOTION_COST_COEFFICIENT,
+    METABOLIC_COST_COEFFICIENT,
     REPRODUCTION_ENERGY_THRESHOLD,
     MeioticGameteFormation,
     SexualInheritance,
     SingleCrossoverRecombination,
 )
-from evo_engine.growth import FixedGrowthRate
+from evo_engine.growth import GeneticPhenotypeGrowthRate
 from evo_engine.predation import (
     AllOfPredationEligibility,
     GeneticAttackAdvantagePreference,
@@ -197,7 +200,9 @@ def build_reference_engine(
     metabolism_stage = _accept_all_stage(
         Metabolism(
             cost_model=PowerLawMetabolicCost(
-                coefficient=config.metabolic_coefficient,
+                coefficient=GeneticPhenotypeCoefficient(
+                    trait_name=METABOLIC_COST_COEFFICIENT,
+                ),
                 mass_exponent=config.metabolic_mass_exponent,
                 minimum_cost=1,
             )
@@ -217,7 +222,9 @@ def build_reference_engine(
             movement_pattern=MooreRandom(),
             boundary_condition=Clamped(),
             locomotion_cost_model=PowerLawLocomotionCost(
-                coefficient=config.locomotion_coefficient,
+                coefficient=GeneticPhenotypeCoefficient(
+                    trait_name=LOCOMOTION_COST_COEFFICIENT,
+                ),
                 mass_exponent=config.locomotion_mass_exponent,
                 distance_exponent=config.locomotion_distance_exponent,
                 minimum_nonzero_cost=1,
@@ -289,9 +296,7 @@ def build_reference_engine(
     )
     growth_stage = _accept_all_stage(
         Growth(
-            growth_model=FixedGrowthRate(
-                amount_per_timestep=config.growth_amount_per_step,
-            ),
+            growth_model=GeneticPhenotypeGrowthRate(),
             growth_cost_model=LinearGrowthCost(
                 energy_per_body_mass_unit=config.growth_energy_per_mass,
                 minimum_nonzero_cost=1,
