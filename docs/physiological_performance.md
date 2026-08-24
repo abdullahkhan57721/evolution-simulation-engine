@@ -79,6 +79,10 @@ that larger increment immediately. If the organism cannot afford the full capped
 gain under its expenditure policy, the current all-or-nothing growth semantics
 still suppress the event.
 
+A zero growth-rate trait is valid and means no potential growth for that organism.
+This is useful both as a possible evolved boundary state and for experiments that
+need to isolate other processes.
+
 ## Metabolic performance
 
 `PowerLawMetabolicCost` now accepts a `CoefficientSource`. With the reference
@@ -117,6 +121,11 @@ of `0.20`.
 Two organisms making the same displacement can therefore pay different energy
 costs even when body mass and movement geometry are identical.
 
+Coefficient traits may be zero. That produces a zero raw power-law coefficient;
+any configured process/model minimum cost still applies afterward. In the
+reference ecology, for example, basal metabolism retains a minimum cost of one
+energy unit even when the genetic coefficient is zero.
+
 ## Reference ecology traits
 
 The reference ecology now contains three additional physiological-performance
@@ -124,9 +133,9 @@ traits:
 
 | Trait | Founder value | Domain | Interpretation |
 | --- | ---: | ---: | --- |
-| `growth_rate` | 1 | 1–4 | Potential body-mass units gained per growth timestep |
-| `metabolic_cost_coefficient` | 30 | 1–200 | Hundredths of basal metabolic power-law coefficient |
-| `locomotion_cost_coefficient` | 20 | 1–200 | Hundredths of locomotion power-law coefficient |
+| `growth_rate` | 1 | 0–4 | Potential body-mass units gained per growth timestep |
+| `metabolic_cost_coefficient` | 30 | 0–200 | Hundredths of basal metabolic power-law coefficient |
+| `locomotion_cost_coefficient` | 20 | 0–200 | Hundredths of locomotion power-law coefficient |
 
 All are ordinary bounded integer loci on the reference chromosome. They therefore
 participate in meiotic segregation, crossover, mutation, expression, and
