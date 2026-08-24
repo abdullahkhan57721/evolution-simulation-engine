@@ -172,19 +172,21 @@ def test_resource_seeker_reaches_visible_food_over_repeated_movement() -> None:
 
 def test_sensory_trait_is_required_only_by_trait_driven_targeting() -> None:
     """Test resource sensing adds sensory_range without making it universal."""
-    common_arguments = {
-        "movement_pattern": UniformRandom(),
-        "boundary_condition": Clamped(),
-        "locomotion_cost_model": FixedLocomotionCost(amount=0),
-    }
-
-    untargeted = Movement(**common_arguments)
+    untargeted = Movement(
+        movement_pattern=UniformRandom(),
+        boundary_condition=Clamped(),
+        locomotion_cost_model=FixedLocomotionCost(amount=0),
+    )
     trait_targeted = Movement(
-        **common_arguments,
+        movement_pattern=UniformRandom(),
+        boundary_condition=Clamped(),
+        locomotion_cost_model=FixedLocomotionCost(amount=0),
         movement_target_model=NearestResourceTarget(),
     )
     fixed_targeted = Movement(
-        **common_arguments,
+        movement_pattern=UniformRandom(),
+        boundary_condition=Clamped(),
+        locomotion_cost_model=FixedLocomotionCost(amount=0),
         movement_target_model=NearestResourceTarget(
             sensory_range_model=FixedSensoryRange(radius=3),
         ),
