@@ -36,11 +36,9 @@ class Aging:
         self,
         simulation_state: SimulationState,
     ) -> list[Aging.Event]:
-        """Propose Aging events for organisms that lived through this step.
+        """Propose Aging events for eligible organisms.
 
-        Organisms born during the current simulation step are excluded because
-        they have not yet completed a full timestep. Founders and organisms born
-        during earlier steps receive one Aging event.
+        An Aging event is proposed for each active organism.
 
         Args:
             simulation_state: Current simulation state.
@@ -51,9 +49,6 @@ class Aging:
         events: list[Aging.Event] = []
 
         for organism in simulation_state.world.organisms.values():
-            if organism.birth_step_index == simulation_state.step_index:
-                continue
-
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
@@ -75,4 +70,5 @@ class Aging:
             resolved_event: Resolved Aging event to apply.
         """
         organism = simulation_state.world.organisms[resolved_event.organism_id]
-        organism.age_step()
+
+        organism.age += 1
