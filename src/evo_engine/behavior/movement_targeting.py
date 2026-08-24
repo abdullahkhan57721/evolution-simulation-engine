@@ -94,6 +94,118 @@ class NoMovementTarget:
 
 
 @attrs.frozen(slots=True, kw_only=True)
+class PurposeTargetRoute:
+    """Route one movement purpose to a target-selection model.
+
+    Attributes:
+        behavioral_purpose: Purpose handled by ``target_model``.
+        target_model: Target-selection model used for that purpose.
+    """
+
+    behavioral_purpose: str
+    target_model: MovementTargetModel
+
+    def __attrs_post_init__(self) -> None:
+        """Validate the route purpose and target model."""
+        validate_behavioral_purpose(
+            self.behavioral_purpose,
+            name="behavioral_purpose",
+        )
+
+        if not callable(getattr(self.target_model, "choose_target", None)):
+            raise TypeError("target_model must provide a callable choose_target method.")
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the routed target model."""
+        return collect_required_traits(self.target_model)
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class PurposeMovementTargetRouter:
+    """Dispatch movement targeting according to behavioral purpose.
+
+    Attributes:
+        routes: Purpose-specific target routes. Purposes must be unique.
+        fallback_target_model: Model used when no route matches. Defaults to
+            no targeting so untargeted movement falls back to the configured
+            movement pattern.
+    """
+
+    routes: tuple[PurposeTargetRoute, ...] = attrs.field(
+        validator=attrs.validators.instance_of(tuple),
+    )
+    fallback_target_model: MovementTargetModel = attrs.field(
+        factory=NoMovementTarget,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate routes, uniqueness, and fallback target model."""
+        seen_purposes: set[str] = set()
+
+        for index, route in enumerate(self.routes):
+            if not isinstance(route, PurposeTargetRoute):
+                raise TypeError(f"routes[{index}] must be a PurposeTargetRoute.")
+
+            if route.behavioral_purpose in seen_purposes:
+                raise ValueError(
+                    "routes must not contain duplicate behavioral purposes."
+                )
+
+            seen_purposes.add(route.behavioral_purpose)
+
+        if not callable(
+            getattr(
+                self.fallback_target_model,
+                "choose_target",
+                None,
+            )
+        ):
+            raise TypeError(
+                "fallback_target_model must provide a callable choose_target method."
+            )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by all routed and fallback target models."""
+        return collect_required_traits(
+            *(route.target_model for route in self.routes),
+            self.fallback_target_model,
+        )
+
+    def choose_target(
+        self,
+        organism: Organism,
+        *,
+        behavioral_purpose: str,
+        simulation_state: SimulationState,
+    ) -> MovementTarget | None:
+        """Return a target from the model routed for the current purpose.
+
+        Args:
+            organism: Organism attempting movement.
+            behavioral_purpose: Purpose motivating the movement attempt.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Routed target, or the fallback model's result if no route matches.
+        """
+        for route in self.routes:
+            if route.behavioral_purpose == behavioral_purpose:
+                return route.target_model.choose_target(
+                    organism,
+                    behavioral_purpose=behavioral_purpose,
+                    simulation_state=simulation_state,
+                )
+
+        return self.fallback_target_model.choose_target(
+            organism,
+            behavioral_purpose=behavioral_purpose,
+            simulation_state=simulation_state,
+        )
+
+
+@attrs.frozen(slots=True, kw_only=True)
 class NearestResourceTarget:
     """Target the nearest detected environmental resource deposit.
 
