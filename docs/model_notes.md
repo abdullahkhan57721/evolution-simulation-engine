@@ -83,19 +83,13 @@ copy, leaving the authoritative state unchanged.
 Behavioral purpose is modeled as an optional component capability rather than a
 requirement of every simulation process. Components that expose a
 `behavioral_purpose` satisfy the runtime-checkable `BehavioralPurposeProvider`
-protocol. Fixed-purpose processes use class-level declarations, while future
-components may calculate purpose dynamically.
+protocol. Fixed-purpose processes use class-level declarations.
 
 Behavioral purposes are extensible nonblank strings. Canonical engine purposes
 currently include energy acquisition, survival, somatic investment,
 reproduction, and exploration. Growth declares somatic investment;
 Reproduction declares reproduction; Predation and ResourceConsumption declare
 energy acquisition.
-
-`Movement` deliberately has no single generic purpose. A future movement action
-may represent foraging, escape, mate search, exploration, migration, or another
-context-dependent intent. This leaves room for action-level purpose to override
-or refine process-level defaults when the behavioral system becomes richer.
 
 `BehaviorSelectionModel` is separate from process ordering and from
 process-specific eligibility. It answers whether a particular organism should
@@ -109,7 +103,7 @@ existing simulation semantics. `EnergyConservationBehavior` activates when
 allowed. Below the threshold, only configured low-energy purposes are allowed;
 by default these are energy acquisition and survival.
 
-The initial fixed-purpose integrations are:
+The fixed-purpose integrations are:
 
 - `Growth` — somatic investment
 - `Reproduction` — reproduction
@@ -119,20 +113,62 @@ The initial fixed-purpose integrations are:
 Selection occurs before those processes perform their normal proposal logic.
 A suppressed organism therefore does not proceed into growth models,
 reproductive eligibility/parent selection, predator-prey proposal generation,
-or resource-consumption proposals. Movement remains outside behavior selection
-until individual movement actions can declare their intent.
+or resource-consumption proposals.
+
+Movement uses action-level purpose rather than a process-level declaration.
+`Movement` itself intentionally has no `behavioral_purpose`, because movement
+may represent foraging, escape, mate search, exploration, migration, or another
+context-dependent action.
+
+A `MovementIntentModel` determines the purpose of each organism's movement
+attempt from current state. `FixedMovementIntent` is the initial implementation
+and defaults to exploration. It may instead assign energy acquisition, survival,
+reproduction, or any other valid purpose. Custom intent models may determine
+purpose dynamically and independently for each organism.
+
+The movement proposal sequence is:
+
+```text
+MovementIntentModel
+    → determine movement purpose for this organism
+BehaviorSelectionModel
+    → allow or suppress that purpose
+MovementPattern
+    → choose displacement if allowed
+BoundaryCondition
+    → resolve destination
+LocomotionCostModel
+    → price movement
+Movement.Event
+    → record destination, cost, and behavioral purpose
+```
+
+Behavior selection is therefore checked before movement displacement RNG is
+consumed. A low-energy organism using the default exploratory intent is
+suppressed by `EnergyConservationBehavior`, while movement labeled energy
+acquisition or survival remains available by default. The recorded purpose also
+makes the resulting event self-describing for later observation or richer
+resolution logic.
+
+Movement intent remains distinct from movement geometry. A `MovementPattern`
+answers how displacement is chosen; a `MovementIntentModel` answers why the
+organism is attempting to move. Future foraging, escape, or mate-seeking
+movement policies may therefore become spatially targeted without collapsing
+behavioral motivation into geometric code.
 
 Behavior selection is derived rather than stored on the organism. Every process
 consults the selector from current state when it proposes. Consequently, a
 low-energy organism may acquire energy in an earlier stage and automatically
-leave conservation mode before a later Growth or Reproduction stage in the same
-timestep.
+leave conservation mode before a later Growth, Reproduction, or exploratory
+Movement stage in the same timestep.
 
 This distinction is intentional:
 
 ```text
 Timestep/stage order
     → when a process gets an opportunity
+MovementIntentModel / fixed process purpose
+    → why this organism is attempting the behavior
 BehaviorSelectionModel
     → whether this organism attempts that behavioral purpose
 Process eligibility and domain rules
