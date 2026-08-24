@@ -11,12 +11,12 @@ from evo_engine.behavior.purposes import (
     SURVIVAL,
     validate_behavioral_purpose,
 )
-from evo_engine.energetics.thresholds import (
+from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.life_history import (
     EnergyThresholdSource,
     determine_energy_threshold,
     validate_energy_threshold_source,
 )
-from evo_engine.genetics.requirements import collect_required_traits
 
 if TYPE_CHECKING:
     from evo_engine.engine.simulation_state import SimulationState
