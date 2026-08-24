@@ -7,8 +7,8 @@ import pytest
 from evo_engine.behavior import (
     ENERGY_ACQUISITION,
     EXPLORATION,
-    MovementIntentModel,
     FixedMovementIntent,
+    MovementIntentModel,
     determine_movement_purpose,
 )
 from tests.helpers import add_organism, make_state
