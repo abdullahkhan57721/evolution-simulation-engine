@@ -27,6 +27,10 @@ from evo_engine.reproduction.mating import (
     MutualSignalCompatibility,
     MutualSignalMarginPreference,
 )
+from evo_engine.reproduction.movement import (
+    PreferredMateTarget,
+    ReproductiveEligibilityMovementCondition,
+)
 from evo_engine.reproduction.parent_selection import (
     PairwiseMating,
     ParentGroup,
@@ -61,7 +65,9 @@ __all__ = [
     "ParentalInvestment",
     "ParentGroup",
     "ParentSelection",
+    "PreferredMateTarget",
     "RandomParentLocation",
     "ReproductiveEligibility",
+    "ReproductiveEligibilityMovementCondition",
     "SingleParent",
 ]
