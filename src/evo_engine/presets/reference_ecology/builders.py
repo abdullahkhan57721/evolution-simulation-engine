@@ -9,6 +9,7 @@ import attrs
 from evo_engine.behavior import (
     EnergyConservationBehavior,
     EnergyThresholdMovementIntent,
+    GeneticPhenotypeSensoryAccuracy,
     NearestResourceTarget,
 )
 from evo_engine.energetics import (
@@ -40,6 +41,12 @@ from evo_engine.genetics import (
     SingleCrossoverRecombination,
 )
 from evo_engine.growth import FixedGrowthRate
+from evo_engine.predation import (
+    AllOfPredationEligibility,
+    GeneticAttackAdvantagePreference,
+    GeneticAttackDefenseEligibility,
+    LargerPredatorEligibility,
+)
 from evo_engine.presets.reference_ecology.config import (
     ReferenceEcologyConfig,
     resolve_reference_config,
@@ -188,7 +195,9 @@ def build_reference_engine(
             movement_intent_model=EnergyThresholdMovementIntent(
                 energy_threshold=conservation_threshold,
             ),
-            movement_target_model=NearestResourceTarget(),
+            movement_target_model=NearestResourceTarget(
+                sensory_accuracy_model=GeneticPhenotypeSensoryAccuracy(),
+            ),
         )
     )
     predation_stage = StageCoordinator(
@@ -198,6 +207,13 @@ def build_reference_engine(
                     radius=config.predation_radius,
                 ),
                 consumption_percent=config.predation_consumption_percent,
+                can_predate=AllOfPredationEligibility(
+                    eligibilities=(
+                        LargerPredatorEligibility(),
+                        GeneticAttackDefenseEligibility(),
+                    )
+                ),
+                preference_function=GeneticAttackAdvantagePreference(),
             ),
         ),
         resolver=PredationPreferenceOrder(),
