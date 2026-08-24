@@ -17,11 +17,11 @@ src/evo_engine/
 │                  recombination, expression, and genetic phenotype
 ├── development/   developmental variation and individual target profiles
 ├── growth/        policies that determine potential body-mass gain
-├── behavior/      behavioral purposes, movement intent, behavior selection
+├── behavior/      purposes, movement intent, sensing, targeting, selection
 ├── energetics/    energetic cost models for metabolism, movement, and growth
 ├── reproduction/ reproductive eligibility, parent selection, investment,
 │                  and offspring placement
-├── spatial/       neighborhoods, distances, boundaries, movement patterns
+├── spatial/       neighborhoods, distances, boundaries, movement geometry
 ├── processes/     simulation processes that propose and apply events
 ├── resolvers/     conflict-resolution policies for proposed events
 └── validation/    general and attrs-compatible runtime validators
@@ -95,7 +95,7 @@ only when it can pay the full cost of the capped gain. Spending the final unit
 of energy is allowed; mortality remains a separate process such as
 `Starvation`, which therefore observes the organism's updated current mass.
 
-## Behavior selection
+## Behavior selection and directed movement
 
 Behavioral processes may optionally expose a `behavioral_purpose` through the
 runtime-checkable `BehavioralPurposeProvider` protocol. Fixed-purpose processes
@@ -121,12 +121,49 @@ earlier stage and leave conservation mode later in the same step.
 
 Movement is intentionally different because the process itself has no single
 purpose. A `MovementIntentModel` determines why each organism is attempting to
-move before displacement RNG is consumed. `FixedMovementIntent` defaults to
-exploration, but can label a configured movement as energy acquisition,
-survival, reproduction, or another extensible purpose. The resulting
-`Movement.Event` records that purpose. Because intent is resolved per organism,
-a custom intent model can classify different organisms' movement differently
-within the same Movement process.
+move before target selection or displacement RNG is consumed.
+`FixedMovementIntent` defaults to exploration, but can label movement as energy
+acquisition, survival, reproduction, or another extensible purpose.
+
+Movement may then select an ecological target. `NearestResourceTarget` targets
+the nearest detectable resource deposit for energy-acquisition movement. By
+default it composes `GeneticPhenotypeSensoryRange`, which reads the built-in
+`sensory_range` genetic phenotype trait. That requirement is nested: ordinary
+untargeted movement still requires only `max_speed`, while trait-driven resource
+seeking additionally requires `sensory_range`. `FixedSensoryRange` is available
+for experiments where sensing should be configuration rather than heritable
+biology.
+
+The initial resource-targeting rule uses direct Euclidean sensory distance. A
+resource outside the sensing radius has no effect on movement. If no resource
+is detected, the organism falls back to its configured ordinary
+`MovementPattern`, representing search behavior rather than omniscient
+navigation. A detected target is approached with `StraightLineTowardTarget`,
+which respects the organism's Euclidean `max_speed` limit. The selected target
+is recorded on `Movement.Event` together with movement purpose and destination.
+
+The engine also defines a built-in `sensory_accuracy` trait name for future
+noisy or imperfect perception, but resource seeking currently uses sensory
+range only.
+
+The movement decision pipeline is therefore:
+
+```text
+MovementIntentModel
+    → why is this organism moving?
+BehaviorSelectionModel
+    → should it attempt that purpose now?
+MovementTargetModel
+    → is there a relevant target it can detect?
+        ├─ target found → TargetedMovementModel
+        └─ no target    → MovementPattern search/fallback
+BoundaryCondition
+    → where does the displacement resolve?
+LocomotionCostModel
+    → what does the movement cost?
+Movement.Event
+    → record purpose, target, destination, and cost
+```
 
 Example conservation configuration:
 
@@ -143,10 +180,14 @@ simulation = Simulation(
 )
 ```
 
-Example movement intent configuration:
+Example resource-seeking movement configuration:
 
 ```python
-from evo_engine.behavior import ENERGY_ACQUISITION, FixedMovementIntent
+from evo_engine.behavior import (
+    ENERGY_ACQUISITION,
+    FixedMovementIntent,
+    NearestResourceTarget,
+)
 from evo_engine.processes import Movement
 
 movement = Movement(
@@ -156,8 +197,12 @@ movement = Movement(
     movement_intent_model=FixedMovementIntent(
         behavioral_purpose=ENERGY_ACQUISITION,
     ),
+    movement_target_model=NearestResourceTarget(),
 )
 ```
+
+With that configuration the simulation's genetic architecture must define both
+`max_speed` and `sensory_range`.
 
 Install the project and development tools into the project virtual
 environment:
