@@ -11,6 +11,12 @@ from evo_engine.energetics._common import (
     round_nonnegative_cost,
     validate_finite_number,
 )
+from evo_engine.energetics.coefficients import (
+    CoefficientSource,
+    coefficient_required_traits,
+    determine_coefficient,
+    validate_coefficient_source,
+)
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
@@ -85,17 +91,18 @@ class PowerLawLocomotionCost:
     The model evaluates
     ``coefficient * body_mass**mass_exponent * distance**distance_exponent``
     using Euclidean displacement distance and rounds the result to integer
-    energy units. All exponents are configuration, allowing the same model
-    class to represent many locomotion scaling assumptions.
+    energy units. ``coefficient`` may be a fixed number or organism-specific
+    coefficient model. The exponents remain model configuration, allowing the
+    same class to represent many locomotion scaling assumptions.
 
     Attributes:
-        coefficient: Nonnegative multiplicative coefficient.
+        coefficient: Fixed or organism-specific nonnegative coefficient.
         mass_exponent: Finite power applied to current body mass.
         distance_exponent: Finite power applied to Euclidean distance.
         minimum_nonzero_cost: Minimum cost for a nonzero displacement.
     """
 
-    coefficient: int | float
+    coefficient: CoefficientSource
     mass_exponent: int | float
     distance_exponent: int | float
     minimum_nonzero_cost: int = attrs.field(
@@ -105,7 +112,7 @@ class PowerLawLocomotionCost:
 
     def __attrs_post_init__(self) -> None:
         """Validate power-law configuration."""
-        coefficient = validate_finite_number(
+        validate_coefficient_source(
             self.coefficient,
             name="coefficient",
         )
@@ -118,10 +125,10 @@ class PowerLawLocomotionCost:
             name="distance_exponent",
         )
 
-        if coefficient < 0:
-            raise ValueError(
-                f"coefficient must be nonnegative; received {coefficient!r}."
-            )
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the configured coefficient source."""
+        return coefficient_required_traits(self.coefficient)
 
     def calculate_cost(
         self,
@@ -161,12 +168,18 @@ class PowerLawLocomotionCost:
         if dx == 0 and dy == 0:
             return 0
 
+        coefficient = determine_coefficient(
+            self.coefficient,
+            organism,
+            simulation_state=simulation_state,
+            name="locomotion coefficient",
+        )
         distance = math.hypot(
             dx,
             dy,
         )
         raw_cost = (
-            self.coefficient
+            coefficient
             * math.pow(organism.body_mass, self.mass_exponent)
             * math.pow(distance, self.distance_exponent)
         )
