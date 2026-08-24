@@ -161,10 +161,7 @@ class MutualSignalCompatibility:
             prefix="second_parent",
         )
 
-        return (
-            second_signal >= first_choosiness
-            and first_signal >= second_choosiness
-        )
+        return second_signal >= first_choosiness and first_signal >= second_choosiness
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -215,10 +212,7 @@ class MutualSignalMarginPreference:
             prefix="second_parent",
         )
 
-        return (
-            second_signal - first_choosiness
-            + first_signal - second_choosiness
-        )
+        return second_signal - first_choosiness + first_signal - second_choosiness
 
 
 @attrs.frozen(slots=True, kw_only=True)
