@@ -20,6 +20,8 @@ SENSORY_ACCURACY = "sensory_accuracy"
 ASSIMILATION_EFFICIENCY = "assimilation_efficiency"
 METABOLIC_EFFICIENCY = "metabolic_efficiency"
 MAX_INTAKE_RATE = "max_intake_rate"
+ENERGY_CONSERVATION_THRESHOLD = "energy_conservation_threshold"
+ENERGY_RESERVE = "energy_reserve"
 
 # Predation and defense
 ATTACK_STRENGTH = "attack_strength"
@@ -54,6 +56,8 @@ BUILTIN_TRAITS = frozenset(
         ASSIMILATION_EFFICIENCY,
         METABOLIC_EFFICIENCY,
         MAX_INTAKE_RATE,
+        ENERGY_CONSERVATION_THRESHOLD,
+        ENERGY_RESERVE,
         ATTACK_STRENGTH,
         DEFENSE,
         MATURITY_AGE,
