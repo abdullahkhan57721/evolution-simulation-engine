@@ -64,10 +64,14 @@ class SpendToZero:
 
 @attrs.frozen(slots=True, kw_only=True)
 class KeepFixedReserve:
-    """Require a fixed amount of energy to remain after an expenditure.
+    """Prevent positive expenditures from reducing energy below a fixed reserve.
+
+    Zero-cost actions are always permitted because they do not further deplete
+    an organism that may already be below the configured reserve.
 
     Attributes:
-        minimum_energy: Minimum organism energy that must remain after payment.
+        minimum_energy: Minimum organism energy that must remain after a
+            positive expenditure.
     """
 
     minimum_energy: int = attrs.field(
@@ -89,9 +93,13 @@ class KeepFixedReserve:
             simulation_state: Current simulation state.
 
         Returns:
-            ``True`` when at least ``minimum_energy`` remains after payment.
+            ``True`` for zero-cost actions or when a positive payment leaves at
+            least ``minimum_energy``.
         """
-        return organism.energy - energy_cost >= self.minimum_energy
+        return (
+            energy_cost == 0
+            or organism.energy - energy_cost >= self.minimum_energy
+        )
 
 
 def energy_expenditure_is_allowed(
