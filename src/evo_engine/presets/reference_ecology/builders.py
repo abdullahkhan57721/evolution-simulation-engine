@@ -7,10 +7,16 @@ from typing import Any
 import attrs
 
 from evo_engine.behavior import (
+    ENERGY_ACQUISITION,
+    REPRODUCTION as REPRODUCTION_PURPOSE,
+    EnergyBelowThresholdMovementCondition,
     EnergyConservationBehavior,
-    EnergyThresholdMovementIntent,
     GeneticPhenotypeSensoryAccuracy,
+    MovementIntentRule,
     NearestResourceTarget,
+    PrioritizedMovementIntent,
+    PurposeMovementTargetRouter,
+    PurposeTargetRoute,
 )
 from evo_engine.energetics import (
     DevelopmentalEnergyThreshold,
@@ -79,6 +85,8 @@ from evo_engine.reproduction import (
     MutualSignalCompatibility,
     MutualSignalMarginPreference,
     PairwiseMating,
+    PreferredMateTarget,
+    ReproductiveEligibilityMovementCondition,
 )
 from evo_engine.resolvers import AcceptAll
 from evo_engine.resolvers.predation import PreferenceOrder as PredationPreferenceOrder
@@ -164,6 +172,23 @@ def build_reference_engine(
     conservation_threshold = DevelopmentalEnergyThreshold(
         trait_name=ENERGY_CONSERVATION_THRESHOLD,
     )
+    reproductive_eligibility = AllOfEligibility(
+        eligibilities=(
+            DevelopmentalMaturityEligibility(),
+            MinimumEnergyEligibility(
+                minimum_energy=DevelopmentalEnergyThreshold(
+                    trait_name=REPRODUCTION_ENERGY_THRESHOLD,
+                )
+            ),
+        )
+    )
+    mating_compatibility = AllOfMatingCompatibility(
+        compatibilities=(
+            MutualMateSearchRange(),
+            MutualSignalCompatibility(),
+        )
+    )
+    mating_preference = MutualSignalMarginPreference()
 
     starvation_stage = _accept_all_stage(Starvation())
     maximum_age_stage = _accept_all_stage(MaximumAgeMortality())
@@ -196,11 +221,41 @@ def build_reference_engine(
                 minimum_nonzero_cost=1,
             ),
             energy_expenditure_policy=SpendToZero(),
-            movement_intent_model=EnergyThresholdMovementIntent(
-                energy_threshold=conservation_threshold,
+            movement_intent_model=PrioritizedMovementIntent(
+                rules=(
+                    MovementIntentRule(
+                        behavioral_purpose=ENERGY_ACQUISITION,
+                        condition=EnergyBelowThresholdMovementCondition(
+                            energy_threshold=conservation_threshold,
+                        ),
+                    ),
+                    MovementIntentRule(
+                        behavioral_purpose=REPRODUCTION_PURPOSE,
+                        condition=ReproductiveEligibilityMovementCondition(
+                            eligibility=reproductive_eligibility,
+                        ),
+                    ),
+                ),
             ),
-            movement_target_model=NearestResourceTarget(
-                sensory_accuracy_model=GeneticPhenotypeSensoryAccuracy(),
+            movement_target_model=PurposeMovementTargetRouter(
+                routes=(
+                    PurposeTargetRoute(
+                        behavioral_purpose=ENERGY_ACQUISITION,
+                        target_model=NearestResourceTarget(
+                            sensory_accuracy_model=(
+                                GeneticPhenotypeSensoryAccuracy()
+                            ),
+                        ),
+                    ),
+                    PurposeTargetRoute(
+                        behavioral_purpose=REPRODUCTION_PURPOSE,
+                        target_model=PreferredMateTarget(
+                            eligibility=reproductive_eligibility,
+                            compatibility=mating_compatibility,
+                            preference=mating_preference,
+                        ),
+                    ),
+                ),
             ),
         )
     )
@@ -248,27 +303,13 @@ def build_reference_engine(
     reproduction_stage = StageCoordinator(
         processes=(
             Reproduction(
-                eligibility=AllOfEligibility(
-                    eligibilities=(
-                        DevelopmentalMaturityEligibility(),
-                        MinimumEnergyEligibility(
-                            minimum_energy=DevelopmentalEnergyThreshold(
-                                trait_name=REPRODUCTION_ENERGY_THRESHOLD,
-                            )
-                        ),
-                    )
-                ),
+                eligibility=reproductive_eligibility,
                 parent_selection=PairwiseMating(
                     neighborhood=Moore(
                         radius=config.mating_radius,
                     ),
-                    can_mate=AllOfMatingCompatibility(
-                        compatibilities=(
-                            MutualMateSearchRange(),
-                            MutualSignalCompatibility(),
-                        )
-                    ),
-                    preference_function=MutualSignalMarginPreference(),
+                    can_mate=mating_compatibility,
+                    preference_function=mating_preference,
                 ),
                 inheritance_model=SexualInheritance(
                     gamete_formation=MeioticGameteFormation(
