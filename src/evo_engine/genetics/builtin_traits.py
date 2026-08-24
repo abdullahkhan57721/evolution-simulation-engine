@@ -8,8 +8,10 @@ custom traits without modifying the engine.
 # Morphology
 ADULT_BODY_MASS = "adult_body_mass"
 
-# Locomotion
+# Growth and locomotion
+GROWTH_RATE = "growth_rate"
 MAX_SPEED = "max_speed"
+LOCOMOTION_COST_COEFFICIENT = "locomotion_cost_coefficient"
 ENDURANCE = "endurance"
 
 # Sensory systems
@@ -18,6 +20,7 @@ SENSORY_ACCURACY = "sensory_accuracy"
 
 # Energetics and feeding
 ASSIMILATION_EFFICIENCY = "assimilation_efficiency"
+METABOLIC_COST_COEFFICIENT = "metabolic_cost_coefficient"
 METABOLIC_EFFICIENCY = "metabolic_efficiency"
 MAX_INTAKE_RATE = "max_intake_rate"
 ENERGY_CONSERVATION_THRESHOLD = "energy_conservation_threshold"
@@ -49,11 +52,14 @@ TEMPERATURE_TOLERANCE = "temperature_tolerance"
 BUILTIN_TRAITS = frozenset(
     {
         ADULT_BODY_MASS,
+        GROWTH_RATE,
         MAX_SPEED,
+        LOCOMOTION_COST_COEFFICIENT,
         ENDURANCE,
         SENSORY_RANGE,
         SENSORY_ACCURACY,
         ASSIMILATION_EFFICIENCY,
+        METABOLIC_COST_COEFFICIENT,
         METABOLIC_EFFICIENCY,
         MAX_INTAKE_RATE,
         ENERGY_CONSERVATION_THRESHOLD,

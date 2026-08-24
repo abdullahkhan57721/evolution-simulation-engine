@@ -13,12 +13,15 @@ from evo_engine.genetics import (
     DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    GROWTH_RATE,
+    LOCOMOTION_COST_COEFFICIENT,
     MATE_SEARCH_RANGE,
     MATING_SIGNAL,
     MATURITY_AGE,
     MAX_INTAKE_RATE,
     MAX_SPEED,
     MAXIMUM_AGE,
+    METABOLIC_COST_COEFFICIENT,
     OFFSPRING_ENERGY,
     REPRODUCTION_ENERGY_THRESHOLD,
     SENSORY_ACCURACY,
@@ -35,11 +38,14 @@ from evo_engine.presets import (
 EXPECTED_REFERENCE_TRAITS = frozenset(
     {
         ADULT_BODY_MASS,
+        GROWTH_RATE,
         MAX_SPEED,
+        LOCOMOTION_COST_COEFFICIENT,
         SENSORY_RANGE,
         SENSORY_ACCURACY,
         MAX_INTAKE_RATE,
         ASSIMILATION_EFFICIENCY,
+        METABOLIC_COST_COEFFICIENT,
         ENERGY_CONSERVATION_THRESHOLD,
         ENERGY_RESERVE,
         ATTACK_STRENGTH,
@@ -114,6 +120,20 @@ def test_reference_world_uses_homozygous_founders_in_distinct_cells() -> None:
         == config.traits.adult_body_mass
         for organism in organisms
     )
+    assert all(
+        organism.genetic_phenotype.int_value(GROWTH_RATE) == config.traits.growth_rate
+        for organism in organisms
+    )
+    assert all(
+        organism.genetic_phenotype.int_value(METABOLIC_COST_COEFFICIENT)
+        == config.traits.metabolic_cost_coefficient
+        for organism in organisms
+    )
+    assert all(
+        organism.genetic_phenotype.int_value(LOCOMOTION_COST_COEFFICIENT)
+        == config.traits.locomotion_cost_coefficient
+        for organism in organisms
+    )
 
 
 def test_reference_engine_uses_documented_standard_lifecycle_order() -> None:
@@ -172,11 +192,14 @@ def test_reference_founder_values_are_customizable() -> None:
     """Test callers can replace reference trait baselines without rewiring."""
     traits = ReferenceTraitValues(
         adult_body_mass=12,
+        growth_rate=2,
         max_speed=2,
+        locomotion_cost_coefficient=35,
         sensory_range=7,
         sensory_accuracy=80,
         max_intake_rate=8,
         assimilation_efficiency=60,
+        metabolic_cost_coefficient=45,
         energy_conservation_threshold=18,
         energy_reserve=6,
         attack_strength=11,
@@ -197,9 +220,12 @@ def test_reference_founder_values_are_customizable() -> None:
     organism = next(iter(ecology.simulation.state.world.organisms.values()))
 
     assert organism.genetic_phenotype.int_value(ADULT_BODY_MASS) == 12
+    assert organism.genetic_phenotype.int_value(GROWTH_RATE) == 2
+    assert organism.genetic_phenotype.int_value(LOCOMOTION_COST_COEFFICIENT) == 35
     assert organism.genetic_phenotype.int_value(SENSORY_ACCURACY) == 80
     assert organism.genetic_phenotype.int_value(MAX_INTAKE_RATE) == 8
     assert organism.genetic_phenotype.int_value(ASSIMILATION_EFFICIENCY) == 60
+    assert organism.genetic_phenotype.int_value(METABOLIC_COST_COEFFICIENT) == 45
     assert organism.genetic_phenotype.int_value(ATTACK_STRENGTH) == 11
     assert organism.genetic_phenotype.int_value(DEFENSE) == 9
     assert organism.genetic_phenotype.int_value(MATE_SEARCH_RANGE) == 6

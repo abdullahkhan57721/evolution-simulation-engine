@@ -85,8 +85,11 @@ def test_reference_ecology_performs_sexual_reproduction_at_boundary() -> None:
         mutation_probability_ppm=0,
         traits=ReferenceTraitValues(
             adult_body_mass=8,
+            growth_rate=0,
             max_speed=0,
+            locomotion_cost_coefficient=0,
             sensory_range=0,
+            metabolic_cost_coefficient=0,
             energy_conservation_threshold=0,
             energy_reserve=0,
             maturity_age=0,
@@ -96,9 +99,6 @@ def test_reference_ecology_performs_sexual_reproduction_at_boundary() -> None:
         ),
         resource_generation_amount=1,
         resource_deposits_per_step=1,
-        metabolic_coefficient=0,
-        locomotion_coefficient=0,
-        growth_amount_per_step=0,
         predation_radius=0,
         mating_radius=1,
     )
@@ -130,8 +130,11 @@ def test_reference_ecology_mutation_creates_bounded_offspring_variation() -> Non
         mutation_max_change=1,
         traits=ReferenceTraitValues(
             adult_body_mass=8,
+            growth_rate=0,
             max_speed=0,
+            locomotion_cost_coefficient=0,
             sensory_range=2,
+            metabolic_cost_coefficient=0,
             energy_conservation_threshold=10,
             energy_reserve=0,
             maturity_age=0,
@@ -141,9 +144,6 @@ def test_reference_ecology_mutation_creates_bounded_offspring_variation() -> Non
         ),
         resource_generation_amount=1,
         resource_deposits_per_step=1,
-        metabolic_coefficient=0,
-        locomotion_coefficient=0,
-        growth_amount_per_step=0,
         mating_radius=1,
     )
     ecology = build_reference_ecology(config)

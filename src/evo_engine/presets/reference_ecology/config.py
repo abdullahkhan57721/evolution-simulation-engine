@@ -12,12 +12,15 @@ from evo_engine.genetics import (
     DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    GROWTH_RATE,
+    LOCOMOTION_COST_COEFFICIENT,
     MATE_SEARCH_RANGE,
     MATING_SIGNAL,
     MATURITY_AGE,
     MAX_INTAKE_RATE,
     MAX_SPEED,
     MAXIMUM_AGE,
+    METABOLIC_COST_COEFFICIENT,
     OFFSPRING_ENERGY,
     REPRODUCTION_ENERGY_THRESHOLD,
     SENSORY_ACCURACY,
@@ -28,11 +31,14 @@ from evo_engine.validation import attrs_validators, validators
 REFERENCE_CHROMOSOME = "reference"
 REFERENCE_TRAIT_DOMAINS: dict[str, tuple[int, int]] = {
     ADULT_BODY_MASS: (1, 40),
+    GROWTH_RATE: (0, 4),
     MAX_SPEED: (0, 4),
+    LOCOMOTION_COST_COEFFICIENT: (0, 200),
     SENSORY_RANGE: (0, 20),
     SENSORY_ACCURACY: (0, 100),
     MAX_INTAKE_RATE: (0, 50),
     ASSIMILATION_EFFICIENCY: (0, 100),
+    METABOLIC_COST_COEFFICIENT: (0, 200),
     ENERGY_CONSERVATION_THRESHOLD: (0, 100),
     ENERGY_RESERVE: (0, 100),
     ATTACK_STRENGTH: (0, 50),
@@ -54,9 +60,17 @@ class ReferenceTraitValues:
     These values initialize a homozygous founder population. Sexual inheritance,
     recombination, and mutation can subsequently create heritable variation.
 
+    Energetic cost coefficients are stored as integer hundredths so the genetic
+    architecture remains integer-valued while cost models can use fractional
+    coefficients. For example, ``metabolic_cost_coefficient=30`` represents
+    ``0.30`` after scaling by 100.
+
     Attributes:
         adult_body_mass: Realized adult body-mass target.
+        growth_rate: Potential body-mass units gained per growth timestep.
         max_speed: Maximum Euclidean movement distance per timestep.
+        locomotion_cost_coefficient: Hundredths of the locomotion power-law
+            coefficient used by each organism.
         sensory_range: Resource-detection radius.
         sensory_accuracy: Percentage probability of detecting each resource
             deposit inside sensory range.
@@ -64,6 +78,8 @@ class ReferenceTraitValues:
             timestep.
         assimilation_efficiency: Percentage of consumed environmental resource
             converted to usable energy.
+        metabolic_cost_coefficient: Hundredths of the basal metabolic power-law
+            coefficient used by each organism.
         energy_conservation_threshold: Energy below which nonessential behavior
             is suppressed and movement becomes food-seeking.
         energy_reserve: Energy protected from growth and reproduction spending.
@@ -83,9 +99,17 @@ class ReferenceTraitValues:
         default=8,
         validator=attrs_validators.validate_int_in_range(1, 40),
     )
+    growth_rate: int = attrs.field(
+        default=1,
+        validator=attrs_validators.validate_int_in_range(0, 4),
+    )
     max_speed: int = attrs.field(
         default=1,
         validator=attrs_validators.validate_int_in_range(0, 4),
+    )
+    locomotion_cost_coefficient: int = attrs.field(
+        default=20,
+        validator=attrs_validators.validate_int_in_range(0, 200),
     )
     sensory_range: int = attrs.field(
         default=4,
@@ -102,6 +126,10 @@ class ReferenceTraitValues:
     assimilation_efficiency: int = attrs.field(
         default=75,
         validator=attrs_validators.validate_int_in_range(0, 100),
+    )
+    metabolic_cost_coefficient: int = attrs.field(
+        default=30,
+        validator=attrs_validators.validate_int_in_range(0, 200),
     )
     energy_conservation_threshold: int = attrs.field(
         default=15,
@@ -156,11 +184,14 @@ class ReferenceTraitValues:
         """
         return {
             ADULT_BODY_MASS: self.adult_body_mass,
+            GROWTH_RATE: self.growth_rate,
             MAX_SPEED: self.max_speed,
+            LOCOMOTION_COST_COEFFICIENT: self.locomotion_cost_coefficient,
             SENSORY_RANGE: self.sensory_range,
             SENSORY_ACCURACY: self.sensory_accuracy,
             MAX_INTAKE_RATE: self.max_intake_rate,
             ASSIMILATION_EFFICIENCY: self.assimilation_efficiency,
+            METABOLIC_COST_COEFFICIENT: self.metabolic_cost_coefficient,
             ENERGY_CONSERVATION_THRESHOLD: self.energy_conservation_threshold,
             ENERGY_RESERVE: self.energy_reserve,
             ATTACK_STRENGTH: self.attack_strength,
@@ -184,6 +215,11 @@ class ReferenceEcologyConfig:
     baseline for experiments and examples; callers should replace parameter
     values for substantive scientific work.
 
+    Organism-specific growth rate and metabolic/locomotion cost coefficients
+    live in ``traits`` rather than this simulation-wide configuration. The
+    exponents remain configuration because they define the shared scaling laws
+    under which individual trait values operate.
+
     Attributes:
         width: World width in grid cells.
         height: World height in grid cells.
@@ -191,7 +227,7 @@ class ReferenceEcologyConfig:
         initial_energy: Initial founder energy.
         max_steps: Number of timesteps run by the reference engine.
         seed: Simulation random seed.
-        traits: Founder life-history and ecological trait values.
+        traits: Founder life-history, physiological, and ecological trait values.
         mutation_probability_ppm: Per-transmitted-allele mutation probability.
         mutation_max_change: Maximum absolute integer mutation step.
         recombination_probability_ppm: Single-crossover probability per meiosis.
@@ -200,12 +236,9 @@ class ReferenceEcologyConfig:
         decomposition_amount: Maximum carcass units decomposed per timestep.
         resource_request_amount: Behavioral resource demand before an
             organism-specific intake-capacity ceiling is applied.
-        metabolic_coefficient: Basal metabolic allometry coefficient.
         metabolic_mass_exponent: Basal metabolic body-mass exponent.
-        locomotion_coefficient: Locomotion cost coefficient.
         locomotion_mass_exponent: Locomotion body-mass exponent.
         locomotion_distance_exponent: Locomotion distance exponent.
-        growth_amount_per_step: Potential body-mass gain per timestep.
         growth_energy_per_mass: Energy cost per gained body-mass unit.
         predation_radius: Chebyshev radius for predation interactions.
         predation_consumption_percent: Percentage of prey biomass converted
@@ -272,15 +305,9 @@ class ReferenceEcologyConfig:
         default=10,
         validator=attrs_validators.validate_int_ge(0),
     )
-    metabolic_coefficient: int | float = 0.30
     metabolic_mass_exponent: int | float = 0.75
-    locomotion_coefficient: int | float = 0.20
     locomotion_mass_exponent: int | float = 0.50
     locomotion_distance_exponent: int | float = 1.0
-    growth_amount_per_step: int = attrs.field(
-        default=1,
-        validator=attrs_validators.validate_int_ge(0),
-    )
     growth_energy_per_mass: int | float = 2.0
     predation_radius: int = attrs.field(
         default=0,
@@ -316,16 +343,11 @@ class ReferenceEcologyConfig:
                 "newborn_mass_denominator."
             )
 
-        for name in (
-            "metabolic_coefficient",
-            "locomotion_coefficient",
-            "growth_energy_per_mass",
-        ):
-            validators.validate_number_ge(
-                getattr(self, name),
-                bound=0,
-                name=name,
-            )
+        validators.validate_number_ge(
+            self.growth_energy_per_mass,
+            bound=0,
+            name="growth_energy_per_mass",
+        )
 
         for name in (
             "metabolic_mass_exponent",

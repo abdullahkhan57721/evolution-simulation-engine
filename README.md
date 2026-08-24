@@ -19,7 +19,7 @@ src/evo_engine/
 ├── life_history/  cross-process thresholds and lifespan strategies
 ├── growth/        policies that determine potential body-mass gain
 ├── behavior/      purposes, movement intent, sensing, targeting, selection
-├── energetics/    energetic cost models for metabolism, movement, and growth
+├── energetics/    energetic coefficients, cost models, and expenditure policies
 ├── feeding/       intake-capacity and resource-assimilation physiology
 ├── reproduction/ reproductive eligibility, mate choice, parent selection,
 │                  investment, movement adapters, and offspring placement
@@ -102,6 +102,52 @@ pricing. The initial affordability rule is all-or-nothing: an organism grows
 only when it can pay the full cost of the capped gain. Spending the final unit
 of energy is allowed; mortality remains a separate process such as
 `Starvation`, which therefore observes the organism's updated current mass.
+
+`GeneticPhenotypeGrowthRate` allows potential growth itself to be heritable.
+Faster growth can reach adult size sooner but, under a mass-priced growth-cost
+model, larger realized increments also consume more energy in that timestep.
+
+## Heritable physiological performance
+
+Power-law metabolic and locomotion models now accept a `CoefficientSource` rather
+than only a fixed number. Existing fixed coefficients remain valid, while
+`GeneticPhenotypeCoefficient` can derive an organism-specific fractional
+coefficient from an integer genetic trait.
+
+For example, an integer trait value of `30` with denominator `100` produces
+coefficient `0.30`:
+
+```python
+from evo_engine.energetics import (
+    GeneticPhenotypeCoefficient,
+    PowerLawMetabolicCost,
+)
+from evo_engine.genetics import METABOLIC_COST_COEFFICIENT
+
+metabolism = PowerLawMetabolicCost(
+    coefficient=GeneticPhenotypeCoefficient(
+        trait_name=METABOLIC_COST_COEFFICIENT,
+    ),
+    mass_exponent=0.75,
+)
+```
+
+The reference ecology uses three heritable performance traits:
+
+```text
+growth_rate
+metabolic_cost_coefficient
+locomotion_cost_coefficient
+```
+
+The shared allometric exponents remain engine configuration. This separates the
+common physical/ecological scaling law from the organism-specific performance
+parameters that can mutate, recombine, and be inherited.
+
+`growth_rate` has an explicit timing/energy tradeoff under the current growth
+cost model. Lower metabolic and locomotion coefficients are currently directional
+energetic advantages rather than forced tradeoffs; the engine does not invent a
+compensating penalty without an explicit physiological allocation model.
 
 ## Feeding physiology
 
@@ -262,12 +308,13 @@ pattern is used. Richer simulations can replace the two-state intent with
 
 `evo_engine.presets` provides a complete ecological/evolutionary composition
 that wires the current major capabilities together under the standard lifecycle.
-It includes metabolism, starvation checkpoints, resource generation and
-decomposition, prioritized food-seeking/mate-seeking/exploratory movement,
-probabilistic resource sensing, trait-driven predation, genetic intake capacity,
-resource competition, genetic assimilation efficiency, growth, sexual mate
-choice, close-range sexual reproduction, recombination, mutation, aging, and
-developmental maximum-age mortality.
+It includes heritable metabolic and locomotion performance, metabolism,
+starvation checkpoints, resource generation and decomposition, prioritized
+food-seeking/mate-seeking/exploratory movement, probabilistic resource sensing,
+trait-driven predation, genetic intake capacity, resource competition, genetic
+assimilation efficiency, heritable growth rate, sexual mate choice, close-range
+sexual reproduction, recombination, mutation, aging, and developmental
+maximum-age mortality.
 
 ```python
 from evo_engine.presets import build_reference_ecology
@@ -277,8 +324,9 @@ ecology.engine.run(ecology.simulation)
 ```
 
 The preset is an integration baseline and starting point, not a scientifically
-calibrated model. All numerical assumptions are explicit in
-`ReferenceEcologyConfig` and `ReferenceTraitValues`.
+calibrated model. Simulation-wide assumptions are explicit in
+`ReferenceEcologyConfig`; founder organism traits are explicit in
+`ReferenceTraitValues`.
 
 Install the project and development tools into the project virtual
 environment:

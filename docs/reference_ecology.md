@@ -32,16 +32,19 @@ founder genome, world, simulation, and engine.
 
 ## Founder genetic architecture
 
-The reference population begins homozygous for seventeen integer traits:
+The reference population begins homozygous for twenty integer traits:
 
 | Trait | Default | Role |
 | --- | ---: | --- |
 | `adult_body_mass` | 8 | Adult developmental body-mass target |
+| `growth_rate` | 1 | Potential body-mass gain per growth timestep |
 | `max_speed` | 1 | Maximum movement distance |
+| `locomotion_cost_coefficient` | 20 | Hundredths of locomotion power-law coefficient |
 | `sensory_range` | 4 | Resource-detection radius |
 | `sensory_accuracy` | 90 | Percent chance to detect each in-range resource deposit |
 | `max_intake_rate` | 4 | Maximum environmental resource intake per timestep |
 | `assimilation_efficiency` | 75 | Percent of consumed resources converted to usable energy |
+| `metabolic_cost_coefficient` | 30 | Hundredths of basal metabolic power-law coefficient |
 | `energy_conservation_threshold` | 15 | Switch to conservation / food-seeking behavior |
 | `energy_reserve` | 5 | Reserve protected from growth and reproduction |
 | `attack_strength` | 8 | Predator performance opposed by prey defense |
@@ -62,6 +65,10 @@ realization.
 The default mutation probability is 10,000 parts per million (1%) per transmitted
 allele, with a maximum integer change of one. Allele domains clamp mutations at
 valid boundaries.
+
+The two energetic coefficient traits use integer hundredths. Founder values 30 and
+20 therefore reproduce the previous fixed coefficients `0.30` and `0.20`, while a
+one-unit mutation changes the effective coefficient by `0.01`.
 
 ## Founder population
 
@@ -151,6 +158,44 @@ The full allocated amount leaves the environmental resource pool. Any
 unassimilated fraction is currently outside the modeled pool rather than being
 returned as waste. A future excretion/decomposition layer can model that material
 without changing the intake or assimilation interfaces.
+
+## Heritable physiological performance
+
+Growth speed and the coefficients controlling basal metabolism and locomotion are
+now organism traits rather than fixed reference-wide parameters.
+
+The shared mathematical forms remain engine configuration:
+
+```text
+metabolic cost
+    = (metabolic_cost_coefficient / 100)
+      × current_body_mass ** metabolic_mass_exponent
+
+locomotion cost
+    = (locomotion_cost_coefficient / 100)
+      × current_body_mass ** locomotion_mass_exponent
+      × distance ** locomotion_distance_exponent
+
+growth potential
+    = growth_rate body-mass units per growth timestep
+```
+
+The reference exponents remain `0.75` for metabolism, `0.50` for locomotion mass,
+and `1.0` for locomotion distance. They describe the common scaling environment in
+which organism-specific coefficients act.
+
+`growth_rate` creates an explicit timing/energy tradeoff. Faster-growing juveniles
+can approach adult body mass sooner, but the Growth process prices the larger
+capped mass increment in the same timestep. With the default linear growth cost,
+each realized body-mass unit costs two energy units, subject to the organism's
+energy reserve policy.
+
+The two cost coefficients create heritable performance variation: equal-mass
+organisms can pay different maintenance costs, and organisms making the same
+displacement can pay different locomotion costs. Lower coefficients currently have
+no built-in compensating penalty, so they are directional efficiency advantages
+rather than forced physiological tradeoffs. The engine leaves any future
+allocation constraint explicit rather than inventing an unrelated disadvantage.
 
 ## Predation performance
 
@@ -285,19 +330,19 @@ occurs afterward, so newborns remain age zero on their birth step.
 
 The defaults compose:
 
-- power-law basal metabolism,
+- power-law basal metabolism with a genetic organism-specific coefficient,
 - random resource generation,
 - carcass decomposition,
 - prioritized food-seeking, mate-seeking, and exploratory movement,
 - purpose-routed movement targets,
 - genetic sensory range and probabilistic sensory accuracy,
-- power-law locomotion costs,
+- power-law locomotion costs with a genetic organism-specific coefficient,
 - size- and attack/defense-gated same-neighborhood predation,
 - attack-advantage predation preference,
 - genetic intake-capacity limits,
 - equal-share resource competition,
 - genetic resource-to-energy assimilation efficiency,
-- fixed-rate growth with linear energy cost,
+- genetic growth rate with linear energy cost,
 - maturity- and energy-gated sexual reproduction,
 - genetic mutual mate-search range,
 - genetic choosiness and mating signal,
@@ -311,8 +356,8 @@ The defaults compose:
 
 ## Customization
 
-All numerical baseline values live in `ReferenceEcologyConfig` and
-`ReferenceTraitValues`.
+Simulation-wide numerical assumptions live in `ReferenceEcologyConfig`, while
+founder organism traits live in `ReferenceTraitValues`.
 
 For example:
 
@@ -330,13 +375,19 @@ config = ReferenceEcologyConfig(
     max_steps=200,
     seed=123,
     mating_radius=1,
+    metabolic_mass_exponent=0.75,
+    locomotion_mass_exponent=0.50,
+    locomotion_distance_exponent=1.0,
     traits=ReferenceTraitValues(
         adult_body_mass=10,
+        growth_rate=2,
         max_speed=2,
+        locomotion_cost_coefficient=25,
         sensory_range=6,
         sensory_accuracy=85,
         max_intake_rate=8,
         assimilation_efficiency=70,
+        metabolic_cost_coefficient=35,
         energy_conservation_threshold=18,
         energy_reserve=6,
         attack_strength=10,
@@ -381,7 +432,8 @@ The reference ecology intentionally exposes several areas for future model work:
 - sexual reproduction has interchangeable parent roles and no sex trait,
 - mate detection is perfect inside mutual mate-search range,
 - signaling and courtship have no energetic cost separate from locomotion,
-- growth rate is fixed rather than heritable, and
+- metabolic and locomotion efficiency have no explicit compensating performance
+  tradeoff, and
 - the preset provides no observer/analytics layer yet.
 
 These are explicit limitations, not behavior hidden inside the reference

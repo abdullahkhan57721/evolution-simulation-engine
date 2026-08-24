@@ -11,6 +11,12 @@ from evo_engine.energetics._common import (
     round_nonnegative_cost,
     validate_finite_number,
 )
+from evo_engine.energetics.coefficients import (
+    CoefficientSource,
+    coefficient_required_traits,
+    determine_coefficient,
+    validate_coefficient_source,
+)
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators
 from evo_engine.world.organism import Organism
@@ -70,17 +76,18 @@ class PowerLawMetabolicCost:
     """Scale basal metabolic cost as a power of current body mass.
 
     The model evaluates ``coefficient * body_mass**mass_exponent`` and rounds
-    the result to integer energy units. The exponent remains configuration
-    rather than process policy; for example, an allometric model can use
-    ``0.75`` without hard-coding that relationship into Metabolism.
+    the result to integer energy units. ``coefficient`` may be a fixed number
+    or an organism-specific coefficient model. The exponent remains model
+    configuration; for example, an allometric model can use ``0.75`` without
+    hard-coding that relationship into Metabolism or organism genetics.
 
     Attributes:
-        coefficient: Nonnegative multiplicative coefficient.
+        coefficient: Fixed or organism-specific nonnegative coefficient.
         mass_exponent: Finite power applied to current body mass.
         minimum_cost: Minimum integer cost after rounding.
     """
 
-    coefficient: int | float
+    coefficient: CoefficientSource
     mass_exponent: int | float
     minimum_cost: int = attrs.field(
         default=0,
@@ -89,7 +96,7 @@ class PowerLawMetabolicCost:
 
     def __attrs_post_init__(self) -> None:
         """Validate power-law configuration."""
-        coefficient = validate_finite_number(
+        validate_coefficient_source(
             self.coefficient,
             name="coefficient",
         )
@@ -98,10 +105,10 @@ class PowerLawMetabolicCost:
             name="mass_exponent",
         )
 
-        if coefficient < 0:
-            raise ValueError(
-                f"coefficient must be nonnegative; received {coefficient!r}."
-            )
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the configured coefficient source."""
+        return coefficient_required_traits(self.coefficient)
 
     def calculate_cost(
         self,
@@ -117,7 +124,13 @@ class PowerLawMetabolicCost:
         Returns:
             Rounded nonnegative integer energy cost.
         """
-        raw_cost = self.coefficient * math.pow(
+        coefficient = determine_coefficient(
+            self.coefficient,
+            organism,
+            simulation_state=simulation_state,
+            name="metabolic coefficient",
+        )
+        raw_cost = coefficient * math.pow(
             organism.body_mass,
             self.mass_exponent,
         )
