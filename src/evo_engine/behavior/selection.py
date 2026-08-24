@@ -159,6 +159,8 @@ def behavior_is_allowed(
     )
 
     if type(decision) is not bool:
-        raise TypeError("behavior_selection_model.allows_behavior must return a Boolean.")
+        raise TypeError(
+            "behavior_selection_model.allows_behavior must return a Boolean."
+        )
 
     return decision
