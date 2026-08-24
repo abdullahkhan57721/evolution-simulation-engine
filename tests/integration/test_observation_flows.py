@@ -31,9 +31,7 @@ def test_reference_ecology_records_baseline_and_each_completed_step() -> None:
     assert founder_growth_rate.value_counts == ((config.traits.growth_rate, 4),)
     assert founder_growth_rate.summary.mean == float(config.traits.growth_rate)
 
-    founder_metabolic_coefficient = observations[0].trait(
-        METABOLIC_COST_COEFFICIENT
-    )
+    founder_metabolic_coefficient = observations[0].trait(METABOLIC_COST_COEFFICIENT)
     assert founder_metabolic_coefficient.value_counts == (
         (config.traits.metabolic_cost_coefficient, 4),
     )
