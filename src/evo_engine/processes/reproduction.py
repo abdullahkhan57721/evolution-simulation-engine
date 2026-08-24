@@ -14,6 +14,11 @@ from evo_engine.development.models import (
     realize_developmental_profile,
 )
 from evo_engine.development.profile import DevelopmentalProfile
+from evo_engine.energetics.expenditure import (
+    EnergyExpenditurePolicy,
+    SpendToZero,
+    energy_expenditure_is_allowed,
+)
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
@@ -55,13 +60,14 @@ class Reproduction:
 
     Eligibility determines which organisms may individually reproduce. Parent
     selection forms candidate one- or two-parent groups. Parental investment
-    determines the energy cost for each candidate group, and stage resolution
-    chooses which competing proposals may occur.
+    determines each parent's proposed energy cost. The configured energy
+    expenditure policy then determines whether each parent may pay that cost,
+    and stage resolution chooses which competing proposals may occur.
 
     Resolved proposals are materialized before any stage event is applied.
-    Materialization performs inheritance, genetic phenotype expression, and offspring
-    placement. Application then only pays the recorded energy investments and
-    inserts the already-defined offspring into the world.
+    Materialization performs inheritance, genetic phenotype expression, and
+    offspring placement. Application then only pays the recorded energy
+    investments and inserts the already-defined offspring into the world.
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
@@ -69,6 +75,8 @@ class Reproduction:
         inheritance_model: Policy producing an offspring genome from resolved
             parent genomes.
         parental_investment: Policy determining each parent's energy cost.
+        energy_expenditure_policy: Policy deciding whether each parent may pay
+            its proposed energy contribution.
         development_model: Policy realizing individual developmental targets
             from the offspring genetic phenotype.
         offspring_placement: Policy choosing the offspring birth coordinate.
@@ -83,6 +91,9 @@ class Reproduction:
     inheritance_model: InheritanceModel
     parental_investment: ParentalInvestment = attrs.field(
         factory=GeneticPhenotypeEnergyInvestment,
+    )
+    energy_expenditure_policy: EnergyExpenditurePolicy = attrs.field(
+        factory=SpendToZero,
     )
     development_model: DevelopmentModel = attrs.field(
         factory=DeterministicDevelopment,
@@ -133,6 +144,11 @@ class Reproduction:
                 "parental_investment",
             ),
             (
+                self.energy_expenditure_policy,
+                "can_spend",
+                "energy_expenditure_policy",
+            ),
+            (
                 self.development_model,
                 "develop",
                 "development_model",
@@ -169,6 +185,7 @@ class Reproduction:
             self.parent_selection,
             self.inheritance_model,
             self.parental_investment,
+            self.energy_expenditure_policy,
             self.development_model,
             self.offspring_placement,
             self.offspring_body_mass_model,
@@ -380,13 +397,14 @@ class Reproduction:
         self,
         simulation_state: SimulationState,
     ) -> list[Reproduction.Proposal]:
-        """Propose affordable one- or two-parent reproductive events.
+        """Propose energetically permitted one- or two-parent reproductive events.
 
         Args:
             simulation_state: Current simulation state.
 
         Returns:
-            Candidate Reproduction proposals.
+            Candidate Reproduction proposals permitted by the configured
+            expenditure policy.
         """
         eligible_parents = self._eligible_parents(simulation_state)
         parent_groups = self.parent_selection.propose_parent_groups(
@@ -445,7 +463,7 @@ class Reproduction:
         parents_by_id: dict[int, Organism],
         simulation_state: SimulationState,
     ) -> Reproduction.Proposal | None:
-        """Return one affordable proposal for a validated parent group."""
+        """Return one energetically permitted proposal for a parent group."""
         parents = self._parents_from_group(
             parent_ids,
             parents_by_id=parents_by_id,
@@ -458,9 +476,10 @@ class Reproduction:
             parent_count=self.inheritance_model.parent_count,
         )
 
-        if not self._can_afford_investments(
+        if not self._can_spend_investments(
             parents,
             investments,
+            simulation_state=simulation_state,
         ):
             return None
 
@@ -500,14 +519,21 @@ class Reproduction:
                 "individually eligible to reproduce."
             ) from error
 
-    @staticmethod
-    def _can_afford_investments(
+    def _can_spend_investments(
+        self,
         parents: tuple[Organism, ...],
         investments: tuple[int, ...],
+        *,
+        simulation_state: SimulationState,
     ) -> bool:
-        """Return whether every parent can afford its proposed investment."""
+        """Return whether every parent may pay its proposed investment."""
         return all(
-            parent.energy >= investment
+            energy_expenditure_is_allowed(
+                self.energy_expenditure_policy,
+                parent,
+                energy_cost=investment,
+                simulation_state=simulation_state,
+            )
             for parent, investment in zip(
                 parents,
                 investments,
@@ -524,8 +550,7 @@ class Reproduction:
 
         Inheritance, mutation, recombination, genetic phenotype expression,
         developmental realization, and random offspring placement happen here,
-        after resolution but before any event
-        in the stage is applied.
+        after resolution but before any event in the stage is applied.
 
         Args:
             simulation_state: Current pre-application simulation state.
@@ -536,8 +561,8 @@ class Reproduction:
             application.
 
         Raises:
-            RuntimeError: If a resolved parent can no longer afford its
-                recorded investment.
+            RuntimeError: If a resolved parent can no longer pay its recorded
+                investment under the configured expenditure policy.
             ValueError: If the resolved parent count conflicts with the
                 configured inheritance model.
         """
@@ -554,10 +579,17 @@ class Reproduction:
             )
 
         for parent_id, amount in resolved_event.parent_energy_contributions:
-            if world.organisms[parent_id].energy < amount:
+            parent = world.organisms[parent_id]
+            if not energy_expenditure_is_allowed(
+                self.energy_expenditure_policy,
+                parent,
+                energy_cost=amount,
+                simulation_state=simulation_state,
+            ):
                 raise RuntimeError(
-                    f"Organism {parent_id} cannot afford its recorded "
-                    "reproductive energy investment."
+                    f"Organism {parent_id} cannot pay its recorded reproductive "
+                    "energy investment under the configured energy expenditure "
+                    "policy."
                 )
 
         architecture = simulation_state.genetic_architecture
@@ -622,23 +654,29 @@ class Reproduction:
             materialized_event: Fully determined Reproduction event to apply.
 
         Raises:
-            RuntimeError: If a parent can no longer afford its recorded
-                energy contribution.
+            RuntimeError: If a parent can no longer pay its recorded energy
+                contribution under the configured expenditure policy.
         """
         world = simulation_state.world
 
         for parent_id, amount in materialized_event.parent_energy_contributions:
             parent = world.organisms[parent_id]
 
-            if parent.energy < amount:
+            if not energy_expenditure_is_allowed(
+                self.energy_expenditure_policy,
+                parent,
+                energy_cost=amount,
+                simulation_state=simulation_state,
+            ):
                 raise RuntimeError(
-                    f"Organism {parent_id} cannot afford its recorded "
-                    "reproductive energy investment."
+                    f"Organism {parent_id} cannot pay its recorded reproductive "
+                    "energy investment under the configured energy expenditure "
+                    "policy."
                 )
 
         # Validate every contribution before charging any parent. This keeps
         # application atomic if a stale materialized event can no longer be
-        # afforded.
+        # permitted.
         for parent_id, amount in materialized_event.parent_energy_contributions:
             world.organisms[parent_id].energy -= amount
 
