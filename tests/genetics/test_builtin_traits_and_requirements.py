@@ -8,6 +8,8 @@ from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ATTACK_STRENGTH,
     BUILTIN_TRAITS,
+    ENERGY_CONSERVATION_THRESHOLD,
+    ENERGY_RESERVE,
     MAX_SPEED,
     OFFSPRING_ENERGY,
     TraitRequirementProvider,
@@ -22,7 +24,9 @@ def test_builtin_trait_catalog_contains_core_traits() -> None:
     assert MAX_SPEED in BUILTIN_TRAITS
     assert OFFSPRING_ENERGY in BUILTIN_TRAITS
     assert ATTACK_STRENGTH in BUILTIN_TRAITS
-    assert len(BUILTIN_TRAITS) == 21
+    assert ENERGY_CONSERVATION_THRESHOLD in BUILTIN_TRAITS
+    assert ENERGY_RESERVE in BUILTIN_TRAITS
+    assert len(BUILTIN_TRAITS) == 23
 
 
 def test_builtin_trait_names_are_unique_nonblank_strings() -> None:
