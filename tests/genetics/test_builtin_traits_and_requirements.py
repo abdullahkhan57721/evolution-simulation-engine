@@ -10,7 +10,10 @@ from evo_engine.genetics import (
     BUILTIN_TRAITS,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    GROWTH_RATE,
+    LOCOMOTION_COST_COEFFICIENT,
     MAX_SPEED,
+    METABOLIC_COST_COEFFICIENT,
     OFFSPRING_ENERGY,
     TraitRequirementProvider,
     collect_required_traits,
@@ -21,12 +24,15 @@ from evo_engine.genetics.requirements import validate_required_traits
 def test_builtin_trait_catalog_contains_core_traits() -> None:
     """Test the canonical vocabulary exposes foundational genetic phenotype names."""
     assert ADULT_BODY_MASS in BUILTIN_TRAITS
+    assert GROWTH_RATE in BUILTIN_TRAITS
     assert MAX_SPEED in BUILTIN_TRAITS
+    assert LOCOMOTION_COST_COEFFICIENT in BUILTIN_TRAITS
+    assert METABOLIC_COST_COEFFICIENT in BUILTIN_TRAITS
     assert OFFSPRING_ENERGY in BUILTIN_TRAITS
     assert ATTACK_STRENGTH in BUILTIN_TRAITS
     assert ENERGY_CONSERVATION_THRESHOLD in BUILTIN_TRAITS
     assert ENERGY_RESERVE in BUILTIN_TRAITS
-    assert len(BUILTIN_TRAITS) == 23
+    assert len(BUILTIN_TRAITS) == 26
 
 
 def test_builtin_trait_names_are_unique_nonblank_strings() -> None:
