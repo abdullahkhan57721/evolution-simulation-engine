@@ -20,10 +20,13 @@ def test_fixed_movement_intent_defaults_to_exploration() -> None:
     organism = add_organism(state)
     model = FixedMovementIntent()
 
-    assert model.determine_purpose(
-        organism,
-        simulation_state=state,
-    ) == EXPLORATION
+    assert (
+        model.determine_purpose(
+            organism,
+            simulation_state=state,
+        )
+        == EXPLORATION
+    )
 
 
 def test_fixed_movement_intent_supports_other_purposes() -> None:
@@ -34,11 +37,14 @@ def test_fixed_movement_intent_supports_other_purposes() -> None:
         behavioral_purpose=ENERGY_ACQUISITION,
     )
 
-    assert determine_movement_purpose(
-        model,
-        organism,
-        simulation_state=state,
-    ) == ENERGY_ACQUISITION
+    assert (
+        determine_movement_purpose(
+            model,
+            organism,
+            simulation_state=state,
+        )
+        == ENERGY_ACQUISITION
+    )
 
 
 @pytest.mark.parametrize(
