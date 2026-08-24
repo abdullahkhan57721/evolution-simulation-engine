@@ -122,9 +122,7 @@ def validate_coefficient_source(
             name=name,
         )
         if coefficient < 0:
-            raise ValueError(
-                f"{name} must be nonnegative; received {coefficient!r}."
-            )
+            raise ValueError(f"{name} must be nonnegative; received {coefficient!r}.")
         return
 
     if not callable(getattr(value, "determine_coefficient", None)):
@@ -174,8 +172,7 @@ def determine_coefficient(
     )
     if coefficient < 0:
         raise ValueError(
-            f"{name} model return value must be nonnegative; received "
-            f"{coefficient!r}."
+            f"{name} model return value must be nonnegative; received {coefficient!r}."
         )
     return coefficient
 
