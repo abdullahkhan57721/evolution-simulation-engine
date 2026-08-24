@@ -6,7 +6,12 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import attrs
 
-from evo_engine.behavior.purposes import EXPLORATION, validate_behavioral_purpose
+from evo_engine.behavior.purposes import (
+    ENERGY_ACQUISITION,
+    EXPLORATION,
+    validate_behavioral_purpose,
+)
+from evo_engine.validation import attrs_validators
 
 if TYPE_CHECKING:
     from evo_engine.engine.simulation_state import SimulationState
@@ -72,6 +77,64 @@ class FixedMovementIntent:
             Configured behavioral-purpose name.
         """
         return self.behavioral_purpose
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class EnergyThresholdMovementIntent:
+    """Choose movement purpose from the organism's current energy.
+
+    Energy strictly below ``energy_threshold`` selects ``low_energy_purpose``.
+    Energy at or above the threshold selects ``otherwise_purpose``. The default
+    configuration therefore makes depleted organisms forage while sufficiently
+    energized organisms explore.
+
+    This model determines motivation only. It does not decide whether the
+    behavior is permitted, what environmental targets can be perceived, or how
+    movement is performed.
+
+    Attributes:
+        energy_threshold: Energy below which the low-energy purpose is selected.
+        low_energy_purpose: Purpose selected below the threshold.
+        otherwise_purpose: Purpose selected at or above the threshold.
+    """
+
+    energy_threshold: int = attrs.field(
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    low_energy_purpose: str = ENERGY_ACQUISITION
+    otherwise_purpose: str = EXPLORATION
+
+    def __attrs_post_init__(self) -> None:
+        """Validate configured movement purposes."""
+        validate_behavioral_purpose(
+            self.low_energy_purpose,
+            name="low_energy_purpose",
+        )
+        validate_behavioral_purpose(
+            self.otherwise_purpose,
+            name="otherwise_purpose",
+        )
+
+    def determine_purpose(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> str:
+        """Return the purpose selected from current organism energy.
+
+        Args:
+            organism: Organism considering movement.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Low-energy purpose below the threshold; otherwise the configured
+            non-low-energy purpose.
+        """
+        if organism.energy < self.energy_threshold:
+            return self.low_energy_purpose
+
+        return self.otherwise_purpose
 
 
 def determine_movement_purpose(
