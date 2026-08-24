@@ -1,9 +1,13 @@
 """Behavioral vocabulary, capabilities, perception, and selection models."""
 
 from evo_engine.behavior.movement_intent import (
+    EnergyBelowThresholdMovementCondition,
     EnergyThresholdMovementIntent,
     FixedMovementIntent,
+    MovementIntentCondition,
     MovementIntentModel,
+    MovementIntentRule,
+    PrioritizedMovementIntent,
     determine_movement_purpose,
 )
 from evo_engine.behavior.movement_targeting import (
@@ -11,6 +15,8 @@ from evo_engine.behavior.movement_targeting import (
     MovementTargetModel,
     NearestResourceTarget,
     NoMovementTarget,
+    PurposeMovementTargetRouter,
+    PurposeTargetRoute,
     determine_movement_target,
 )
 from evo_engine.behavior.protocols import BehavioralPurposeProvider
@@ -48,6 +54,7 @@ __all__ = [
     "BehavioralPurposeProvider",
     "ENERGY_ACQUISITION",
     "EXPLORATION",
+    "EnergyBelowThresholdMovementCondition",
     "EnergyConservationBehavior",
     "EnergyThresholdMovementIntent",
     "FixedMovementIntent",
@@ -55,11 +62,16 @@ __all__ = [
     "FixedSensoryRange",
     "GeneticPhenotypeSensoryAccuracy",
     "GeneticPhenotypeSensoryRange",
+    "MovementIntentCondition",
     "MovementIntentModel",
+    "MovementIntentRule",
     "MovementTarget",
     "MovementTargetModel",
     "NearestResourceTarget",
     "NoMovementTarget",
+    "PrioritizedMovementIntent",
+    "PurposeMovementTargetRouter",
+    "PurposeTargetRoute",
     "REPRODUCTION",
     "SOMATIC_INVESTMENT",
     "SURVIVAL",

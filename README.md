@@ -21,8 +21,8 @@ src/evo_engine/
 ├── behavior/      purposes, movement intent, sensing, targeting, selection
 ├── energetics/    energetic cost models for metabolism, movement, and growth
 ├── feeding/       intake-capacity and resource-assimilation physiology
-├── reproduction/ reproductive eligibility, parent selection, investment,
-│                  and offspring placement
+├── reproduction/ reproductive eligibility, mate choice, parent selection,
+│                  investment, movement adapters, and offspring placement
 ├── spatial/       neighborhoods, distances, boundaries, movement geometry
 ├── processes/     simulation processes that propose and apply events
 ├── resolvers/     conflict-resolution policies for proposed events
@@ -73,6 +73,11 @@ independent policies for:
 - parental energy investment
 - genetic inheritance
 - offspring placement
+
+Two-parent mating can additionally compose search-range compatibility,
+choosiness/signal compatibility, and pair preference. These policies are also
+reusable by movement, so organisms may actively seek viable preferred mates
+before entering the reproduction stage.
 
 Conflict resolution remains separate from proposal logic. Developmental
 variation for offspring is sampled only after a reproductive proposal has
@@ -137,8 +142,9 @@ to introduce custom purposes such as thermoregulation.
 organism's current state, should it attempt a behavior with a particular
 purpose? `UnrestrictedBehavior` preserves the engine's historical behavior and
 is the simulation default. `EnergyConservationBehavior` suppresses purposes
-such as growth and reproduction below a fixed energy threshold while, by
-default, still allowing energy-acquisition and survival behavior.
+such as growth and reproduction below a fixed or organism-specific energy
+threshold while, by default, still allowing energy-acquisition and survival
+behavior.
 
 Selection happens before fixed-purpose processes perform their domain-specific
 proposal work. The fixed-purpose integrations are `Growth`, `Reproduction`,
@@ -149,34 +155,33 @@ earlier stage and leave conservation mode later in the same step.
 Movement is intentionally different because the process itself has no single
 purpose. A `MovementIntentModel` determines why each organism is attempting to
 move before target selection or displacement RNG is consumed.
-`FixedMovementIntent` assigns one configured purpose. `EnergyThresholdMovementIntent`
-derives purpose from current energy: below its threshold it defaults to energy
-acquisition, while at or above the threshold it defaults to exploration. Both
-purposes are configurable. The movement-intent threshold and
-`EnergyConservationBehavior` threshold are independent configuration because
-intent answers what the organism is trying to do, while behavior selection
-answers whether that purpose is attempted.
+`FixedMovementIntent` assigns one configured purpose and
+`EnergyThresholdMovementIntent` provides a simple two-state energy rule.
+`PrioritizedMovementIntent` generalizes this into ordered
+`MovementIntentRule` objects: the first matching `MovementIntentCondition`
+selects the movement purpose and a fallback purpose applies when no condition
+matches.
 
-Movement may then select an ecological target. `NearestResourceTarget` targets
-the nearest detectable resource deposit for energy-acquisition movement. By
-default it composes `GeneticPhenotypeSensoryRange`, which reads the built-in
-`sensory_range` genetic phenotype trait. That requirement is nested: ordinary
-untargeted movement still requires only `max_speed`, while trait-driven resource
-seeking additionally requires `sensory_range`. `FixedSensoryRange` is available
-for experiments where sensing should be configuration rather than heritable
-biology.
+Movement may then select an ecological target.
+`PurposeMovementTargetRouter` dispatches different behavioral purposes to
+independent target models. `NearestResourceTarget` handles food-seeking
+movement; the reproduction domain's `PreferredMateTarget` can handle
+reproduction-purpose movement while reusing the same eligibility,
+compatibility, and preference policies used by actual mating.
 
-The initial resource-targeting rule uses direct Euclidean sensory distance. A
-resource outside the sensing radius has no effect on movement. If no resource
-is detected, the organism falls back to its configured ordinary
-`MovementPattern`, representing search behavior rather than omniscient
-navigation. A detected target is approached with `StraightLineTowardTarget`,
-which respects the organism's Euclidean `max_speed` limit. The selected target
-is recorded on `Movement.Event` together with movement purpose and destination.
+`NearestResourceTarget` composes a sensory-range model and a sensory-accuracy
+model. The reference ecology uses genetic `sensory_range` and
+`sensory_accuracy`: range limits which resource deposits can be considered,
+while accuracy determines whether each in-range deposit is detected. Perfect
+accuracy consumes no RNG; intermediate accuracy performs independent detection
+checks.
 
-The engine also defines a built-in `sensory_accuracy` trait name for future
-noisy or imperfect perception, but resource seeking currently uses sensory
-range only.
+If no relevant target is selected, the organism falls back to its configured
+ordinary `MovementPattern`, representing search or exploration rather than
+omniscient navigation. A selected target is approached with
+`StraightLineTowardTarget`, which respects the organism's Euclidean `max_speed`
+limit. The selected target is recorded on `Movement.Event` together with
+movement purpose and destination.
 
 The movement decision pipeline is therefore:
 
@@ -186,16 +191,31 @@ MovementIntentModel
 BehaviorSelectionModel
     → should it attempt that purpose now?
 MovementTargetModel
-    → is there a relevant target it can detect?
+    → is there a relevant target it can detect or select?
         ├─ target found → TargetedMovementModel
         └─ no target    → MovementPattern search/fallback
 BoundaryCondition
     → where does the displacement resolve?
 LocomotionCostModel
     → what does the movement cost?
+EnergyExpenditurePolicy
+    → may the organism pay that cost?
 Movement.Event
     → record purpose, target, destination, and cost
 ```
+
+The reference ecology uses this priority:
+
+```text
+low energy          → seek food
+reproduction-ready  → seek a preferred viable mate
+otherwise           → explore
+```
+
+Food seeking therefore outranks mate seeking during energy conservation.
+`mate_search_range` is the detection/targeting horizon for compatible mates,
+while `mating_radius` is the close-range distance required for actual
+reproduction.
 
 Example conservation configuration:
 
@@ -212,7 +232,7 @@ simulation = Simulation(
 )
 ```
 
-Example state-dependent resource-seeking movement configuration:
+Example simple state-dependent resource-seeking movement configuration:
 
 ```python
 from evo_engine.behavior import (
@@ -235,18 +255,19 @@ movement = Movement(
 With that configuration, organisms below 10 energy attempt energy-acquisition
 movement and can target detectable resources. At or above 10 energy they attempt
 exploration, so `NearestResourceTarget` is inactive and the ordinary movement
-pattern is used. The simulation's genetic architecture must define both
-`max_speed` and `sensory_range`.
+pattern is used. Richer simulations can replace the two-state intent with
+`PrioritizedMovementIntent` and route additional purposes such as reproduction.
 
 ## Complete reference ecology
 
 `evo_engine.presets` provides a complete ecological/evolutionary composition
 that wires the current major capabilities together under the standard lifecycle.
 It includes metabolism, starvation checkpoints, resource generation and
-decomposition, state-dependent resource-seeking movement, predation, genetic
-intake capacity, resource competition, genetic assimilation efficiency, growth,
-sexual reproduction, recombination, mutation, aging, and developmental
-maximum-age mortality.
+decomposition, prioritized food-seeking/mate-seeking/exploratory movement,
+probabilistic resource sensing, trait-driven predation, genetic intake capacity,
+resource competition, genetic assimilation efficiency, growth, sexual mate
+choice, close-range sexual reproduction, recombination, mutation, aging, and
+developmental maximum-age mortality.
 
 ```python
 from evo_engine.presets import build_reference_ecology
