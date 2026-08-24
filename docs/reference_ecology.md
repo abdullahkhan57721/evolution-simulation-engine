@@ -82,28 +82,39 @@ At or above the threshold, all currently modeled behavioral purposes are allowed
 Below the threshold, energy acquisition and survival remain allowed while somatic
 investment and reproduction are suppressed.
 
-Movement uses `EnergyThresholdMovementIntent` with the same developmental
-threshold:
+Movement uses `PrioritizedMovementIntent`:
 
 ```text
-energy below threshold
-    → energy_acquisition
-    → consider resources within sensory_range
-    → detect each in-range resource using sensory_accuracy
-    → move toward the nearest detected resource
+1. energy below conservation threshold
+       → energy_acquisition
+       → consider resources within sensory_range
+       → detect each in-range resource using sensory_accuracy
+       → move toward the nearest detected resource
 
-energy at/above threshold
-    → exploration
-    → untargeted Moore movement
+2. otherwise, individually reproduction-ready
+       → reproduction
+       → consider currently viable mates within mutual mate_search_range
+       → prefer the highest mating preference score
+       → move toward the selected mate
+
+3. otherwise
+       → exploration
+       → untargeted Moore movement
 ```
 
-The shared threshold is a reference-model choice, not an engine invariant.
-Callers can compose different threshold models.
+The order is biologically meaningful. Low-energy food acquisition outranks mate
+seeking. Reproduction becomes a movement motivation only when the organism passes
+the same maturity and reproductive-energy eligibility policy used later by the
+Reproduction process.
+
+`PurposeMovementTargetRouter` dispatches energy-acquisition movement to resource
+targeting and reproduction-purpose movement to `PreferredMateTarget`. Exploration
+has no target and therefore falls back to the ordinary movement pattern.
 
 The reference ecology uses genetic sensory range and genetic sensory accuracy.
-Accuracy 0 always misses an in-range deposit and accuracy 100 always detects it;
-intermediate values use the simulation RNG independently for each in-range
-deposit considered during targeting.
+Accuracy 0 always misses an in-range resource deposit and accuracy 100 always
+detects it; intermediate values use the simulation RNG independently for each
+in-range deposit considered during targeting.
 
 ## Feeding physiology
 
@@ -167,42 +178,51 @@ these scores influence prey choice and interaction conflicts.
 The reference contains one generic population, so this remains opportunistic
 within-population predation rather than a species or trophic-role system.
 
-## Mate choice and sexual selection
+## Mate choice, movement, and sexual selection
 
-Reference mating now separates individual eligibility, encounter range,
-acceptance, and preference:
+Reference mating separates individual readiness, discovery, mate choice, movement,
+physical proximity, and reproduction:
 
 ```text
 maturity + reproduction energy eligibility
         ↓
-hard mating neighborhood
+reproduction-purpose movement
         ↓
-both parents within each other's mate_search_range
+mutual mate_search_range
         ↓
-each parent's mating_signal >= the other's choosiness
+mutual signal / choosiness compatibility
         ↓
-mutual signal-surplus preference score
+highest mutual signal-surplus preference
         ↓
-PreferenceOrder conflict resolution
+targeted movement toward preferred mate
+        ↓
+within mating_radius = 1
+        ↓
+reproduction proposal + PreferenceOrder resolution
         ↓
 sexual inheritance and birth
 ```
 
-The hard `mating_radius` defaults to 20 and acts as a broad geometry cap. The
-organism-specific founder `mate_search_range` is three and therefore supplies the
-meaningful local encounter limit in the default 12 × 12 world.
+`mate_search_range` and `mating_radius` deliberately model different spatial
+scales. Founder `mate_search_range=3` determines how far away a compatible mate
+can be discovered and targeted. `mating_radius=1` is the close-range condition
+required for actual reproduction.
 
-`MutualSignalCompatibility` requires two-way acceptance. A candidate pair forms
+`PreferredMateTarget` and `PairwiseMating` share the same reproductive eligibility,
+mating compatibility, and mating preference objects. A mate that movement regards
+as viable is therefore evaluated with the same maturity, energy, search-range,
+choosiness, signal, and preference semantics used by reproduction.
+
+`MutualSignalCompatibility` requires two-way acceptance. A candidate pair exists
 only when each partner's expressed signal meets the other's expressed choosiness.
-`MutualSignalMarginPreference` then scores the total amount by which both signals
-exceed those thresholds. The reproduction resolver selects the highest-scoring
-non-conflicting proposals first, so mate-search range, choosiness, and mating
-signal can all alter realized reproductive success.
+`MutualSignalMarginPreference` scores the total amount by which both signals exceed
+those thresholds. During mate seeking, higher preference beats shorter distance;
+distance and organism ID are deterministic tie-breakers.
 
 The current sexual-selection model is role-symmetric because reproductive parents
 are interchangeable. It does not yet represent sexes, mating types, or asymmetric
-courtship roles. Those can be added through different parent-selection policies
-without changing sexual inheritance.
+courtship roles. Those can be added through different movement and parent-selection
+policies without changing sexual inheritance.
 
 ## Energy priorities
 
@@ -213,7 +233,7 @@ of activity:
 mandatory metabolism
     → may deplete energy to zero
 
-movement / food seeking
+movement / food seeking / mate seeking
     → SpendToZero
     → may risk the final available energy
 
@@ -229,6 +249,7 @@ This creates the intended priority:
 ```text
 maintenance
 → survival / food acquisition
+→ movement toward other goals
 → growth
 → reproduction
 ```
@@ -267,7 +288,8 @@ The defaults compose:
 - power-law basal metabolism,
 - random resource generation,
 - carcass decomposition,
-- state-dependent resource-seeking/exploratory movement,
+- prioritized food-seeking, mate-seeking, and exploratory movement,
+- purpose-routed movement targets,
 - genetic sensory range and probabilistic sensory accuracy,
 - power-law locomotion costs,
 - size- and attack/defense-gated same-neighborhood predation,
@@ -280,6 +302,7 @@ The defaults compose:
 - genetic mutual mate-search range,
 - genetic choosiness and mating signal,
 - mutual signal-surplus mating preference,
+- close-range mating after active mate seeking,
 - meiotic segregation with single crossover,
 - mutation of transmitted alleles,
 - developmental energy reserves,
@@ -306,6 +329,7 @@ config = ReferenceEcologyConfig(
     initial_population=40,
     max_steps=200,
     seed=123,
+    mating_radius=1,
     traits=ReferenceTraitValues(
         adult_body_mass=10,
         max_speed=2,
@@ -355,8 +379,8 @@ The reference ecology intentionally exposes several areas for future model work:
 - predation success is deterministic once size and attack/defense eligibility
   are satisfied,
 - sexual reproduction has interchangeable parent roles and no sex trait,
-- mate search affects reproduction-stage encounter but does not yet drive
-  movement toward potential mates,
+- mate detection is perfect inside mutual mate-search range,
+- signaling and courtship have no energetic cost separate from locomotion,
 - growth rate is fixed rather than heritable, and
 - the preset provides no observer/analytics layer yet.
 
