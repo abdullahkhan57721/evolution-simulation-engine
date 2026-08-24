@@ -9,9 +9,12 @@ from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ASSIMILATION_EFFICIENCY,
     ATTACK_STRENGTH,
+    CHOOSINESS,
     DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    MATE_SEARCH_RANGE,
+    MATING_SIGNAL,
     MATURITY_AGE,
     MAX_INTAKE_RATE,
     MAX_SPEED,
@@ -41,6 +44,9 @@ EXPECTED_REFERENCE_TRAITS = frozenset(
         ENERGY_RESERVE,
         ATTACK_STRENGTH,
         DEFENSE,
+        MATE_SEARCH_RANGE,
+        CHOOSINESS,
+        MATING_SIGNAL,
         MATURITY_AGE,
         REPRODUCTION_ENERGY_THRESHOLD,
         OFFSPRING_ENERGY,
@@ -175,6 +181,9 @@ def test_reference_founder_values_are_customizable() -> None:
         energy_reserve=6,
         attack_strength=11,
         defense=9,
+        mate_search_range=6,
+        choosiness=7,
+        mating_signal=12,
         maturity_age=3,
         reproduction_energy_threshold=22,
         offspring_energy=5,
@@ -193,4 +202,7 @@ def test_reference_founder_values_are_customizable() -> None:
     assert organism.genetic_phenotype.int_value(ASSIMILATION_EFFICIENCY) == 60
     assert organism.genetic_phenotype.int_value(ATTACK_STRENGTH) == 11
     assert organism.genetic_phenotype.int_value(DEFENSE) == 9
+    assert organism.genetic_phenotype.int_value(MATE_SEARCH_RANGE) == 6
+    assert organism.genetic_phenotype.int_value(CHOOSINESS) == 7
+    assert organism.genetic_phenotype.int_value(MATING_SIGNAL) == 12
     assert organism.developmental_profile.int_value(MAXIMUM_AGE) == 40
