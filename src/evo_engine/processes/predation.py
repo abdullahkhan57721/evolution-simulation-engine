@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import ClassVar
 
 import attrs
 
+from evo_engine.behavior import ENERGY_ACQUISITION
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import validate_required_traits
 from evo_engine.spatial.neighborhoods import Neighborhood
@@ -55,6 +57,8 @@ class Predation:
             for a predator-prey pairing.
         required_traits: Genetic phenotype traits read by custom predation callbacks.
     """
+
+    behavioral_purpose: ClassVar[str] = ENERGY_ACQUISITION
 
     neighborhood: Neighborhood
     consumption_percent: int = attrs.field(

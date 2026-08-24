@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import attrs
 
+from evo_engine.behavior import ENERGY_ACQUISITION
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators
 
@@ -15,6 +18,8 @@ class ResourceConsumption:
     Attributes:
         requested_amount: Resource units requested by each eligible organism.
     """
+
+    behavioral_purpose: ClassVar[str] = ENERGY_ACQUISITION
 
     requested_amount: int = attrs.field(
         validator=attrs_validators.validate_int_ge(0),

@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import attrs
 
+from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
@@ -71,6 +74,8 @@ class Reproduction:
         offspring_body_mass_model: Policy determining newborn current body
             mass from the developmental profile and parents.
     """
+
+    behavioral_purpose: ClassVar[str] = REPRODUCTION_PURPOSE
 
     eligibility: ReproductiveEligibility
     parent_selection: ParentSelection

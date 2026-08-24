@@ -66,6 +66,7 @@ name = "Validation is a dependency foundation"
 type = "forbidden"
 source_modules = ["evo_engine.validation"]
 forbidden_modules = [
+    "evo_engine.behavior",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
@@ -84,6 +85,7 @@ name = "Genetics stays independent of downstream simulation domains"
 type = "forbidden"
 source_modules = ["evo_engine.genetics"]
 forbidden_modules = [
+    "evo_engine.behavior",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
@@ -100,6 +102,7 @@ id = "domains-do-not-orchestrate"
 name = "Domain packages do not depend on processes or resolvers"
 type = "forbidden"
 source_modules = [
+    "evo_engine.behavior",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.genetics",
