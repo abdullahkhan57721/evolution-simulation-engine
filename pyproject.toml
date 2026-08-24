@@ -73,6 +73,7 @@ forbidden_modules = [
     "evo_engine.genetics",
     "evo_engine.growth",
     "evo_engine.life_history",
+    "evo_engine.presets",
     "evo_engine.processes",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
@@ -92,6 +93,7 @@ forbidden_modules = [
     "evo_engine.engine",
     "evo_engine.growth",
     "evo_engine.life_history",
+    "evo_engine.presets",
     "evo_engine.processes",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
@@ -101,7 +103,7 @@ forbidden_modules = [
 
 [[tool.importlinter.contracts]]
 id = "domains-do-not-orchestrate"
-name = "Domain packages do not depend on processes or resolvers"
+name = "Domain packages do not depend on orchestration or presets"
 type = "forbidden"
 source_modules = [
     "evo_engine.behavior",
@@ -115,16 +117,18 @@ source_modules = [
     "evo_engine.world",
 ]
 forbidden_modules = [
+    "evo_engine.presets",
     "evo_engine.processes",
     "evo_engine.resolvers",
 ]
 
 [[tool.importlinter.contracts]]
 id = "engine-does-not-select-concrete-behavior"
-name = "Engine orchestration does not depend on concrete processes or resolvers"
+name = "Engine orchestration does not depend on concrete behavior or presets"
 type = "forbidden"
 source_modules = ["evo_engine.engine"]
 forbidden_modules = [
+    "evo_engine.presets",
     "evo_engine.processes",
     "evo_engine.resolvers",
 ]

@@ -11,11 +11,12 @@ domain-specific policies:
 
 ```text
 src/evo_engine/
-├── engine/        simulation state, engine loop, stages, steps, protocols
+├── engine/        simulation state, engine loop, stages, steps, lifecycle
 ├── world/         organisms, carcasses, and mutable world state
 ├── genetics/      alleles, loci, chromosomes, genomes, inheritance,
 │                  recombination, expression, and genetic phenotype
 ├── development/   developmental variation and individual target profiles
+├── life_history/  cross-process thresholds and lifespan strategies
 ├── growth/        policies that determine potential body-mass gain
 ├── behavior/      purposes, movement intent, sensing, targeting, selection
 ├── energetics/    energetic cost models for metabolism, movement, and growth
@@ -24,6 +25,7 @@ src/evo_engine/
 ├── spatial/       neighborhoods, distances, boundaries, movement geometry
 ├── processes/     simulation processes that propose and apply events
 ├── resolvers/     conflict-resolution policies for proposed events
+├── presets/       high-level composition roots for complete simulations
 └── validation/    general and attrs-compatible runtime validators
 ```
 
@@ -211,6 +213,26 @@ exploration, so `NearestResourceTarget` is inactive and the ordinary movement
 pattern is used. The simulation's genetic architecture must define both
 `max_speed` and `sensory_range`.
 
+## Complete reference ecology
+
+`evo_engine.presets` provides a complete ecological/evolutionary composition
+that wires the current major capabilities together under the standard lifecycle.
+It includes metabolism, starvation checkpoints, resource generation and
+decomposition, state-dependent resource-seeking movement, predation, resource
+competition, growth, sexual reproduction, recombination, mutation, aging, and
+developmental maximum-age mortality.
+
+```python
+from evo_engine.presets import build_reference_ecology
+
+ecology = build_reference_ecology()
+ecology.engine.run(ecology.simulation)
+```
+
+The preset is an integration baseline and starting point, not a scientifically
+calibrated model. All numerical assumptions are explicit in
+`ReferenceEcologyConfig` and `ReferenceTraitValues`.
+
 Install the project and development tools into the project virtual
 environment:
 
@@ -241,10 +263,11 @@ branch coverage, and MkDocs):
 On macOS, double-click `check_project.command` to run the same gate and keep
 the Terminal window open for the final summary.
 
-Run the basic example:
+Run the examples:
 
 ```bash
-python examples/basic_aging_simulation.py
+venv/bin/python examples/basic_aging_simulation.py
+venv/bin/python examples/reference_ecology_simulation.py
 ```
 
 Double-click `open_project_terminal.command` on macOS to open a shell at the
