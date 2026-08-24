@@ -13,7 +13,7 @@ from evo_engine.observation.records import (
     PopulationObservation,
 )
 from evo_engine.validation import attrs_validators, validators
-from evo_engine.world import WorldState
+from evo_engine.world import Organism, WorldState
 
 
 @attrs.define(slots=True, kw_only=True)
@@ -217,11 +217,10 @@ def _summarize_integers(values: Iterable[int]) -> IntegerSummary:
 
 def _summarize_trait(
     trait_name: str,
-    organisms: tuple[object, ...],
+    organisms: tuple[Organism, ...],
 ) -> IntegerTraitSummary:
     values = tuple(
-        getattr(organism, "genetic_phenotype").int_value(trait_name)
-        for organism in organisms
+        organism.genetic_phenotype.int_value(trait_name) for organism in organisms
     )
     counts = Counter(values)
 
