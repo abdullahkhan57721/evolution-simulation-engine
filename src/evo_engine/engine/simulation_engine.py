@@ -34,8 +34,9 @@ class SimulationEngine:
     ) -> None:
         """Run a simulation until its stopping condition is met.
 
-        Genetic phenotype dependencies declared by configured components are validated
-        against the simulation genetic architecture before step zero.
+        Genetic phenotype dependencies declared by engine components and shared
+        simulation configuration are validated against the simulation genetic
+        architecture before step zero.
 
         Args:
             simulation: Simulation to run.
@@ -44,9 +45,12 @@ class SimulationEngine:
             ValueError: If a configured component requires an undefined
                 genetic phenotype trait.
         """
+        required_traits = self.required_traits | collect_required_traits(
+            simulation.state.behavior_selection_model,
+        )
         simulation.genetic_architecture.require_traits(
-            self.required_traits,
-            context="configured simulation engine",
+            required_traits,
+            context="configured simulation engine and simulation",
         )
 
         while not self.stopping_condition.should_stop(
