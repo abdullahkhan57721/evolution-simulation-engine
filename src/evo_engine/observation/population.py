@@ -155,9 +155,7 @@ class PopulationRecorder:
                 carcass_count=len(world_state.carcasses),
                 total_resources=sum(world_state.resources.values()),
                 age=_summarize_integers(organism.age for organism in organisms),
-                energy=_summarize_integers(
-                    organism.energy for organism in organisms
-                ),
+                energy=_summarize_integers(organism.energy for organism in organisms),
                 body_mass=_summarize_integers(
                     organism.body_mass for organism in organisms
                 ),
