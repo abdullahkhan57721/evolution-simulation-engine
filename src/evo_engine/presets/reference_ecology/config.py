@@ -7,6 +7,8 @@ import attrs
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ASSIMILATION_EFFICIENCY,
+    ATTACK_STRENGTH,
+    DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
     MATURITY_AGE,
@@ -15,6 +17,7 @@ from evo_engine.genetics import (
     MAXIMUM_AGE,
     OFFSPRING_ENERGY,
     REPRODUCTION_ENERGY_THRESHOLD,
+    SENSORY_ACCURACY,
     SENSORY_RANGE,
 )
 from evo_engine.validation import attrs_validators, validators
@@ -24,10 +27,13 @@ REFERENCE_TRAIT_DOMAINS: dict[str, tuple[int, int]] = {
     ADULT_BODY_MASS: (1, 40),
     MAX_SPEED: (0, 4),
     SENSORY_RANGE: (0, 20),
+    SENSORY_ACCURACY: (0, 100),
     MAX_INTAKE_RATE: (0, 50),
     ASSIMILATION_EFFICIENCY: (0, 100),
     ENERGY_CONSERVATION_THRESHOLD: (0, 100),
     ENERGY_RESERVE: (0, 100),
+    ATTACK_STRENGTH: (0, 50),
+    DEFENSE: (0, 50),
     MATURITY_AGE: (0, 100),
     REPRODUCTION_ENERGY_THRESHOLD: (0, 200),
     OFFSPRING_ENERGY: (1, 50),
@@ -46,6 +52,8 @@ class ReferenceTraitValues:
         adult_body_mass: Realized adult body-mass target.
         max_speed: Maximum Euclidean movement distance per timestep.
         sensory_range: Resource-detection radius.
+        sensory_accuracy: Percentage probability of detecting each resource
+            deposit inside sensory range.
         max_intake_rate: Maximum environmental resource units consumable per
             timestep.
         assimilation_efficiency: Percentage of consumed environmental resource
@@ -53,6 +61,8 @@ class ReferenceTraitValues:
         energy_conservation_threshold: Energy below which nonessential behavior
             is suppressed and movement becomes food-seeking.
         energy_reserve: Energy protected from growth and reproduction spending.
+        attack_strength: Predator performance used against prey defense.
+        defense: Prey defensive performance opposed to predator attack.
         maturity_age: Age at reproductive maturity.
         reproduction_energy_threshold: Minimum current energy for reproduction.
         offspring_energy: Energy invested by each reproductive parent.
@@ -71,6 +81,10 @@ class ReferenceTraitValues:
         default=4,
         validator=attrs_validators.validate_int_in_range(0, 20),
     )
+    sensory_accuracy: int = attrs.field(
+        default=90,
+        validator=attrs_validators.validate_int_in_range(0, 100),
+    )
     max_intake_rate: int = attrs.field(
         default=4,
         validator=attrs_validators.validate_int_in_range(0, 50),
@@ -86,6 +100,14 @@ class ReferenceTraitValues:
     energy_reserve: int = attrs.field(
         default=5,
         validator=attrs_validators.validate_int_in_range(0, 100),
+    )
+    attack_strength: int = attrs.field(
+        default=8,
+        validator=attrs_validators.validate_int_in_range(0, 50),
+    )
+    defense: int = attrs.field(
+        default=5,
+        validator=attrs_validators.validate_int_in_range(0, 50),
     )
     maturity_age: int = attrs.field(
         default=4,
@@ -114,10 +136,13 @@ class ReferenceTraitValues:
             ADULT_BODY_MASS: self.adult_body_mass,
             MAX_SPEED: self.max_speed,
             SENSORY_RANGE: self.sensory_range,
+            SENSORY_ACCURACY: self.sensory_accuracy,
             MAX_INTAKE_RATE: self.max_intake_rate,
             ASSIMILATION_EFFICIENCY: self.assimilation_efficiency,
             ENERGY_CONSERVATION_THRESHOLD: self.energy_conservation_threshold,
             ENERGY_RESERVE: self.energy_reserve,
+            ATTACK_STRENGTH: self.attack_strength,
+            DEFENSE: self.defense,
             MATURITY_AGE: self.maturity_age,
             REPRODUCTION_ENERGY_THRESHOLD: self.reproduction_energy_threshold,
             OFFSPRING_ENERGY: self.offspring_energy,
