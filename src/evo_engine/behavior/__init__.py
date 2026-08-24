@@ -1,6 +1,7 @@
 """Behavioral vocabulary, capabilities, perception, and selection models."""
 
 from evo_engine.behavior.movement_intent import (
+    EnergyThresholdMovementIntent,
     FixedMovementIntent,
     MovementIntentModel,
     determine_movement_purpose,
@@ -42,6 +43,7 @@ __all__ = [
     "ENERGY_ACQUISITION",
     "EXPLORATION",
     "EnergyConservationBehavior",
+    "EnergyThresholdMovementIntent",
     "FixedMovementIntent",
     "FixedSensoryRange",
     "GeneticPhenotypeSensoryRange",
