@@ -1,5 +1,13 @@
 """Energy-cost, threshold, and expenditure policies for simulation processes."""
 
+from evo_engine.energetics.coefficients import (
+    CoefficientModel,
+    CoefficientSource,
+    GeneticPhenotypeCoefficient,
+    coefficient_required_traits,
+    determine_coefficient,
+    validate_coefficient_source,
+)
 from evo_engine.energetics.expenditure import (
     EnergyExpenditurePolicy,
     KeepEnergyReserve,
@@ -28,6 +36,8 @@ from evo_engine.life_history import (
 )
 
 __all__ = [
+    "CoefficientModel",
+    "CoefficientSource",
     "DevelopmentalEnergyThreshold",
     "EnergyExpenditurePolicy",
     "EnergyThresholdModel",
@@ -35,6 +45,7 @@ __all__ = [
     "FixedEnergyThreshold",
     "FixedLocomotionCost",
     "FixedMetabolicCost",
+    "GeneticPhenotypeCoefficient",
     "GrowthCostModel",
     "KeepEnergyReserve",
     "KeepFixedReserve",
@@ -44,7 +55,10 @@ __all__ = [
     "PowerLawLocomotionCost",
     "PowerLawMetabolicCost",
     "SpendToZero",
+    "coefficient_required_traits",
+    "determine_coefficient",
     "determine_energy_threshold",
     "energy_expenditure_is_allowed",
+    "validate_coefficient_source",
     "validate_energy_threshold_source",
 ]
