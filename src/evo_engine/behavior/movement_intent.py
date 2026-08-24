@@ -45,6 +45,177 @@ class MovementIntentModel(Protocol):
         ...
 
 
+@runtime_checkable
+class MovementIntentCondition(Protocol):
+    """Determine whether one prioritized movement-intent rule applies."""
+
+    def matches(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> bool:
+        """Return whether the condition currently matches the organism.
+
+        Args:
+            organism: Organism considering movement.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Whether the associated movement-intent rule should apply.
+        """
+        ...
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class MovementIntentRule:
+    """Associate one movement purpose with a condition.
+
+    Attributes:
+        behavioral_purpose: Purpose selected when ``condition`` matches.
+        condition: State-dependent condition controlling the rule.
+    """
+
+    behavioral_purpose: str
+    condition: MovementIntentCondition
+
+    def __attrs_post_init__(self) -> None:
+        """Validate the rule purpose and condition."""
+        validate_behavioral_purpose(
+            self.behavioral_purpose,
+            name="behavioral_purpose",
+        )
+
+        if not callable(getattr(self.condition, "matches", None)):
+            raise TypeError("condition must provide a callable matches method.")
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the configured condition."""
+        return collect_required_traits(self.condition)
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class PrioritizedMovementIntent:
+    """Select the first movement purpose whose ordered condition matches.
+
+    Rules are evaluated in tuple order with short-circuiting. If no rule
+    matches, ``fallback_purpose`` is returned. This keeps movement motivation
+    separate from behavior selection: after this model chooses a purpose, the
+    Movement process still asks the simulation's BehaviorSelectionModel whether
+    that purpose may be attempted.
+
+    Attributes:
+        rules: Ordered nonempty movement-intent rules.
+        fallback_purpose: Purpose selected when no rule matches.
+    """
+
+    rules: tuple[MovementIntentRule, ...] = attrs.field(
+        validator=attrs.validators.instance_of(tuple),
+    )
+    fallback_purpose: str = EXPLORATION
+
+    def __attrs_post_init__(self) -> None:
+        """Validate ordered rules and fallback purpose."""
+        if not self.rules:
+            raise ValueError("rules must contain at least one movement-intent rule.")
+
+        for index, rule in enumerate(self.rules):
+            if not isinstance(rule, MovementIntentRule):
+                raise TypeError(f"rules[{index}] must be a MovementIntentRule.")
+
+        validate_behavioral_purpose(
+            self.fallback_purpose,
+            name="fallback_purpose",
+        )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the union of traits required by ordered rules."""
+        return collect_required_traits(*self.rules)
+
+    def determine_purpose(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> str:
+        """Return the first matching rule purpose or the fallback purpose.
+
+        Args:
+            organism: Organism considering movement.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Purpose from the highest-priority matching rule, otherwise the
+            configured fallback purpose.
+
+        Raises:
+            TypeError: If a condition returns a non-Boolean value.
+        """
+        for index, rule in enumerate(self.rules):
+            decision = rule.condition.matches(
+                organism,
+                simulation_state=simulation_state,
+            )
+
+            if type(decision) is not bool:
+                raise TypeError(
+                    f"rules[{index}].condition.matches must return a Boolean."
+                )
+
+            if decision:
+                return rule.behavioral_purpose
+
+        return self.fallback_purpose
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class EnergyBelowThresholdMovementCondition:
+    """Match organisms whose current energy is below a threshold source.
+
+    Attributes:
+        energy_threshold: Fixed value or organism-specific threshold model.
+    """
+
+    energy_threshold: EnergyThresholdSource
+
+    def __attrs_post_init__(self) -> None:
+        """Validate the configured energy-threshold source."""
+        validate_energy_threshold_source(
+            self.energy_threshold,
+            name="energy_threshold",
+        )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return traits required by the configured threshold model."""
+        return collect_required_traits(self.energy_threshold)
+
+    def matches(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> bool:
+        """Return whether current energy is strictly below the threshold.
+
+        Args:
+            organism: Organism considering movement.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Whether current energy is below the resolved threshold.
+        """
+        energy_threshold = determine_energy_threshold(
+            self.energy_threshold,
+            organism,
+            simulation_state=simulation_state,
+            name="energy_threshold",
+        )
+        return organism.energy < energy_threshold
+
+
 @attrs.frozen(slots=True, kw_only=True)
 class FixedMovementIntent:
     """Assign the same behavioral purpose to every movement attempt.
