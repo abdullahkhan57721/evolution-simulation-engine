@@ -32,13 +32,15 @@ founder genome, world, simulation, and engine.
 
 ## Founder genetic architecture
 
-The reference population begins homozygous for nine integer traits:
+The reference population begins homozygous for eleven integer traits:
 
 | Trait | Default | Role |
 | --- | ---: | --- |
 | `adult_body_mass` | 8 | Adult developmental body-mass target |
 | `max_speed` | 1 | Maximum movement distance |
 | `sensory_range` | 4 | Resource-detection radius |
+| `max_intake_rate` | 4 | Maximum environmental resource intake per timestep |
+| `assimilation_efficiency` | 75 | Percent of consumed resources converted to usable energy |
 | `energy_conservation_threshold` | 15 | Switch to conservation / food-seeking behavior |
 | `energy_reserve` | 5 | Reserve protected from growth and reproduction |
 | `maturity_age` | 4 | Reproductive maturity |
@@ -90,6 +92,42 @@ energy at/above threshold
 
 The shared threshold is a reference-model choice, not an engine invariant.
 Callers can compose different threshold models.
+
+## Feeding physiology
+
+Environmental resource feeding now separates behavioral demand, physiological
+intake capacity, ecological allocation, and energy assimilation:
+
+```text
+behavioral resource request = 10
+        ↓
+max_intake_rate trait
+        ↓
+effective resource request
+        ↓
+EqualShare resource allocation
+        ↓
+actual consumed resource amount
+        ↓
+assimilation_efficiency trait
+        ↓
+usable energy gain
+```
+
+The default founder `max_intake_rate` is four resource units per timestep, so the
+fixed behavioral request ceiling of ten does not itself constrain founder intake.
+Mutation can therefore make intake capacity evolutionarily meaningful. The
+default `assimilation_efficiency` is 75% and percentage conversion uses
+deterministic half-up integer rounding.
+
+The allocation resolver operates only on resource quantities. Assimilation occurs
+after resource allocation, so digestive efficiency does not automatically give an
+organism priority in competition for food.
+
+The full allocated amount leaves the environmental resource pool. Any
+unassimilated fraction is currently outside the modeled pool rather than being
+returned as waste. A future excretion/decomposition layer can model that material
+without changing the intake or assimilation interfaces.
 
 ## Energy priorities
 
@@ -157,7 +195,9 @@ The defaults compose:
 - state-dependent resource-seeking/exploratory movement,
 - power-law locomotion costs,
 - same-cell predation by larger organisms,
+- genetic intake-capacity limits,
 - equal-share resource competition,
+- genetic resource-to-energy assimilation efficiency,
 - fixed-rate growth with linear energy cost,
 - maturity- and energy-gated sexual reproduction,
 - meiotic segregation with single crossover,
@@ -196,6 +236,8 @@ config = ReferenceEcologyConfig(
         adult_body_mass=10,
         max_speed=2,
         sensory_range=6,
+        max_intake_rate=8,
+        assimilation_efficiency=70,
         energy_conservation_threshold=18,
         energy_reserve=6,
         maturity_age=5,
@@ -228,8 +270,7 @@ environmental-resource summaries.
 
 The reference ecology intentionally exposes several areas for future model work:
 
-- environmental resource consumption uses a fixed request amount rather than
-  `max_intake_rate` or assimilation efficiency,
+- unassimilated food is not yet returned to the environment as waste,
 - resource sensing currently has perfect detection inside `sensory_range`,
 - sensing has no energetic cost,
 - predation uses body size rather than attack/defense traits,

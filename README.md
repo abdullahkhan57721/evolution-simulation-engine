@@ -20,6 +20,7 @@ src/evo_engine/
 ├── growth/        policies that determine potential body-mass gain
 ├── behavior/      purposes, movement intent, sensing, targeting, selection
 ├── energetics/    energetic cost models for metabolism, movement, and growth
+├── feeding/       intake-capacity and resource-assimilation physiology
 ├── reproduction/ reproductive eligibility, parent selection, investment,
 │                  and offspring placement
 ├── spatial/       neighborhoods, distances, boundaries, movement geometry
@@ -96,6 +97,30 @@ pricing. The initial affordability rule is all-or-nothing: an organism grows
 only when it can pay the full cost of the capped gain. Spending the final unit
 of energy is allowed; mortality remains a separate process such as
 `Starvation`, which therefore observes the organism's updated current mass.
+
+## Feeding physiology
+
+`ResourceConsumption` separates behavioral demand from physiological capacity
+and digestive return. `requested_amount` is the amount an organism tries to
+obtain, an optional `IntakeCapacityModel` limits how much may enter resource
+competition, and an `AssimilationModel` converts the resolved food allocation
+into usable energy.
+
+Built-in models include fixed intake capacity, genetic `max_intake_rate`, full
+one-to-one assimilation, fixed percentage assimilation, and genetic
+`assimilation_efficiency`. Resource-allocation resolvers continue to operate on
+food quantities only; assimilation occurs after allocation.
+
+This keeps the pipeline explicit:
+
+```text
+behavioral food demand
+    → intake-capacity ceiling
+    → resource competition
+    → consumed food
+    → assimilation physiology
+    → energy gain
+```
 
 ## Behavior selection and directed movement
 
@@ -218,9 +243,10 @@ pattern is used. The simulation's genetic architecture must define both
 `evo_engine.presets` provides a complete ecological/evolutionary composition
 that wires the current major capabilities together under the standard lifecycle.
 It includes metabolism, starvation checkpoints, resource generation and
-decomposition, state-dependent resource-seeking movement, predation, resource
-competition, growth, sexual reproduction, recombination, mutation, aging, and
-developmental maximum-age mortality.
+decomposition, state-dependent resource-seeking movement, predation, genetic
+intake capacity, resource competition, genetic assimilation efficiency, growth,
+sexual reproduction, recombination, mutation, aging, and developmental
+maximum-age mortality.
 
 ```python
 from evo_engine.presets import build_reference_ecology

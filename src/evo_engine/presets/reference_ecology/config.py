@@ -6,9 +6,11 @@ import attrs
 
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
+    ASSIMILATION_EFFICIENCY,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
     MATURITY_AGE,
+    MAX_INTAKE_RATE,
     MAX_SPEED,
     MAXIMUM_AGE,
     OFFSPRING_ENERGY,
@@ -22,6 +24,8 @@ REFERENCE_TRAIT_DOMAINS: dict[str, tuple[int, int]] = {
     ADULT_BODY_MASS: (1, 40),
     MAX_SPEED: (0, 4),
     SENSORY_RANGE: (0, 20),
+    MAX_INTAKE_RATE: (0, 50),
+    ASSIMILATION_EFFICIENCY: (0, 100),
     ENERGY_CONSERVATION_THRESHOLD: (0, 100),
     ENERGY_RESERVE: (0, 100),
     MATURITY_AGE: (0, 100),
@@ -42,6 +46,10 @@ class ReferenceTraitValues:
         adult_body_mass: Realized adult body-mass target.
         max_speed: Maximum Euclidean movement distance per timestep.
         sensory_range: Resource-detection radius.
+        max_intake_rate: Maximum environmental resource units consumable per
+            timestep.
+        assimilation_efficiency: Percentage of consumed environmental resource
+            converted to usable energy.
         energy_conservation_threshold: Energy below which nonessential behavior
             is suppressed and movement becomes food-seeking.
         energy_reserve: Energy protected from growth and reproduction spending.
@@ -62,6 +70,14 @@ class ReferenceTraitValues:
     sensory_range: int = attrs.field(
         default=4,
         validator=attrs_validators.validate_int_in_range(0, 20),
+    )
+    max_intake_rate: int = attrs.field(
+        default=4,
+        validator=attrs_validators.validate_int_in_range(0, 50),
+    )
+    assimilation_efficiency: int = attrs.field(
+        default=75,
+        validator=attrs_validators.validate_int_in_range(0, 100),
     )
     energy_conservation_threshold: int = attrs.field(
         default=15,
@@ -98,6 +114,8 @@ class ReferenceTraitValues:
             ADULT_BODY_MASS: self.adult_body_mass,
             MAX_SPEED: self.max_speed,
             SENSORY_RANGE: self.sensory_range,
+            MAX_INTAKE_RATE: self.max_intake_rate,
+            ASSIMILATION_EFFICIENCY: self.assimilation_efficiency,
             ENERGY_CONSERVATION_THRESHOLD: self.energy_conservation_threshold,
             ENERGY_RESERVE: self.energy_reserve,
             MATURITY_AGE: self.maturity_age,
@@ -130,7 +148,8 @@ class ReferenceEcologyConfig:
         resource_generation_amount: Resource units per generated deposit.
         resource_deposits_per_step: Number of deposits generated each timestep.
         decomposition_amount: Maximum carcass units decomposed per timestep.
-        resource_request_amount: Resource units requested by each consumer.
+        resource_request_amount: Behavioral resource demand before an
+            organism-specific intake-capacity ceiling is applied.
         metabolic_coefficient: Basal metabolic allometry coefficient.
         metabolic_mass_exponent: Basal metabolic body-mass exponent.
         locomotion_coefficient: Locomotion cost coefficient.
@@ -199,7 +218,7 @@ class ReferenceEcologyConfig:
         validator=attrs_validators.validate_int_ge(0),
     )
     resource_request_amount: int = attrs.field(
-        default=4,
+        default=10,
         validator=attrs_validators.validate_int_ge(0),
     )
     metabolic_coefficient: int | float = 0.30
