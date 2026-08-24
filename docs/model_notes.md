@@ -123,10 +123,33 @@ may represent foraging, escape, mate search, exploration, migration, or another
 context-dependent action.
 
 A `MovementIntentModel` determines the purpose of each organism's movement
-attempt from current state. `FixedMovementIntent` defaults to exploration and
-may instead assign energy acquisition, survival, reproduction, or another valid
-purpose. Custom intent models may determine purpose dynamically and
-independently for each organism.
+attempt from current state. `FixedMovementIntent` assigns one configured purpose
+and defaults to exploration. `EnergyThresholdMovementIntent` provides the first
+state-dependent implementation. It evaluates current mutable organism energy on
+every proposal:
+
+```text
+organism.energy < energy_threshold
+    → low_energy_purpose       (default: energy acquisition)
+
+organism.energy >= energy_threshold
+    → otherwise_purpose        (default: exploration)
+```
+
+The threshold comparison intentionally matches `EnergyConservationBehavior`:
+only energy strictly below the threshold is considered low. The two models are
+still configured independently because they represent distinct decisions.
+`MovementIntentModel` answers what the organism is trying to do;
+`BehaviorSelectionModel` answers whether it attempts that purpose. Simulations
+may choose equal thresholds for a simple hunger/conservation regime or different
+thresholds for other behavioral assumptions.
+
+Movement intent is derived rather than stored on the organism. If an organism's
+energy changes between movement opportunities, the same
+`EnergyThresholdMovementIntent` instance can produce a different purpose without
+mutating behavioral state. More complex intent policies can later incorporate
+threat, reproductive state, remembered information, or other signals without
+changing the `Movement` process.
 
 Behavior selection runs immediately after intent. Suppressed movement stops at
 that point: target selection, sensing, movement-pattern RNG, boundary handling,
@@ -186,6 +209,22 @@ is selected, Movement falls back to its ordinary `MovementPattern`. For a hungry
 organism this fallback can represent undirected search rather than freezing or
 omniscient navigation.
 
+With `EnergyThresholdMovementIntent` and `NearestResourceTarget`, one configured
+Movement process can therefore switch naturally between directed foraging and
+ordinary exploration:
+
+```text
+low energy
+    → energy-acquisition intent
+    → resource target active
+    → move toward detectable food
+
+sufficient energy
+    → exploration intent
+    → resource target inactive
+    → ordinary movement pattern
+```
+
 The resulting proposal sequence is:
 
 ```text
@@ -233,7 +272,9 @@ Behavior selection is derived rather than stored on the organism. Every process
 consults the selector from current state when it proposes. Consequently, a
 low-energy organism may acquire energy in an earlier stage and automatically
 leave conservation mode before a later Growth, Reproduction, or exploratory
-Movement stage in the same timestep.
+Movement stage in the same timestep. State-dependent movement intent is also
+re-evaluated from that current state, so the organism's movement purpose can
+change after earlier energetic events.
 
 This distinction is intentional:
 
