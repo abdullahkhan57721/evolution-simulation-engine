@@ -3,6 +3,7 @@
 from evo_engine.processes.aging import Aging
 from evo_engine.processes.decomposition import Decomposition
 from evo_engine.processes.growth import Growth
+from evo_engine.processes.maximum_age_mortality import MaximumAgeMortality
 from evo_engine.processes.metabolism import Metabolism
 from evo_engine.processes.movement import Movement
 from evo_engine.processes.predation import Predation
@@ -15,6 +16,7 @@ __all__ = [
     "Aging",
     "Decomposition",
     "Growth",
+    "MaximumAgeMortality",
     "Metabolism",
     "Movement",
     "Predation",

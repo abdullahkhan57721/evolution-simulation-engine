@@ -8,6 +8,7 @@ nav:
   - Model Notes: model_notes.md
   - Energy Expenditure: energy_expenditure.md
   - Life-History Energy Strategy: life_history_energy_strategy.md
+  - Lifecycle and Age Mortality: lifecycle.md
   - Development Log: development_log.md
   - API Reference:
       - Validators: references/validators.md
