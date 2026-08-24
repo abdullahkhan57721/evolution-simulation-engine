@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from evo_engine.behavior import (
@@ -16,7 +18,7 @@ from evo_engine.behavior import (
     behavior_is_allowed,
 )
 from evo_engine.engine import Simulation
-from evo_engine.world import WorldState
+from evo_engine.world import Organism, WorldState
 from tests.helpers import add_organism, make_empty_architecture
 
 
@@ -24,7 +26,7 @@ def _simulation_with_energy(
     energy: int,
     *,
     behavior_selection_model: BehaviorSelectionModel,
-) -> tuple[Simulation, object]:
+) -> tuple[Simulation, Organism]:
     architecture = make_empty_architecture()
     simulation = Simulation(
         initial_world_state=WorldState(
@@ -156,7 +158,9 @@ def test_energy_conservation_rejects_invalid_thresholds(
 ) -> None:
     """Test conservation thresholds are nonnegative integers."""
     with pytest.raises((TypeError, ValueError)):
-        EnergyConservationBehavior(energy_threshold=energy_threshold)  # type: ignore[arg-type]
+        EnergyConservationBehavior(
+            energy_threshold=cast(int, energy_threshold),
+        )
 
 
 def test_energy_conservation_requires_frozenset_of_allowed_purposes() -> None:
@@ -164,7 +168,10 @@ def test_energy_conservation_requires_frozenset_of_allowed_purposes() -> None:
     with pytest.raises(TypeError):
         EnergyConservationBehavior(
             energy_threshold=10,
-            allowed_low_energy_purposes={ENERGY_ACQUISITION},  # type: ignore[arg-type]
+            allowed_low_energy_purposes=cast(
+                frozenset[str],
+                {ENERGY_ACQUISITION},
+            ),
         )
 
 
@@ -183,7 +190,7 @@ def test_energy_conservation_rejects_invalid_allowed_purposes(
     with pytest.raises((TypeError, ValueError)):
         EnergyConservationBehavior(
             energy_threshold=10,
-            allowed_low_energy_purposes=frozenset({purpose}),  # type: ignore[arg-type]
+            allowed_low_energy_purposes=frozenset({cast(str, purpose)}),
         )
 
 
@@ -218,7 +225,7 @@ def test_behavior_selection_helper_rejects_non_boolean_decision() -> None:
 
     simulation, organism = _simulation_with_energy(
         10,
-        behavior_selection_model=InvalidSelection(),
+        behavior_selection_model=cast(BehaviorSelectionModel, InvalidSelection()),
     )
 
     with pytest.raises(TypeError, match="must return a Boolean"):
