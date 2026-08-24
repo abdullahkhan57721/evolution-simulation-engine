@@ -6,14 +6,14 @@ from typing import Protocol
 
 import attrs
 
-from evo_engine.energetics.thresholds import (
+from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.genetics.builtin_traits import MATURITY_AGE
+from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.life_history import (
     EnergyThresholdSource,
     determine_energy_threshold,
     validate_energy_threshold_source,
 )
-from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.genetics.builtin_traits import MATURITY_AGE
-from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
 
