@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from typing import Protocol, TypeVar, runtime_checkable
 
 from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.world import WorldState
 
 
 class SimulationEvent(Protocol):
@@ -120,4 +121,32 @@ class StoppingCondition(Protocol):
         simulation_state: SimulationState,
     ) -> bool:
         """Return whether the simulation should stop."""
+        ...
+
+
+@runtime_checkable
+class Observer(Protocol):
+    """Observe committed world state without participating in simulation updates.
+
+    Observer implementations must treat ``world_state`` as read-only. The engine
+    calls observers only for authoritative committed states, never for an
+    in-progress transactional working copy.
+    """
+
+    def should_observe(
+        self,
+        world_state: WorldState,
+        *,
+        step_index: int,
+    ) -> bool:
+        """Return whether the current committed state should be observed."""
+        ...
+
+    def observe(
+        self,
+        world_state: WorldState,
+        *,
+        step_index: int,
+    ) -> None:
+        """Observe the current committed state without mutating it."""
         ...
