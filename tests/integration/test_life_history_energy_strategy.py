@@ -82,16 +82,16 @@ def test_developmental_conservation_threshold_varies_behavior_by_organism() -> N
 
     assert (
         determine_movement_purpose(
+            intent,
             lower_threshold,
-            movement_intent_model=intent,
             simulation_state=state,
         )
         == EXPLORATION
     )
     assert (
         determine_movement_purpose(
+            intent,
             higher_threshold,
-            movement_intent_model=intent,
             simulation_state=state,
         )
         == ENERGY_ACQUISITION
