@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, TypeAlias, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, TypeAlias, cast, runtime_checkable
 
 import attrs
 
@@ -178,7 +178,8 @@ def determine_energy_threshold(
     if type(threshold_source) is int:
         return threshold_source
 
-    threshold = threshold_source.determine_threshold(
+    threshold_model = cast(EnergyThresholdModel, threshold_source)
+    threshold = threshold_model.determine_threshold(
         organism,
         simulation_state=simulation_state,
     )
