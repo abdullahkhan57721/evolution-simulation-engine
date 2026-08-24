@@ -126,6 +126,17 @@ source_modules = [
     "evo_engine.world",
 ]
 forbidden_modules = [
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.resolvers",
+]
+
+[[tool.importlinter.contracts]]
+id = "observation-does-not-orchestrate"
+name = "Observation does not depend on engine orchestration"
+type = "forbidden"
+source_modules = ["evo_engine.observation"]
+forbidden_modules = [
     "evo_engine.engine",
     "evo_engine.presets",
     "evo_engine.processes",
