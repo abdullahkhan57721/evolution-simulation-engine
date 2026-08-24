@@ -34,7 +34,9 @@ class IntegerSummary:
         if self.count == 0:
             if self.total != 0:
                 raise ValueError("An empty IntegerSummary must have total=0.")
-            if any(value is not None for value in (self.mean, self.minimum, self.maximum)):
+            if any(
+                value is not None for value in (self.mean, self.minimum, self.maximum)
+            ):
                 raise ValueError(
                     "An empty IntegerSummary must have mean, minimum, and maximum set "
                     "to None."
