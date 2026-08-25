@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import TypeVar
 
 import attrs
 
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world import Organism, WorldState
+
+ValueT = TypeVar("ValueT")
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -192,7 +195,16 @@ class GeneticCompositionRecorder:
         *,
         step_index: int,
     ) -> bool:
-        """Return whether the current committed state should be recorded."""
+        """Return whether the current committed state should be recorded.
+
+        Args:
+            world_state: Current committed world state.
+            step_index: Current committed simulation-state index.
+
+        Returns:
+            ``True`` when the state falls on the configured interval and has not
+            already been recorded.
+        """
         _validate_observation_inputs(world_state, step_index=step_index)
         if self._observations and self._observations[-1].step_index == step_index:
             return False
@@ -244,6 +256,13 @@ def _summarize_locus(
     locus_name: str,
     organisms: tuple[Organism, ...],
 ) -> LocusComposition:
+    if not organisms:
+        return LocusComposition(
+            locus_name=locus_name,
+            organism_count=0,
+            allele_copy_count=0,
+        )
+
     genotypes = tuple(
         _canonical_genotype(
             tuple(allele.value for allele in organism.genome.alleles_at(locus_name))
@@ -276,10 +295,6 @@ def _summarize_locus(
             )
             for genotype, count in genotype_counts
         ),
-    ) if organisms else LocusComposition(
-        locus_name=locus_name,
-        organism_count=0,
-        allele_copy_count=0,
     )
 
 
@@ -289,19 +304,16 @@ def _canonical_genotype(values: tuple[object, ...]) -> tuple[object, ...]:
     return tuple(sorted(values, key=_value_sort_key))
 
 
-def _count_equal_values(values: Iterable[object]) -> tuple[tuple[object, int], ...]:
-    counted: list[list[object]] = []
+def _count_equal_values(values: Iterable[ValueT]) -> tuple[tuple[ValueT, int], ...]:
+    counted: list[tuple[ValueT, int]] = []
     for value in values:
-        for item in counted:
-            if item[0] == value:
-                item[1] = int(item[1]) + 1
+        for index, (existing, count) in enumerate(counted):
+            if existing == value:
+                counted[index] = (existing, count + 1)
                 break
         else:
-            counted.append([value, 1])
-    return tuple(
-        (item[0], int(item[1]))
-        for item in sorted(counted, key=lambda item: _value_sort_key(item[0]))
-    )
+            counted.append((value, 1))
+    return tuple(sorted(counted, key=lambda item: _value_sort_key(item[0])))
 
 
 def _value_sort_key(value: object) -> tuple[str, str, str]:
