@@ -69,6 +69,92 @@ class IntegerSummary:
 
 
 @attrs.frozen(slots=True, kw_only=True)
+class CategoryCounts:
+    """Record deterministic counts for string-valued population categories.
+
+    Category counts are stored in strictly increasing lexicographic order so
+    snapshots, equality comparisons, JSON output, and tabular exports remain
+    deterministic regardless of the order in which organisms were encountered.
+
+    Attributes:
+        value_counts: Ordered ``(category, count)`` pairs. Categories are
+            nonempty strings and counts are positive integers.
+    """
+
+    value_counts: tuple[tuple[str, int], ...] = attrs.field(factory=tuple)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate category labels, counts, and deterministic ordering."""
+        validators.validate_tuple(self.value_counts, name="value_counts")
+        previous_value: str | None = None
+
+        for index, entry in enumerate(self.value_counts):
+            if type(entry) is not tuple:
+                raise TypeError(
+                    f"value_counts[{index}] must be a tuple; received {entry!r}."
+                )
+            if len(entry) != 2:
+                raise ValueError(
+                    f"value_counts[{index}] must contain exactly two items."
+                )
+
+            value = validators.validate_str(
+                entry[0],
+                name=f"value_counts[{index}][0]",
+            )
+            if not value.strip():
+                raise ValueError(
+                    f"value_counts[{index}][0] must not be empty or whitespace-only."
+                )
+            validators.validate_int_gt(
+                entry[1],
+                bound=0,
+                name=f"value_counts[{index}][1]",
+            )
+
+            if previous_value is not None and value <= previous_value:
+                raise ValueError(
+                    "value_counts categories must be unique and strictly increasing."
+                )
+            previous_value = value
+
+    @property
+    def total_count(self) -> int:
+        """Return the total number of categorized observations."""
+        return sum(count for _, count in self.value_counts)
+
+    def count_for(self, value: str) -> int:
+        """Return the number of observations in one category.
+
+        Args:
+            value: Category label to look up.
+
+        Returns:
+            Number of observations in the category, or zero when absent.
+        """
+        validated_value = validators.validate_str(value, name="value")
+        for observed_value, count in self.value_counts:
+            if observed_value == validated_value:
+                return count
+        return 0
+
+    def frequency_for(self, value: str) -> float | None:
+        """Return one category's population frequency.
+
+        Args:
+            value: Category label to look up.
+
+        Returns:
+            Category count divided by total count, or ``None`` for an empty
+            categorical population.
+        """
+        if self.total_count == 0:
+            validators.validate_str(value, name="value")
+            return None
+        return self.count_for(value) / self.total_count
+
+
+@attrs.frozen(slots=True, kw_only=True)
 class IntegerTraitSummary:
     """Summarize one integer genetic-phenotype trait across a population.
 
@@ -158,7 +244,7 @@ class IntegerTraitSummary:
 
 @attrs.frozen(slots=True, kw_only=True)
 class PopulationObservation:
-    """Record population, ecosystem, and selected genetic-trait state.
+    """Record population, ecosystem, reproductive, and genetic-trait state.
 
     Attributes:
         step_index: Completed simulation-step index represented by the record.
@@ -168,6 +254,7 @@ class PopulationObservation:
         age: Age summary across active organisms.
         energy: Energy summary across active organisms.
         body_mass: Current body-mass summary across active organisms.
+        mating_type_counts: Counts of active organisms by mating-type label.
         traits: Selected integer genetic-phenotype trait summaries.
     """
 
@@ -192,12 +279,15 @@ class PopulationObservation:
     body_mass: IntegerSummary = attrs.field(
         validator=attrs.validators.instance_of(IntegerSummary),
     )
+    mating_type_counts: CategoryCounts = attrs.field(
+        validator=attrs.validators.instance_of(CategoryCounts),
+    )
     traits: tuple[IntegerTraitSummary, ...] = attrs.field(
         factory=tuple,
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate population-size and trait-summary consistency."""
+        """Validate population-size, category, and trait-summary consistency."""
         for name, summary in (
             ("age", self.age),
             ("energy", self.energy),
@@ -208,6 +298,12 @@ class PopulationObservation:
                     f"{name}.count must equal population_size; received "
                     f"{summary.count} and {self.population_size}."
                 )
+
+        if self.mating_type_counts.total_count != self.population_size:
+            raise ValueError(
+                "mating_type_counts.total_count must equal population_size; received "
+                f"{self.mating_type_counts.total_count} and {self.population_size}."
+            )
 
         seen_trait_names: set[str] = set()
         for index, trait_summary in enumerate(self.traits):
