@@ -52,7 +52,12 @@ from evo_engine.genetics import (
     SingleCrossoverRecombination,
 )
 from evo_engine.growth import GeneticPhenotypeGrowthRate
-from evo_engine.observation import EventRecorder, PedigreeRecorder, PopulationRecorder
+from evo_engine.observation import (
+    EventRecorder,
+    GeneticCompositionRecorder,
+    PedigreeRecorder,
+    PopulationRecorder,
+)
 from evo_engine.predation import (
     AllOfPredationEligibility,
     GeneticAttackAdvantagePreference,
@@ -118,6 +123,8 @@ class ReferenceEcology:
         event_recorder: Causal event recorder attached to committed steps.
         pedigree_recorder: Pedigree and lifetime-fitness recorder attached to
             both committed states and committed event telemetry.
+        genetic_recorder: Raw allele/genotype recorder attached to committed
+            reference states.
     """
 
     config: ReferenceEcologyConfig = attrs.field(
@@ -138,6 +145,9 @@ class ReferenceEcology:
     pedigree_recorder: PedigreeRecorder = attrs.field(
         validator=attrs.validators.instance_of(PedigreeRecorder),
     )
+    genetic_recorder: GeneticCompositionRecorder = attrs.field(
+        validator=attrs.validators.instance_of(GeneticCompositionRecorder),
+    )
 
 
 def build_reference_simulation(
@@ -153,14 +163,10 @@ def build_reference_simulation(
     """
     config = resolve_reference_config(config)
     genetic_architecture = build_reference_genetic_architecture(config)
-    world = build_reference_world(
-        genetic_architecture,
-        config,
-    )
+    world = build_reference_world(genetic_architecture, config)
     conservation_threshold = DevelopmentalEnergyThreshold(
         trait_name=ENERGY_CONSERVATION_THRESHOLD,
     )
-
     return Simulation(
         initial_world_state=world,
         genetic_architecture=genetic_architecture,
@@ -186,14 +192,12 @@ def build_reference_engine(
             telemetry.
 
     Returns:
-        Engine wiring ecology, life history, mortality, observation, and causal
-        telemetry into the standard lifecycle.
+        Engine wiring ecology, life history, mortality, state observation, and
+        causal telemetry into the standard lifecycle.
     """
     config = resolve_reference_config(config)
     reserve = KeepEnergyReserve(
-        minimum_energy=DevelopmentalEnergyThreshold(
-            trait_name=ENERGY_RESERVE,
-        )
+        minimum_energy=DevelopmentalEnergyThreshold(trait_name=ENERGY_RESERVE)
     )
     conservation_threshold = DevelopmentalEnergyThreshold(
         trait_name=ENERGY_CONSERVATION_THRESHOLD,
@@ -209,10 +213,7 @@ def build_reference_engine(
         )
     )
     mating_compatibility = AllOfMatingCompatibility(
-        compatibilities=(
-            MutualMateSearchRange(),
-            MutualSignalCompatibility(),
-        )
+        compatibilities=(MutualMateSearchRange(), MutualSignalCompatibility())
     )
     mating_preference = MutualSignalMarginPreference()
 
@@ -234,9 +235,7 @@ def build_reference_engine(
             amount=config.resource_generation_amount,
             number_of_deposits=config.resource_deposits_per_step,
         ),
-        Decomposition(
-            amount=config.decomposition_amount,
-        ),
+        Decomposition(amount=config.decomposition_amount),
     )
     movement_stage = _accept_all_stage(
         Movement(
@@ -290,9 +289,7 @@ def build_reference_engine(
     predation_stage = StageCoordinator(
         processes=(
             Predation(
-                neighborhood=Moore(
-                    radius=config.predation_radius,
-                ),
+                neighborhood=Moore(radius=config.predation_radius),
                 consumption_percent=config.predation_consumption_percent,
                 can_predate=AllOfPredationEligibility(
                     eligibilities=(
@@ -331,9 +328,7 @@ def build_reference_engine(
             Reproduction(
                 eligibility=reproductive_eligibility,
                 parent_selection=PairwiseMating(
-                    neighborhood=Moore(
-                        radius=config.mating_radius,
-                    ),
+                    neighborhood=Moore(radius=config.mating_radius),
                     can_mate=mating_compatibility,
                     preference_function=mating_preference,
                 ),
@@ -354,7 +349,6 @@ def build_reference_engine(
         ),
         resolver=ReproductionPreferenceOrder(),
     )
-
     lifecycle = build_standard_lifecycle(
         starvation_stage=starvation_stage,
         maximum_age_mortality_stage=maximum_age_stage,
@@ -367,12 +361,9 @@ def build_reference_engine(
         aging_stage=aging_stage,
         reproduction_stage=reproduction_stage,
     )
-
     return SimulationEngine(
         step_coordinator=lifecycle,
-        stopping_condition=MaxSteps(
-            max_steps=config.max_steps,
-        ),
+        stopping_condition=MaxSteps(max_steps=config.max_steps),
         observers=observers,
         telemetry_observers=telemetry_observers,
     )
@@ -387,34 +378,31 @@ def build_reference_ecology(
         config: Optional reference configuration. Defaults to standard values.
 
     Returns:
-        Bundle containing population, event, and pedigree/lifetime-fitness
-        recorders alongside the configured simulation and engine.
+        Bundle containing the resolved configuration, simulation, engine, and
+        population, event, pedigree, and raw-genetic recorders.
     """
     config = resolve_reference_config(config)
-    recorder = PopulationRecorder(
-        trait_names=tuple(config.traits.as_mapping()),
-    )
+    simulation = build_reference_simulation(config)
+    recorder = PopulationRecorder(trait_names=tuple(config.traits.as_mapping()))
     event_recorder = EventRecorder()
     pedigree_recorder = PedigreeRecorder()
-
+    genetic_recorder = GeneticCompositionRecorder(
+        locus_names=tuple(locus.name for locus in simulation.genetic_architecture.loci)
+    )
     return ReferenceEcology(
         config=config,
-        simulation=build_reference_simulation(config),
+        simulation=simulation,
         engine=build_reference_engine(
             config,
-            observers=(recorder, pedigree_recorder),
+            observers=(recorder, pedigree_recorder, genetic_recorder),
             telemetry_observers=(event_recorder, pedigree_recorder),
         ),
         recorder=recorder,
         event_recorder=event_recorder,
         pedigree_recorder=pedigree_recorder,
+        genetic_recorder=genetic_recorder,
     )
 
 
-def _accept_all_stage(
-    *processes: Process[Any, Any],
-) -> StageCoordinator:
-    return StageCoordinator(
-        processes=processes,
-        resolver=AcceptAll(),
-    )
+def _accept_all_stage(*processes: Process[Any, Any]) -> StageCoordinator:
+    return StageCoordinator(processes=processes, resolver=AcceptAll())

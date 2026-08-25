@@ -17,6 +17,7 @@ nav:
   - Evolution Observability: observability.md
   - Event Telemetry and Causal History: event_telemetry.md
   - Pedigree and Lifetime Fitness: pedigree_fitness.md
+  - Allele and Genotype Frequencies: genetic_composition.md
   - Reference Ecology: reference_ecology.md
   - Development Log: development_log.md
   - API Reference:
