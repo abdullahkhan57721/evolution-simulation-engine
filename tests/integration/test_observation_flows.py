@@ -37,6 +37,27 @@ def test_reference_ecology_records_baseline_and_each_completed_step() -> None:
     )
 
 
+def test_reference_ecology_records_causal_events_for_each_committed_step() -> None:
+    """Test reference runs expose process-level causes alongside state history."""
+    config = ReferenceEcologyConfig(
+        initial_population=4,
+        max_steps=3,
+        seed=17,
+    )
+    ecology = build_reference_ecology(config)
+
+    ecology.engine.run(ecology.simulation)
+
+    steps = ecology.event_recorder.steps
+    assert tuple(step.completed_step_index for step in steps) == (1, 2, 3)
+    assert all(step.events for step in steps)
+    assert ecology.event_recorder.events_for_process("ResourceGeneration")
+    assert all(
+        event.stage_index >= 0
+        for event in ecology.event_recorder.events
+    )
+
+
 def test_reference_observations_are_historical_values_not_live_world_views() -> None:
     """Test later simulation mutation cannot rewrite an earlier observation."""
     config = ReferenceEcologyConfig(
