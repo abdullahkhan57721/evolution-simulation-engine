@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.engine.stage_coordinator import StageCoordinator
 from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.telemetry import AppliedEvent, StepTelemetry
 
 
 class SequentialStepCoordinator:
@@ -28,24 +29,29 @@ class SequentialStepCoordinator:
         self,
         simulation_state: SimulationState,
     ) -> SimulationState:
-        """Coordinate one complete simulation step.
+        """Coordinate one complete transactional simulation step.
 
         Args:
             simulation_state: Current authoritative simulation state.
 
         Returns:
-            Completed simulation state for the next step.
+            Completed state containing telemetry for the committed step.
         """
-        # Run the whole step against a transactional copy. If any stage
-        # raises, the caller still owns the untouched authoritative state.
         working_state = simulation_state.copy()
+        applied_events: list[AppliedEvent] = []
 
-        for stage in self.stages:
-            stage.coordinate(
-                simulation_state=working_state,
+        for stage_index, stage in enumerate(self.stages):
+            applied_events.extend(
+                stage.coordinate(
+                    simulation_state=working_state,
+                    stage_index=stage_index,
+                )
             )
 
-        # A step counts as completed only after every stage succeeds.
         working_state.step_index += 1
+        working_state.last_step_telemetry = StepTelemetry(
+            completed_step_index=working_state.step_index,
+            events=tuple(applied_events),
+        )
 
         return working_state
