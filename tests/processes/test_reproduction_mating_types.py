@@ -5,8 +5,8 @@ from __future__ import annotations
 import random
 
 from evo_engine.genetics import (
-    Chromosome,
     ChoiceAlleleDomain,
+    Chromosome,
     ClonalInheritance,
     CompleteDominanceExpression,
     GeneticArchitecture,
