@@ -67,7 +67,9 @@ class DependencyReport:
             f"{dependency.category}:{dependency.name}"
             for dependency in sorted(self.missing)
         )
-        raise ValueError(f"simulation configuration has missing dependencies: {formatted}")
+        raise ValueError(
+            f"simulation configuration has missing dependencies: {formatted}"
+        )
 
 
 def collect_component_dependencies(*components: object) -> frozenset[Dependency]:
