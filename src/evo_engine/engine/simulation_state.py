@@ -7,27 +7,27 @@ import random
 
 import attrs
 
-from evo_engine.behavior import BehaviorSelectionModel, UnrestrictedBehavior
+from evo_engine.behavior import BehaviorSelectionModel
+from evo_engine.engine.simulation_context import SimulationContext
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.telemetry import StepTelemetry
 from evo_engine.validation import attrs_validators
 from evo_engine.world.world_state import WorldState
 
 
-@attrs.define(slots=True, kw_only=True)
+@attrs.define(slots=True, kw_only=True, init=False)
 class SimulationState:
-    """Represent the mutable state and shared models of one simulation run.
+    """Represent mutable state for one transactional simulation snapshot.
 
-    Genetic architecture and behavior selection are shared simulation
-    configuration. Copies share those models while independently copying the
-    mutable world and random-number-generator state. ``last_step_telemetry`` is
-    populated only after a complete transactional step succeeds.
+    ``SimulationContext`` contains immutable configuration shared across state
+    copies. Mutable world, RNG, step index, and telemetry remain state. The
+    constructor retains the previous ``genetic_architecture`` and
+    ``behavior_selection_model`` arguments for source compatibility while also
+    accepting an already-built context.
 
     Attributes:
         world: Current state of the simulated world.
-        genetic_architecture: Shared genotype-to-phenotype and mutation rules.
-        behavior_selection_model: Shared policy deciding whether organisms
-            attempt behavioral purposes.
+        context: Immutable configuration shared across transactional copies.
         step_index: Index of the current simulation state.
         rng: Random number generator for the simulation.
         last_step_telemetry: Telemetry for the most recently committed step.
@@ -36,13 +36,8 @@ class SimulationState:
     world: WorldState = attrs.field(
         validator=attrs.validators.instance_of(WorldState),
     )
-    genetic_architecture: GeneticArchitecture = attrs.field(
-        validator=attrs.validators.instance_of(GeneticArchitecture),
-        on_setattr=attrs.setters.frozen,
-    )
-    behavior_selection_model: BehaviorSelectionModel = attrs.field(
-        factory=UnrestrictedBehavior,
-        validator=attrs.validators.instance_of(BehaviorSelectionModel),
+    context: SimulationContext = attrs.field(
+        validator=attrs.validators.instance_of(SimulationContext),
         on_setattr=attrs.setters.frozen,
     )
     step_index: int = attrs.field(
@@ -61,20 +56,86 @@ class SimulationState:
         ),
     )
 
+    def __init__(
+        self,
+        *,
+        world: WorldState,
+        context: SimulationContext | None = None,
+        genetic_architecture: GeneticArchitecture | None = None,
+        behavior_selection_model: BehaviorSelectionModel | None = None,
+        step_index: int = 0,
+        rng: random.Random | None = None,
+        last_step_telemetry: StepTelemetry | None = None,
+    ) -> None:
+        """Initialize mutable state with shared simulation configuration.
+
+        Args:
+            world: Current state of the simulated world.
+            context: Optional complete immutable simulation context.
+            genetic_architecture: Backward-compatible architecture argument used
+                to construct ``context`` when one is not supplied.
+            behavior_selection_model: Optional backward-compatible behavior
+                policy used when constructing ``context``.
+            step_index: Current simulation step index.
+            rng: Simulation random-number generator. Defaults to a new generator.
+            last_step_telemetry: Most recently committed step telemetry.
+
+        Raises:
+            TypeError: If required configuration is missing or both a context
+                and legacy context-construction arguments are supplied.
+        """
+        if context is not None:
+            if genetic_architecture is not None or behavior_selection_model is not None:
+                raise TypeError(
+                    "context cannot be combined with genetic_architecture or "
+                    "behavior_selection_model."
+                )
+        else:
+            if genetic_architecture is None:
+                raise TypeError(
+                    "genetic_architecture is required when context is not supplied."
+                )
+            context_kwargs: dict[str, object] = {
+                "genetic_architecture": genetic_architecture,
+            }
+            if behavior_selection_model is not None:
+                context_kwargs["behavior_selection_model"] = behavior_selection_model
+            context = SimulationContext(**context_kwargs)  # type: ignore[arg-type]
+
+        if rng is None:
+            rng = random.Random()
+
+        self.__attrs_init__(
+            world=world,
+            context=context,
+            step_index=step_index,
+            rng=rng,
+            last_step_telemetry=last_step_telemetry,
+        )
+
+    @property
+    def genetic_architecture(self) -> GeneticArchitecture:
+        """Return the shared genetic architecture from simulation context."""
+        return self.context.genetic_architecture
+
+    @property
+    def behavior_selection_model(self) -> BehaviorSelectionModel:
+        """Return the shared behavior-selection model from simulation context."""
+        return self.context.behavior_selection_model
+
     def copy(self) -> SimulationState:
         """Return an independent transactional copy of the simulation state.
 
-        Mutable world and RNG state are copied. Shared immutable/pure
-        configuration is retained by reference. Previous committed telemetry is
-        intentionally not copied into the new working transaction.
+        Mutable world and RNG state are copied. Immutable ``context`` is shared
+        by reference. Previous committed telemetry is intentionally not copied
+        into the new working transaction.
 
         Returns:
             Independent working simulation state.
         """
         return SimulationState(
             world=self.world.copy(),
-            genetic_architecture=self.genetic_architecture,
-            behavior_selection_model=self.behavior_selection_model,
+            context=self.context,
             step_index=self.step_index,
             rng=copy.deepcopy(self.rng),
             last_step_telemetry=None,
