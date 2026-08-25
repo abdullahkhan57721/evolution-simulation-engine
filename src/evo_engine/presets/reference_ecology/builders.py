@@ -9,9 +9,10 @@ import attrs
 
 from evo_engine.behavior import (
     ENERGY_ACQUISITION,
+    CharacteristicSensoryAccuracy,
+    CharacteristicSensoryRange,
     EnergyBelowThresholdMovementCondition,
     EnergyConservationBehavior,
-    GeneticPhenotypeSensoryAccuracy,
     MovementIntentRule,
     NearestResourceTarget,
     PrioritizedMovementIntent,
@@ -19,10 +20,11 @@ from evo_engine.behavior import (
     PurposeTargetRoute,
 )
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
+from evo_engine.characteristics import DevelopmentalProfileCharacteristics
 from evo_engine.energetics import (
     AdditiveMetabolicCost,
+    CharacteristicCoefficient,
     DevelopmentalEnergyThreshold,
-    GeneticPhenotypeCoefficient,
     KeepEnergyReserve,
     LinearGrowthCost,
     LinearTraitMaintenanceCost,
@@ -41,8 +43,8 @@ from evo_engine.engine import (
     build_standard_lifecycle,
 )
 from evo_engine.feeding import (
-    GeneticPhenotypeAssimilationEfficiency,
-    GeneticPhenotypeIntakeCapacity,
+    CharacteristicAssimilationEfficiency,
+    CharacteristicIntakeCapacity,
 )
 from evo_engine.genetics import (
     ASSIMILATION_EFFICIENCY,
@@ -61,7 +63,7 @@ from evo_engine.genetics import (
     SexualInheritance,
     SingleCrossoverRecombination,
 )
-from evo_engine.growth import GeneticPhenotypeGrowthRate
+from evo_engine.growth import CharacteristicGrowthRate
 from evo_engine.observation import (
     EventRecorder,
     GeneticCompositionRecorder,
@@ -70,8 +72,8 @@ from evo_engine.observation import (
 )
 from evo_engine.predation import (
     AllOfPredationEligibility,
-    GeneticAttackAdvantagePreference,
-    GeneticAttackDefenseEligibility,
+    CharacteristicAttackAdvantagePreference,
+    CharacteristicAttackDefenseEligibility,
     LargerPredatorEligibility,
 )
 from evo_engine.presets.reference_ecology.config import (
@@ -212,6 +214,7 @@ def build_reference_engine(
         causal telemetry into the standard lifecycle.
     """
     config = resolve_reference_config(config)
+    realized_characteristics = DevelopmentalProfileCharacteristics()
     reserve = KeepEnergyReserve(
         minimum_energy=DevelopmentalEnergyThreshold(trait_name=ENERGY_RESERVE)
     )
@@ -231,11 +234,13 @@ def build_reference_engine(
     mating_compatibility = AllOfMatingCompatibility(
         compatibilities=(
             build_reference_mating_type_compatibility(),
-            MutualMateSearchRange(),
-            MutualSignalCompatibility(),
+            MutualMateSearchRange(source=realized_characteristics),
+            MutualSignalCompatibility(source=realized_characteristics),
         )
     )
-    mating_preference = MutualSignalMarginPreference()
+    mating_preference = MutualSignalMarginPreference(
+        source=realized_characteristics,
+    )
 
     starvation_stage = _accept_all_stage(Starvation())
     maximum_age_stage = _accept_all_stage(MaximumAgeMortality())
@@ -244,8 +249,9 @@ def build_reference_engine(
             cost_model=AdditiveMetabolicCost(
                 cost_models=(
                     PowerLawMetabolicCost(
-                        coefficient=GeneticPhenotypeCoefficient(
-                            trait_name=METABOLIC_COST_COEFFICIENT,
+                        coefficient=CharacteristicCoefficient(
+                            characteristic_name=METABOLIC_COST_COEFFICIENT,
+                            source=realized_characteristics,
                         ),
                         mass_exponent=config.metabolic_mass_exponent,
                         minimum_cost=1,
@@ -267,13 +273,15 @@ def build_reference_engine(
             movement_pattern=MooreRandom(),
             boundary_condition=Clamped(),
             locomotion_cost_model=PowerLawLocomotionCost(
-                coefficient=GeneticPhenotypeCoefficient(
-                    trait_name=LOCOMOTION_COST_COEFFICIENT,
+                coefficient=CharacteristicCoefficient(
+                    characteristic_name=LOCOMOTION_COST_COEFFICIENT,
+                    source=realized_characteristics,
                 ),
                 mass_exponent=config.locomotion_mass_exponent,
                 distance_exponent=config.locomotion_distance_exponent,
                 minimum_nonzero_cost=1,
             ),
+            max_speed_source=realized_characteristics,
             energy_expenditure_policy=SpendToZero(),
             movement_intent_model=PrioritizedMovementIntent(
                 rules=(
@@ -296,7 +304,12 @@ def build_reference_engine(
                     PurposeTargetRoute(
                         behavioral_purpose=ENERGY_ACQUISITION,
                         target_model=NearestResourceTarget(
-                            sensory_accuracy_model=GeneticPhenotypeSensoryAccuracy(),
+                            sensory_range_model=CharacteristicSensoryRange(
+                                source=realized_characteristics,
+                            ),
+                            sensory_accuracy_model=CharacteristicSensoryAccuracy(
+                                source=realized_characteristics,
+                            ),
                         ),
                     ),
                     PurposeTargetRoute(
@@ -319,10 +332,14 @@ def build_reference_engine(
                 can_predate=AllOfPredationEligibility(
                     eligibilities=(
                         LargerPredatorEligibility(),
-                        GeneticAttackDefenseEligibility(),
+                        CharacteristicAttackDefenseEligibility(
+                            source=realized_characteristics,
+                        ),
                     )
                 ),
-                preference_function=GeneticAttackAdvantagePreference(),
+                preference_function=CharacteristicAttackAdvantagePreference(
+                    source=realized_characteristics,
+                ),
             ),
         ),
         resolver=PredationPreferenceOrder(),
@@ -331,15 +348,21 @@ def build_reference_engine(
         processes=(
             ResourceConsumption(
                 requested_amount=config.resource_request_amount,
-                intake_capacity_model=GeneticPhenotypeIntakeCapacity(),
-                assimilation_model=GeneticPhenotypeAssimilationEfficiency(),
+                intake_capacity_model=CharacteristicIntakeCapacity(
+                    source=realized_characteristics,
+                ),
+                assimilation_model=CharacteristicAssimilationEfficiency(
+                    source=realized_characteristics,
+                ),
             ),
         ),
         resolver=EqualShare(),
     )
     growth_stage = _accept_all_stage(
         Growth(
-            growth_model=GeneticPhenotypeGrowthRate(),
+            growth_model=CharacteristicGrowthRate(
+                source=realized_characteristics,
+            ),
             growth_cost_model=LinearGrowthCost(
                 energy_per_body_mass_unit=config.growth_energy_per_mass,
                 minimum_nonzero_cost=1,
