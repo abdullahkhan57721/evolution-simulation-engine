@@ -11,20 +11,21 @@ from evo_engine.reproduction import (
     FixedBodyMassAtBirth,
     FixedEnergyInvestment,
     FixedMatingType,
+    OffspringMatingTypeModel,
     RandomMatingType,
     SingleParent,
 )
 from tests.helpers import add_organism, make_state
 
 
-def _process(*, mating_type_model: object) -> Reproduction:
+def _process(*, mating_type_model: OffspringMatingTypeModel) -> Reproduction:
     return Reproduction(
         eligibility=AlwaysEligible(),
         parent_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
-        offspring_mating_type_model=mating_type_model,  # type: ignore[arg-type]
+        offspring_mating_type_model=mating_type_model,
     )
 
 
