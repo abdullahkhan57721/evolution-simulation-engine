@@ -11,6 +11,7 @@ from evo_engine.engine.protocols import (
     StoppingCondition,
 )
 from evo_engine.engine.simulation import Simulation
+from evo_engine.engine.simulation_context import SimulationContext
 from evo_engine.engine.simulation_engine import SimulationEngine
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.engine.stage_coordinator import StageCoordinator
@@ -25,6 +26,7 @@ __all__ = [
     "Resolver",
     "SequentialStepCoordinator",
     "Simulation",
+    "SimulationContext",
     "SimulationEngine",
     "SimulationEvent",
     "SimulationState",
