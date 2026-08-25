@@ -7,6 +7,11 @@ from typing import Protocol
 
 import attrs
 
+from evo_engine.evolution import (
+    LinkageMap,
+    UniformLinkageMap,
+    sample_linkage_breakpoint,
+)
 from evo_engine.genetics.chromosome import Chromosome
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.validation import validators
@@ -153,15 +158,21 @@ class NoRecombination:
 class SingleCrossoverRecombination:
     """Perform at most one crossover between a pair of homologs.
 
-    A crossover point is sampled uniformly over the integer coordinate span
-    between the first and last shared loci. This makes more widely separated
-    loci more likely to be separated by crossover than nearby loci.
+    Locus coordinates supply the baseline linkage geometry: nearby loci have
+    fewer possible breakpoint coordinates between them and therefore tend to
+    remain associated. ``linkage_map`` can additionally lower breakpoint
+    intensity in sticky regions, prevent crossing over entirely, or create
+    hotspots. The default uniform map preserves the previous coordinate-based
+    behavior.
 
     Attributes:
-        probability_ppm: Probability of crossover in parts per million.
+        probability_ppm: Probability of attempting crossover in parts per
+            million.
+        linkage_map: Domain-neutral map controlling local breakpoint intensity.
     """
 
     probability_ppm: int
+    linkage_map: LinkageMap = attrs.field(factory=UniformLinkageMap)
 
     def __attrs_post_init__(self) -> None:
         """Validate recombination configuration."""
@@ -171,6 +182,16 @@ class SingleCrossoverRecombination:
             upper=PROBABILITY_SCALE,
             name="probability_ppm",
         )
+        try:
+            breakpoint_weight = self.linkage_map.breakpoint_weight
+        except AttributeError as error:
+            raise TypeError(
+                "linkage_map must provide a callable breakpoint_weight method."
+            ) from error
+        if not callable(breakpoint_weight):
+            raise TypeError(
+                "linkage_map must provide a callable breakpoint_weight method."
+            )
 
     def recombine(
         self,
@@ -222,15 +243,13 @@ class SingleCrossoverRecombination:
                 "paired homologs must contain the same loci for crossover."
             )
 
-        # Locus positions provide the physical ordering needed to preserve
-        # linkage. The crossover point splits both homologs at the same place.
         ordered_loci = tuple(
             sorted(
                 (
                     genetic_architecture.locus(locus_name)
                     for locus_name in first_locus_names
                 ),
-                key=lambda locus: locus.position,
+                key=lambda locus: locus.linkage_position,
             )
         )
 
@@ -242,16 +261,16 @@ class SingleCrossoverRecombination:
         if crossover_roll >= self.probability_ppm:
             return homologs
 
-        first_position = ordered_loci[0].position
-        last_position = ordered_loci[-1].position
-
-        # Sample along the positional span rather than uniformly between
-        # locus indices, so widely separated loci have more opportunity to be
-        # separated by crossover.
-        crossover_position = rng.randrange(
-            first_position,
-            last_position,
+        first_position = ordered_loci[0].linkage_position
+        last_position = ordered_loci[-1].linkage_position
+        crossover_position = self._sample_crossover_position(
+            chromosome_name=chromosome_name,
+            first_position=first_position,
+            last_position=last_position,
+            rng=rng,
         )
+        if crossover_position is None:
+            return homologs
 
         first_recombinant_alleles = []
         second_recombinant_alleles = []
@@ -260,7 +279,7 @@ class SingleCrossoverRecombination:
             first_allele = first_homolog.allele_at(locus.name)
             second_allele = second_homolog.allele_at(locus.name)
 
-            if locus.position <= crossover_position:
+            if locus.linkage_position <= crossover_position:
                 first_recombinant_alleles.append(first_allele)
                 second_recombinant_alleles.append(second_allele)
             else:
@@ -276,4 +295,28 @@ class SingleCrossoverRecombination:
                 name=chromosome_name,
                 alleles=tuple(second_recombinant_alleles),
             ),
+        )
+
+    def _sample_crossover_position(
+        self,
+        *,
+        chromosome_name: str,
+        first_position: int,
+        last_position: int,
+        rng: random.Random,
+    ) -> int | None:
+        """Return a linkage-map-weighted crossover position."""
+        if isinstance(self.linkage_map, UniformLinkageMap):
+            if self.linkage_map.relative_rate == 0:
+                return None
+            # Preserve the historical RNG sequence and uniform physical-distance
+            # semantics for the default map.
+            return rng.randrange(first_position, last_position)
+
+        return sample_linkage_breakpoint(
+            self.linkage_map,
+            linkage_group=chromosome_name,
+            first_position=first_position,
+            last_position=last_position,
+            rng=rng,
         )

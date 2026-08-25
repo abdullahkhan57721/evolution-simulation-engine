@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "evolution-simulation-engine"
 version = "0.1.0"
-description = """An extensible engine for spatial ecological and evolutionary simulations."""
+description = """An extensible engine for general evolutionary and spatial ecological simulations."""
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -65,6 +65,31 @@ id = "validation-foundation"
 name = "Validation is a dependency foundation"
 type = "forbidden"
 source_modules = ["evo_engine.validation"]
+forbidden_modules = [
+    "evo_engine.behavior",
+    "evo_engine.development",
+    "evo_engine.energetics",
+    "evo_engine.engine",
+    "evo_engine.evolution",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.reproduction",
+    "evo_engine.resolvers",
+    "evo_engine.spatial",
+    "evo_engine.world",
+]
+
+[[tool.importlinter.contracts]]
+id = "evolution-foundation"
+name = "General evolution abstractions stay independent of biological domains"
+type = "forbidden"
+source_modules = ["evo_engine.evolution"]
 forbidden_modules = [
     "evo_engine.behavior",
     "evo_engine.development",
@@ -164,6 +189,7 @@ source_modules = [
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
+    "evo_engine.evolution",
     "evo_engine.feeding",
     "evo_engine.genetics",
     "evo_engine.growth",

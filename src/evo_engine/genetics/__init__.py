@@ -1,5 +1,10 @@
 """Genetics domain models and policies."""
 
+from evo_engine.evolution import (
+    PiecewiseLinkageMap,
+    RecombinationInterval,
+    UniformLinkageMap,
+)
 from evo_engine.genetics.allele import Allele
 from evo_engine.genetics.builtin_traits import (
     ADULT_BODY_MASS,
@@ -60,6 +65,7 @@ from evo_engine.genetics.mutation import (
     GaussianIntegerMutation,
     MutationPolicy,
     NoMutation,
+    UniformChoiceMutation,
     UniformIntegerMutation,
 )
 from evo_engine.genetics.recombination import (
@@ -123,11 +129,15 @@ __all__ = [
     "MutationPolicy",
     "NoMutation",
     "NoRecombination",
+    "PiecewiseLinkageMap",
+    "RecombinationInterval",
     "RecombinationModel",
     "SexualInheritance",
     "SingleCrossoverRecombination",
     "Trait",
     "TraitRequirementProvider",
-    "collect_required_traits",
+    "UniformChoiceMutation",
     "UniformIntegerMutation",
+    "UniformLinkageMap",
+    "collect_required_traits",
 ]

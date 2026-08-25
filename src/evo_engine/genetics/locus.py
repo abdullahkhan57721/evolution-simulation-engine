@@ -19,6 +19,11 @@ ValueT = TypeVar("ValueT")
 class Locus(Generic[ValueT]):
     """Define a genetic locus and the rules governing its alleles.
 
+    ``Locus`` is the biological specialization of a domain-neutral linkage
+    component. ``chromosome_name`` and ``position`` remain the biological API;
+    ``linkage_group`` and ``linkage_position`` expose the same structure to the
+    general evolution layer.
+
     Attributes:
         name: Unique locus name within a genetic architecture.
         chromosome_name: Name of the chromosome containing the locus.
@@ -44,6 +49,16 @@ class Locus(Generic[ValueT]):
 
         if not self.chromosome_name.strip():
             raise ValueError("chromosome_name must not be empty or whitespace.")
+
+    @property
+    def linkage_group(self) -> str:
+        """Return the domain-neutral linkage group containing this locus."""
+        return self.chromosome_name
+
+    @property
+    def linkage_position(self) -> int:
+        """Return the domain-neutral coordinate of this locus."""
+        return self.position
 
     def create_allele(self, value: ValueT) -> Allele[ValueT]:
         """Create a validated allele for this locus.
