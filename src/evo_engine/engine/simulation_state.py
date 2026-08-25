@@ -92,7 +92,9 @@ class SimulationState:
             TypeError: If a context and separate context values are both given.
         """
         if context is not None and context_values:
-            raise TypeError("context cannot be combined with separate context values.")
+            raise TypeError(
+                "context cannot be combined with separate context values."
+            )
         if context is None:
             context = SimulationContext.from_mapping(context_values)
         if rng is None:
