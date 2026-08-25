@@ -6,7 +6,7 @@ import attrs
 
 from evo_engine.presets.reference_ecology.mating_types import REFERENCE_MATING_TYPES
 from evo_engine.reproduction import (
-    GeneticPhenotypeEnergyInvestment,
+    CharacteristicEnergyInvestment,
     MatingTypeInvestmentScale,
     MatingTypeScaledInvestment,
 )
@@ -19,9 +19,10 @@ class ReferenceMatingTypeInvestmentScales:
 
     The reference mating types remain neutral labels, but they can carry
     different reproductive energetic burdens. Both scales multiply each
-    parent's heritable ``offspring_energy`` value. The defaults preserve the
-    founder pair's historical total investment: a base value of four becomes
-    six energy units for ``type_a`` and two for ``type_b``, totaling eight.
+    parent's realized ``offspring_energy`` characteristic. The defaults preserve
+    the founder pair's historical total investment when development leaves that
+    characteristic unchanged: a base value of four becomes six energy units for
+    ``type_a`` and two for ``type_b``, totaling eight.
 
     Attributes:
         denominator: Positive denominator shared by both rational scales.
@@ -46,18 +47,18 @@ class ReferenceMatingTypeInvestmentScales:
 def build_reference_parental_investment(
     scales: ReferenceMatingTypeInvestmentScales,
 ) -> MatingTypeScaledInvestment:
-    """Build the reference mating-type-scaled heritable investment policy.
+    """Build the reference mating-type-scaled realized investment policy.
 
     Args:
         scales: Reference rational scale configuration.
 
     Returns:
-        Parental-investment policy that scales the heritable ``offspring_energy``
-        value according to each parent's mating type.
+        Parental-investment policy that scales the realized ``offspring_energy``
+        characteristic according to each parent's mating type.
     """
     type_a, type_b = REFERENCE_MATING_TYPES
     return MatingTypeScaledInvestment(
-        base_investment=GeneticPhenotypeEnergyInvestment(),
+        base_investment=CharacteristicEnergyInvestment(),
         scales=(
             MatingTypeInvestmentScale(
                 mating_type=type_a,
