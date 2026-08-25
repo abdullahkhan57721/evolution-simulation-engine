@@ -47,7 +47,9 @@ class Simulation:
         if type(seed) is bool or (seed is not None and type(seed) is not int):
             raise TypeError("seed must be an integer or None, not a Boolean.")
         if context is not None and context_values:
-            raise TypeError("context cannot be combined with separate context values.")
+            raise TypeError(
+                "context cannot be combined with separate context values."
+            )
         if context is None:
             context = SimulationContext.from_mapping(context_values)
 
