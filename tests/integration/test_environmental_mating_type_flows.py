@@ -11,8 +11,8 @@ from evo_engine.development import (
 )
 from evo_engine.engine import SimulationState
 from evo_engine.genetics import (
-    Chromosome,
     ChoiceAlleleDomain,
+    Chromosome,
     ClonalInheritance,
     CompleteDominanceExpression,
     GeneticArchitecture,
