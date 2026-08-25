@@ -29,7 +29,7 @@ def _founder_cost(config: ReferenceEcologyConfig) -> int:
     return _metabolism(config).cost_model.calculate_cost(founder, simulation.state)
 
 
-def test_reference_metabolism_composes_basal_and_physological_costs() -> None:
+def test_reference_metabolism_composes_basal_and_physiological_costs() -> None:
     """Test the reference preset explicitly composes maintenance with metabolism."""
     metabolism = _metabolism(ReferenceEcologyConfig())
 
@@ -37,7 +37,7 @@ def test_reference_metabolism_composes_basal_and_physological_costs() -> None:
     assert len(metabolism.cost_model.cost_models) == 2
 
 
-def test_reference_founder_physology_has_modest_maintenance_cost() -> None:
+def test_reference_founder_physiology_has_modest_maintenance_cost() -> None:
     """Test default performance capabilities add one maintenance energy unit."""
     config = ReferenceEcologyConfig()
     no_tradeoffs = ReferencePhysiologicalTradeoffs(
