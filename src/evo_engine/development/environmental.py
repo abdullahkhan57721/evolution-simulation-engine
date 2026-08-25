@@ -202,7 +202,9 @@ class LinearEnvironmentalDevelopment:
             simulation_state=simulation_state,
             location=location,
         )
-        realized = genetic_value + self.slope * (environment - self.reference_environment)
+        realized = genetic_value + self.slope * (
+            environment - self.reference_environment
+        )
         return _clamp_integer(
             _round_half_away_from_zero(realized),
             minimum=self.minimum,
