@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import random
+from typing import TYPE_CHECKING
 
 import attrs
 
+from evo_engine.development.context import DevelopmentLocation
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
@@ -17,6 +19,9 @@ from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.validation import attrs_validators, validators
+
+if TYPE_CHECKING:
+    from evo_engine.engine.simulation_state import SimulationState
 
 
 @attrs.define(slots=True, kw_only=True)
@@ -102,8 +107,6 @@ class Organism:
 
     def __deepcopy__(self, memo: dict[int, object]) -> Organism:
         """Return a deep copy while sharing immutable genetic state."""
-        # Genome and genetic phenotype are frozen value objects, so sharing them
-        # is cheaper and just as safe as recursively copying them each timestep.
         copied = type(self)(
             age=self.age,
             energy=self.energy,
@@ -130,6 +133,7 @@ class Organism:
         body_mass: int | None = None,
         development_model: DevelopmentModel | None = None,
         rng: random.Random | None = None,
+        simulation_state: SimulationState | None = None,
         mating_type: str = "default",
         x: int = 0,
         y: int = 0,
@@ -138,8 +142,7 @@ class Organism:
 
         When ``body_mass`` is omitted and the genetic phenotype defines the
         canonical ``adult_body_mass`` trait, current mass initially matches that
-        target. This preserves fixed-size behavior until a developmental model
-        is configured. Genomes without that trait default to one mass unit.
+        target. Genomes without that trait default to one mass unit.
 
         Args:
             genetic_architecture: Shared architecture used to validate and
@@ -154,9 +157,11 @@ class Organism:
                 developmental targets. Defaults to deterministic development.
             rng: Random-number generator used by development_model. Required
                 when a development_model is explicitly supplied.
+            simulation_state: Optional state available to environment-aware
+                development models.
             mating_type: Immutable reproductive mating-type label.
-            x: Initial horizontal world coordinate.
-            y: Initial vertical world coordinate.
+            x: Initial horizontal world coordinate and developmental location.
+            y: Initial vertical world coordinate and developmental location.
 
         Returns:
             Organism with a genetic phenotype consistent with its genome.
@@ -182,6 +187,8 @@ class Organism:
             development_model,
             genetic_phenotype,
             rng=development_rng,
+            simulation_state=simulation_state,
+            location=DevelopmentLocation(x=x, y=y),
         )
 
         if body_mass is None:
