@@ -86,7 +86,9 @@ class SimulationSpec:
         if type(self.seed) is bool:
             raise TypeError("seed must be an integer or None, not a Boolean.")
         if not callable(getattr(self.step_coordinator, "coordinate", None)):
-            raise TypeError("step_coordinator must provide a callable coordinate method.")
+            raise TypeError(
+                "step_coordinator must provide a callable coordinate method."
+            )
         if not callable(getattr(self.stopping_condition, "should_stop", None)):
             raise TypeError(
                 "stopping_condition must provide a callable should_stop method."
