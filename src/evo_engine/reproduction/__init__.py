@@ -27,6 +27,13 @@ from evo_engine.reproduction.mating import (
     MutualSignalCompatibility,
     MutualSignalMarginPreference,
 )
+from evo_engine.reproduction.mating_types import (
+    DifferentMatingTypes,
+    FixedMatingType,
+    OffspringMatingTypeModel,
+    RandomMatingType,
+    determine_offspring_mating_type,
+)
 from evo_engine.reproduction.movement import (
     PreferredMateTarget,
     ReproductiveEligibilityMovementCondition,
@@ -48,8 +55,10 @@ __all__ = [
     "AllOfMatingCompatibility",
     "AlwaysEligible",
     "DevelopmentalMaturityEligibility",
+    "DifferentMatingTypes",
     "FixedBodyMassAtBirth",
     "FixedEnergyInvestment",
+    "FixedMatingType",
     "FractionOfAdultBodyMassAtBirth",
     "GeneticPhenotypeEnergyInvestment",
     "MatingCompatibility",
@@ -60,14 +69,17 @@ __all__ = [
     "MutualSignalCompatibility",
     "MutualSignalMarginPreference",
     "OffspringBodyMassModel",
+    "OffspringMatingTypeModel",
     "OffspringPlacement",
     "PairwiseMating",
     "ParentalInvestment",
     "ParentGroup",
     "ParentSelection",
     "PreferredMateTarget",
+    "RandomMatingType",
     "RandomParentLocation",
     "ReproductiveEligibility",
     "ReproductiveEligibilityMovementCondition",
     "SingleParent",
+    "determine_offspring_mating_type",
 ]

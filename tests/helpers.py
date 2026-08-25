@@ -99,6 +99,7 @@ def make_organism(
     age: int = 0,
     energy: int = 100,
     body_mass: int | None = None,
+    mating_type: str = "default",
     x: int = 0,
     y: int = 0,
 ) -> Organism:
@@ -120,6 +121,7 @@ def make_organism(
         age=age,
         energy=energy,
         body_mass=body_mass,
+        mating_type=mating_type,
         x=x,
         y=y,
     )
@@ -153,6 +155,7 @@ def add_organism(
     age: int = 0,
     energy: int = 100,
     body_mass: int | None = None,
+    mating_type: str = "default",
     x: int = 0,
     y: int = 0,
 ) -> Organism:
@@ -163,6 +166,7 @@ def add_organism(
         age=age,
         energy=energy,
         body_mass=body_mass,
+        mating_type=mating_type,
         x=x,
         y=y,
     )

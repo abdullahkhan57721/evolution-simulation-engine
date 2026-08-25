@@ -18,6 +18,9 @@ from evo_engine.presets.reference_ecology.config import (
     ReferenceEcologyConfig,
     resolve_reference_config,
 )
+from evo_engine.presets.reference_ecology.mating_types import (
+    reference_founder_mating_type,
+)
 from evo_engine.world import Organism, WorldState
 
 
@@ -113,7 +116,9 @@ def build_reference_world(
 
     Founders occupy distinct cells in row-major order. Compact placement keeps
     early mating and interaction opportunities possible without hidden random
-    initialization draws.
+    initialization draws. Mating types cycle deterministically through the
+    reference type set, yielding a balanced founder population without consuming
+    simulation RNG.
 
     Args:
         genetic_architecture: Architecture shared by all organisms.
@@ -139,6 +144,7 @@ def build_reference_world(
                 genome=founder_genome,
                 age=0,
                 energy=config.initial_energy,
+                mating_type=reference_founder_mating_type(index),
                 x=index % config.width,
                 y=index // config.width,
             )
