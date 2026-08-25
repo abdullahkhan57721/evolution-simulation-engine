@@ -4,10 +4,31 @@ The repository uses Import Linter contracts in `pyproject.toml` to protect a sma
 
 The current contracts enforce these principles:
 
-- `evo_engine.validation` is a dependency foundation and must not depend on simulation-domain packages or high-level presets.
-- `evo_engine.genetics` remains upstream of behavior, development, energetics, engine orchestration, feeding, growth, life history, predation, presets, processes, reproduction, resolvers, spatial behavior, and world state.
+- `evo_engine.validation` is a dependency foundation and must not depend on evolutionary, simulation-domain, orchestration, or preset packages.
+- `evo_engine.evolution` is the domain-neutral evolutionary foundation. It may use validation utilities but must not depend on biological genetics, ecology, world state, concrete processes/resolvers, presets, or engine orchestration.
+- `evo_engine.genetics` is a biological specialization of the general evolution layer and remains upstream of behavior, development, energetics, engine orchestration, feeding, growth, life history, predation, presets, processes, reproduction, resolvers, spatial behavior, and world state.
 - Domain packages (`behavior`, `development`, `energetics`, `feeding`, `genetics`, `growth`, `life_history`, `predation`, `reproduction`, `spatial`, and `world`) must not depend on concrete process or resolver implementations or on high-level presets.
 - Engine orchestration must not depend on concrete process or resolver implementations or on high-level presets.
+
+The intended foundational direction is:
+
+```text
+validation
+    |
+    v
+evolution
+    |
+    v
+biological/domain specializations
+    |
+    v
+process and engine composition
+    |
+    v
+presets / experiments / interfaces
+```
+
+`evo_engine.evolution` should contain only abstractions that make sense for evolutionary systems without assuming DNA, genes, chromosomes, organisms, sex, energy, age, or a spatial ecology. Biological objects may expose adapter properties or methods that satisfy these general contracts while keeping their biology-oriented public APIs.
 
 `evo_engine.life_history` contains cross-process organism strategy abstractions, such as reusable organism-specific threshold models. It is intentionally upstream of behavior, energetics, and reproduction policies that consume those abstractions. It should not become an orchestration layer or a dependency on concrete simulation processes.
 
