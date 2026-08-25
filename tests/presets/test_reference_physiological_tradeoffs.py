@@ -5,6 +5,7 @@ from __future__ import annotations
 import attrs
 
 from evo_engine.energetics import AdditiveMetabolicCost
+from evo_engine.engine import SequentialStepCoordinator
 from evo_engine.presets import (
     ReferenceEcologyConfig,
     ReferencePhysiologicalTradeoffs,
@@ -16,7 +17,10 @@ from evo_engine.processes import Metabolism
 
 def _metabolism(config: ReferenceEcologyConfig) -> Metabolism:
     engine = build_reference_engine(config)
-    for stage in engine.step_coordinator.stages:
+    coordinator = engine.step_coordinator
+    assert isinstance(coordinator, SequentialStepCoordinator)
+
+    for stage in coordinator.stages:
         for process in stage.processes:
             if isinstance(process, Metabolism):
                 return process
