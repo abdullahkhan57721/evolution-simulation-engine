@@ -23,6 +23,7 @@ src/evo_engine/
 ├── feeding/       intake-capacity and resource-assimilation physiology
 ├── reproduction/ reproductive eligibility, mate choice, parent selection,
 │                  investment, movement adapters, and offspring placement
+├── observation/   immutable population and evolutionary measurements
 ├── spatial/       neighborhoods, distances, boundaries, movement geometry
 ├── processes/     simulation processes that propose and apply events
 ├── resolvers/     conflict-resolution policies for proposed events
@@ -148,6 +149,37 @@ parameters that can mutate, recombine, and be inherited.
 cost model. Lower metabolic and locomotion coefficients are currently directional
 energetic advantages rather than forced tradeoffs; the engine does not invent a
 compensating penalty without an explicit physiological allocation model.
+
+## Evolution observability
+
+`SimulationEngine` can accept structural `Observer` implementations. Observers are
+offered only authoritative committed states: the run-start baseline and states
+after successfully completed transactional steps. A failed working step is
+discarded and never emitted as history.
+
+The built-in `PopulationRecorder` stores immutable value records rather than live
+organism references. It can summarize population size, carcasses, environmental
+resources, age, energy, body mass, and selected integer genetic-phenotype traits.
+Each trait record includes both numerical statistics and ordered value counts, so
+population polymorphism is not hidden behind a mean.
+
+```python
+from evo_engine.observation import PopulationRecorder
+
+recorder = PopulationRecorder(
+    trait_names=("growth_rate", "metabolic_cost_coefficient"),
+)
+
+engine = SimulationEngine(
+    step_coordinator=coordinator,
+    stopping_condition=stopping_condition,
+    observers=(recorder,),
+)
+```
+
+Observer trait dependencies participate in genetic-architecture preflight. The
+complete reference ecology attaches a recorder automatically and tracks all of its
+integer founder traits each step.
 
 ## Feeding physiology
 
@@ -313,14 +345,16 @@ starvation checkpoints, resource generation and decomposition, prioritized
 food-seeking/mate-seeking/exploratory movement, probabilistic resource sensing,
 trait-driven predation, genetic intake capacity, resource competition, genetic
 assimilation efficiency, heritable growth rate, sexual mate choice, close-range
-sexual reproduction, recombination, mutation, aging, and developmental
-maximum-age mortality.
+sexual reproduction, recombination, mutation, aging, developmental maximum-age
+mortality, and per-step evolutionary population observation.
 
 ```python
 from evo_engine.presets import build_reference_ecology
 
 ecology = build_reference_ecology()
 ecology.engine.run(ecology.simulation)
+
+latest = ecology.recorder.latest
 ```
 
 The preset is an integration baseline and starting point, not a scientifically

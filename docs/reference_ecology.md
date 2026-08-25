@@ -24,11 +24,39 @@ ecology.engine.run(ecology.simulation)
 The returned `ReferenceEcology` bundles:
 
 - `config`: the resolved `ReferenceEcologyConfig`,
-- `simulation`: world state, genetics, RNG, and behavior selection, and
-- `engine`: processes, resolvers, lifecycle, and stopping condition.
+- `simulation`: world state, genetics, RNG, and behavior selection,
+- `engine`: processes, resolvers, lifecycle, stopping condition, and observers,
+  and
+- `recorder`: immutable population/evolution observations produced during the
+  run.
 
 For finer control, the preset also exposes builders for the genetic architecture,
 founder genome, world, simulation, and engine.
+
+## Built-in population observation
+
+`build_reference_ecology()` attaches a `PopulationRecorder` that records the
+founder baseline at step zero and every committed step afterward. The recorder
+tracks every integer trait in `ReferenceTraitValues` in addition to population,
+resource, carcass, age, energy, and current body-mass summaries.
+
+```python
+baseline = ecology.recorder.observations[0]
+latest = ecology.recorder.latest
+
+growth = latest.trait("growth_rate") if latest is not None else None
+```
+
+Each trait record contains count, total, mean, minimum, maximum, and ordered
+`(value, count)` pairs. The distribution is retained because a population mean
+alone can hide polymorphism created by mutation, recombination, and selection.
+
+The recorder stores immutable values rather than references to live organisms.
+Later movement, aging, reproduction, or mortality therefore cannot rewrite an
+earlier historical observation.
+
+Observers run only on committed states. If a transactional simulation step fails,
+its working copy is discarded and no post-step observation is produced.
 
 ## Founder genetic architecture
 
@@ -351,8 +379,9 @@ The defaults compose:
 - meiotic segregation with single crossover,
 - mutation of transmitted alleles,
 - developmental energy reserves,
-- starvation mortality, and
-- developmental maximum-age mortality.
+- starvation mortality,
+- developmental maximum-age mortality, and
+- per-step population and genetic-trait observation.
 
 ## Customization
 
@@ -419,7 +448,8 @@ venv/bin/python examples/reference_ecology_simulation.py
 ```
 
 The example prints the completed step count plus final population, carcass, and
-environmental-resource summaries.
+environmental-resource summaries. The attached recorder can additionally be used
+to inspect the full step-by-step evolutionary history.
 
 ## Known simplifications
 
@@ -434,7 +464,8 @@ The reference ecology intentionally exposes several areas for future model work:
 - signaling and courtship have no energetic cost separate from locomotion,
 - metabolic and locomotion efficiency have no explicit compensating performance
   tradeoff, and
-- the preset provides no observer/analytics layer yet.
+- population observation currently records state rather than event causality,
+  pedigree/lifetime fitness, or allele-level frequencies.
 
 These are explicit limitations, not behavior hidden inside the reference
 configuration. They make the preset useful as a roadmap: future capabilities can

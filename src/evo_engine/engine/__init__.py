@@ -3,6 +3,7 @@
 from evo_engine.engine.lifecycle import build_standard_lifecycle
 from evo_engine.engine.protocols import (
     EventMaterializer,
+    Observer,
     Process,
     Resolver,
     SimulationEvent,
@@ -19,6 +20,7 @@ from evo_engine.engine.stopping_conditions import MaxSteps
 __all__ = [
     "EventMaterializer",
     "MaxSteps",
+    "Observer",
     "Process",
     "Resolver",
     "SequentialStepCoordinator",
