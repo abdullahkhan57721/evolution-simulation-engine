@@ -47,9 +47,7 @@ class CapacityPreferenceOrder:
                 )
             proposals.append((index, event))
 
-        proposals.sort(
-            key=lambda indexed: (-indexed[1].preference_score, indexed[0])
-        )
+        proposals.sort(key=lambda indexed: (-indexed[1].preference_score, indexed[0]))
         accepted: list[Reproduction.Proposal] = []
         counts: dict[int, int] = {}
         for _, proposal in proposals:
