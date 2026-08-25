@@ -109,7 +109,9 @@ class Movement:
     def __attrs_post_init__(self) -> None:
         """Validate Movement configuration."""
         if not callable(getattr(self.max_speed_source, "value_for", None)):
-            raise TypeError("max_speed_source must provide a callable value_for method.")
+            raise TypeError(
+                "max_speed_source must provide a callable value_for method."
+            )
 
         required_methods = (
             (
