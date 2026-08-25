@@ -67,7 +67,10 @@ class MatingTypeCompatibilityMatrix:
         simulation_state: SimulationState,
     ) -> bool:
         """Return whether the parents' mating types form an allowed pair."""
-        return _canonical_pair(
-            first_parent.mating_type,
-            second_parent.mating_type,
-        ) in self.compatible_pairs
+        return (
+            _canonical_pair(
+                first_parent.mating_type,
+                second_parent.mating_type,
+            )
+            in self.compatible_pairs
+        )
