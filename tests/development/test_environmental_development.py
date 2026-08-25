@@ -45,12 +45,15 @@ def test_linear_environmental_development_uses_local_exposure() -> None:
         slope=0.5,
     )
 
-    assert model.develop(
-        10,
-        rng=state.rng,
-        simulation_state=state,
-        location=DevelopmentLocation(x=1, y=1),
-    ) == 15
+    assert (
+        model.develop(
+            10,
+            rng=state.rng,
+            simulation_state=state,
+            location=DevelopmentLocation(x=1, y=1),
+        )
+        == 15
+    )
 
 
 def test_genotype_scaled_environment_has_different_reaction_norm_slopes() -> None:
@@ -122,11 +125,14 @@ def test_world_mean_sampling_supports_global_developmental_exposure() -> None:
         sampling=WorldMeanEnvironmentalSampling(),
     )
 
-    assert model.develop(
-        "genetic_default",
-        rng=state.rng,
-        simulation_state=state,
-    ) == "type_b"
+    assert (
+        model.develop(
+            "genetic_default",
+            rng=state.rng,
+            simulation_state=state,
+        )
+        == "type_b"
+    )
 
 
 def test_local_environmental_development_requires_location_and_state() -> None:
