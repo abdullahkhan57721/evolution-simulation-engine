@@ -271,7 +271,9 @@ def _validate_restored_ecology(
     manifest: ReferenceCheckpointManifest,
 ) -> None:
     if ecology.simulation.state.step_index != manifest.step_index:
-        raise ValueError("Checkpoint step index does not match restored simulation state.")
+        raise ValueError(
+            "Checkpoint step index does not match restored simulation state."
+        )
     if _canonical_config_json(ecology) != manifest.config_json:
         raise ValueError("Checkpoint configuration does not match restored ecology.")
     _require_matching_digest(
@@ -344,6 +346,8 @@ def _validate_nonempty_string(value: object, *, name: str) -> str:
 
 def _validate_sha256(value: object, *, name: str) -> str:
     validated = _validate_nonempty_string(value, name=name)
-    if len(validated) != 64 or any(character not in "0123456789abcdef" for character in validated):
+    if len(validated) != 64 or any(
+        character not in "0123456789abcdef" for character in validated
+    ):
         raise ValueError(f"{name} must be a lowercase SHA-256 hexadecimal digest.")
     return validated
