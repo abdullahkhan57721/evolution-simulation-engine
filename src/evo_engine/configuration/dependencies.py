@@ -194,8 +194,7 @@ def _collect_declared_requirements(
 ) -> None:
     if isinstance(component, TraitRequirementProvider):
         dependencies.update(
-            Dependency(category=TRAIT, name=name)
-            for name in component.required_traits
+            Dependency(category=TRAIT, name=name) for name in component.required_traits
         )
 
     if isinstance(component, CharacteristicRequirementProvider):
