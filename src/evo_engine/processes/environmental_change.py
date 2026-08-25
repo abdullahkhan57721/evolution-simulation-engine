@@ -18,8 +18,7 @@ def _validate_field_name(value: object) -> str:
     return validated
 
 
-@attrs.frozen(slots=True, kw_only=True)
-class EnvironmentalChange:
+@attrs.frozen(slots=True, kw_only=True)\nclass EnvironmentalChange:
     """Apply deterministic time-dependent forcing to an environmental field.
 
     ``coordinates=None`` applies the forcing to every cell in the world.
@@ -110,9 +109,7 @@ class EnvironmentalChange:
         coordinates = self.coordinates
         if coordinates is None:
             coordinates = tuple(
-                (x, y)
-                for y in range(world.height)
-                for x in range(world.width)
+                (x, y) for y in range(world.height) for x in range(world.width)
             )
         else:
             for x, y in coordinates:
