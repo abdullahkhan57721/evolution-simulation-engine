@@ -6,6 +6,10 @@ from typing import Protocol
 
 import attrs
 
+from evo_engine.characteristics import (
+    DevelopmentalProfileCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.builtin_traits import OFFSPRING_ENERGY
 from evo_engine.genetics.requirements import collect_required_traits
@@ -32,6 +36,65 @@ class ParentalInvestment(Protocol):
             Energy investments aligned with the parent tuple.
         """
         ...
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CharacteristicEnergyInvestment:
+    """Use an operative characteristic as each parent's energy investment.
+
+    Attributes:
+        characteristic_name: Characteristic specifying parental energy
+            investment.
+        source: Object providing ``value_for``. Defaults to realized
+            developmental characteristics.
+    """
+
+    characteristic_name: str = OFFSPRING_ENERGY
+    source: object = attrs.field(factory=DevelopmentalProfileCharacteristics)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate characteristic name and source contract."""
+        validators.validate_str(self.characteristic_name, name="characteristic_name")
+        if not self.characteristic_name.strip():
+            raise ValueError("characteristic_name must not be blank.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return the operative characteristic used for parental investment."""
+        return frozenset({self.characteristic_name})
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the biological trait backing the required characteristic."""
+        return self.required_characteristics
+
+    def determine_investments(
+        self,
+        parents: tuple[Organism, ...],
+        *,
+        simulation_state: SimulationState,
+    ) -> tuple[int, ...]:
+        """Return each parent's nonnegative operative investment value.
+
+        Args:
+            parents: One or two reproductive parents.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Energy investments aligned with the parent tuple.
+        """
+        return tuple(
+            integer_characteristic(
+                self.source,
+                parent,
+                self.characteristic_name,
+                context=simulation_state,
+                minimum=0,
+            )
+            for parent in parents
+        )
 
 
 @attrs.frozen(slots=True, kw_only=True)
