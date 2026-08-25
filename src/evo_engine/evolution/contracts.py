@@ -12,25 +12,27 @@ from __future__ import annotations
 import random
 from typing import Protocol, TypeVar
 
-HeritableStateT = TypeVar("HeritableStateT")
-ExpressedStateT = TypeVar("ExpressedStateT")
+EntityHeritableStateT = TypeVar("EntityHeritableStateT", covariant=True)
+ExpressionInputT = TypeVar("ExpressionInputT", contravariant=True)
+ExpressionOutputT = TypeVar("ExpressionOutputT", covariant=True)
 VariationValueT = TypeVar("VariationValueT")
-TransmissionContextT = TypeVar("TransmissionContextT")
+TransmissionStateT = TypeVar("TransmissionStateT")
+TransmissionContextT = TypeVar("TransmissionContextT", contravariant=True)
 
 
-class EvolutionaryEntity(Protocol[HeritableStateT]):
+class EvolutionaryEntity(Protocol[EntityHeritableStateT]):
     """Expose the heritable state carried by an evolving entity."""
 
     @property
-    def heritable_state(self) -> HeritableStateT:
+    def heritable_state(self) -> EntityHeritableStateT:
         """Return the entity state that may be transmitted to descendants."""
         ...
 
 
-class HeritableStateExpression(Protocol[HeritableStateT, ExpressedStateT]):
+class HeritableStateExpression(Protocol[ExpressionInputT, ExpressionOutputT]):
     """Map heritable information to expressed operative characteristics."""
 
-    def express(self, heritable_state: HeritableStateT) -> ExpressedStateT:
+    def express(self, heritable_state: ExpressionInputT) -> ExpressionOutputT:
         """Return expressed state derived from heritable state.
 
         Args:
@@ -63,7 +65,7 @@ class VariationOperator(Protocol[VariationValueT]):
         ...
 
 
-class TransmissionModel(Protocol[HeritableStateT, TransmissionContextT]):
+class TransmissionModel(Protocol[TransmissionStateT, TransmissionContextT]):
     """Construct descendant heritable state from contributing parent states."""
 
     @property
@@ -73,11 +75,11 @@ class TransmissionModel(Protocol[HeritableStateT, TransmissionContextT]):
 
     def transmit(
         self,
-        parent_states: tuple[HeritableStateT, ...],
+        parent_states: tuple[TransmissionStateT, ...],
         *,
         context: TransmissionContextT,
         rng: random.Random,
-    ) -> HeritableStateT:
+    ) -> TransmissionStateT:
         """Return descendant heritable state.
 
         Args:
