@@ -1,12 +1,11 @@
-"""Protocols for simulation engine components."""
+"""Protocols for domain-neutral simulation engine components."""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Protocol, TypeVar, runtime_checkable
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.world import WorldState
 
 
 class SimulationEvent(Protocol):
@@ -41,12 +40,7 @@ MaterializedEventT_co = TypeVar(
 
 
 class Process(Protocol[ProposedEventT_co, MaterializedEventT_contra]):
-    """Define the interface for simulation processes.
-
-    A process proposes events for resolution and applies materialized events.
-    For processes that do not require post-resolution materialization, the
-    proposed and applied event types may be the same.
-    """
+    """Define one proposed/resolved/applied state-transition mechanism."""
 
     @property
     def event_type(self) -> type[ProposedEventT_co]:
@@ -57,7 +51,7 @@ class Process(Protocol[ProposedEventT_co, MaterializedEventT_contra]):
         self,
         simulation_state: SimulationState,
     ) -> Sequence[ProposedEventT_co]:
-        """Propose events from simulation state."""
+        """Propose events from the current transactional state."""
         ...
 
     def apply_event(
@@ -66,13 +60,7 @@ class Process(Protocol[ProposedEventT_co, MaterializedEventT_contra]):
         event: MaterializedEventT_contra,
         /,
     ) -> None:
-        """Apply a materialized event to simulation state.
-
-        The event parameter is positional-only in the protocol so concrete
-        processes may use a more descriptive local name such as
-        ``resolved_event`` or ``materialized_event`` without breaking
-        structural typing.
-        """
+        """Apply a materialized event to simulation state."""
         ...
 
 
@@ -91,7 +79,7 @@ class EventMaterializer(Protocol[MaterializableEventT_contra, MaterializedEventT
 
 
 class Resolver(Protocol):
-    """Define the interface for stage event resolvers."""
+    """Resolve competing or incompatible proposed transitions."""
 
     def resolve_events(
         self,
@@ -103,7 +91,7 @@ class Resolver(Protocol):
 
 
 class StepCoordinator(Protocol):
-    """Define the interface for simulation step coordinators."""
+    """Coordinate one complete simulation update step."""
 
     def coordinate(
         self,
@@ -114,7 +102,7 @@ class StepCoordinator(Protocol):
 
 
 class StoppingCondition(Protocol):
-    """Define the interface for simulation stopping conditions."""
+    """Determine when an evolving simulation run terminates."""
 
     def should_stop(
         self,
@@ -126,16 +114,11 @@ class StoppingCondition(Protocol):
 
 @runtime_checkable
 class Observer(Protocol):
-    """Observe committed world state without participating in simulation updates.
-
-    Observer implementations must treat ``world_state`` as read-only. The engine
-    calls observers only for authoritative committed states, never for an
-    in-progress transactional working copy.
-    """
+    """Observe committed domain state without participating in updates."""
 
     def should_observe(
         self,
-        world_state: WorldState,
+        world_state: Any,
         *,
         step_index: int,
     ) -> bool:
@@ -144,7 +127,7 @@ class Observer(Protocol):
 
     def observe(
         self,
-        world_state: WorldState,
+        world_state: Any,
         *,
         step_index: int,
     ) -> None:
