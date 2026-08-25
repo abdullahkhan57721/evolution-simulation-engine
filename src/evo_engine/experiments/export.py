@@ -10,7 +10,7 @@ from typing import Any
 import attrs
 
 from evo_engine.experiments.reference import ReferenceExperimentResult
-from evo_engine.observation import CategoryCounts
+from evo_engine.observation import CategoryCounts, PopulationObservation
 
 
 def write_experiment_json(
@@ -175,15 +175,11 @@ def _observed_mating_type_names(result: ReferenceExperimentResult) -> tuple[str,
 
 
 def _final_mating_type_counts(
-    population_history: tuple[object, ...],
+    population_history: tuple[PopulationObservation, ...],
 ) -> CategoryCounts:
     if not population_history:
         return CategoryCounts()
-    final_observation = population_history[-1]
-    mating_type_counts = getattr(final_observation, "mating_type_counts", None)
-    if not isinstance(mating_type_counts, CategoryCounts):
-        raise TypeError("population_history must contain PopulationObservation values.")
-    return mating_type_counts
+    return population_history[-1].mating_type_counts
 
 
 def _validate_result(result: ReferenceExperimentResult) -> None:
