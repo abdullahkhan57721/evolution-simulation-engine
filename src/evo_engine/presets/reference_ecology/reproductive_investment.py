@@ -4,6 +4,12 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.presets.reference_ecology.mating_types import REFERENCE_MATING_TYPES
+from evo_engine.reproduction import (
+    GeneticPhenotypeEnergyInvestment,
+    MatingTypeInvestmentScale,
+    MatingTypeScaledInvestment,
+)
 from evo_engine.validation import attrs_validators
 
 
@@ -34,4 +40,34 @@ class ReferenceMatingTypeInvestmentScales:
     type_b_numerator: int = attrs.field(
         default=1,
         validator=attrs_validators.validate_int_ge(0),
+    )
+
+
+def build_reference_parental_investment(
+    scales: ReferenceMatingTypeInvestmentScales,
+) -> MatingTypeScaledInvestment:
+    """Build the reference mating-type-scaled heritable investment policy.
+
+    Args:
+        scales: Reference rational scale configuration.
+
+    Returns:
+        Parental-investment policy that scales the heritable ``offspring_energy``
+        value according to each parent's mating type.
+    """
+    type_a, type_b = REFERENCE_MATING_TYPES
+    return MatingTypeScaledInvestment(
+        base_investment=GeneticPhenotypeEnergyInvestment(),
+        scales=(
+            MatingTypeInvestmentScale(
+                mating_type=type_a,
+                numerator=scales.type_a_numerator,
+                denominator=scales.denominator,
+            ),
+            MatingTypeInvestmentScale(
+                mating_type=type_b,
+                numerator=scales.type_b_numerator,
+                denominator=scales.denominator,
+            ),
+        ),
     )
