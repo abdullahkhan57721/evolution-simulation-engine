@@ -73,7 +73,9 @@ class SimulationContext:
             Immutable simulation context.
         """
         return cls(
-            values=tuple(ContextValue(name=name, value=value) for name, value in values.items())
+            values=tuple(
+                ContextValue(name=name, value=value) for name, value in values.items()
+            )
         )
 
     def require(self, name: str) -> Any:
