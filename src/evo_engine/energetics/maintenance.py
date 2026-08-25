@@ -89,8 +89,7 @@ class LinearTraitMaintenanceCost:
         for index, term in enumerate(self.terms):
             if not isinstance(term, TraitMaintenanceTerm):
                 raise TypeError(
-                    f"terms[{index}] must be a TraitMaintenanceTerm; "
-                    f"received {term!r}."
+                    f"terms[{index}] must be a TraitMaintenanceTerm; received {term!r}."
                 )
 
     @property
