@@ -67,7 +67,7 @@ def test_reference_replicates_reject_duplicate_seeds() -> None:
 
 
 def test_experiment_exports_json_and_csv(tmp_path: Path) -> None:
-    """Test experiment outputs are machine-readable and contain every replicate."""
+    """Test experiment outputs include mating-type histories for every replicate."""
     result = run_reference_replicates(_config(), seeds=(2, 4))
 
     json_path = write_experiment_json(result, tmp_path / "experiment.json")
@@ -79,14 +79,29 @@ def test_experiment_exports_json_and_csv(tmp_path: Path) -> None:
         2,
         4,
     ]
+    baseline_counts = payload["replicates"][0]["population_history"][0][
+        "mating_type_counts"
+    ]["value_counts"]
+    assert baseline_counts == [["type_a", 2], ["type_b", 2]]
 
     with summary_path.open(encoding="utf-8", newline="") as stream:
         summary_rows = list(csv.DictReader(stream))
     assert [int(row["seed"]) for row in summary_rows] == [2, 4]
     assert all(int(row["completed_steps"]) == 2 for row in summary_rows)
+    for row in summary_rows:
+        final_type_count = int(row["final_mating_type_count:type_a"]) + int(
+            row["final_mating_type_count:type_b"]
+        )
+        assert final_type_count == int(row["final_population_size"])
 
     with history_path.open(encoding="utf-8", newline="") as stream:
         history_rows = list(csv.DictReader(stream))
     assert len(history_rows) == 6
     assert {int(row["seed"]) for row in history_rows} == {2, 4}
     assert "trait_mean:growth_rate" in history_rows[0]
+    assert "mating_type_count:type_a" in history_rows[0]
+    assert "mating_type_count:type_b" in history_rows[0]
+
+    baseline_rows = [row for row in history_rows if int(row["step_index"]) == 0]
+    assert all(int(row["mating_type_count:type_a"]) == 2 for row in baseline_rows)
+    assert all(int(row["mating_type_count:type_b"]) == 2 for row in baseline_rows)
