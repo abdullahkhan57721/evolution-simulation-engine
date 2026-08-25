@@ -36,12 +36,14 @@ from evo_engine.behavior.selection import (
     behavior_is_allowed,
 )
 from evo_engine.behavior.sensory_accuracy import (
+    CharacteristicSensoryAccuracy,
     FixedSensoryAccuracy,
     GeneticPhenotypeSensoryAccuracy,
     SensoryAccuracyModel,
     determine_sensory_accuracy,
 )
 from evo_engine.behavior.sensory_range import (
+    CharacteristicSensoryRange,
     FixedSensoryRange,
     GeneticPhenotypeSensoryRange,
     SensoryRangeModel,
@@ -52,6 +54,8 @@ __all__ = [
     "BUILTIN_BEHAVIORAL_PURPOSES",
     "BehaviorSelectionModel",
     "BehavioralPurposeProvider",
+    "CharacteristicSensoryAccuracy",
+    "CharacteristicSensoryRange",
     "ENERGY_ACQUISITION",
     "EXPLORATION",
     "EnergyBelowThresholdMovementCondition",
