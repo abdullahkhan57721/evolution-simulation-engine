@@ -225,7 +225,9 @@ def _run_reference_replicate(
             engine_version=_engine_version(),
             python_version=platform.python_version(),
             config_json=_canonical_config_json(config),
-            trait_names=ecology.simulation.genetic_architecture.trait_names,
+            trait_names=tuple(
+                sorted(ecology.simulation.genetic_architecture.trait_names)
+            ),
             locus_names=tuple(
                 locus.name for locus in ecology.simulation.genetic_architecture.loci
             ),
