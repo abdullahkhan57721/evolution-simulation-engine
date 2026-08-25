@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import attrs
 
-from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import validators
-from evo_engine.world.organism import Organism
+
+if TYPE_CHECKING:
+    from evo_engine.engine.simulation_state import SimulationState
+    from evo_engine.world.organism import Organism
 
 
 @attrs.frozen(slots=True)
