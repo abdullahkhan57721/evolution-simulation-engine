@@ -56,7 +56,9 @@ class SimulationState:
     )
     last_step_telemetry: StepTelemetry | None = attrs.field(
         default=None,
-        validator=attrs.validators.optional(attrs.validators.instance_of(StepTelemetry)),
+        validator=attrs.validators.optional(
+            attrs.validators.instance_of(StepTelemetry)
+        ),
     )
 
     def copy(self) -> SimulationState:
