@@ -54,7 +54,10 @@ class EventRecorder:
             and has not already been recorded.
         """
         _validate_telemetry(telemetry)
-        if self._steps and self._steps[-1].completed_step_index == telemetry.completed_step_index:
+        if (
+            self._steps
+            and self._steps[-1].completed_step_index == telemetry.completed_step_index
+        ):
             return False
         return telemetry.completed_step_index % self.every_n_steps == 0
 
@@ -68,7 +71,11 @@ class EventRecorder:
             ValueError: If telemetry is supplied out of chronological order.
         """
         _validate_telemetry(telemetry)
-        if self._steps and telemetry.completed_step_index <= self._steps[-1].completed_step_index:
+        if (
+            self._steps
+            and telemetry.completed_step_index
+            <= self._steps[-1].completed_step_index
+        ):
             raise ValueError(
                 "EventRecorder telemetry must have strictly increasing "
                 "completed_step_index values."
@@ -90,7 +97,8 @@ class EventRecorder:
         return tuple(
             event
             for event in self.events
-            if event.process_type == validated_name or event.process_name == validated_name
+            if event.process_type == validated_name
+            or event.process_name == validated_name
         )
 
     def clear(self) -> None:
