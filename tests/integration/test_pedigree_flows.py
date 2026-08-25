@@ -39,7 +39,6 @@ def test_reference_ecology_records_realized_parentage() -> None:
             initial_energy=20,
             max_steps=1,
             seed=11,
-            resource_deposits_per_step=0,
             traits=_reproduction_traits(),
         )
     )
@@ -48,16 +47,17 @@ def test_reference_ecology_records_realized_parentage() -> None:
 
     recorder = ecology.pedigree_recorder
     founders = recorder.founder_ids
-    nonfounders = tuple(
-        record for record in recorder.records if not record.is_founder
-    )
+    nonfounders = tuple(record for record in recorder.records if not record.is_founder)
 
     assert len(founders) == 2
     assert len(nonfounders) == 1
     offspring = nonfounders[0]
     assert set(offspring.parent_ids) == set(founders)
     assert offspring.birth_step == 1
-    assert all(recorder.offspring_of(parent_id) == (offspring.organism_id,) for parent_id in founders)
+    assert all(
+        recorder.offspring_of(parent_id) == (offspring.organism_id,)
+        for parent_id in founders
+    )
 
 
 def test_reference_ecology_records_maximum_age_death_and_completed_fitness() -> None:
@@ -70,7 +70,6 @@ def test_reference_ecology_records_maximum_age_death_and_completed_fitness() -> 
             initial_energy=20,
             max_steps=1,
             seed=13,
-            resource_deposits_per_step=0,
             traits=_reproduction_traits(maximum_age=1),
         )
     )
