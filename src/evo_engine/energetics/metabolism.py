@@ -18,7 +18,8 @@ from evo_engine.energetics.coefficients import (
     validate_coefficient_source,
 )
 from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.validation import attrs_validators
+from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
 
 
@@ -139,3 +140,65 @@ class PowerLawMetabolicCost:
             raw_cost,
             minimum_cost=self.minimum_cost,
         )
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class AdditiveMetabolicCost:
+    """Sum independent metabolic-cost components into one timestep cost.
+
+    Composition lets a simulation retain a body-mass-scaled basal requirement
+    while adding maintenance burdens for costly physiological capabilities. Each
+    component remains independently replaceable and declares its own trait
+    dependencies.
+
+    Attributes:
+        cost_models: Nonempty ordered metabolic-cost components to sum.
+    """
+
+    cost_models: tuple[MetabolicCostModel, ...] = attrs.field(
+        validator=attrs_validators.validate_tuple,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate cost-model components."""
+        if not self.cost_models:
+            raise ValueError("cost_models must not be empty.")
+        for index, cost_model in enumerate(self.cost_models):
+            if not callable(getattr(cost_model, "calculate_cost", None)):
+                raise TypeError(
+                    f"cost_models[{index}] must provide a callable calculate_cost "
+                    f"method; received {cost_model!r}."
+                )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the union of traits required by all cost components."""
+        return collect_required_traits(*self.cost_models)
+
+    def calculate_cost(
+        self,
+        organism: Organism,
+        simulation_state: SimulationState,
+    ) -> int:
+        """Return the sum of validated component costs.
+
+        Args:
+            organism: Organism whose metabolic cost is being calculated.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Sum of nonnegative integer component costs.
+
+        Raises:
+            TypeError: If a component returns a non-integer cost.
+            ValueError: If a component returns a negative cost.
+        """
+        total = 0
+        for index, cost_model in enumerate(self.cost_models):
+            component_cost = validators.validate_int_ge(
+                cost_model.calculate_cost(organism, simulation_state),
+                bound=0,
+                name=f"cost_models[{index}] return value",
+            )
+            total += component_cost
+        return total
