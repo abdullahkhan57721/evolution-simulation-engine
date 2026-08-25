@@ -11,6 +11,7 @@ import attrs
 from evo_engine.telemetry import (
     CarcassAdded,
     CarcassRemoved,
+    EnvironmentalValueChanged,
     OrganismAdded,
     OrganismMoved,
     OrganismRemoved,
@@ -19,6 +20,7 @@ from evo_engine.telemetry import (
 )
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.carcass import Carcass
+from evo_engine.world.environment import EnvironmentalField
 from evo_engine.world.organism import Organism
 
 
@@ -31,9 +33,14 @@ class WorldState:
     them. ``copy()`` deliberately starts a fresh journal while preserving all
     ecological state.
 
+    Environmental fields are immutable definitions paired with sparse mutable
+    spatial overrides. Cells without an override use the field's configured
+    default value.
+
     Attributes:
         width: Width of the world in grid cells.
         height: Height of the world in grid cells.
+        environmental_fields: Immutable named scalar environmental definitions.
     """
 
     width: int = attrs.field(
@@ -44,6 +51,10 @@ class WorldState:
         validator=attrs_validators.validate_int_ge(1),
         on_setattr=attrs.setters.frozen,
     )
+    environmental_fields: tuple[EnvironmentalField, ...] = attrs.field(
+        factory=tuple,
+        on_setattr=attrs.setters.frozen,
+    )
 
     _organisms: dict[int, Organism] = attrs.field(
         factory=dict,
@@ -51,6 +62,11 @@ class WorldState:
         repr=False,
     )
     _resources: dict[tuple[int, int], int] = attrs.field(
+        factory=dict,
+        init=False,
+        repr=False,
+    )
+    _environmental_values: dict[str, dict[tuple[int, int], int | float]] = attrs.field(
         factory=dict,
         init=False,
         repr=False,
@@ -78,6 +94,27 @@ class WorldState:
         repr=False,
     )
 
+    def __attrs_post_init__(self) -> None:
+        """Validate environmental field definitions."""
+        validators.validate_tuple(
+            self.environmental_fields,
+            name="environmental_fields",
+        )
+        seen: set[str] = set()
+        for index, field in enumerate(self.environmental_fields):
+            if not isinstance(field, EnvironmentalField):
+                raise TypeError(
+                    f"environmental_fields[{index}] must be an EnvironmentalField; "
+                    f"received {field!r}."
+                )
+            if field.name in seen:
+                raise ValueError(
+                    "environmental_fields must not contain duplicate names; "
+                    f"received {field.name!r}."
+                )
+            seen.add(field.name)
+            self._environmental_values[field.name] = {}
+
     @property
     def organisms(self) -> Mapping[int, Organism]:
         """Return the organisms currently in the world."""
@@ -92,6 +129,11 @@ class WorldState:
     def resources(self) -> Mapping[tuple[int, int], int]:
         """Return the spatial resources currently in the world."""
         return MappingProxyType(self._resources)
+
+    @property
+    def environmental_field_names(self) -> tuple[str, ...]:
+        """Return configured environmental field names in definition order."""
+        return tuple(field.name for field in self.environmental_fields)
 
     @property
     def mutation_count(self) -> int:
@@ -110,14 +152,116 @@ class WorldState:
         Raises:
             ValueError: If checkpoint exceeds the current journal length.
         """
-        validators.validate_int_ge(
-            checkpoint,
-            bound=0,
-            name="checkpoint",
-        )
+        validators.validate_int_ge(checkpoint, bound=0, name="checkpoint")
         if checkpoint > len(self._mutations):
             raise ValueError("checkpoint cannot exceed current mutation_count.")
         return tuple(self._mutations[checkpoint:])
+
+    def environmental_value(self, field_name: str, *, x: int, y: int) -> int | float:
+        """Return one environmental field value at a world coordinate.
+
+        Args:
+            field_name: Configured environmental field name.
+            x: Horizontal coordinate.
+            y: Vertical coordinate.
+
+        Returns:
+            Explicit spatial override or the field's default value.
+
+        Raises:
+            KeyError: If field_name is not configured.
+            ValueError: If the coordinate is outside world bounds.
+        """
+        field = self._environmental_field(field_name)
+        self._validate_coordinate(x=x, y=y)
+        return self._environmental_values[field.name].get((x, y), field.default_value)
+
+    def environmental_overrides(
+        self,
+        field_name: str,
+    ) -> Mapping[tuple[int, int], int | float]:
+        """Return explicit sparse overrides for one environmental field.
+
+        Args:
+            field_name: Configured environmental field name.
+
+        Returns:
+            Read-only coordinate-to-value mapping containing only values that
+            differ from the field default.
+        """
+        field = self._environmental_field(field_name)
+        return MappingProxyType(self._environmental_values[field.name])
+
+    def set_environmental_value(
+        self,
+        field_name: str,
+        *,
+        x: int,
+        y: int,
+        value: int | float,
+    ) -> None:
+        """Set one finite environmental value at a coordinate.
+
+        Setting a value back to the field default removes the sparse override.
+        No mutation is journaled when the effective value does not change.
+
+        Args:
+            field_name: Configured environmental field name.
+            x: Horizontal coordinate.
+            y: Vertical coordinate.
+            value: New finite scalar value.
+        """
+        field = self._environmental_field(field_name)
+        self._validate_coordinate(x=x, y=y)
+        validated_value = field.validate_value(value)
+        coordinate = (x, y)
+        before = self._environmental_values[field.name].get(
+            coordinate,
+            field.default_value,
+        )
+        if validated_value == before:
+            return
+
+        if validated_value == field.default_value:
+            self._environmental_values[field.name].pop(coordinate, None)
+        else:
+            self._environmental_values[field.name][coordinate] = validated_value
+
+        self._mutations.append(
+            EnvironmentalValueChanged(
+                field_name=field.name,
+                x=x,
+                y=y,
+                before=before,
+                after=validated_value,
+            )
+        )
+
+    def change_environmental_value(
+        self,
+        field_name: str,
+        *,
+        x: int,
+        y: int,
+        delta: int | float,
+    ) -> None:
+        """Change one environmental field value by a finite signed amount.
+
+        Args:
+            field_name: Configured environmental field name.
+            x: Horizontal coordinate.
+            y: Vertical coordinate.
+            delta: Finite signed change to apply.
+        """
+        field = self._environmental_field(field_name)
+        validated_delta = field.validate_value(delta, name="delta")
+        before = self.environmental_value(field.name, x=x, y=y)
+        self.set_environmental_value(
+            field.name,
+            x=x,
+            y=y,
+            value=before + validated_delta,
+        )
 
     def add_organism(self, organism: Organism) -> None:
         """Assign an ID to an organism and add it to the world.
@@ -231,14 +375,7 @@ class WorldState:
         before = self._resources.get(coordinate, 0)
         after = before + amount
         self._resources[coordinate] = after
-        self._mutations.append(
-            ResourcesChanged(
-                x=x,
-                y=y,
-                before=before,
-                after=after,
-            )
-        )
+        self._mutations.append(ResourcesChanged(x=x, y=y, before=before, after=after))
 
     def remove_resources(self, *, x: int, y: int, amount: int) -> None:
         """Remove resource units from a coordinate.
@@ -267,14 +404,14 @@ class WorldState:
         else:
             self._resources[coordinate] = after
 
-        self._mutations.append(
-            ResourcesChanged(
-                x=x,
-                y=y,
-                before=before,
-                after=after,
-            )
-        )
+        self._mutations.append(ResourcesChanged(x=x, y=y, before=before, after=after))
+
+    def _environmental_field(self, field_name: str) -> EnvironmentalField:
+        validated_name = validators.validate_str(field_name, name="field_name")
+        for field in self.environmental_fields:
+            if field.name == validated_name:
+                return field
+        raise KeyError(f"World has no environmental field named {validated_name!r}.")
 
     def _validate_coordinate(self, *, x: int, y: int) -> None:
         """Validate a coordinate against the world bounds."""
@@ -294,11 +431,7 @@ class WorldState:
     @staticmethod
     def _validate_resource_amount(*, amount: int) -> None:
         """Validate a resource amount."""
-        validators.validate_int_gt(
-            value=amount,
-            bound=0,
-            name="amount",
-        )
+        validators.validate_int_gt(value=amount, bound=0, name="amount")
 
     def copy(self) -> WorldState:
         """Return an independent deep copy with a fresh mutation journal.

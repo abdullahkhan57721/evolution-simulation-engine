@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import math
+
 import pytest
 
-from evo_engine.world import Carcass, WorldState
+from evo_engine.telemetry import EnvironmentalValueChanged
+from evo_engine.world import Carcass, EnvironmentalField, WorldState
 from tests.helpers import make_organism
 
 
@@ -138,17 +141,116 @@ def test_remove_resources_rejects_overdraw() -> None:
     assert world.resources[(0, 0)] == 2
 
 
+def test_environmental_field_uses_default_and_sparse_overrides() -> None:
+    """Test spatial environmental values fall back to an immutable default."""
+    world = WorldState(
+        width=3,
+        height=3,
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20.0),
+        ),
+    )
+
+    assert world.environmental_field_names == ("temperature",)
+    assert world.environmental_value("temperature", x=1, y=2) == 20.0
+    assert not world.environmental_overrides("temperature")
+
+    world.set_environmental_value("temperature", x=1, y=2, value=24.5)
+
+    assert world.environmental_value("temperature", x=1, y=2) == 24.5
+    assert world.environmental_value("temperature", x=0, y=0) == 20.0
+    assert world.environmental_overrides("temperature") == {(1, 2): 24.5}
+
+    world.set_environmental_value("temperature", x=1, y=2, value=20.0)
+
+    assert not world.environmental_overrides("temperature")
+
+
+def test_environmental_mutation_is_journaled_only_for_effective_change() -> None:
+    """Test environmental telemetry stores field, coordinate, before, and after."""
+    world = WorldState(
+        width=2,
+        height=2,
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
+    )
+    checkpoint = world.mutation_count
+
+    world.set_environmental_value("temperature", x=1, y=0, value=20)
+    assert world.mutation_count == checkpoint
+
+    world.change_environmental_value("temperature", x=1, y=0, delta=2.5)
+
+    assert world.mutations_since(checkpoint) == (
+        EnvironmentalValueChanged(
+            field_name="temperature",
+            x=1,
+            y=0,
+            before=20,
+            after=22.5,
+        ),
+    )
+
+
+def test_environmental_fields_reject_unknown_names_and_invalid_coordinates() -> None:
+    """Test environmental access validates field identity and world bounds."""
+    world = WorldState(
+        width=2,
+        height=2,
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
+    )
+
+    with pytest.raises(KeyError, match="humidity"):
+        world.environmental_value("humidity", x=0, y=0)
+
+    with pytest.raises(ValueError):
+        world.set_environmental_value("temperature", x=2, y=0, value=21)
+
+
+def test_environmental_field_definitions_are_unique_and_finite() -> None:
+    """Test environmental field definitions are meaningful and unambiguous."""
+    with pytest.raises(ValueError, match="duplicate"):
+        WorldState(
+            width=2,
+            height=2,
+            environmental_fields=(
+                EnvironmentalField(name="temperature", default_value=20),
+                EnvironmentalField(name="temperature", default_value=21),
+            ),
+        )
+
+    with pytest.raises(ValueError, match="finite"):
+        EnvironmentalField(name="temperature", default_value=math.inf)
+
+    with pytest.raises(ValueError, match="name"):
+        EnvironmentalField(name="   ", default_value=20)
+
+
 def test_copy_is_transactionally_independent() -> None:
     """Test that a world copy can mutate without changing the original."""
-    world = WorldState(width=3, height=3)
+    world = WorldState(
+        width=3,
+        height=3,
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
+    )
     organism = make_organism(energy=10)
     world.add_organism(organism)
     world.add_resources(x=0, y=0, amount=5)
+    world.set_environmental_value("temperature", x=0, y=0, value=22)
 
     copied = world.copy()
     copied.organisms[0].energy = 1
     copied.add_resources(x=0, y=0, amount=2)
+    copied.set_environmental_value("temperature", x=0, y=0, value=25)
 
     assert world.organisms[0].energy == 10
     assert world.resources[(0, 0)] == 5
+    assert world.environmental_value("temperature", x=0, y=0) == 22
+    assert copied.environmental_value("temperature", x=0, y=0) == 25
     assert copied.organisms[0].genome is world.organisms[0].genome
+    assert copied.mutation_count == 2

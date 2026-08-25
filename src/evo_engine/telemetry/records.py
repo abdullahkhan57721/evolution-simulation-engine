@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import TypeAlias
 
 import attrs
@@ -120,6 +121,37 @@ class ResourcesChanged:
         return self.after - self.before
 
 
+@attrs.frozen(slots=True, kw_only=True)
+class EnvironmentalValueChanged:
+    """Record one spatial environmental scalar-value change.
+
+    Attributes:
+        field_name: Name of the environmental field that changed.
+        x: Horizontal coordinate.
+        y: Vertical coordinate.
+        before: Finite field value before the mutation.
+        after: Finite field value after the mutation.
+    """
+
+    field_name: str = attrs.field(validator=attrs_validators.validate_str)
+    x: int = attrs.field(validator=attrs_validators.validate_int_ge(0))
+    y: int = attrs.field(validator=attrs_validators.validate_int_ge(0))
+    before: int | float
+    after: int | float
+
+    def __attrs_post_init__(self) -> None:
+        """Validate field naming and finite before/after values."""
+        if not self.field_name.strip():
+            raise ValueError("field_name must not be empty or whitespace-only.")
+        _validate_finite_number(self.before, name="before")
+        _validate_finite_number(self.after, name="after")
+
+    @property
+    def delta(self) -> int | float:
+        """Return signed environmental-value change."""
+        return self.after - self.before
+
+
 WorldMutation: TypeAlias = (
     OrganismAdded
     | OrganismRemoved
@@ -127,6 +159,7 @@ WorldMutation: TypeAlias = (
     | CarcassAdded
     | CarcassRemoved
     | ResourcesChanged
+    | EnvironmentalValueChanged
 )
 
 _WORLD_MUTATION_TYPES = (
@@ -136,6 +169,7 @@ _WORLD_MUTATION_TYPES = (
     CarcassAdded,
     CarcassRemoved,
     ResourcesChanged,
+    EnvironmentalValueChanged,
 )
 
 
@@ -270,3 +304,10 @@ class StepTelemetry:
             if event.process_type == validated_name
             or event.process_name == validated_name
         )
+
+
+def _validate_finite_number(value: object, *, name: str) -> int | float:
+    number = validators.validate_number(value, name=name)
+    if not math.isfinite(number):
+        raise ValueError(f"{name} must be finite; received {number!r}.")
+    return number
