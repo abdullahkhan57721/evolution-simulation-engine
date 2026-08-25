@@ -54,7 +54,7 @@ from evo_engine.genetics import (
     SingleCrossoverRecombination,
 )
 from evo_engine.growth import GeneticPhenotypeGrowthRate
-from evo_engine.observation import PopulationRecorder
+from evo_engine.observation import EventRecorder, PopulationRecorder
 from evo_engine.predation import (
     AllOfPredationEligibility,
     GeneticAttackAdvantagePreference,
@@ -105,6 +105,7 @@ from evo_engine.resolvers.resource_allocation import EqualShare
 from evo_engine.spatial.boundary_conditions import Clamped
 from evo_engine.spatial.movement_patterns import MooreRandom
 from evo_engine.spatial.neighborhoods import Moore
+from evo_engine.telemetry import TelemetryObserver
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -115,7 +116,8 @@ class ReferenceEcology:
         config: Numerical configuration used to build the ecology.
         simulation: Mutable simulation state and shared behavior configuration.
         engine: Engine wired with the standard ecological lifecycle.
-        recorder: Population recorder attached to the reference engine.
+        recorder: Population recorder attached to committed reference states.
+        event_recorder: Causal event recorder attached to committed steps.
     """
 
     config: ReferenceEcologyConfig = attrs.field(
@@ -129,6 +131,9 @@ class ReferenceEcology:
     )
     recorder: PopulationRecorder = attrs.field(
         validator=attrs.validators.instance_of(PopulationRecorder),
+    )
+    event_recorder: EventRecorder = attrs.field(
+        validator=attrs.validators.instance_of(EventRecorder),
     )
 
 
@@ -167,16 +172,19 @@ def build_reference_engine(
     config: ReferenceEcologyConfig | None = None,
     *,
     observers: Iterable[Observer] = (),
+    telemetry_observers: Iterable[TelemetryObserver] = (),
 ) -> SimulationEngine:
     """Build a simulation engine containing the complete reference lifecycle.
 
     Args:
         config: Optional reference configuration. Defaults to standard values.
         observers: Optional observers attached to committed reference states.
+        telemetry_observers: Optional observers attached to committed event
+            telemetry.
 
     Returns:
-        Engine wiring ecology, life history, mortality, and observation into the
-        standard lifecycle.
+        Engine wiring ecology, life history, mortality, observation, and causal
+        telemetry into the standard lifecycle.
     """
     config = resolve_reference_config(config)
     reserve = KeepEnergyReserve(
@@ -363,6 +371,7 @@ def build_reference_engine(
             max_steps=config.max_steps,
         ),
         observers=observers,
+        telemetry_observers=telemetry_observers,
     )
 
 
@@ -375,13 +384,14 @@ def build_reference_ecology(
         config: Optional reference configuration. Defaults to standard values.
 
     Returns:
-        Bundle containing the resolved configuration, simulation, engine, and a
-        recorder tracking all reference integer traits each step.
+        Bundle containing the configuration, simulation, engine, population
+        recorder, and committed causal event recorder.
     """
     config = resolve_reference_config(config)
     recorder = PopulationRecorder(
         trait_names=tuple(config.traits.as_mapping()),
     )
+    event_recorder = EventRecorder()
 
     return ReferenceEcology(
         config=config,
@@ -389,8 +399,10 @@ def build_reference_ecology(
         engine=build_reference_engine(
             config,
             observers=(recorder,),
+            telemetry_observers=(event_recorder,),
         ),
         recorder=recorder,
+        event_recorder=event_recorder,
     )
 
 

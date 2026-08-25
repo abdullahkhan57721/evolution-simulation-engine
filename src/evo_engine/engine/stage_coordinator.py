@@ -13,6 +13,7 @@ from evo_engine.engine.protocols import (
 )
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.telemetry import AppliedEvent
 
 
 class StageCoordinator:
@@ -55,8 +56,8 @@ class StageCoordinator:
     def coordinate(
         self,
         simulation_state: SimulationState,
-    ) -> None:
-        """Coordinate one simulation update stage.
+    ) -> tuple[AppliedEvent, ...]:
+        """Coordinate one simulation update stage and return applied telemetry.
 
         All processes first propose events from the same starting state. The
         stage resolver selects the events that may occur. Every resolved event
@@ -65,33 +66,31 @@ class StageCoordinator:
         mutation, recombination, or random placement. Processes without a
         ``materialize_event`` method are treated as already materialized.
 
-        Materialized events are applied in resolver-returned order.
+        Materialized events are applied in resolver-returned order. Each
+        successful application produces an immutable telemetry record containing
+        the materialized event and structural world mutations caused by it.
+        The enclosing step coordinator assigns the final lifecycle stage index.
 
         Args:
             simulation_state: Working simulation state to update.
 
+        Returns:
+            Applied event telemetry in resolver application order.
+
         Raises:
             RuntimeError: If a resolved event has no registered process.
         """
-        # Phase 1 — proposal. Every process observes the same pre-stage
-        # world because nothing is applied until all proposals are resolved.
         proposed_events: list[SimulationEvent] = []
 
         for process in self.processes:
-            process_events = process.propose_events(
-                simulation_state,
-            )
+            process_events = process.propose_events(simulation_state)
             proposed_events.extend(process_events)
 
-        # Phase 2 — conflict resolution across the full proposal set.
         resolved_events = self.resolver.resolve_events(
             simulation_state=simulation_state,
             proposed_events=proposed_events,
         )
 
-        # Phase 3 — materialize every accepted proposal before mutating the
-        # world. This preserves stage simultaneity while allowing expensive or
-        # stochastic details to be generated only for events that will occur.
         materialized_events: list[tuple[Process[Any, Any], SimulationEvent]] = []
 
         for resolved_event in resolved_events:
@@ -103,9 +102,6 @@ class StageCoordinator:
                     f"{type(resolved_event).__name__}."
                 )
 
-            # Materialization is an optional process capability. Runtime
-            # protocol checking keeps the coordinator independent of concrete
-            # process classes while avoiding string-based reflection.
             if isinstance(process, EventMaterializer):
                 materialized_event = process.materialize_event(
                     simulation_state,
@@ -114,17 +110,31 @@ class StageCoordinator:
             else:
                 materialized_event = resolved_event
 
-            materialized_events.append(
-                (
-                    process,
-                    materialized_event,
-                )
-            )
+            materialized_events.append((process, materialized_event))
 
-        # Phase 4 — application is deliberately mechanical. Resolver order
-        # is preserved because it may encode deterministic conflict outcomes.
+        applied_events: list[AppliedEvent] = []
+        world = simulation_state.world
+
         for process, materialized_event in materialized_events:
+            mutation_checkpoint = world.mutation_count
             process.apply_event(
                 simulation_state,
                 materialized_event,
             )
+            applied_events.append(
+                AppliedEvent(
+                    event_step_index=materialized_event.step_index,
+                    stage_index=0,
+                    process_type=_qualified_type_name(process),
+                    event_type=_qualified_type_name(materialized_event),
+                    event=materialized_event,
+                    world_mutations=world.mutations_since(mutation_checkpoint),
+                )
+            )
+
+        return tuple(applied_events)
+
+
+def _qualified_type_name(value: object) -> str:
+    value_type = type(value)
+    return f"{value_type.__module__}.{value_type.__qualname__}"
