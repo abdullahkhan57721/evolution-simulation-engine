@@ -13,7 +13,9 @@ from evo_engine.telemetry import StepTelemetry
 from evo_engine.validation import attrs_validators
 
 
-def _validate_world(instance: object, attribute: attrs.Attribute, value: object) -> None:
+def _validate_world(
+    instance: object, attribute: attrs.Attribute, value: object
+) -> None:
     """Require transactional model state to provide a copy operation."""
     if not callable(getattr(value, "copy", None)):
         raise TypeError(
@@ -92,9 +94,7 @@ class SimulationState:
             TypeError: If a context and separate context values are both given.
         """
         if context is not None and context_values:
-            raise TypeError(
-                "context cannot be combined with separate context values."
-            )
+            raise TypeError("context cannot be combined with separate context values.")
         if context is None:
             context = SimulationContext.from_mapping(context_values)
         if rng is None:
