@@ -86,6 +86,9 @@ from evo_engine.presets.reference_ecology.mating_types import (
     build_reference_mating_type_compatibility,
     build_reference_offspring_mating_type_model,
 )
+from evo_engine.presets.reference_ecology.reproductive_investment import (
+    build_reference_parental_investment,
+)
 from evo_engine.processes import (
     Aging,
     Decomposition,
@@ -104,7 +107,6 @@ from evo_engine.reproduction import (
     AllOfMatingCompatibility,
     DevelopmentalMaturityEligibility,
     FractionOfAdultBodyMassAtBirth,
-    GeneticPhenotypeEnergyInvestment,
     MinimumEnergyEligibility,
     MutualMateSearchRange,
     MutualSignalCompatibility,
@@ -362,7 +364,9 @@ def build_reference_engine(
                         )
                     )
                 ),
-                parental_investment=GeneticPhenotypeEnergyInvestment(),
+                parental_investment=build_reference_parental_investment(
+                    config.mating_type_investment_scales
+                ),
                 energy_expenditure_policy=reserve,
                 offspring_body_mass_model=FractionOfAdultBodyMassAtBirth(
                     numerator=config.newborn_mass_numerator,

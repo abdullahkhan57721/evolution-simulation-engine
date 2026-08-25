@@ -5,10 +5,10 @@ The engine represents reproductive mating type as immutable individual state on
 A mating type is an arbitrary nonempty string label such as `type_a`, `type_b`,
 `male`, `female`, or a domain-specific compatibility class.
 
-This separation is intentional. A simulation may eventually determine sex or
-mating type genetically, environmentally, stochastically, or through a more
-complex developmental system. The core organism representation does not assume
-that reproductive identity is always a single Mendelian trait.
+This separation is intentional. A simulation may determine sex or mating type
+genetically, environmentally, stochastically, or through a more complex
+developmental system. The core organism representation does not assume that
+reproductive identity is always a single Mendelian trait.
 
 ## Compatibility
 
@@ -49,9 +49,40 @@ The chosen mating type is stored in the materialized `Reproduction.Event`.
 energy contributions and inserts an offspring with the already-determined mating
 type, genome, genetic phenotype, developmental profile, body mass, and location.
 
+## Mating-type-specific parental investment
+
+Reproductive identity may also alter energetic cost without making parent tuple
+order a biological role.
+
+`MatingTypeScaledInvestment` wraps any existing `ParentalInvestment` policy. The
+wrapped policy first computes one base investment for each parent, after which a
+`MatingTypeInvestmentScale` multiplies each amount according to that organism's
+immutable mating type.
+
+```text
+base parental investment
+        ↓
+identify each parent's mating type
+        ↓
+apply mating-type rational scale
+        ↓
+validated integer energy contribution
+```
+
+The scale is represented by an integer numerator and positive denominator and
+uses deterministic half-up rounding. Unconfigured mating types receive an
+implicit neutral `1/1` scale rather than being silently assigned one of the
+configured asymmetric roles.
+
+Because this is a wrapper, mating-type asymmetry composes with heritable
+investment. For example, a parent may express `offspring_energy=5`, while its
+mating type determines whether that value is scaled upward, downward, or left
+unchanged. The wrapper also forwards the wrapped policy's genetic trait
+requirements into engine preflight.
+
 ## Reference ecology
 
-The reference ecology uses two labels:
+The reference ecology uses two neutral labels:
 
 ```text
 type_a
@@ -66,11 +97,39 @@ Reference mating requires different mating types in addition to the existing
 search-range and mutual-signal requirements. Resolved offspring receive
 `type_a` or `type_b` with equal probability using the simulation RNG.
 
-These labels are deliberately neutral. They demonstrate a two-type reproductive
-system without embedding assumptions about anisogamy, sex-specific parental
-investment, sex chromosomes, sexual dimorphism, or parent roles. Those can be
-added later as explicit models rather than being implied by the words “male” and
-“female.”
+The reference ecology now also demonstrates asymmetric reproductive energetic
+burden. Its default heritable founder value remains:
+
+```text
+offspring_energy = 4
+```
+
+and the default mating-type scales are:
+
+```text
+type_a: 3/2  → 6 energy
+type_b: 1/2  → 2 energy
+```
+
+A default `type_a`/`type_b` pair therefore still invests eight total energy units,
+matching the historical `4 + 4` reference newborn-energy budget, while one mating
+type bears a larger immediate reproductive cost. The scale configuration is
+explicit and can be changed or made symmetric.
+
+These labels remain deliberately neutral. The example demonstrates anisogamy-like
+energetic asymmetry without claiming that `type_a` is biologically female or that
+`type_b` is biologically male. Sex-specific physiology, sex chromosomes,
+role-specific behavior, and other mechanisms remain separate models.
+
+## Population observation
+
+`PopulationObservation` records complete mating-type counts for every committed
+population state. Multi-seed experiment exports preserve those counts in JSON and
+emit deterministic mating-type columns in both time-series and replicate-summary
+CSV outputs.
+
+This makes reproductive identity an observable evolutionary state rather than a
+hidden compatibility detail.
 
 ## Future extensions
 
@@ -82,9 +141,11 @@ pipeline. Examples include:
 - environmental sex determination,
 - temperature- or condition-dependent assignment,
 - more than two mating types,
-- sex-specific or mating-type-specific physiology and energetic costs,
-- asymmetric parent roles and parental investment, and
-- sex chromosomes or other specialized inheritance models.
+- mating-type-specific physiology beyond reproductive investment,
+- asymmetric courtship or parent roles,
+- sex chromosomes or other specialized inheritance models, and
+- mating systems permitting multiple successful reproductive events per parent
+  within one stage.
 
 Those mechanisms should be modeled explicitly in their appropriate domain layer
 rather than by making `Organism.mating_type` itself responsible for genetics or
