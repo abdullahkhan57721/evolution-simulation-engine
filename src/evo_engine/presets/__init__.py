@@ -3,6 +3,7 @@
 from evo_engine.presets.reference_ecology import (
     ReferenceEcology,
     ReferenceEcologyConfig,
+    ReferencePhysiologicalTradeoffs,
     ReferenceTraitValues,
     build_reference_ecology,
     build_reference_engine,
@@ -15,6 +16,7 @@ from evo_engine.presets.reference_ecology import (
 __all__ = [
     "ReferenceEcology",
     "ReferenceEcologyConfig",
+    "ReferencePhysiologicalTradeoffs",
     "ReferenceTraitValues",
     "build_reference_ecology",
     "build_reference_engine",
