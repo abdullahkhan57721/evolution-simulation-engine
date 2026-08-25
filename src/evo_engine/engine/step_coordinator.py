@@ -8,12 +8,11 @@ import attrs
 
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.engine.stage_coordinator import StageCoordinator
-from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.telemetry import AppliedEvent, StepTelemetry
 
 
 class SequentialStepCoordinator:
-    """Coordinate simulation steps by running stages sequentially."""
+    """Coordinate transactional simulation steps through ordered stages."""
 
     def __init__(
         self,
@@ -22,10 +21,9 @@ class SequentialStepCoordinator:
         """Initialize the sequential step coordinator.
 
         Args:
-            stages: Ordered simulation update stages.
+            stages: Ordered domain-defined update stages.
         """
         self.stages = tuple(stages)
-        self.required_traits = collect_required_traits(*self.stages)
 
     def coordinate(
         self,
@@ -33,11 +31,14 @@ class SequentialStepCoordinator:
     ) -> SimulationState:
         """Coordinate one complete transactional simulation step.
 
+        The authoritative input is copied before any stage executes. If a stage
+        raises, the caller retains the original state and RNG stream unchanged.
+
         Args:
             simulation_state: Current authoritative simulation state.
 
         Returns:
-            Completed state containing telemetry for the committed step.
+            Completed working state containing telemetry for the committed step.
         """
         working_state = simulation_state.copy()
         applied_events: list[AppliedEvent] = []
