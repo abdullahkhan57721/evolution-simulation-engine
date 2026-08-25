@@ -30,6 +30,7 @@ class _StaticDevelopmentModel:
         *,
         rng: random.Random,
         simulation_state=None,
+        location=None,
     ) -> DevelopmentalProfile:
         """Return the preconfigured profile regardless of trait values."""
         return self.profile
@@ -141,20 +142,8 @@ def test_gaussian_integer_development_is_seed_reproducible() -> None:
         minimum=1,
     )
 
-    assert (
-        model.develop(
-            20,
-            rng=random.Random(1),
-        )
-        == 23
-    )
-    assert (
-        model.develop(
-            20,
-            rng=random.Random(1),
-        )
-        == 23
-    )
+    assert model.develop(20, rng=random.Random(1)) == 23
+    assert model.develop(20, rng=random.Random(1)) == 23
 
 
 def test_gaussian_integer_development_clamps_bounds() -> None:

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import attrs
 
+from evo_engine.development.context import DevelopmentLocation
 from evo_engine.development.profile import DevelopmentalProfile
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.requirements import validate_required_traits
@@ -27,6 +28,7 @@ class TraitDevelopmentModel(Protocol[ValueT]):
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
+        location: DevelopmentLocation | None = None,
     ) -> ValueT:
         """Return an individual developmental realization of a trait value.
 
@@ -35,6 +37,7 @@ class TraitDevelopmentModel(Protocol[ValueT]):
             rng: Simulation random-number generator.
             simulation_state: Optional state available to environment-aware
                 developmental models.
+            location: Optional world coordinate at which development occurs.
 
         Returns:
             Realized developmental target value.
@@ -60,6 +63,7 @@ class DevelopmentModel(Protocol):
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
+        location: DevelopmentLocation | None = None,
     ) -> DevelopmentalProfile:
         """Return organism-specific developmental targets.
 
@@ -67,6 +71,7 @@ class DevelopmentModel(Protocol):
             genetic_phenotype: Genetically expressed phenotype.
             rng: Simulation random-number generator.
             simulation_state: Optional state for environment-aware models.
+            location: Optional world coordinate at which development occurs.
 
         Returns:
             Realized developmental profile with the same complete ordered
@@ -81,6 +86,7 @@ def realize_developmental_profile(
     *,
     rng: random.Random,
     simulation_state: SimulationState | None = None,
+    location: DevelopmentLocation | None = None,
 ) -> DevelopmentalProfile:
     """Realize and validate developmental targets for a genetic phenotype.
 
@@ -93,6 +99,7 @@ def realize_developmental_profile(
         genetic_phenotype: Genetically expressed trait values.
         rng: Simulation random-number generator.
         simulation_state: Optional state for environment-aware models.
+        location: Optional world coordinate at which development occurs.
 
     Returns:
         Validated developmental profile preserving the complete ordered trait
@@ -107,6 +114,7 @@ def realize_developmental_profile(
         genetic_phenotype,
         rng=rng,
         simulation_state=simulation_state,
+        location=location,
     )
 
     if not isinstance(developmental_profile, DevelopmentalProfile):
@@ -129,6 +137,7 @@ class DeterministicTraitDevelopment:
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
+        location: DevelopmentLocation | None = None,
     ) -> ValueT:
         """Return the supplied trait value unchanged.
 
@@ -136,6 +145,7 @@ class DeterministicTraitDevelopment:
             value: Genetically expressed trait value.
             rng: Simulation random-number generator.
             simulation_state: Optional simulation state.
+            location: Optional developmental coordinate.
 
         Returns:
             Unchanged trait value.
@@ -185,6 +195,7 @@ class GaussianIntegerDevelopment:
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
+        location: DevelopmentLocation | None = None,
     ) -> int:
         """Return a Gaussian realization centered on an integer trait value.
 
@@ -192,6 +203,7 @@ class GaussianIntegerDevelopment:
             value: Genetically expressed integer trait value.
             rng: Simulation random-number generator.
             simulation_state: Optional simulation state.
+            location: Optional developmental coordinate.
 
         Returns:
             Realized integer developmental target.
@@ -244,6 +256,7 @@ class DeterministicDevelopment:
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
+        location: DevelopmentLocation | None = None,
     ) -> DevelopmentalProfile:
         """Return developmental targets identical to the genetic phenotype.
 
@@ -251,6 +264,7 @@ class DeterministicDevelopment:
             genetic_phenotype: Genetically expressed phenotype.
             rng: Simulation random-number generator.
             simulation_state: Optional simulation state.
+            location: Optional developmental coordinate.
 
         Returns:
             Developmental profile containing unchanged trait values.
@@ -335,6 +349,7 @@ class IndependentDevelopment:
         *,
         rng: random.Random,
         simulation_state: SimulationState | None = None,
+        location: DevelopmentLocation | None = None,
     ) -> DevelopmentalProfile:
         """Return independently realized developmental targets.
 
@@ -342,6 +357,7 @@ class IndependentDevelopment:
             genetic_phenotype: Genetically expressed phenotype.
             rng: Simulation random-number generator.
             simulation_state: Optional state for environment-aware models.
+            location: Optional coordinate at which development occurs.
 
         Returns:
             Developmental profile preserving genetic phenotype trait order.
@@ -359,7 +375,6 @@ class IndependentDevelopment:
 
         models_by_trait = dict(self.trait_models)
 
-        # Fail early on misspelled or unavailable configured trait names.
         for trait_name in models_by_trait:
             if trait_name not in genetic_phenotype:
                 raise KeyError(
@@ -376,6 +391,7 @@ class IndependentDevelopment:
                     models_by_trait=models_by_trait,
                     rng=rng,
                     simulation_state=simulation_state,
+                    location=location,
                 ),
             )
             for trait_name, value in genetic_phenotype.trait_values
@@ -393,6 +409,7 @@ class IndependentDevelopment:
         models_by_trait: dict[str, TraitDevelopmentModel[Any]],
         rng: random.Random,
         simulation_state: SimulationState | None,
+        location: DevelopmentLocation | None,
     ) -> Any:
         """Return one configured or deterministic developmental target."""
         model = models_by_trait.get(trait_name)
@@ -404,4 +421,5 @@ class IndependentDevelopment:
             value,
             rng=rng,
             simulation_state=simulation_state,
+            location=location,
         )
