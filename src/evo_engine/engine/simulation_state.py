@@ -84,33 +84,47 @@ class SimulationState:
             TypeError: If required configuration is missing or both a context
                 and legacy context-construction arguments are supplied.
         """
+        resolved_context = self._resolve_context(
+            context=context,
+            genetic_architecture=genetic_architecture,
+            behavior_selection_model=behavior_selection_model,
+        )
+        if rng is None:
+            rng = random.Random()
+
+        self.__attrs_init__(
+            world=world,
+            context=resolved_context,
+            step_index=step_index,
+            rng=rng,
+            last_step_telemetry=last_step_telemetry,
+        )
+
+    @staticmethod
+    def _resolve_context(
+        *,
+        context: SimulationContext | None,
+        genetic_architecture: GeneticArchitecture | None,
+        behavior_selection_model: BehaviorSelectionModel | None,
+    ) -> SimulationContext:
+        """Return one unambiguous immutable simulation context."""
         if context is not None:
             if genetic_architecture is not None or behavior_selection_model is not None:
                 raise TypeError(
                     "context cannot be combined with genetic_architecture or "
                     "behavior_selection_model."
                 )
-        else:
-            if genetic_architecture is None:
-                raise TypeError(
-                    "genetic_architecture is required when context is not supplied."
-                )
-            context_kwargs: dict[str, object] = {
-                "genetic_architecture": genetic_architecture,
-            }
-            if behavior_selection_model is not None:
-                context_kwargs["behavior_selection_model"] = behavior_selection_model
-            context = SimulationContext(**context_kwargs)  # type: ignore[arg-type]
+            return context
 
-        if rng is None:
-            rng = random.Random()
-
-        self.__attrs_init__(
-            world=world,
-            context=context,
-            step_index=step_index,
-            rng=rng,
-            last_step_telemetry=last_step_telemetry,
+        if genetic_architecture is None:
+            raise TypeError(
+                "genetic_architecture is required when context is not supplied."
+            )
+        if behavior_selection_model is None:
+            return SimulationContext(genetic_architecture=genetic_architecture)
+        return SimulationContext(
+            genetic_architecture=genetic_architecture,
+            behavior_selection_model=behavior_selection_model,
         )
 
     @property
