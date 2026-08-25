@@ -21,9 +21,7 @@ def test_mating_type_roles_support_multiple_roles_per_type() -> None:
     state = make_state()
     organism = add_organism(state, mating_type="hermaphrodite")
     roles = MatingTypeRoles(
-        roles_by_mating_type=(
-            ("hermaphrodite", ("chooser", "signaler")),
-        )
+        roles_by_mating_type=(("hermaphrodite", ("chooser", "signaler")),)
     )
 
     assert roles.roles_for(organism, state) == frozenset({"chooser", "signaler"})
@@ -109,7 +107,7 @@ def test_directed_pairwise_mating_preserves_configured_role_order() -> None:
     )
 
     groups = selection.propose_parent_groups(
-        state.world.organisms.values(),
+        tuple(state.world.organisms.values()),
         simulation_state=state,
     )
 
@@ -137,7 +135,7 @@ def test_directed_pairwise_mating_skips_self_for_multi_role_organism() -> None:
     )
 
     groups = selection.propose_parent_groups(
-        state.world.organisms.values(),
+        tuple(state.world.organisms.values()),
         simulation_state=state,
     )
 
