@@ -8,6 +8,7 @@ from typing import Generic, Protocol, TypeVar
 
 import attrs
 
+from evo_engine.evolution import VariationOperator
 from evo_engine.validation import validators
 
 ValueT = TypeVar("ValueT")
@@ -15,8 +16,8 @@ ValueT = TypeVar("ValueT")
 PROBABILITY_SCALE = 1_000_000
 
 
-class MutationPolicy(Protocol[ValueT]):
-    """Define how an allele value may mutate."""
+class MutationPolicy(VariationOperator[ValueT], Protocol[ValueT]):
+    """Define biological mutation as a general evolutionary variation operator."""
 
     def mutate(
         self,
@@ -56,6 +57,15 @@ class NoMutation(Generic[ValueT]):
             Unchanged allele value.
         """
         return value
+
+    def vary(
+        self,
+        value: ValueT,
+        *,
+        rng: random.Random,
+    ) -> ValueT:
+        """Return the value unchanged through the general variation API."""
+        return self.mutate(value, rng=rng)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -119,6 +129,15 @@ class UniformIntegerMutation:
         direction = -1 if rng.randrange(2) == 0 else 1
 
         return validated_value + direction * magnitude
+
+    def vary(
+        self,
+        value: int,
+        *,
+        rng: random.Random,
+    ) -> int:
+        """Apply integer mutation through the general variation API."""
+        return self.mutate(value, rng=rng)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -192,3 +211,87 @@ class GaussianIntegerMutation:
         )
 
         return validated_value + change
+
+    def vary(
+        self,
+        value: int,
+        *,
+        rng: random.Random,
+    ) -> int:
+        """Apply Gaussian mutation through the general variation API."""
+        return self.mutate(value, rng=rng)
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class UniformChoiceMutation(Generic[ValueT]):
+    """Mutate among explicit categorical or discrete allele values.
+
+    When mutation occurs, the result is sampled uniformly from configured
+    choices other than the current value. This supports heritable categorical
+    traits such as color, strategy labels, or symbolic states without requiring
+    integer encoding.
+
+    Attributes:
+        probability_ppm: Mutation probability in parts per million.
+        choices: Unique legal values available to the mutation policy.
+    """
+
+    probability_ppm: int
+    choices: tuple[ValueT, ...]
+
+    def __attrs_post_init__(self) -> None:
+        """Validate categorical mutation configuration."""
+        validators.validate_int_in_range(
+            self.probability_ppm,
+            lower=0,
+            upper=PROBABILITY_SCALE,
+            name="probability_ppm",
+        )
+        validators.validate_tuple(self.choices, name="choices")
+        if not self.choices:
+            raise ValueError("choices must contain at least one value.")
+        for index, choice in enumerate(self.choices):
+            if any(choice == previous for previous in self.choices[:index]):
+                raise ValueError("choices must not contain duplicate values.")
+
+    def mutate(
+        self,
+        value: ValueT,
+        *,
+        rng: random.Random,
+    ) -> ValueT:
+        """Return a potentially mutated categorical value.
+
+        Args:
+            value: Current value, which must occur in ``choices``.
+            rng: Simulation random-number generator.
+
+        Returns:
+            Mutated or unchanged value.
+
+        Raises:
+            TypeError: If rng is invalid.
+            ValueError: If value is not one of the configured choices.
+        """
+        if not isinstance(rng, random.Random):
+            raise TypeError("rng must be an instance of random.Random.")
+        if not any(value == choice for choice in self.choices):
+            raise ValueError("value must be one of the configured choices.")
+        if len(self.choices) == 1:
+            return value
+
+        mutation_roll = rng.randrange(PROBABILITY_SCALE)
+        if mutation_roll >= self.probability_ppm:
+            return value
+
+        alternatives = tuple(choice for choice in self.choices if choice != value)
+        return rng.choice(alternatives)
+
+    def vary(
+        self,
+        value: ValueT,
+        *,
+        rng: random.Random,
+    ) -> ValueT:
+        """Apply categorical mutation through the general variation API."""
+        return self.mutate(value, rng=rng)
