@@ -21,7 +21,12 @@ from evo_engine.energetics.locomotion import (
     LocomotionCostModel,
     PowerLawLocomotionCost,
 )
+from evo_engine.energetics.maintenance import (
+    LinearTraitMaintenanceCost,
+    TraitMaintenanceTerm,
+)
 from evo_engine.energetics.metabolism import (
+    AdditiveMetabolicCost,
     FixedMetabolicCost,
     MetabolicCostModel,
     PowerLawMetabolicCost,
@@ -36,6 +41,7 @@ from evo_engine.life_history import (
 )
 
 __all__ = [
+    "AdditiveMetabolicCost",
     "CoefficientModel",
     "CoefficientSource",
     "DevelopmentalEnergyThreshold",
@@ -50,11 +56,13 @@ __all__ = [
     "KeepEnergyReserve",
     "KeepFixedReserve",
     "LinearGrowthCost",
+    "LinearTraitMaintenanceCost",
     "LocomotionCostModel",
     "MetabolicCostModel",
     "PowerLawLocomotionCost",
     "PowerLawMetabolicCost",
     "SpendToZero",
+    "TraitMaintenanceTerm",
     "coefficient_required_traits",
     "determine_coefficient",
     "determine_energy_threshold",

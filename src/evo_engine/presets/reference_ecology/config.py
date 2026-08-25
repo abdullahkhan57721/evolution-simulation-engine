@@ -207,6 +207,70 @@ class ReferenceTraitValues:
 
 
 @attrs.frozen(slots=True, kw_only=True)
+class ReferencePhysiologicalTradeoffs:
+    """Configure explicit maintenance costs for reference performance traits.
+
+    Cost numerators are expressed in hundredths of an energy unit per realized
+    developmental trait unit by default. These values are intentionally simple
+    integration defaults, not calibrated biological estimates.
+
+    Attributes:
+        cost_denominator: Shared denominator applied to all cost numerators.
+        max_speed_cost: Cost numerator per unit of realized maximum speed.
+        sensory_range_cost: Cost numerator per unit of realized sensory range.
+        sensory_accuracy_cost: Cost numerator per accuracy point above baseline.
+        sensory_accuracy_baseline: Accuracy with no maintenance burden.
+        max_intake_rate_cost: Cost numerator per unit of intake capacity.
+        assimilation_efficiency_cost: Cost numerator per efficiency point above
+            baseline.
+        assimilation_efficiency_baseline: Efficiency with no maintenance burden.
+        attack_strength_cost: Cost numerator per unit of attack strength.
+        defense_cost: Cost numerator per unit of defense.
+    """
+
+    cost_denominator: int = attrs.field(
+        default=100,
+        validator=attrs_validators.validate_int_gt(0),
+    )
+    max_speed_cost: int = attrs.field(
+        default=15,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    sensory_range_cost: int = attrs.field(
+        default=5,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    sensory_accuracy_cost: int = attrs.field(
+        default=1,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    sensory_accuracy_baseline: int = attrs.field(
+        default=50,
+        validator=attrs_validators.validate_int_in_range(0, 100),
+    )
+    max_intake_rate_cost: int = attrs.field(
+        default=2,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    assimilation_efficiency_cost: int = attrs.field(
+        default=1,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    assimilation_efficiency_baseline: int = attrs.field(
+        default=50,
+        validator=attrs_validators.validate_int_in_range(0, 100),
+    )
+    attack_strength_cost: int = attrs.field(
+        default=3,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+    defense_cost: int = attrs.field(
+        default=3,
+        validator=attrs_validators.validate_int_ge(0),
+    )
+
+
+@attrs.frozen(slots=True, kw_only=True)
 class ReferenceEcologyConfig:
     """Define the numerical baseline for the reference ecology.
 
@@ -218,7 +282,9 @@ class ReferenceEcologyConfig:
     Organism-specific growth rate and metabolic/locomotion cost coefficients
     live in ``traits`` rather than this simulation-wide configuration. The
     exponents remain configuration because they define the shared scaling laws
-    under which individual trait values operate.
+    under which individual trait values operate. ``physiological_tradeoffs``
+    makes selected realized performance capabilities carry ongoing maintenance
+    costs instead of allowing independent performance improvements for free.
 
     Attributes:
         width: World width in grid cells.
@@ -228,6 +294,8 @@ class ReferenceEcologyConfig:
         max_steps: Number of timesteps run by the reference engine.
         seed: Simulation random seed.
         traits: Founder life-history, physiological, and ecological trait values.
+        physiological_tradeoffs: Maintenance-cost coefficients for realized
+            performance traits.
         mutation_probability_ppm: Per-transmitted-allele mutation probability.
         mutation_max_change: Maximum absolute integer mutation step.
         recombination_probability_ppm: Single-crossover probability per meiosis.
@@ -276,6 +344,10 @@ class ReferenceEcologyConfig:
     traits: ReferenceTraitValues = attrs.field(
         factory=ReferenceTraitValues,
         validator=attrs.validators.instance_of(ReferenceTraitValues),
+    )
+    physiological_tradeoffs: ReferencePhysiologicalTradeoffs = attrs.field(
+        factory=ReferencePhysiologicalTradeoffs,
+        validator=attrs.validators.instance_of(ReferencePhysiologicalTradeoffs),
     )
     mutation_probability_ppm: int = attrs.field(
         default=10_000,

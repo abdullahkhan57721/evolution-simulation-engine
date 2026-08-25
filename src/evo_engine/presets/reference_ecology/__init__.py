@@ -8,6 +8,7 @@ from evo_engine.presets.reference_ecology.builders import (
 )
 from evo_engine.presets.reference_ecology.config import (
     ReferenceEcologyConfig,
+    ReferencePhysiologicalTradeoffs,
     ReferenceTraitValues,
 )
 from evo_engine.presets.reference_ecology.genetics import (
@@ -19,6 +20,7 @@ from evo_engine.presets.reference_ecology.genetics import (
 __all__ = [
     "ReferenceEcology",
     "ReferenceEcologyConfig",
+    "ReferencePhysiologicalTradeoffs",
     "ReferenceTraitValues",
     "build_reference_ecology",
     "build_reference_engine",

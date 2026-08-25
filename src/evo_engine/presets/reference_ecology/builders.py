@@ -20,13 +20,16 @@ from evo_engine.behavior import (
 )
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.energetics import (
+    AdditiveMetabolicCost,
     DevelopmentalEnergyThreshold,
     GeneticPhenotypeCoefficient,
     KeepEnergyReserve,
     LinearGrowthCost,
+    LinearTraitMaintenanceCost,
     PowerLawLocomotionCost,
     PowerLawMetabolicCost,
     SpendToZero,
+    TraitMaintenanceTerm,
 )
 from evo_engine.engine import (
     MaxSteps,
@@ -42,11 +45,18 @@ from evo_engine.feeding import (
     GeneticPhenotypeIntakeCapacity,
 )
 from evo_engine.genetics import (
+    ASSIMILATION_EFFICIENCY,
+    ATTACK_STRENGTH,
+    DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
     LOCOMOTION_COST_COEFFICIENT,
+    MAX_INTAKE_RATE,
+    MAX_SPEED,
     METABOLIC_COST_COEFFICIENT,
     REPRODUCTION_ENERGY_THRESHOLD,
+    SENSORY_ACCURACY,
+    SENSORY_RANGE,
     MeioticGameteFormation,
     SexualInheritance,
     SingleCrossoverRecombination,
@@ -221,12 +231,17 @@ def build_reference_engine(
     maximum_age_stage = _accept_all_stage(MaximumAgeMortality())
     metabolism_stage = _accept_all_stage(
         Metabolism(
-            cost_model=PowerLawMetabolicCost(
-                coefficient=GeneticPhenotypeCoefficient(
-                    trait_name=METABOLIC_COST_COEFFICIENT,
-                ),
-                mass_exponent=config.metabolic_mass_exponent,
-                minimum_cost=1,
+            cost_model=AdditiveMetabolicCost(
+                cost_models=(
+                    PowerLawMetabolicCost(
+                        coefficient=GeneticPhenotypeCoefficient(
+                            trait_name=METABOLIC_COST_COEFFICIENT,
+                        ),
+                        mass_exponent=config.metabolic_mass_exponent,
+                        minimum_cost=1,
+                    ),
+                    _reference_trait_maintenance_cost(config),
+                )
             )
         )
     )
@@ -401,6 +416,54 @@ def build_reference_ecology(
         event_recorder=event_recorder,
         pedigree_recorder=pedigree_recorder,
         genetic_recorder=genetic_recorder,
+    )
+
+
+def _reference_trait_maintenance_cost(
+    config: ReferenceEcologyConfig,
+) -> LinearTraitMaintenanceCost:
+    tradeoffs = config.physiological_tradeoffs
+    denominator = tradeoffs.cost_denominator
+    return LinearTraitMaintenanceCost(
+        terms=(
+            TraitMaintenanceTerm(
+                trait_name=MAX_SPEED,
+                cost_numerator=tradeoffs.max_speed_cost,
+                cost_denominator=denominator,
+            ),
+            TraitMaintenanceTerm(
+                trait_name=SENSORY_RANGE,
+                cost_numerator=tradeoffs.sensory_range_cost,
+                cost_denominator=denominator,
+            ),
+            TraitMaintenanceTerm(
+                trait_name=SENSORY_ACCURACY,
+                cost_numerator=tradeoffs.sensory_accuracy_cost,
+                cost_denominator=denominator,
+                baseline=tradeoffs.sensory_accuracy_baseline,
+            ),
+            TraitMaintenanceTerm(
+                trait_name=MAX_INTAKE_RATE,
+                cost_numerator=tradeoffs.max_intake_rate_cost,
+                cost_denominator=denominator,
+            ),
+            TraitMaintenanceTerm(
+                trait_name=ASSIMILATION_EFFICIENCY,
+                cost_numerator=tradeoffs.assimilation_efficiency_cost,
+                cost_denominator=denominator,
+                baseline=tradeoffs.assimilation_efficiency_baseline,
+            ),
+            TraitMaintenanceTerm(
+                trait_name=ATTACK_STRENGTH,
+                cost_numerator=tradeoffs.attack_strength_cost,
+                cost_denominator=denominator,
+            ),
+            TraitMaintenanceTerm(
+                trait_name=DEFENSE,
+                cost_numerator=tradeoffs.defense_cost,
+                cost_denominator=denominator,
+            ),
+        )
     )
 
 
