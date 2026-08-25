@@ -43,6 +43,9 @@ class Organism:
     including sex-determination systems, environmental assignment, or arbitrary
     multi-type compatibility systems.
 
+    ``heritable_state`` exposes ``genome`` through the domain-neutral
+    ``EvolutionaryEntity`` contract without replacing the biology-oriented API.
+
     Attributes:
         age: Organism age in simulation timesteps.
         energy: Current organism energy.
@@ -228,6 +231,11 @@ class Organism:
         if self._id is None:
             raise RuntimeError("Organism has not been assigned an ID.")
         return self._id
+
+    @property
+    def heritable_state(self) -> Genome:
+        """Return the organism genome through the general evolution contract."""
+        return self.genome
 
     def _assign_id(self, organism_id: int) -> None:
         """Assign the organism's permanent ID."""
