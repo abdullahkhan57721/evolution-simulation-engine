@@ -55,7 +55,9 @@ class MatingTypeRoles:
 
     def __attrs_post_init__(self) -> None:
         """Validate mating-type-to-role mappings."""
-        validators.validate_tuple(self.roles_by_mating_type, name="roles_by_mating_type")
+        validators.validate_tuple(
+            self.roles_by_mating_type, name="roles_by_mating_type"
+        )
         seen_types: set[str] = set()
         for index, entry in enumerate(self.roles_by_mating_type):
             if type(entry) is not tuple:
@@ -70,7 +72,9 @@ class MatingTypeRoles:
                 name=f"roles_by_mating_type[{index}][0]",
             )
             if validated_type in seen_types:
-                raise ValueError("roles_by_mating_type must not contain duplicate types.")
+                raise ValueError(
+                    "roles_by_mating_type must not contain duplicate types."
+                )
             seen_types.add(validated_type)
             self._validate_roles(roles, name=f"roles_by_mating_type[{index}][1]")
         self._validate_roles(self.default_roles, name="default_roles")
