@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 
 from evo_engine.engine import SimulationContext, SimulationState
-from tests.helpers import make_integer_architecture, make_state
 from evo_engine.world import WorldState
+from tests.helpers import make_integer_architecture, make_state
 
 
 def test_transactional_copy_shares_simulation_context() -> None:
