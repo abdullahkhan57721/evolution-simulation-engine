@@ -18,7 +18,8 @@ def _validate_field_name(value: object) -> str:
     return validated
 
 
-@attrs.frozen(slots=True, kw_only=True)\nclass EnvironmentalChange:
+@attrs.frozen(slots=True, kw_only=True)
+class EnvironmentalChange:
     """Apply deterministic time-dependent forcing to an environmental field.
 
     ``coordinates=None`` applies the forcing to every cell in the world.
