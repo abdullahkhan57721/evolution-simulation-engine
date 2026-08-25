@@ -152,9 +152,7 @@ class PiecewiseLinkageMap:
         by_group: dict[str, list[RecombinationInterval]] = {}
         for index, interval in enumerate(self.intervals):
             if not isinstance(interval, RecombinationInterval):
-                raise TypeError(
-                    f"intervals[{index}] must be a RecombinationInterval."
-                )
+                raise TypeError(f"intervals[{index}] must be a RecombinationInterval.")
             by_group.setdefault(interval.linkage_group, []).append(interval)
 
         for linkage_group, intervals in by_group.items():
@@ -223,9 +221,7 @@ def sample_linkage_breakpoint(
             "linkage_map must provide a callable breakpoint_weight method."
         ) from error
     if not callable(breakpoint_weight):
-        raise TypeError(
-            "linkage_map must provide a callable breakpoint_weight method."
-        )
+        raise TypeError("linkage_map must provide a callable breakpoint_weight method.")
 
     validators.validate_str(linkage_group, name="linkage_group")
     validators.validate_int_ge(first_position, bound=0, name="first_position")
