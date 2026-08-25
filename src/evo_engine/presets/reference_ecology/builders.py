@@ -153,7 +153,14 @@ class ReferenceEcology:
 def build_reference_simulation(
     config: ReferenceEcologyConfig | None = None,
 ) -> Simulation:
-    """Build reference simulation state and organism behavior configuration."""
+    """Build reference simulation state and organism behavior configuration.
+
+    Args:
+        config: Optional reference configuration. Defaults to standard values.
+
+    Returns:
+        Configured simulation ready for the matching reference engine.
+    """
     config = resolve_reference_config(config)
     genetic_architecture = build_reference_genetic_architecture(config)
     world = build_reference_world(genetic_architecture, config)
@@ -176,7 +183,18 @@ def build_reference_engine(
     observers: Iterable[Observer] = (),
     telemetry_observers: Iterable[TelemetryObserver] = (),
 ) -> SimulationEngine:
-    """Build a simulation engine containing the complete reference lifecycle."""
+    """Build a simulation engine containing the complete reference lifecycle.
+
+    Args:
+        config: Optional reference configuration. Defaults to standard values.
+        observers: Optional observers attached to committed reference states.
+        telemetry_observers: Optional observers attached to committed event
+            telemetry.
+
+    Returns:
+        Engine wiring ecology, life history, mortality, state observation, and
+        causal telemetry into the standard lifecycle.
+    """
     config = resolve_reference_config(config)
     reserve = KeepEnergyReserve(
         minimum_energy=DevelopmentalEnergyThreshold(trait_name=ENERGY_RESERVE)
@@ -354,7 +372,15 @@ def build_reference_engine(
 def build_reference_ecology(
     config: ReferenceEcologyConfig | None = None,
 ) -> ReferenceEcology:
-    """Build the complete observable reference simulation and matching engine."""
+    """Build the complete observable reference simulation and matching engine.
+
+    Args:
+        config: Optional reference configuration. Defaults to standard values.
+
+    Returns:
+        Bundle containing the resolved configuration, simulation, engine, and
+        population, event, pedigree, and raw-genetic recorders.
+    """
     config = resolve_reference_config(config)
     simulation = build_reference_simulation(config)
     recorder = PopulationRecorder(trait_names=tuple(config.traits.as_mapping()))
