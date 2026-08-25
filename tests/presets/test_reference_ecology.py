@@ -186,6 +186,8 @@ def test_reference_bundle_uses_one_resolved_configuration() -> None:
     assert len(ecology.simulation.state.world.organisms) == 4
     assert isinstance(ecology.engine.stopping_condition, MaxSteps)
     assert ecology.engine.stopping_condition.max_steps == 3
+    assert ecology.recorder in ecology.engine.observers
+    assert ecology.event_recorder in ecology.engine.telemetry_observers
 
 
 def test_reference_founder_values_are_customizable() -> None:
