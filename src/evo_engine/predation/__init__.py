@@ -2,11 +2,13 @@
 
 from evo_engine.predation.eligibility import (
     AllOfPredationEligibility,
+    CharacteristicAttackDefenseEligibility,
     GeneticAttackDefenseEligibility,
     LargerPredatorEligibility,
     PredationEligibility,
 )
 from evo_engine.predation.preference import (
+    CharacteristicAttackAdvantagePreference,
     GeneticAttackAdvantagePreference,
     NeutralPredationPreference,
     PredationPreference,
@@ -14,6 +16,8 @@ from evo_engine.predation.preference import (
 
 __all__ = [
     "AllOfPredationEligibility",
+    "CharacteristicAttackAdvantagePreference",
+    "CharacteristicAttackDefenseEligibility",
     "GeneticAttackAdvantagePreference",
     "GeneticAttackDefenseEligibility",
     "LargerPredatorEligibility",
