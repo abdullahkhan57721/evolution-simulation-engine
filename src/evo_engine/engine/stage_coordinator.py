@@ -14,7 +14,6 @@ from evo_engine.engine.protocols import (
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.telemetry import AppliedEvent
-from evo_engine.validation import validators
 
 
 class StageCoordinator:
@@ -57,8 +56,6 @@ class StageCoordinator:
     def coordinate(
         self,
         simulation_state: SimulationState,
-        *,
-        stage_index: int = 0,
     ) -> tuple[AppliedEvent, ...]:
         """Coordinate one simulation update stage and return applied telemetry.
 
@@ -72,10 +69,10 @@ class StageCoordinator:
         Materialized events are applied in resolver-returned order. Each
         successful application produces an immutable telemetry record containing
         the materialized event and structural world mutations caused by it.
+        The enclosing step coordinator assigns the final lifecycle stage index.
 
         Args:
             simulation_state: Working simulation state to update.
-            stage_index: Zero-based lifecycle stage index for telemetry.
 
         Returns:
             Applied event telemetry in resolver application order.
@@ -83,11 +80,6 @@ class StageCoordinator:
         Raises:
             RuntimeError: If a resolved event has no registered process.
         """
-        validators.validate_int_ge(
-            stage_index,
-            bound=0,
-            name="stage_index",
-        )
         proposed_events: list[SimulationEvent] = []
 
         for process in self.processes:
@@ -132,7 +124,7 @@ class StageCoordinator:
             applied_events.append(
                 AppliedEvent(
                     event_step_index=materialized_event.step_index,
-                    stage_index=stage_index,
+                    stage_index=0,
                     process_type=_qualified_type_name(process),
                     event_type=_qualified_type_name(materialized_event),
                     event=materialized_event,
