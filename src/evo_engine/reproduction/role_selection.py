@@ -87,7 +87,9 @@ class DirectedPairwiseMating:
             raise TypeError("role_model must provide a callable roles_for method.")
         if not callable(getattr(self.neighborhood, "contains", None)):
             raise TypeError("neighborhood must provide a callable contains method.")
-        declared = validate_required_traits(self.required_traits, name="required_traits")
+        declared = validate_required_traits(
+            self.required_traits, name="required_traits"
+        )
         nested = collect_required_traits(
             self.role_model,
             self.can_mate,
@@ -120,37 +122,54 @@ class DirectedPairwiseMating:
         groups: list[ParentGroup] = []
         for first_parent in first_candidates:
             for second_parent in second_candidates:
-                if first_parent.id == second_parent.id:
-                    continue
-                if not self._within_neighborhood(
+                group = self._propose_pair(
                     first_parent,
                     second_parent,
                     simulation_state=simulation_state,
-                ):
-                    continue
-                can_mate = self.can_mate(
-                    first_parent,
-                    second_parent,
-                    simulation_state,
                 )
-                if type(can_mate) is not bool:
-                    raise TypeError("can_mate must return a Boolean.")
-                if not can_mate:
-                    continue
-                score = self.preference_function(
-                    first_parent,
-                    second_parent,
-                    simulation_state,
-                )
-                if type(score) is not int:
-                    raise TypeError("preference_function must return an integer.")
-                groups.append(
-                    ParentGroup(
-                        parent_ids=(first_parent.id, second_parent.id),
-                        preference_score=score,
-                    )
-                )
+                if group is not None:
+                    groups.append(group)
         return groups
+
+    def _propose_pair(
+        self,
+        first_parent: Organism,
+        second_parent: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> ParentGroup | None:
+        """Return one valid directed parent group or ``None``."""
+        if first_parent.id == second_parent.id:
+            return None
+        if not self._within_neighborhood(
+            first_parent,
+            second_parent,
+            simulation_state=simulation_state,
+        ):
+            return None
+
+        can_mate = self.can_mate(
+            first_parent,
+            second_parent,
+            simulation_state,
+        )
+        if type(can_mate) is not bool:
+            raise TypeError("can_mate must return a Boolean.")
+        if not can_mate:
+            return None
+
+        score = self.preference_function(
+            first_parent,
+            second_parent,
+            simulation_state,
+        )
+        if type(score) is not int:
+            raise TypeError("preference_function must return an integer.")
+
+        return ParentGroup(
+            parent_ids=(first_parent.id, second_parent.id),
+            preference_score=score,
+        )
 
     def _within_neighborhood(
         self,
