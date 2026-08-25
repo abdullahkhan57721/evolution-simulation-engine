@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import attrs
 
+from evo_engine.characteristics import (
+    DevelopmentalProfileCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.genetics.builtin_traits import ASSIMILATION_EFFICIENCY
 from evo_engine.validation import attrs_validators, validators
 
@@ -102,6 +106,68 @@ class FixedAssimilationEfficiency:
         return _percentage_energy_gain(
             consumed_amount,
             efficiency_percent=self.efficiency_percent,
+        )
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CharacteristicAssimilationEfficiency:
+    """Read assimilation efficiency from an operative characteristic source.
+
+    Attributes:
+        characteristic_name: Characteristic storing an efficiency percentage.
+        source: Object providing ``value_for``. Defaults to realized
+            developmental characteristics.
+    """
+
+    characteristic_name: str = ASSIMILATION_EFFICIENCY
+    source: object = attrs.field(factory=DevelopmentalProfileCharacteristics)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate characteristic name and source contract."""
+        validators.validate_str(self.characteristic_name, name="characteristic_name")
+        if not self.characteristic_name.strip():
+            raise ValueError("characteristic_name must not be blank.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return the operative characteristic required for assimilation."""
+        return frozenset({self.characteristic_name})
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the biological trait backing the required characteristic."""
+        return self.required_characteristics
+
+    def determine_energy_gain(
+        self,
+        organism: Organism,
+        *,
+        consumed_amount: int,
+        simulation_state: SimulationState,
+    ) -> int:
+        """Return energy gained using the operative assimilation efficiency.
+
+        Args:
+            organism: Organism consuming the resources.
+            consumed_amount: Resource units actually consumed.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Rounded nonnegative energy gain.
+        """
+        efficiency_percent = integer_characteristic(
+            self.source,
+            organism,
+            self.characteristic_name,
+            context=simulation_state,
+            minimum=0,
+            maximum=100,
+        )
+        return _percentage_energy_gain(
+            consumed_amount,
+            efficiency_percent=efficiency_percent,
         )
 
 
