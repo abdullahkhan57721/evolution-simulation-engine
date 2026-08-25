@@ -8,6 +8,15 @@ from types import MappingProxyType
 
 import attrs
 
+from evo_engine.telemetry import (
+    CarcassAdded,
+    CarcassRemoved,
+    OrganismAdded,
+    OrganismMoved,
+    OrganismRemoved,
+    ResourcesChanged,
+    WorldMutation,
+)
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.organism import Organism
@@ -16,6 +25,11 @@ from evo_engine.world.organism import Organism
 @attrs.define(slots=True, kw_only=True)
 class WorldState:
     """Represent the state of a simulated world.
+
+    Structural world mutations are journaled transaction-locally so the engine
+    can associate committed effects with the materialized event that caused
+    them. ``copy()`` deliberately starts a fresh journal while preserving all
+    ecological state.
 
     Attributes:
         width: Width of the world in grid cells.
@@ -58,12 +72,15 @@ class WorldState:
         repr=False,
         validator=attrs_validators.validate_int_ge(0),
     )
+    _mutations: list[WorldMutation] = attrs.field(
+        factory=list,
+        init=False,
+        repr=False,
+    )
 
     @property
     def organisms(self) -> Mapping[int, Organism]:
         """Return the organisms currently in the world."""
-        # Expose a live read-only structural view. Entity objects remain
-        # mutable because processes legitimately update organism state.
         return MappingProxyType(self._organisms)
 
     @property
@@ -75,6 +92,32 @@ class WorldState:
     def resources(self) -> Mapping[tuple[int, int], int]:
         """Return the spatial resources currently in the world."""
         return MappingProxyType(self._resources)
+
+    @property
+    def mutation_count(self) -> int:
+        """Return the number of mutations in the current transaction journal."""
+        return len(self._mutations)
+
+    def mutations_since(self, checkpoint: int) -> tuple[WorldMutation, ...]:
+        """Return transaction-local world mutations after a journal checkpoint.
+
+        Args:
+            checkpoint: Previously observed ``mutation_count`` value.
+
+        Returns:
+            Mutations recorded at or after the checkpoint in occurrence order.
+
+        Raises:
+            ValueError: If checkpoint exceeds the current journal length.
+        """
+        validators.validate_int_ge(
+            checkpoint,
+            bound=0,
+            name="checkpoint",
+        )
+        if checkpoint > len(self._mutations):
+            raise ValueError("checkpoint cannot exceed current mutation_count.")
+        return tuple(self._mutations[checkpoint:])
 
     def add_organism(self, organism: Organism) -> None:
         """Assign an ID to an organism and add it to the world.
@@ -91,19 +134,12 @@ class WorldState:
             raise TypeError("organism must be an instance of Organism.")
 
         self._validate_coordinate(x=organism.x, y=organism.y)
-
-        # IDs are monotonic and intentionally never recycled. Historical
-        # observations can therefore refer to an organism unambiguously even
-        # after it has left the active world.
         organism._assign_id(self._next_organism_id)
-
         self._organisms[organism.id] = organism
         self._next_organism_id += 1
+        self._mutations.append(OrganismAdded(organism_id=organism.id))
 
-    def remove_organism(
-        self,
-        organism_id: int,
-    ) -> Organism:
+    def remove_organism(self, organism_id: int) -> Organism:
         """Remove and return an organism from the world.
 
         Args:
@@ -115,7 +151,9 @@ class WorldState:
         Raises:
             KeyError: If no organism has the given ID.
         """
-        return self._organisms.pop(organism_id)
+        removed = self._organisms.pop(organism_id)
+        self._mutations.append(OrganismRemoved(organism_id=organism_id))
+        return removed
 
     def move_organism(self, *, organism_id: int, x: int, y: int) -> None:
         """Move an organism to a valid world coordinate.
@@ -126,16 +164,24 @@ class WorldState:
             y: New vertical coordinate.
         """
         self._validate_coordinate(x=x, y=y)
-
         organism = self._organisms[organism_id]
-
+        from_x = organism.x
+        from_y = organism.y
         organism.x = x
         organism.y = y
 
-    def add_carcass(
-        self,
-        carcass: Carcass,
-    ) -> None:
+        if (from_x, from_y) != (x, y):
+            self._mutations.append(
+                OrganismMoved(
+                    organism_id=organism_id,
+                    from_x=from_x,
+                    from_y=from_y,
+                    to_x=x,
+                    to_y=y,
+                )
+            )
+
+    def add_carcass(self, carcass: Carcass) -> None:
         """Assign an ID to a carcass and add it to the world.
 
         Args:
@@ -149,20 +195,13 @@ class WorldState:
         if not isinstance(carcass, Carcass):
             raise TypeError("carcass must be an instance of Carcass.")
 
-        self._validate_coordinate(
-            x=carcass.x,
-            y=carcass.y,
-        )
-
+        self._validate_coordinate(x=carcass.x, y=carcass.y)
         carcass._assign_id(self._next_carcass_id)
-
         self._carcasses[carcass.id] = carcass
         self._next_carcass_id += 1
+        self._mutations.append(CarcassAdded(carcass_id=carcass.id))
 
-    def remove_carcass(
-        self,
-        carcass_id: int,
-    ) -> Carcass:
+    def remove_carcass(self, carcass_id: int) -> Carcass:
         """Remove and return a carcass from the world.
 
         Args:
@@ -174,7 +213,9 @@ class WorldState:
         Raises:
             KeyError: If no carcass has the given ID.
         """
-        return self._carcasses.pop(carcass_id)
+        removed = self._carcasses.pop(carcass_id)
+        self._mutations.append(CarcassRemoved(carcass_id=carcass_id))
+        return removed
 
     def add_resources(self, *, x: int, y: int, amount: int) -> None:
         """Add resource units at a coordinate.
@@ -186,12 +227,18 @@ class WorldState:
         """
         self._validate_coordinate(x=x, y=y)
         self._validate_resource_amount(amount=amount)
-
         coordinate = (x, y)
-
-        # Resources use sparse storage: absent coordinates are semantically
-        # equivalent to zero resource units.
-        self._resources[coordinate] = self._resources.get(coordinate, 0) + amount
+        before = self._resources.get(coordinate, 0)
+        after = before + amount
+        self._resources[coordinate] = after
+        self._mutations.append(
+            ResourcesChanged(
+                x=x,
+                y=y,
+                before=before,
+                after=after,
+            )
+        )
 
     def remove_resources(self, *, x: int, y: int, amount: int) -> None:
         """Remove resource units from a coordinate.
@@ -206,30 +253,30 @@ class WorldState:
         """
         self._validate_coordinate(x=x, y=y)
         self._validate_resource_amount(amount=amount)
-
         coordinate = (x, y)
-        available = self._resources.get(coordinate, 0)
+        before = self._resources.get(coordinate, 0)
 
-        if amount > available:
+        if amount > before:
             raise ValueError(
-                f"Cannot remove {amount} resource units; "
-                f"only {available} are available."
+                f"Cannot remove {amount} resource units; only {before} are available."
             )
 
-        remaining = available - amount
-
-        if remaining == 0:
-            # Keep the sparse-map invariant by removing empty cells entirely.
+        after = before - amount
+        if after == 0:
             self._resources.pop(coordinate, None)
         else:
-            self._resources[coordinate] = remaining
+            self._resources[coordinate] = after
 
-    def _validate_coordinate(
-        self,
-        *,
-        x: int,
-        y: int,
-    ) -> None:
+        self._mutations.append(
+            ResourcesChanged(
+                x=x,
+                y=y,
+                before=before,
+                after=after,
+            )
+        )
+
+    def _validate_coordinate(self, *, x: int, y: int) -> None:
         """Validate a coordinate against the world bounds."""
         validators.validate_int_in_range(
             x,
@@ -254,9 +301,11 @@ class WorldState:
         )
 
     def copy(self) -> WorldState:
-        """Return an independent deep copy of the world state.
+        """Return an independent deep copy with a fresh mutation journal.
 
         Returns:
-            Deep copy of this world state.
+            Deep copy of ecological state with no transaction-local mutations.
         """
-        return copy.deepcopy(self)
+        copied = copy.deepcopy(self)
+        copied._mutations.clear()
+        return copied
