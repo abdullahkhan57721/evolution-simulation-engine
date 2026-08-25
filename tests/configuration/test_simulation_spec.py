@@ -12,8 +12,8 @@ from evo_engine.configuration import (
     SimulationSpec,
 )
 from evo_engine.development import LinearEnvironmentalDevelopment
-from evo_engine.engine import MaxSteps, SimulationState
-from evo_engine.genetics import GeneticPhenotype
+from evo_engine.engine import MaxSteps, SimulationState, StepCoordinator
+from evo_engine.genetics import GeneticArchitecture, GeneticPhenotype
 from evo_engine.world import Organism, WorldState
 from tests.helpers import (
     developmental_profile,
@@ -41,8 +41,8 @@ class _RequirementCoordinator:
 def _spec(
     *,
     world: WorldState | None = None,
-    architecture=None,
-    coordinator: object | None = None,
+    architecture: GeneticArchitecture | None = None,
+    coordinator: StepCoordinator | None = None,
 ) -> SimulationSpec:
     if world is None:
         world = WorldState(width=2, height=2)
