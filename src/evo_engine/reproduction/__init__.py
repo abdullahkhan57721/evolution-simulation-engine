@@ -17,6 +17,8 @@ from evo_engine.reproduction.eligibility import (
 from evo_engine.reproduction.investment import (
     FixedEnergyInvestment,
     GeneticPhenotypeEnergyInvestment,
+    MatingTypeInvestmentScale,
+    MatingTypeScaledInvestment,
     ParentalInvestment,
 )
 from evo_engine.reproduction.mating import (
@@ -63,6 +65,8 @@ __all__ = [
     "GeneticPhenotypeEnergyInvestment",
     "MatingCompatibility",
     "MatingPreference",
+    "MatingTypeInvestmentScale",
+    "MatingTypeScaledInvestment",
     "MinimumAgeEligibility",
     "MinimumEnergyEligibility",
     "MutualMateSearchRange",
