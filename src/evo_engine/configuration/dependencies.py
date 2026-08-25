@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
 
 import attrs
 
@@ -76,9 +75,9 @@ def collect_component_dependencies(*components: object) -> frozenset[Dependency]
 
     The collector understands existing genetic-trait requirements, generic
     characteristic requirements, and ``required_environmental_fields``. It
-    recursively traverses attrs configuration objects and standard containers,
-    so leaf policies can declare their own dependencies without every composed
-    parent object manually re-exporting them.
+    traverses attrs objects, ordinary configured Python objects, mappings, and
+    standard containers. This lets leaf policies declare their own dependencies
+    without requiring every coordinator and composite to duplicate declarations.
 
     Args:
         components: Root configured components to inspect.
@@ -177,6 +176,15 @@ def _collect_from_object(
     if isinstance(value, (tuple, list, set, frozenset)):
         for item in value:
             _collect_from_object(item, dependencies=dependencies, seen=seen)
+        return
+
+    try:
+        attributes = vars(value)
+    except TypeError:
+        return
+
+    for item in attributes.values():
+        _collect_from_object(item, dependencies=dependencies, seen=seen)
 
 
 def _collect_declared_requirements(
