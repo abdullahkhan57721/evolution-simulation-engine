@@ -26,6 +26,9 @@ from evo_engine.genetics import (
     SENSORY_ACCURACY,
     SENSORY_RANGE,
 )
+from evo_engine.presets.reference_ecology.reproductive_investment import (
+    ReferenceMatingTypeInvestmentScales,
+)
 from evo_engine.validation import attrs_validators, validators
 
 REFERENCE_CHROMOSOME = "reference"
@@ -91,7 +94,7 @@ class ReferenceTraitValues:
         mating_signal: Signal strength presented to potential mates.
         maturity_age: Age at reproductive maturity.
         reproduction_energy_threshold: Minimum current energy for reproduction.
-        offspring_energy: Energy invested by each reproductive parent.
+        offspring_energy: Base energy investment before mating-type scaling.
         maximum_age: Hard maximum completed age.
     """
 
@@ -285,6 +288,9 @@ class ReferenceEcologyConfig:
     under which individual trait values operate. ``physiological_tradeoffs``
     makes selected realized performance capabilities carry ongoing maintenance
     costs instead of allowing independent performance improvements for free.
+    ``mating_type_investment_scales`` modifies the heritable base offspring-energy
+    investment by reproductive identity without changing parent ordering into a
+    biological role.
 
     Attributes:
         width: World width in grid cells.
@@ -296,6 +302,8 @@ class ReferenceEcologyConfig:
         traits: Founder life-history, physiological, and ecological trait values.
         physiological_tradeoffs: Maintenance-cost coefficients for realized
             performance traits.
+        mating_type_investment_scales: Rational scales applied to each reference
+            mating type's heritable offspring-energy investment.
         mutation_probability_ppm: Per-transmitted-allele mutation probability.
         mutation_max_change: Maximum absolute integer mutation step.
         recombination_probability_ppm: Single-crossover probability per meiosis.
@@ -348,6 +356,10 @@ class ReferenceEcologyConfig:
     physiological_tradeoffs: ReferencePhysiologicalTradeoffs = attrs.field(
         factory=ReferencePhysiologicalTradeoffs,
         validator=attrs.validators.instance_of(ReferencePhysiologicalTradeoffs),
+    )
+    mating_type_investment_scales: ReferenceMatingTypeInvestmentScales = attrs.field(
+        factory=ReferenceMatingTypeInvestmentScales,
+        validator=attrs.validators.instance_of(ReferenceMatingTypeInvestmentScales),
     )
     mutation_probability_ppm: int = attrs.field(
         default=10_000,
