@@ -23,16 +23,20 @@ from evo_engine.validation import attrs_validators, validators
 class Organism:
     """Represent an organism's mutable, genetic, and expressed state.
 
-    Genetic state, genetic phenotype, and developmental targets are fixed for
-    the lifetime of an organism. Mutable state such as age, energy, current
-    body mass, and position may
-    change during simulation.
+    Genetic state, genetic phenotype, developmental targets, and mating type are
+    fixed for the lifetime of an organism. Mutable state such as age, energy,
+    current body mass, and position may change during simulation.
 
     ``body_mass`` represents current physical mass. A heritable
     ``adult_body_mass`` genetic phenotype defines a genetic expectation, while
     the developmental profile can realize an individual-specific adult target.
     Those concepts are intentionally separate so a Growth process can change
     current mass without changing the organism's genome or genetic phenotype.
+
+    ``mating_type`` is reproductive identity rather than a built-in genetic
+    trait. Simulations may derive or assign it through reproduction policies,
+    including sex-determination systems, environmental assignment, or arbitrary
+    multi-type compatibility systems.
 
     Attributes:
         age: Organism age in simulation timesteps.
@@ -42,6 +46,7 @@ class Organism:
         genetic_phenotype: Genetic trait values expressed from the genome.
         developmental_profile: Individual developmental targets realized from
             the genetic phenotype.
+        mating_type: Immutable reproductive mating-type label.
         x: Horizontal world coordinate.
         y: Vertical world coordinate.
     """
@@ -75,6 +80,11 @@ class Organism:
         validator=attrs.validators.instance_of(DevelopmentalProfile),
         on_setattr=attrs.setters.frozen,
     )
+    mating_type: str = attrs.field(
+        default="default",
+        validator=attrs_validators.validate_str,
+        on_setattr=attrs.setters.frozen,
+    )
     x: int = attrs.field(
         default=0,
         validator=attrs_validators.validate_int_ge(0),
@@ -87,6 +97,8 @@ class Organism:
     def __attrs_post_init__(self) -> None:
         """Validate immutable genetic/developmental cross-field invariants."""
         self.developmental_profile.validate_against(self.genetic_phenotype)
+        if not self.mating_type.strip():
+            raise ValueError("mating_type must not be empty or whitespace-only.")
 
     def __deepcopy__(self, memo: dict[int, object]) -> Organism:
         """Return a deep copy while sharing immutable genetic state."""
@@ -99,6 +111,7 @@ class Organism:
             genome=self.genome,
             genetic_phenotype=self.genetic_phenotype,
             developmental_profile=self.developmental_profile,
+            mating_type=self.mating_type,
             x=self.x,
             y=self.y,
         )
@@ -117,6 +130,7 @@ class Organism:
         body_mass: int | None = None,
         development_model: DevelopmentModel | None = None,
         rng: random.Random | None = None,
+        mating_type: str = "default",
         x: int = 0,
         y: int = 0,
     ) -> Organism:
@@ -124,9 +138,8 @@ class Organism:
 
         When ``body_mass`` is omitted and the genetic phenotype defines the
         canonical ``adult_body_mass`` trait, current mass initially matches that
-        target.
-        This preserves fixed-size behavior until a developmental model is
-        configured. Genomes without that trait default to one mass unit.
+        target. This preserves fixed-size behavior until a developmental model
+        is configured. Genomes without that trait default to one mass unit.
 
         Args:
             genetic_architecture: Shared architecture used to validate and
@@ -141,6 +154,7 @@ class Organism:
                 developmental targets. Defaults to deterministic development.
             rng: Random-number generator used by development_model. Required
                 when a development_model is explicitly supplied.
+            mating_type: Immutable reproductive mating-type label.
             x: Initial horizontal world coordinate.
             y: Initial vertical world coordinate.
 
@@ -189,6 +203,7 @@ class Organism:
             genome=genome,
             genetic_phenotype=genetic_phenotype,
             developmental_profile=developmental_profile,
+            mating_type=mating_type,
             x=x,
             y=y,
         )
