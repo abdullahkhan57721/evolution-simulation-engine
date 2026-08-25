@@ -154,3 +154,28 @@ forbidden_modules = [
     "evo_engine.processes",
     "evo_engine.resolvers",
 ]
+
+[[tool.importlinter.contracts]]
+id = "experiments-are-top-level-consumers"
+name = "Production simulation packages do not depend on experiment runners"
+type = "forbidden"
+source_modules = [
+    "evo_engine.behavior",
+    "evo_engine.development",
+    "evo_engine.energetics",
+    "evo_engine.engine",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.reproduction",
+    "evo_engine.resolvers",
+    "evo_engine.spatial",
+    "evo_engine.validation",
+    "evo_engine.world",
+]
+forbidden_modules = ["evo_engine.experiments"]
