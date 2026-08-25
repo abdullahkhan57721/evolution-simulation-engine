@@ -2,12 +2,14 @@
 
 from evo_engine.feeding.assimilation import (
     AssimilationModel,
+    CharacteristicAssimilationEfficiency,
     FixedAssimilationEfficiency,
     FullAssimilation,
     GeneticPhenotypeAssimilationEfficiency,
     determine_assimilated_energy,
 )
 from evo_engine.feeding.intake import (
+    CharacteristicIntakeCapacity,
     FixedIntakeCapacity,
     GeneticPhenotypeIntakeCapacity,
     IntakeCapacityModel,
@@ -16,6 +18,8 @@ from evo_engine.feeding.intake import (
 
 __all__ = [
     "AssimilationModel",
+    "CharacteristicAssimilationEfficiency",
+    "CharacteristicIntakeCapacity",
     "FixedAssimilationEfficiency",
     "FixedIntakeCapacity",
     "FullAssimilation",
