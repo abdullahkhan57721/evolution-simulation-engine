@@ -35,7 +35,10 @@ class _IncrementProcess:
     def event_type(self) -> type[_IncrementEvent]:
         return _IncrementEvent
 
-    def propose_events(self, simulation_state: SimulationState) -> list[_IncrementEvent]:
+    def propose_events(
+        self,
+        simulation_state: SimulationState,
+    ) -> list[_IncrementEvent]:
         return [_IncrementEvent(step_index=simulation_state.step_index)]
 
     def apply_event(
