@@ -8,6 +8,7 @@ import attrs
 
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.behavior import behavior_is_allowed
+from evo_engine.development.context import DevelopmentLocation
 from evo_engine.development.models import (
     DeterministicDevelopment,
     DevelopmentModel,
@@ -82,9 +83,10 @@ class Reproduction:
 
     Resolved proposals are materialized before any stage event is applied.
     Materialization performs inheritance, genetic phenotype expression,
-    developmental realization, mating-type assignment, and offspring placement.
-    Application then only pays the recorded energy investments and inserts the
-    already-defined offspring into the world.
+    offspring placement, location-aware developmental realization, mating-type
+    assignment, and newborn body-state determination. Application then only
+    pays the recorded energy investments and inserts the already-defined
+    offspring into the world.
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
@@ -368,7 +370,8 @@ class Reproduction:
             offspring_genetic_phenotype: Genetic phenotype expressed from the
                 offspring genome.
             offspring_developmental_profile: Individual developmental targets
-                realized from the offspring genetic phenotype.
+                realized from the offspring genetic phenotype at the selected
+                birth location.
             initial_body_mass: Current physical mass assigned at birth.
             offspring_mating_type: Immutable reproductive mating type assigned
                 to the offspring.
@@ -582,9 +585,9 @@ class Reproduction:
         """Materialize a resolved Reproduction proposal.
 
         Inheritance, mutation, recombination, genetic phenotype expression,
-        developmental realization, mating-type assignment, and random offspring
-        placement happen here, after resolution but before any event in the
-        stage is applied.
+        offspring placement, location-aware developmental realization,
+        mating-type assignment, and newborn body-state determination happen
+        here, after resolution but before any event in the stage is applied.
 
         Args:
             simulation_state: Current pre-application simulation state.
@@ -638,11 +641,20 @@ class Reproduction:
         )
 
         offspring_genetic_phenotype = architecture.express(offspring_genome)
+
+        # Placement precedes development because local environmental development
+        # must sample the location where this offspring will actually be born.
+        x, y = self.offspring_placement.choose_location(
+            parents,
+            simulation_state=simulation_state,
+            rng=simulation_state.rng,
+        )
         offspring_developmental_profile = realize_developmental_profile(
             self.development_model,
             offspring_genetic_phenotype,
             rng=simulation_state.rng,
             simulation_state=simulation_state,
+            location=DevelopmentLocation(x=x, y=y),
         )
 
         initial_body_mass = self.offspring_body_mass_model.determine_body_mass(
@@ -662,12 +674,6 @@ class Reproduction:
             offspring_genome=offspring_genome,
             offspring_genetic_phenotype=offspring_genetic_phenotype,
             offspring_developmental_profile=offspring_developmental_profile,
-            simulation_state=simulation_state,
-            rng=simulation_state.rng,
-        )
-
-        x, y = self.offspring_placement.choose_location(
-            parents,
             simulation_state=simulation_state,
             rng=simulation_state.rng,
         )
