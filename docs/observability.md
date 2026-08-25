@@ -40,8 +40,8 @@ references.
 ## PopulationRecorder
 
 `PopulationRecorder` records an evolutionary time series at a configurable step
-interval. It can include the step-zero founder baseline and can summarize selected
-integer genetic-phenotype traits.
+interval. It always records mating-type composition and can additionally
+summarize selected integer genetic-phenotype traits.
 
 ```python
 from evo_engine.engine import SimulationEngine
@@ -64,13 +64,15 @@ for observation in recorder.observations:
     print(
         observation.step_index,
         observation.population_size,
+        observation.mating_type_counts.value_counts,
         observation.trait("growth_rate").summary.mean,
     )
 ```
 
 The recorder exposes its configured trait names through `required_traits`, so the
 normal engine preflight rejects undefined traits before step zero rather than
-failing midway through a run.
+failing midway through a run. Mating type is organism state rather than a genetic
+trait, so recording it creates no genetic-architecture dependency.
 
 ## PopulationObservation
 
@@ -83,6 +85,7 @@ Each immutable `PopulationObservation` contains:
 - age summary
 - energy summary
 - current body-mass summary
+- mating-type counts
 - configured integer genetic-trait summaries
 
 Age, energy, body mass, and integer traits use `IntegerSummary`:
@@ -97,6 +100,27 @@ maximum
 
 An extinct population has a valid empty summary with count and total equal to
 zero and mean/minimum/maximum equal to `None`.
+
+## Mating-type composition
+
+`CategoryCounts` stores deterministic lexicographically ordered
+`(category, count)` pairs for string-valued population categories. The population
+recorder uses it for `Organism.mating_type`.
+
+For example:
+
+```text
+(("type_a", 12), ("type_b", 9))
+```
+
+`count_for()` returns an absolute count and `frequency_for()` returns the fraction
+of the categorized population represented by one label. Frequencies are `None`
+for an empty population because a category fraction is undefined when the total
+count is zero.
+
+`PopulationObservation` requires mating-type counts to sum exactly to
+`population_size`. This makes sex-ratio or mating-type-ratio histories complete
+rather than a best-effort side measurement.
 
 ## Trait distributions
 
@@ -137,7 +161,7 @@ recorded `step_index`.
 
 ## Reference ecology
 
-`build_reference_ecology()` now creates and attaches a `PopulationRecorder`
+`build_reference_ecology()` creates and attaches a `PopulationRecorder`
 automatically:
 
 ```python
@@ -150,27 +174,41 @@ baseline = ecology.recorder.observations[0]
 latest = ecology.recorder.latest
 ```
 
-The reference recorder tracks every integer trait in `ReferenceTraitValues`, so
-its time series can directly expose changes in growth rate, metabolic and
-locomotion coefficients, sensory traits, feeding physiology, predation traits,
-mate-choice traits, life-history thresholds, and lifespan.
+The reference recorder tracks every integer trait in `ReferenceTraitValues` plus
+the active population's mating-type composition. Its time series can therefore
+expose changes in growth rate, metabolic and locomotion coefficients, sensory
+traits, feeding physiology, predation traits, mate-choice traits, life-history
+thresholds, lifespan, and reproductive type ratios.
 
 The reference preset remains a modeling baseline rather than a calibrated
 biological claim. Observation makes its dynamics inspectable; it does not make
 the numerical assumptions empirically validated.
 
-## Deliberately separate future layers
+## Separate observation layers
 
-This milestone records state, not causal event history. Several related but
-distinct capabilities remain separate:
+Population snapshots intentionally remain separate from other measurement
+concerns. The current stack includes:
 
-- event telemetry: births, deaths, predation, feeding, movement, and costs by step
-- pedigree and lifetime fitness accounting
-- allele/genotype frequencies distinct from expressed phenotype distributions
-- experiment replication across multiple seeds
-- CSV/JSON/DataFrame export
-- plotting and animation
-- checkpoint/save-and-resume persistence
+```text
+PopulationRecorder
+    → population/ecosystem summaries
+    → phenotype distributions
+    → mating-type composition
 
-Keeping these separate avoids turning one observer into a monolithic analytics,
-logging, storage, and visualization subsystem.
+GeneticCompositionRecorder
+    → allele frequencies
+    → genotype frequencies
+
+EventRecorder
+    → committed causal event history
+
+PedigreeRecorder
+    → parentage
+    → mortality causes
+    → lifetime reproductive success
+```
+
+The experiment layer composes these records across seeds and exports them without
+moving analytics responsibilities back into simulation processes. Plotting,
+animation, and higher-level statistical analysis can remain downstream consumers
+of the immutable records.

@@ -11,6 +11,7 @@ from evo_engine.observation.genetic_composition import (
 from evo_engine.observation.pedigree import IndividualLifeHistory, PedigreeRecorder
 from evo_engine.observation.population import PopulationRecorder
 from evo_engine.observation.records import (
+    CategoryCounts,
     IntegerSummary,
     IntegerTraitSummary,
     PopulationObservation,
@@ -18,6 +19,7 @@ from evo_engine.observation.records import (
 
 __all__ = [
     "AlleleFrequency",
+    "CategoryCounts",
     "EventRecorder",
     "GeneticCompositionObservation",
     "GeneticCompositionRecorder",

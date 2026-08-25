@@ -8,6 +8,7 @@ from collections.abc import Iterable
 import attrs
 
 from evo_engine.observation.records import (
+    CategoryCounts,
     IntegerSummary,
     IntegerTraitSummary,
     PopulationObservation,
@@ -18,7 +19,7 @@ from evo_engine.world import Organism, WorldState
 
 @attrs.define(slots=True, kw_only=True)
 class PopulationRecorder:
-    """Record population and selected genetic-trait state over time.
+    """Record population, mating-type, and selected genetic-trait state over time.
 
     The recorder is intentionally read-only with respect to ``WorldState``. It
     stores immutable ``PopulationObservation`` values and therefore does not
@@ -159,6 +160,9 @@ class PopulationRecorder:
                 body_mass=_summarize_integers(
                     organism.body_mass for organism in organisms
                 ),
+                mating_type_counts=_summarize_categories(
+                    organism.mating_type for organism in organisms
+                ),
                 traits=tuple(
                     _summarize_trait(
                         trait_name,
@@ -211,6 +215,11 @@ def _summarize_integers(values: Iterable[int]) -> IntegerSummary:
         minimum=min(values_tuple),
         maximum=max(values_tuple),
     )
+
+
+def _summarize_categories(values: Iterable[str]) -> CategoryCounts:
+    counts = Counter(values)
+    return CategoryCounts(value_counts=tuple(sorted(counts.items())))
 
 
 def _summarize_trait(

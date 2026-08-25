@@ -10,6 +10,7 @@ from typing import Any
 import attrs
 
 from evo_engine.experiments.reference import ReferenceExperimentResult
+from evo_engine.observation import CategoryCounts, PopulationObservation
 
 
 def write_experiment_json(
@@ -49,6 +50,10 @@ def write_replicate_summary_csv(
 ) -> Path:
     """Write one summary row per experiment replicate.
 
+    Final mating-type counts are emitted as
+    ``final_mating_type_count:<mating-type>`` columns for the union of labels
+    observed anywhere in the experiment.
+
     Args:
         result: Experiment result to summarize.
         path: Destination CSV path.
@@ -58,6 +63,7 @@ def write_replicate_summary_csv(
     """
     _validate_result(result)
     destination = _prepare_destination(path)
+    mating_type_names = _observed_mating_type_names(result)
     fieldnames = (
         "seed",
         "engine_version",
@@ -68,24 +74,29 @@ def write_replicate_summary_csv(
         "final_total_resources",
         "total_births",
         "total_deaths",
+        *(f"final_mating_type_count:{name}" for name in mating_type_names),
     )
     with destination.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=fieldnames)
         writer.writeheader()
         for replicate in result.replicates:
-            writer.writerow(
-                {
-                    "seed": replicate.seed,
-                    "engine_version": replicate.metadata.engine_version,
-                    "python_version": replicate.metadata.python_version,
-                    "completed_steps": replicate.metadata.completed_steps,
-                    "final_population_size": replicate.final_population_size,
-                    "final_carcass_count": replicate.final_carcass_count,
-                    "final_total_resources": replicate.final_total_resources,
-                    "total_births": replicate.total_births,
-                    "total_deaths": replicate.total_deaths,
-                }
-            )
+            row: dict[str, object] = {
+                "seed": replicate.seed,
+                "engine_version": replicate.metadata.engine_version,
+                "python_version": replicate.metadata.python_version,
+                "completed_steps": replicate.metadata.completed_steps,
+                "final_population_size": replicate.final_population_size,
+                "final_carcass_count": replicate.final_carcass_count,
+                "final_total_resources": replicate.final_total_resources,
+                "total_births": replicate.total_births,
+                "total_deaths": replicate.total_deaths,
+            }
+            final_counts = _final_mating_type_counts(replicate.population_history)
+            for mating_type in mating_type_names:
+                row[f"final_mating_type_count:{mating_type}"] = final_counts.count_for(
+                    mating_type
+                )
+            writer.writerow(row)
     return destination
 
 
@@ -95,9 +106,10 @@ def write_population_history_csv(
 ) -> Path:
     """Write replicate population histories in tidy row-per-step form.
 
-    Trait means are emitted as ``trait_mean:<trait-name>`` columns. Empty
-    populations produce blank mean cells because their numerical summaries have
-    ``mean=None``.
+    Trait means are emitted as ``trait_mean:<trait-name>`` columns. Mating-type
+    counts are emitted as ``mating_type_count:<mating-type>`` columns for the
+    union of labels observed anywhere in the experiment. Empty populations
+    produce blank mean cells and zero mating-type counts.
 
     Args:
         result: Experiment result containing population histories.
@@ -109,6 +121,7 @@ def write_population_history_csv(
     _validate_result(result)
     destination = _prepare_destination(path)
     trait_names = result.replicates[0].metadata.trait_names
+    mating_type_names = _observed_mating_type_names(result)
     fieldnames = (
         "seed",
         "step_index",
@@ -118,6 +131,7 @@ def write_population_history_csv(
         "age_mean",
         "energy_mean",
         "body_mass_mean",
+        *(f"mating_type_count:{name}" for name in mating_type_names),
         *(f"trait_mean:{name}" for name in trait_names),
     )
     with destination.open("w", encoding="utf-8", newline="") as stream:
@@ -135,12 +149,37 @@ def write_population_history_csv(
                     "energy_mean": observation.energy.mean,
                     "body_mass_mean": observation.body_mass.mean,
                 }
+                for mating_type in mating_type_names:
+                    row[f"mating_type_count:{mating_type}"] = (
+                        observation.mating_type_counts.count_for(mating_type)
+                    )
                 for trait_name in trait_names:
                     row[f"trait_mean:{trait_name}"] = observation.trait(
                         trait_name
                     ).summary.mean
                 writer.writerow(row)
     return destination
+
+
+def _observed_mating_type_names(result: ReferenceExperimentResult) -> tuple[str, ...]:
+    return tuple(
+        sorted(
+            {
+                mating_type
+                for replicate in result.replicates
+                for observation in replicate.population_history
+                for mating_type, _ in observation.mating_type_counts.value_counts
+            }
+        )
+    )
+
+
+def _final_mating_type_counts(
+    population_history: tuple[PopulationObservation, ...],
+) -> CategoryCounts:
+    if not population_history:
+        return CategoryCounts()
+    return population_history[-1].mating_type_counts
 
 
 def _validate_result(result: ReferenceExperimentResult) -> None:

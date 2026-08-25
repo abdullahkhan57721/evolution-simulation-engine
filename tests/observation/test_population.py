@@ -6,6 +6,7 @@ import attrs
 import pytest
 
 from evo_engine.observation import (
+    CategoryCounts,
     IntegerSummary,
     IntegerTraitSummary,
     PopulationObservation,
@@ -15,7 +16,7 @@ from tests.helpers import add_organism, make_integer_architecture, make_state
 
 
 def test_population_recorder_summarizes_world_and_integer_traits() -> None:
-    """Test population, ecosystem, and genetic-trait summaries."""
+    """Test population, ecosystem, mating-type, and genetic-trait summaries."""
     trait_name = "performance"
     architecture = make_integer_architecture(trait_name)
     state = make_state(
@@ -27,6 +28,7 @@ def test_population_recorder_summarizes_world_and_integer_traits() -> None:
         age=1,
         energy=10,
         body_mass=2,
+        mating_type="alpha",
     )
     add_organism(
         state,
@@ -34,6 +36,7 @@ def test_population_recorder_summarizes_world_and_integer_traits() -> None:
         age=3,
         energy=20,
         body_mass=6,
+        mating_type="beta",
         x=1,
     )
     state.world.add_resources(
@@ -82,6 +85,11 @@ def test_population_recorder_summarizes_world_and_integer_traits() -> None:
         minimum=2,
         maximum=6,
     )
+    assert observation.mating_type_counts == CategoryCounts(
+        value_counts=(("alpha", 1), ("beta", 1))
+    )
+    assert observation.mating_type_counts.count_for("alpha") == 1
+    assert observation.mating_type_counts.frequency_for("alpha") == 0.5
 
     trait = observation.trait(trait_name)
     assert trait.summary == IntegerSummary(
@@ -97,7 +105,7 @@ def test_population_recorder_summarizes_world_and_integer_traits() -> None:
 
 
 def test_population_recorder_records_empty_population() -> None:
-    """Test extinction states produce valid empty numerical summaries."""
+    """Test extinction states produce valid empty summaries and category counts."""
     state = make_state()
     recorder = PopulationRecorder()
 
@@ -112,6 +120,8 @@ def test_population_recorder_records_empty_population() -> None:
     assert observation.age == IntegerSummary(count=0, total=0)
     assert observation.energy == IntegerSummary(count=0, total=0)
     assert observation.body_mass == IntegerSummary(count=0, total=0)
+    assert observation.mating_type_counts == CategoryCounts()
+    assert observation.mating_type_counts.frequency_for("alpha") is None
 
 
 def test_population_recorder_observation_interval_and_step_zero() -> None:
@@ -225,6 +235,32 @@ def test_integer_trait_summary_validates_distribution_count() -> None:
         )
 
 
+def test_category_counts_require_unique_sorted_nonempty_labels() -> None:
+    """Test categorical observations have deterministic validated labels."""
+    with pytest.raises(ValueError, match="strictly increasing"):
+        CategoryCounts(value_counts=(("beta", 1), ("alpha", 1)))
+
+    with pytest.raises(ValueError, match="whitespace-only"):
+        CategoryCounts(value_counts=(("   ", 1),))
+
+
+def test_population_observation_validates_mating_type_count_total() -> None:
+    """Test mating-type counts must account for the complete population."""
+    summary = IntegerSummary(count=1, total=1, mean=1.0, minimum=1, maximum=1)
+
+    with pytest.raises(ValueError, match="mating_type_counts.total_count"):
+        PopulationObservation(
+            step_index=0,
+            population_size=1,
+            carcass_count=0,
+            total_resources=0,
+            age=summary,
+            energy=summary,
+            body_mass=summary,
+            mating_type_counts=CategoryCounts(),
+        )
+
+
 def test_population_observation_trait_lookup_rejects_missing_trait() -> None:
     """Test trait lookup fails clearly when a trait was not configured."""
     empty = IntegerSummary(count=0, total=0)
@@ -236,6 +272,7 @@ def test_population_observation_trait_lookup_rejects_missing_trait() -> None:
         age=empty,
         energy=empty,
         body_mass=empty,
+        mating_type_counts=CategoryCounts(),
     )
 
     with pytest.raises(KeyError, match="missing"):
