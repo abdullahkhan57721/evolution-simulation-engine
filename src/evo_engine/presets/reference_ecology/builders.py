@@ -96,7 +96,9 @@ from evo_engine.reproduction import (
 )
 from evo_engine.resolvers import AcceptAll
 from evo_engine.resolvers.predation import PreferenceOrder as PredationPreferenceOrder
-from evo_engine.resolvers.reproduction import PreferenceOrder as ReproductionPreferenceOrder
+from evo_engine.resolvers.reproduction import (
+    PreferenceOrder as ReproductionPreferenceOrder,
+)
 from evo_engine.resolvers.resource_allocation import EqualShare
 from evo_engine.spatial.boundary_conditions import Clamped
 from evo_engine.spatial.movement_patterns import MooreRandom
