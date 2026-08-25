@@ -6,6 +6,10 @@ from evo_engine.reproduction.birth_mass import (
     FractionOfAdultBodyMassAtBirth,
     OffspringBodyMassModel,
 )
+from evo_engine.reproduction.directed_mating import (
+    ChooserSignalCompatibility,
+    ChooserSignalMarginPreference,
+)
 from evo_engine.reproduction.eligibility import (
     AllOfEligibility,
     AlwaysEligible,
@@ -52,15 +56,21 @@ from evo_engine.reproduction.placement import (
     OffspringPlacement,
     RandomParentLocation,
 )
+from evo_engine.reproduction.role_selection import DirectedPairwiseMating
+from evo_engine.reproduction.roles import MatingTypeRoles, ReproductiveRoleModel
+from evo_engine.reproduction.type_compatibility import MatingTypeCompatibilityMatrix
 
 __all__ = [
     "AdultBodyMassAtBirth",
     "AllOfEligibility",
     "AllOfMatingCompatibility",
     "AlwaysEligible",
+    "ChooserSignalCompatibility",
+    "ChooserSignalMarginPreference",
     "DevelopmentalMaturityEligibility",
     "DevelopmentalProfileMatingType",
     "DifferentMatingTypes",
+    "DirectedPairwiseMating",
     "FixedBodyMassAtBirth",
     "FixedEnergyInvestment",
     "FixedMatingType",
@@ -69,7 +79,9 @@ __all__ = [
     "GeneticPhenotypeMatingType",
     "MatingCompatibility",
     "MatingPreference",
+    "MatingTypeCompatibilityMatrix",
     "MatingTypeInvestmentScale",
+    "MatingTypeRoles",
     "MatingTypeScaledInvestment",
     "MinimumAgeEligibility",
     "MinimumEnergyEligibility",
@@ -88,6 +100,7 @@ __all__ = [
     "RandomParentLocation",
     "ReproductiveEligibility",
     "ReproductiveEligibilityMovementCondition",
+    "ReproductiveRoleModel",
     "SingleParent",
     "determine_offspring_mating_type",
 ]
