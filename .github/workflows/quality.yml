@@ -68,19 +68,19 @@ jobs:
       - name: Ruff
         id: ruff
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff' }}
-        continue-on-error: true
+        continue-on-error: false
         run: ./scripts/lint
 
       - name: Pyright
         id: pyright
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Pyright' }}
-        continue-on-error: true
+        continue-on-error: false
         run: ./scripts/typecheck
 
       - name: Import Linter
         id: architecture
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Import Linter' }}
-        continue-on-error: true
+        continue-on-error: false
         shell: bash
         run: |
           set +e
@@ -95,13 +95,13 @@ jobs:
       - name: Complexipy
         id: complexipy
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Complexipy' }}
-        continue-on-error: true
+        continue-on-error: false
         run: ./scripts/complexity
 
       - name: pytest + coverage
         id: coverage
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage' }}
-        continue-on-error: true
+        continue-on-error: false
         env:
           COVERAGE_FAIL_UNDER: "90"
         run: ./scripts/coverage
@@ -109,7 +109,7 @@ jobs:
       - name: MkDocs strict build
         id: docs
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
-        continue-on-error: true
+        continue-on-error: false
         run: ./scripts/docs
 
       - name: Quality gate summary
