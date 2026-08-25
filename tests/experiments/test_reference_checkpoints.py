@@ -47,10 +47,18 @@ def _assert_equivalent_ecologies(
     assert actual.config == expected.config
     assert actual.simulation.state.step_index == expected.simulation.state.step_index
     assert actual.simulation.state.world == expected.simulation.state.world
-    assert actual.simulation.state.last_step_telemetry == expected.simulation.state.last_step_telemetry
-    assert actual.simulation.state.rng.getstate() == expected.simulation.state.rng.getstate()
+    assert (
+        actual.simulation.state.last_step_telemetry
+        == expected.simulation.state.last_step_telemetry
+    )
+    assert (
+        actual.simulation.state.rng.getstate()
+        == expected.simulation.state.rng.getstate()
+    )
     assert actual.recorder.observations == expected.recorder.observations
-    assert actual.genetic_recorder.observations == expected.genetic_recorder.observations
+    assert (
+        actual.genetic_recorder.observations == expected.genetic_recorder.observations
+    )
     assert actual.event_recorder.steps == expected.event_recorder.steps
     assert actual.pedigree_recorder.records == expected.pedigree_recorder.records
 
