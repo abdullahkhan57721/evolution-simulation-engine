@@ -19,6 +19,7 @@ from evo_engine.reproduction.eligibility import (
     ReproductiveEligibility,
 )
 from evo_engine.reproduction.investment import (
+    CharacteristicEnergyInvestment,
     FixedEnergyInvestment,
     GeneticPhenotypeEnergyInvestment,
     MatingTypeInvestmentScale,
@@ -65,6 +66,7 @@ __all__ = [
     "AllOfEligibility",
     "AllOfMatingCompatibility",
     "AlwaysEligible",
+    "CharacteristicEnergyInvestment",
     "ChooserSignalCompatibility",
     "ChooserSignalMarginPreference",
     "DevelopmentalMaturityEligibility",
