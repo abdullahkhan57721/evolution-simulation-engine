@@ -82,6 +82,10 @@ from evo_engine.presets.reference_ecology.genetics import (
     build_reference_genetic_architecture,
     build_reference_world,
 )
+from evo_engine.presets.reference_ecology.mating_types import (
+    build_reference_mating_type_compatibility,
+    build_reference_offspring_mating_type_model,
+)
 from evo_engine.processes import (
     Aging,
     Decomposition,
@@ -223,7 +227,11 @@ def build_reference_engine(
         )
     )
     mating_compatibility = AllOfMatingCompatibility(
-        compatibilities=(MutualMateSearchRange(), MutualSignalCompatibility())
+        compatibilities=(
+            build_reference_mating_type_compatibility(),
+            MutualMateSearchRange(),
+            MutualSignalCompatibility(),
+        )
     )
     mating_preference = MutualSignalMarginPreference()
 
@@ -359,6 +367,9 @@ def build_reference_engine(
                 offspring_body_mass_model=FractionOfAdultBodyMassAtBirth(
                     numerator=config.newborn_mass_numerator,
                     denominator=config.newborn_mass_denominator,
+                ),
+                offspring_mating_type_model=(
+                    build_reference_offspring_mating_type_model()
                 ),
             ),
         ),
