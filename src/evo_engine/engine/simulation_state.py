@@ -92,13 +92,12 @@ class SimulationState:
         if rng is None:
             rng = random.Random()
 
-        self.__attrs_init__(
-            world=world,
-            context=resolved_context,
-            step_index=step_index,
-            rng=rng,
-            last_step_telemetry=last_step_telemetry,
-        )
+        object.__setattr__(self, "world", world)
+        object.__setattr__(self, "context", resolved_context)
+        object.__setattr__(self, "step_index", step_index)
+        object.__setattr__(self, "rng", rng)
+        object.__setattr__(self, "last_step_telemetry", last_step_telemetry)
+        attrs.validate(self)
 
     @staticmethod
     def _resolve_context(
