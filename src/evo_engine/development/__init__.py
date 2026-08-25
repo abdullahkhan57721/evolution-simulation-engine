@@ -2,9 +2,12 @@
 
 from evo_engine.development.context import DevelopmentLocation
 from evo_engine.development.environmental import (
+    EnvironmentalSampling,
     EnvironmentalThresholdDevelopment,
     GenotypeScaledEnvironmentalDevelopment,
     LinearEnvironmentalDevelopment,
+    LocalEnvironmentalSampling,
+    WorldMeanEnvironmentalSampling,
 )
 from evo_engine.development.models import (
     DeterministicDevelopment,
@@ -23,11 +26,14 @@ __all__ = [
     "DevelopmentLocation",
     "DevelopmentalProfile",
     "DevelopmentModel",
+    "EnvironmentalSampling",
     "EnvironmentalThresholdDevelopment",
     "GaussianIntegerDevelopment",
     "GenotypeScaledEnvironmentalDevelopment",
     "IndependentDevelopment",
     "LinearEnvironmentalDevelopment",
+    "LocalEnvironmentalSampling",
     "TraitDevelopmentModel",
+    "WorldMeanEnvironmentalSampling",
     "realize_developmental_profile",
 ]
