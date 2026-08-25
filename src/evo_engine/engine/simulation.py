@@ -1,76 +1,59 @@
-"""Represent a simulation and its stateful objects."""
+"""Represent one domain-neutral simulation and its mutable state."""
 
 from __future__ import annotations
 
 import random
+from typing import Any
 
-from evo_engine.behavior import BehaviorSelectionModel, UnrestrictedBehavior
 from evo_engine.engine.simulation_context import SimulationContext
 from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.genetics.genetic_architecture import GeneticArchitecture
-from evo_engine.world.world_state import WorldState
 
 
 class Simulation:
-    """Represent one simulation and its stateful objects."""
+    """Represent one simulation independently of any modeled domain.
+
+    The kernel knows only about transactional model state, immutable context,
+    deterministic RNG ownership, and simulation-step state. Domain packages are
+    responsible for defining entities, evolutionary semantics, and configuration
+    services stored in ``SimulationContext``.
+    """
 
     def __init__(
         self,
-        initial_world_state: WorldState,
-        genetic_architecture: GeneticArchitecture,
+        initial_world_state: object,
         seed: int | None = None,
-        behavior_selection_model: BehaviorSelectionModel | None = None,
+        context: SimulationContext | None = None,
+        **context_values: object,
     ) -> None:
-        """Initialize a simulation.
+        """Initialize a simulation from arbitrary copyable model state.
 
         Args:
-            initial_world_state: Initial state of the simulated world.
-            genetic_architecture: Shared genetic architecture for the run.
-            seed: Seed for the simulation random number generator.
-            behavior_selection_model: Policy deciding whether organisms attempt
-                behavioral purposes. Defaults to unrestricted behavior.
+            initial_world_state: Initial domain-defined state. Must provide a
+                callable ``copy`` method for transactional isolation.
+            seed: Seed for the simulation random-number generator.
+            context: Optional immutable shared simulation context.
+            **context_values: Named domain configuration services used to build
+                the context when ``context`` is omitted.
 
         Raises:
-            TypeError: If an input has an invalid type.
-            ValueError: If an initial organism's genetic phenotype is inconsistent
-                with its genome under the supplied genetic architecture.
+            TypeError: If the state is not copyable, the seed is invalid, or a
+                context is combined with separate context values.
         """
-        if not isinstance(initial_world_state, WorldState):
-            raise TypeError("initial_world_state must be an instance of WorldState.")
-
-        if not isinstance(genetic_architecture, GeneticArchitecture):
+        copy_world = getattr(initial_world_state, "copy", None)
+        if not callable(copy_world):
             raise TypeError(
-                "genetic_architecture must be an instance of GeneticArchitecture."
+                "initial_world_state must provide a callable copy method."
             )
+        if type(seed) is bool or (seed is not None and type(seed) is not int):
+            raise TypeError("seed must be an integer or None, not a Boolean.")
+        if context is not None and context_values:
+            raise TypeError("context cannot be combined with separate context values.")
+        if context is None:
+            context = SimulationContext.from_mapping(context_values)
 
-        if behavior_selection_model is None:
-            behavior_selection_model = UnrestrictedBehavior()
-        elif not isinstance(behavior_selection_model, BehaviorSelectionModel):
-            raise TypeError(
-                "behavior_selection_model must satisfy BehaviorSelectionModel."
-            )
-
-        # The caller's initial world is treated as input, not as the
-        # simulation's authoritative mutable state.
-        world = initial_world_state.copy()
-
-        # Genetic phenotype is cached on each organism for fast ecological access.
-        # Validate the cache once at the simulation boundary so processes can
-        # trust it for the rest of the run.
-        for organism in world.organisms.values():
-            expected_genetic_phenotype = genetic_architecture.express(organism.genome)
-
-            if organism.genetic_phenotype != expected_genetic_phenotype:
-                raise ValueError(
-                    f"Organism {organism.id} genetic phenotype is inconsistent "
-                    "with its genome under the simulation's genetic "
-                    "architecture."
-                )
-
-        context = SimulationContext(
-            genetic_architecture=genetic_architecture,
-            behavior_selection_model=behavior_selection_model,
-        )
+        # Caller-owned state is configuration input, never authoritative mutable
+        # simulation state.
+        world = copy_world()
         self.state = SimulationState(
             world=world,
             context=context,
@@ -82,11 +65,9 @@ class Simulation:
         """Return immutable configuration shared by all state snapshots."""
         return self.state.context
 
-    @property
-    def genetic_architecture(self) -> GeneticArchitecture:
-        """Return the simulation's shared genetic architecture.
-
-        Returns:
-            Shared genetic architecture.
-        """
-        return self.state.genetic_architecture
+    def __getattr__(self, name: str) -> Any:
+        """Resolve domain configuration from the generic context service map."""
+        try:
+            return self.context.require(name)
+        except KeyError as error:
+            raise AttributeError(name) from error
