@@ -65,22 +65,24 @@ jobs:
           venv/bin/python -m pip install --upgrade pip
           venv/bin/python -m pip install -e ".[dev,docs]"
 
-      - name: Ruff
-        id: ruff
+      - name: Ruff lint
+        id: ruff_lint
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff' }}
-        continue-on-error: false
-        run: ./scripts/lint
+        run: venv/bin/ruff check .
+
+      - name: Ruff format
+        id: ruff_format
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff' }}
+        run: venv/bin/ruff format --check .
 
       - name: Pyright
         id: pyright
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Pyright' }}
-        continue-on-error: false
         run: ./scripts/typecheck
 
       - name: Import Linter
         id: architecture
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Import Linter' }}
-        continue-on-error: false
         shell: bash
         run: |
           set +e
@@ -95,13 +97,11 @@ jobs:
       - name: Complexipy
         id: complexipy
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Complexipy' }}
-        continue-on-error: false
         run: ./scripts/complexity
 
       - name: pytest + coverage
         id: coverage
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage' }}
-        continue-on-error: false
         env:
           COVERAGE_FAIL_UNDER: "90"
         run: ./scripts/coverage
@@ -109,50 +109,4 @@ jobs:
       - name: MkDocs strict build
         id: docs
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
-        continue-on-error: false
         run: ./scripts/docs
-
-      - name: Quality gate summary
-        if: always()
-        shell: bash
-        run: |
-          selected="${{ github.event_name == 'workflow_dispatch' && inputs.check || 'All' }}"
-
-          echo "Selected check: $selected"
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.target_ref }}" ]]; then
-            echo "Target ref:     ${{ inputs.target_ref }}"
-          fi
-          echo
-
-          failed=0
-
-          evaluate() {
-            local label="$1"
-            local key="$2"
-            local outcome="$3"
-
-            if [[ "$selected" != "All" && "$selected" != "$key" ]]; then
-              printf '  %-19s SKIPPED (not selected)\n' "$label:"
-              return
-            fi
-
-            printf '  %-19s %s\n' "$label:" "$outcome"
-            if [[ "$outcome" != "success" ]]; then
-              failed=1
-            fi
-          }
-
-          echo "Quality check outcomes:"
-          evaluate "Ruff" "Ruff" "${{ steps.ruff.outcome }}"
-          evaluate "Pyright" "Pyright" "${{ steps.pyright.outcome }}"
-          evaluate "Import Linter" "Import Linter" "${{ steps.architecture.outcome }}"
-          evaluate "Complexipy" "Complexipy" "${{ steps.complexipy.outcome }}"
-          evaluate "pytest + coverage" "Tests + coverage" "${{ steps.coverage.outcome }}"
-          evaluate "MkDocs" "MkDocs" "${{ steps.docs.outcome }}"
-
-          if [[ $failed -ne 0 ]]; then
-            echo "One or more selected quality checks failed."
-            exit 1
-          fi
-
-          echo "All selected quality checks passed."
