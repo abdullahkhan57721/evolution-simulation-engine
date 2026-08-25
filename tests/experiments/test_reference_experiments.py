@@ -34,15 +34,16 @@ def test_reference_replicates_use_requested_unique_seeds() -> None:
     result = run_reference_replicates(config, seeds=(3, 7))
 
     assert result.seeds == (3, 7)
-    assert all(replicate.metadata.completed_steps == 2 for replicate in result.replicates)
+    assert all(
+        replicate.metadata.completed_steps == 2 for replicate in result.replicates
+    )
     for seed in result.seeds:
         replicate = result.replicate(seed)
         serialized_config = json.loads(replicate.metadata.config_json)
         assert serialized_config["seed"] == seed
         assert serialized_config["width"] == config.width
         assert serialized_config["traits"] == {
-            key: getattr(config.traits, key)
-            for key in serialized_config["traits"]
+            key: getattr(config.traits, key) for key in serialized_config["traits"]
         }
 
 
