@@ -12,6 +12,7 @@ from evo_engine.presets.reference_ecology import (
     build_reference_genetic_architecture,
     build_reference_parental_investment,
     build_reference_simulation,
+    build_reference_spec,
     build_reference_world,
 )
 
@@ -27,5 +28,6 @@ __all__ = [
     "build_reference_genetic_architecture",
     "build_reference_parental_investment",
     "build_reference_simulation",
+    "build_reference_spec",
     "build_reference_world",
 ]

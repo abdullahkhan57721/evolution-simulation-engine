@@ -61,6 +61,11 @@ class EnvironmentalChange:
                 raise ValueError("coordinates must not contain duplicates.")
             seen.add(coordinate)
 
+    @property
+    def required_environmental_fields(self) -> frozenset[str]:
+        """Return the environmental field required by this process."""
+        return frozenset({self.field_name})
+
     @attrs.frozen(slots=True, kw_only=True)
     class Event:
         """Represent one environmental forcing update.

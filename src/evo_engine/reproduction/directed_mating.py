@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.characteristics import (
+    GeneticPhenotypeCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import validate_required_traits
 from evo_engine.validation import validators
@@ -26,27 +30,35 @@ class ChooserSignalCompatibility:
     ``DirectedPairwiseMating``.
 
     Attributes:
-        chooser_threshold_trait: Integer trait read from the first parent.
-        signal_trait: Integer signal trait read from the second parent.
+        chooser_threshold_trait: Integer characteristic read from first parent.
+        signal_trait: Integer signal characteristic read from second parent.
+        source: Characteristic source used for both values. Defaults to raw
+            genetic expression for backward compatibility.
     """
 
     chooser_threshold_trait: str
     signal_trait: str
+    source: object = attrs.field(factory=GeneticPhenotypeCharacteristics)
 
     def __attrs_post_init__(self) -> None:
-        """Validate directed mate-choice trait names."""
+        """Validate directed mate-choice trait names and source."""
         _validate_trait_name(
             self.chooser_threshold_trait,
             name="chooser_threshold_trait",
         )
         _validate_trait_name(self.signal_trait, name="signal_trait")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return operative characteristics required by this policy."""
+        return frozenset((self.chooser_threshold_trait, self.signal_trait))
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return the two genetic phenotype traits read by this policy."""
-        return validate_required_traits(
-            frozenset((self.chooser_threshold_trait, self.signal_trait))
-        )
+        """Return biological traits backing the required characteristics."""
+        return validate_required_traits(self.required_characteristics)
 
     def __call__(
         self,
@@ -55,8 +67,18 @@ class ChooserSignalCompatibility:
         simulation_state: SimulationState,
     ) -> bool:
         """Return whether the signaler meets the chooser's acceptance threshold."""
-        threshold = chooser.genetic_phenotype.int_value(self.chooser_threshold_trait)
-        signal = signaler.genetic_phenotype.int_value(self.signal_trait)
+        threshold = integer_characteristic(
+            self.source,
+            chooser,
+            self.chooser_threshold_trait,
+            context=simulation_state,
+        )
+        signal = integer_characteristic(
+            self.source,
+            signaler,
+            self.signal_trait,
+            context=simulation_state,
+        )
         return signal >= threshold
 
 
@@ -65,27 +87,35 @@ class ChooserSignalMarginPreference:
     """Score a directed pairing by signal margin above chooser threshold.
 
     Attributes:
-        chooser_threshold_trait: Integer threshold trait on the first parent.
-        signal_trait: Integer signal trait on the second parent.
+        chooser_threshold_trait: Integer threshold characteristic on first parent.
+        signal_trait: Integer signal characteristic on second parent.
+        source: Characteristic source used for both values. Defaults to raw
+            genetic expression for backward compatibility.
     """
 
     chooser_threshold_trait: str
     signal_trait: str
+    source: object = attrs.field(factory=GeneticPhenotypeCharacteristics)
 
     def __attrs_post_init__(self) -> None:
-        """Validate directed preference trait names."""
+        """Validate directed preference trait names and source."""
         _validate_trait_name(
             self.chooser_threshold_trait,
             name="chooser_threshold_trait",
         )
         _validate_trait_name(self.signal_trait, name="signal_trait")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return operative characteristics required by this policy."""
+        return frozenset((self.chooser_threshold_trait, self.signal_trait))
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return the two genetic phenotype traits read by this policy."""
-        return validate_required_traits(
-            frozenset((self.chooser_threshold_trait, self.signal_trait))
-        )
+        """Return biological traits backing the required characteristics."""
+        return validate_required_traits(self.required_characteristics)
 
     def __call__(
         self,
@@ -94,6 +124,16 @@ class ChooserSignalMarginPreference:
         simulation_state: SimulationState,
     ) -> int:
         """Return signal minus chooser threshold as a directed preference score."""
-        threshold = chooser.genetic_phenotype.int_value(self.chooser_threshold_trait)
-        signal = signaler.genetic_phenotype.int_value(self.signal_trait)
+        threshold = integer_characteristic(
+            self.source,
+            chooser,
+            self.chooser_threshold_trait,
+            context=simulation_state,
+        )
+        signal = integer_characteristic(
+            self.source,
+            signaler,
+            self.signal_trait,
+            context=simulation_state,
+        )
         return signal - threshold

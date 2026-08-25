@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import attrs
 
+from evo_engine.characteristics import (
+    GeneticPhenotypeCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.genetics import CHOOSINESS, MATE_SEARCH_RANGE, MATING_SIGNAL
 from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.spatial.distances import Chebyshev, DistanceMetric
@@ -46,19 +50,22 @@ class MatingPreference(Protocol):
 
 @attrs.frozen(slots=True, kw_only=True)
 class MutualMateSearchRange:
-    """Require each parent to be within the other's expressed search range.
+    """Require each parent to be within the other's operative search range.
 
-    Parent roles are currently interchangeable, so the initial built-in search
-    rule is deliberately mutual: a pair is discoverable only when the spatial
-    distance lies within both organisms' search ranges.
+    Parent roles are currently interchangeable, so the built-in search rule is
+    deliberately mutual: a pair is discoverable only when spatial distance lies
+    within both organisms' search ranges.
 
     Attributes:
         distance_metric: Spatial metric used to compare parent coordinates.
-        trait_name: Genetic phenotype trait storing nonnegative search range.
+        trait_name: Biological trait/characteristic storing nonnegative range.
+        source: Characteristic source used to read the operative range. Defaults
+            to raw genetic expression for backward compatibility.
     """
 
     distance_metric: DistanceMetric = attrs.field(factory=Chebyshev)
     trait_name: str = MATE_SEARCH_RANGE
+    source: object = attrs.field(factory=GeneticPhenotypeCharacteristics)
 
     def __attrs_post_init__(self) -> None:
         """Validate mating-search configuration."""
@@ -68,11 +75,18 @@ class MutualMateSearchRange:
         trait_name = validators.validate_str(self.trait_name, name="trait_name")
         if not trait_name.strip():
             raise ValueError("trait_name must not be empty or whitespace-only.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return the mate-search operative characteristic."""
+        return frozenset({self.trait_name})
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return the mate-search trait required by the policy."""
-        return frozenset({self.trait_name})
+        """Return the biological trait required by the policy."""
+        return self.required_characteristics
 
     def __call__(
         self,
@@ -80,28 +94,20 @@ class MutualMateSearchRange:
         second_parent: Organism,
         simulation_state: SimulationState,
     ) -> bool:
-        """Return whether both parents can discover each other.
-
-        Args:
-            first_parent: First candidate parent.
-            second_parent: Second candidate parent.
-            simulation_state: Current simulation state.
-
-        Returns:
-            ``True`` when pair distance is within both expressed search ranges.
-
-        Raises:
-            ValueError: If either expressed search range is negative.
-        """
-        first_range = validators.validate_int_ge(
-            first_parent.genetic_phenotype.int_value(self.trait_name),
-            bound=0,
-            name=f"first_parent genetic_phenotype[{self.trait_name!r}]",
+        """Return whether both parents can discover each other."""
+        first_range = integer_characteristic(
+            self.source,
+            first_parent,
+            self.trait_name,
+            context=simulation_state,
+            minimum=0,
         )
-        second_range = validators.validate_int_ge(
-            second_parent.genetic_phenotype.int_value(self.trait_name),
-            bound=0,
-            name=f"second_parent genetic_phenotype[{self.trait_name!r}]",
+        second_range = integer_characteristic(
+            self.source,
+            second_parent,
+            self.trait_name,
+            context=simulation_state,
+            minimum=0,
         )
         world = simulation_state.world
         distance = self.distance_metric.distance(
@@ -121,25 +127,34 @@ class MutualSignalCompatibility:
     """Require each parent's signal to satisfy the other's choosiness threshold.
 
     Attributes:
-        choosiness_trait_name: Genetic phenotype trait storing the minimum
-            acceptable partner signal.
-        signal_trait_name: Genetic phenotype trait storing mating signal strength.
+        choosiness_trait_name: Trait/characteristic storing minimum acceptable
+            partner signal.
+        signal_trait_name: Trait/characteristic storing mating signal strength.
+        source: Characteristic source used to read both operative values.
     """
 
     choosiness_trait_name: str = CHOOSINESS
     signal_trait_name: str = MATING_SIGNAL
+    source: object = attrs.field(factory=GeneticPhenotypeCharacteristics)
 
     def __attrs_post_init__(self) -> None:
-        """Validate configured sexual-selection trait names."""
+        """Validate configured sexual-selection names and source."""
         _validate_trait_names(
             choosiness_trait_name=self.choosiness_trait_name,
             signal_trait_name=self.signal_trait_name,
         )
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return choosiness and mating-signal operative characteristics."""
+        return frozenset({self.choosiness_trait_name, self.signal_trait_name})
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return choosiness and mating-signal trait requirements."""
-        return frozenset({self.choosiness_trait_name, self.signal_trait_name})
+        """Return biological traits required by the policy."""
+        return self.required_characteristics
 
     def __call__(
         self,
@@ -150,15 +165,17 @@ class MutualSignalCompatibility:
         """Return whether both parents satisfy each other's acceptance threshold."""
         first_choosiness, first_signal = _sexual_selection_values(
             first_parent,
+            source=self.source,
+            simulation_state=simulation_state,
             choosiness_trait_name=self.choosiness_trait_name,
             signal_trait_name=self.signal_trait_name,
-            prefix="first_parent",
         )
         second_choosiness, second_signal = _sexual_selection_values(
             second_parent,
+            source=self.source,
+            simulation_state=simulation_state,
             choosiness_trait_name=self.choosiness_trait_name,
             signal_trait_name=self.signal_trait_name,
-            prefix="second_parent",
         )
 
         return second_signal >= first_choosiness and first_signal >= second_choosiness
@@ -172,25 +189,34 @@ class MutualSignalMarginPreference:
     signal surpluses. A pair exactly meeting both thresholds receives zero.
 
     Attributes:
-        choosiness_trait_name: Genetic phenotype trait storing the minimum
-            acceptable partner signal.
-        signal_trait_name: Genetic phenotype trait storing mating signal strength.
+        choosiness_trait_name: Trait/characteristic storing minimum acceptable
+            partner signal.
+        signal_trait_name: Trait/characteristic storing mating signal strength.
+        source: Characteristic source used to read both operative values.
     """
 
     choosiness_trait_name: str = CHOOSINESS
     signal_trait_name: str = MATING_SIGNAL
+    source: object = attrs.field(factory=GeneticPhenotypeCharacteristics)
 
     def __attrs_post_init__(self) -> None:
-        """Validate configured sexual-selection trait names."""
+        """Validate configured sexual-selection names and source."""
         _validate_trait_names(
             choosiness_trait_name=self.choosiness_trait_name,
             signal_trait_name=self.signal_trait_name,
         )
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return choosiness and mating-signal operative characteristics."""
+        return frozenset({self.choosiness_trait_name, self.signal_trait_name})
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return choosiness and mating-signal trait requirements."""
-        return frozenset({self.choosiness_trait_name, self.signal_trait_name})
+        """Return biological traits required by the preference."""
+        return self.required_characteristics
 
     def __call__(
         self,
@@ -201,15 +227,17 @@ class MutualSignalMarginPreference:
         """Return the symmetric total mutual signal surplus."""
         first_choosiness, first_signal = _sexual_selection_values(
             first_parent,
+            source=self.source,
+            simulation_state=simulation_state,
             choosiness_trait_name=self.choosiness_trait_name,
             signal_trait_name=self.signal_trait_name,
-            prefix="first_parent",
         )
         second_choosiness, second_signal = _sexual_selection_values(
             second_parent,
+            source=self.source,
+            simulation_state=simulation_state,
             choosiness_trait_name=self.choosiness_trait_name,
             signal_trait_name=self.signal_trait_name,
-            prefix="second_parent",
         )
 
         return second_signal - first_choosiness + first_signal - second_choosiness
@@ -269,18 +297,23 @@ def _validate_trait_names(
 def _sexual_selection_values(
     organism: Organism,
     *,
+    source: object,
+    simulation_state: SimulationState,
     choosiness_trait_name: str,
     signal_trait_name: str,
-    prefix: str,
 ) -> tuple[int, int]:
-    choosiness = validators.validate_int_ge(
-        organism.genetic_phenotype.int_value(choosiness_trait_name),
-        bound=0,
-        name=f"{prefix} genetic_phenotype[{choosiness_trait_name!r}]",
+    choosiness = integer_characteristic(
+        source,
+        organism,
+        choosiness_trait_name,
+        context=simulation_state,
+        minimum=0,
     )
-    signal = validators.validate_int_ge(
-        organism.genetic_phenotype.int_value(signal_trait_name),
-        bound=0,
-        name=f"{prefix} genetic_phenotype[{signal_trait_name!r}]",
+    signal = integer_characteristic(
+        source,
+        organism,
+        signal_trait_name,
+        context=simulation_state,
+        minimum=0,
     )
     return choosiness, signal

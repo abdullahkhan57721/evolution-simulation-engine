@@ -181,6 +181,11 @@ class LinearEnvironmentalDevelopment:
         ):
             raise ValueError("minimum must be less than or equal to maximum.")
 
+    @property
+    def required_environmental_fields(self) -> frozenset[str]:
+        """Return environmental fields required by this developmental model."""
+        return frozenset({self.environmental_field_name})
+
     def develop(
         self,
         value: int,
@@ -260,6 +265,11 @@ class GenotypeScaledEnvironmentalDevelopment:
         ):
             raise ValueError("minimum must be less than or equal to maximum.")
 
+    @property
+    def required_environmental_fields(self) -> frozenset[str]:
+        """Return environmental fields required by this developmental model."""
+        return frozenset({self.environmental_field_name})
+
     def develop(
         self,
         value: int,
@@ -316,6 +326,11 @@ class EnvironmentalThresholdDevelopment(Generic[ChoiceT]):
         )
         _validate_finite_number(self.threshold, name="threshold")
         _validate_sampling(self.sampling)
+
+    @property
+    def required_environmental_fields(self) -> frozenset[str]:
+        """Return environmental fields required by this developmental model."""
+        return frozenset({self.environmental_field_name})
 
     def develop(
         self,

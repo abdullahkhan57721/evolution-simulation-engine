@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from evo_engine.configuration import CHARACTERISTIC, Dependency
 from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
@@ -32,6 +33,7 @@ from evo_engine.presets import (
     ReferenceTraitValues,
     build_reference_ecology,
     build_reference_genetic_architecture,
+    build_reference_spec,
     build_reference_world,
 )
 
@@ -234,3 +236,27 @@ def test_reference_founder_values_are_customizable() -> None:
     assert organism.genetic_phenotype.int_value(CHOOSINESS) == 7
     assert organism.genetic_phenotype.int_value(MATING_SIGNAL) == 12
     assert organism.developmental_profile.int_value(MAXIMUM_AGE) == 40
+
+
+def test_reference_spec_compiles_before_runtime_and_runs() -> None:
+    """Test the reference ecology can be compiled from immutable configuration."""
+    spec = build_reference_spec(
+        ReferenceEcologyConfig(
+            width=5,
+            height=5,
+            initial_population=4,
+            max_steps=2,
+            seed=19,
+        )
+    )
+
+    compiled = spec.compile()
+
+    assert compiled.dependency_report.missing == frozenset()
+    assert Dependency(category=CHARACTERISTIC, name=MAX_SPEED) in (
+        compiled.dependency_report.required
+    )
+
+    compiled.engine.run(compiled.simulation)
+
+    assert compiled.simulation.state.step_index == 2

@@ -1,5 +1,11 @@
 """Domain-neutral evolutionary-system abstractions."""
 
+from evo_engine.evolution.characteristics import (
+    CharacteristicRequirementProvider,
+    CharacteristicSource,
+    collect_required_characteristics,
+    validate_required_characteristics,
+)
 from evo_engine.evolution.contracts import (
     EvolutionaryEntity,
     HeritableStateExpression,
@@ -16,6 +22,8 @@ from evo_engine.evolution.linkage import (
 )
 
 __all__ = [
+    "CharacteristicRequirementProvider",
+    "CharacteristicSource",
     "EvolutionaryEntity",
     "HeritableStateExpression",
     "LinkageComponent",
@@ -25,5 +33,7 @@ __all__ = [
     "TransmissionModel",
     "UniformLinkageMap",
     "VariationOperator",
+    "collect_required_characteristics",
     "sample_linkage_breakpoint",
+    "validate_required_characteristics",
 ]

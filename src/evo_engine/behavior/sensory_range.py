@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import attrs
 
+from evo_engine.characteristics import (
+    DevelopmentalProfileCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.genetics.builtin_traits import SENSORY_RANGE
 from evo_engine.validation import attrs_validators, validators
 
@@ -40,10 +44,6 @@ class SensoryRangeModel(Protocol):
 class FixedSensoryRange:
     """Give every organism the same fixed sensory radius.
 
-    This model is useful for experiments that should not make sensory ability
-    heritable. Trait-driven sensing can instead use
-    ``GeneticPhenotypeSensoryRange``.
-
     Attributes:
         radius: Nonnegative detection radius.
     """
@@ -68,6 +68,61 @@ class FixedSensoryRange:
             Configured sensory radius.
         """
         return self.radius
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CharacteristicSensoryRange:
+    """Read sensory radius from a configurable operative characteristic source.
+
+    Attributes:
+        characteristic_name: Operative characteristic storing sensory range.
+        source: Object providing ``value_for``. Defaults to realized
+            developmental characteristics.
+    """
+
+    characteristic_name: str = SENSORY_RANGE
+    source: object = attrs.field(factory=DevelopmentalProfileCharacteristics)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate characteristic name and source contract."""
+        validators.validate_str(self.characteristic_name, name="characteristic_name")
+        if not self.characteristic_name.strip():
+            raise ValueError("characteristic_name must not be blank.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return the operative characteristic required for sensory range."""
+        return frozenset({self.characteristic_name})
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the biological trait backing the required characteristic."""
+        return self.required_characteristics
+
+    def determine_range(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> int:
+        """Return the organism's nonnegative operative sensory radius.
+
+        Args:
+            organism: Organism attempting to detect a spatial target.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Nonnegative sensory radius.
+        """
+        return integer_characteristic(
+            self.source,
+            organism,
+            self.characteristic_name,
+            context=simulation_state,
+            minimum=0,
+        )
 
 
 @attrs.frozen(slots=True, kw_only=True)

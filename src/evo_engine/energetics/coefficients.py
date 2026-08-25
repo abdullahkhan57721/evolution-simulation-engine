@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING, Protocol, TypeAlias, cast, runtime_checkable
 
 import attrs
 
+from evo_engine.characteristics import (
+    DevelopmentalProfileCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.energetics._common import validate_finite_number
 from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.validation import attrs_validators, validators
@@ -38,6 +42,72 @@ class CoefficientModel(Protocol):
 
 
 CoefficientSource: TypeAlias = int | float | CoefficientModel
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CharacteristicCoefficient:
+    """Read and scale a coefficient from an operative characteristic source.
+
+    Integer characteristic values are divided by ``denominator`` before use.
+    The default source is the realized developmental profile, allowing GxE and
+    developmental plasticity to alter realized energetic coefficients.
+
+    Attributes:
+        characteristic_name: Characteristic storing the integer coefficient.
+        denominator: Positive integer scale divisor.
+        source: Object providing ``value_for`` for operative characteristics.
+    """
+
+    characteristic_name: str = attrs.field(
+        validator=attrs_validators.validate_str,
+    )
+    denominator: int = attrs.field(
+        default=100,
+        validator=attrs_validators.validate_int_gt(0),
+    )
+    source: object = attrs.field(factory=DevelopmentalProfileCharacteristics)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate characteristic name and source contract."""
+        if not self.characteristic_name.strip():
+            raise ValueError("characteristic_name must not be blank.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return the operative characteristic required by this model."""
+        return frozenset({self.characteristic_name})
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the biological trait backing the required characteristic."""
+        return self.required_characteristics
+
+    def determine_coefficient(
+        self,
+        organism: Organism,
+        *,
+        simulation_state: SimulationState,
+    ) -> float:
+        """Return the scaled nonnegative operative coefficient.
+
+        Args:
+            organism: Organism whose coefficient is being determined.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Nonnegative coefficient obtained by dividing the integer
+            characteristic by ``denominator``.
+        """
+        numerator = integer_characteristic(
+            self.source,
+            organism,
+            self.characteristic_name,
+            context=simulation_state,
+            minimum=0,
+        )
+        return numerator / self.denominator
 
 
 @attrs.frozen(slots=True, kw_only=True)

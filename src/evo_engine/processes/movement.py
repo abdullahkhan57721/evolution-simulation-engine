@@ -16,6 +16,10 @@ from evo_engine.behavior import (
     determine_movement_target,
     validate_behavioral_purpose,
 )
+from evo_engine.characteristics import (
+    GeneticPhenotypeCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.energetics import (
     EnergyExpenditurePolicy,
     SpendToZero,
@@ -51,8 +55,9 @@ class Movement:
     """Represent the Movement simulation process.
 
     ``max_speed`` is interpreted as maximum Euclidean grid-distance per
-    timestep. The process validates that every configured movement policy
-    respects that genetically expressed capability before recording the event.
+    timestep. The configurable ``max_speed_source`` determines whether that
+    operative capability comes from raw genetic expression, realized
+    development, or another characteristic representation.
 
     Movement has no single generic behavioral purpose. The configured
     ``movement_intent_model`` determines why each organism is attempting to
@@ -73,6 +78,7 @@ class Movement:
         movement_pattern: Pattern used for untargeted movement displacements.
         boundary_condition: Rule used to resolve world-boundary crossings.
         locomotion_cost_model: Model used to calculate movement energy cost.
+        max_speed_source: Operative characteristic source for ``max_speed``.
         energy_expenditure_policy: Policy deciding whether the organism may pay
             the locomotion cost.
         movement_intent_model: Model determining the behavioral purpose of each
@@ -86,6 +92,7 @@ class Movement:
     movement_pattern: MovementPattern
     boundary_condition: BoundaryCondition
     locomotion_cost_model: LocomotionCostModel
+    max_speed_source: object = attrs.field(factory=GeneticPhenotypeCharacteristics)
     energy_expenditure_policy: EnergyExpenditurePolicy = attrs.field(
         factory=SpendToZero,
     )
@@ -101,6 +108,11 @@ class Movement:
 
     def __attrs_post_init__(self) -> None:
         """Validate Movement configuration."""
+        if not callable(getattr(self.max_speed_source, "value_for", None)):
+            raise TypeError(
+                "max_speed_source must provide a callable value_for method."
+            )
+
         required_methods = (
             (
                 self.energy_expenditure_policy,
@@ -131,9 +143,14 @@ class Movement:
                 )
 
     @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return operative characteristics required directly by movement."""
+        return frozenset({MAX_SPEED})
+
+    @property
     def required_traits(self) -> frozenset[str]:
-        """Return genetic phenotype traits required by movement and its policies."""
-        return frozenset({MAX_SPEED}) | collect_required_traits(
+        """Return biological traits required by movement and its policies."""
+        return self.required_characteristics | collect_required_traits(
             self.movement_pattern,
             self.boundary_condition,
             self.locomotion_cost_model,
@@ -220,7 +237,7 @@ class Movement:
         selection suppresses that purpose, no target selection, movement RNG,
         boundary resolution, or locomotion pricing occurs for the organism.
 
-        For selected attempts, expressed ``max_speed`` limits displacement
+        For selected attempts, operative ``max_speed`` limits displacement
         magnitude. An optional ecological target is selected next. Targeted
         attempts use the targeted-movement policy; untargeted attempts use the
         ordinary movement pattern. The locomotion model determines the cost,
@@ -256,11 +273,12 @@ class Movement:
             ):
                 continue
 
-            max_speed = organism.genetic_phenotype.int_value(MAX_SPEED)
-            validators.validate_int_ge(
-                max_speed,
-                bound=0,
-                name=MAX_SPEED,
+            max_speed = integer_characteristic(
+                self.max_speed_source,
+                organism,
+                MAX_SPEED,
+                context=simulation_state,
+                minimum=0,
             )
 
             target = determine_movement_target(

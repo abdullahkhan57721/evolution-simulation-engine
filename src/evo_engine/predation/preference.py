@@ -6,6 +6,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import attrs
 
+from evo_engine.characteristics import (
+    DevelopmentalProfileCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.genetics import ATTACK_STRENGTH, DEFENSE
 from evo_engine.validation import validators
 
@@ -40,6 +44,70 @@ class NeutralPredationPreference:
     ) -> int:
         """Return a neutral zero preference score."""
         return 0
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CharacteristicAttackAdvantagePreference:
+    """Prefer pairings with the largest operative attack-defense advantage.
+
+    Attributes:
+        attack_characteristic_name: Predator characteristic representing attack.
+        defense_characteristic_name: Prey characteristic representing defense.
+        source: Object providing ``value_for``. Defaults to realized
+            developmental characteristics.
+    """
+
+    attack_characteristic_name: str = ATTACK_STRENGTH
+    defense_characteristic_name: str = DEFENSE
+    source: object = attrs.field(factory=DevelopmentalProfileCharacteristics)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate characteristic names and source contract."""
+        for field_name in (
+            "attack_characteristic_name",
+            "defense_characteristic_name",
+        ):
+            characteristic_name = validators.validate_str(
+                getattr(self, field_name),
+                name=field_name,
+            )
+            if not characteristic_name.strip():
+                raise ValueError(f"{field_name} must not be blank.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return attack and defense operative characteristics."""
+        return frozenset(
+            {self.attack_characteristic_name, self.defense_characteristic_name}
+        )
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return biological traits backing the required characteristics."""
+        return self.required_characteristics
+
+    def __call__(
+        self,
+        predator: Organism,
+        prey: Organism,
+        simulation_state: SimulationState,
+    ) -> int:
+        """Return operative predator attack minus operative prey defense."""
+        attack_strength = integer_characteristic(
+            self.source,
+            predator,
+            self.attack_characteristic_name,
+            context=simulation_state,
+        )
+        defense = integer_characteristic(
+            self.source,
+            prey,
+            self.defense_characteristic_name,
+            context=simulation_state,
+        )
+        return attack_strength - defense
 
 
 @attrs.frozen(slots=True, kw_only=True)

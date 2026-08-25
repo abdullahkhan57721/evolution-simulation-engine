@@ -6,6 +6,10 @@ from typing import Protocol
 
 import attrs
 
+from evo_engine.characteristics import (
+    DevelopmentalProfileCharacteristics,
+    integer_characteristic,
+)
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.builtin_traits import GROWTH_RATE
 from evo_engine.validation import attrs_validators, validators
@@ -65,6 +69,70 @@ class FixedGrowthRate:
             Configured nonnegative body-mass gain.
         """
         return self.amount_per_timestep
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CharacteristicGrowthRate:
+    """Read potential growth from a configurable operative characteristic source.
+
+    The default source is the organism's realized developmental profile, so
+    environmental development and GxE can affect growth. Callers may explicitly
+    supply a raw genetic-phenotype source when that scientific interpretation is
+    intended.
+
+    Attributes:
+        characteristic_name: Characteristic storing nonnegative growth units per
+            timestep.
+        source: Object providing ``value_for`` for operative characteristics.
+    """
+
+    characteristic_name: str = attrs.field(
+        default=GROWTH_RATE,
+        validator=attrs_validators.validate_str,
+    )
+    source: object = attrs.field(factory=DevelopmentalProfileCharacteristics)
+
+    def __attrs_post_init__(self) -> None:
+        """Validate characteristic name and source contract."""
+        if not self.characteristic_name.strip():
+            raise ValueError("characteristic_name must not be blank.")
+        if not callable(getattr(self.source, "value_for", None)):
+            raise TypeError("source must provide a callable value_for method.")
+
+    @property
+    def required_characteristics(self) -> frozenset[str]:
+        """Return the operative characteristic required by this model."""
+        return frozenset({self.characteristic_name})
+
+    @property
+    def required_traits(self) -> frozenset[str]:
+        """Return the biological trait backing the required characteristic."""
+        return self.required_characteristics
+
+    def determine_body_mass_gain(
+        self,
+        organism: Organism,
+        *,
+        target_body_mass: int,
+        simulation_state: SimulationState,
+    ) -> int:
+        """Return the organism's nonnegative operative growth rate.
+
+        Args:
+            organism: Organism whose potential growth is being determined.
+            target_body_mass: Realized developmental body-mass target.
+            simulation_state: Current simulation state.
+
+        Returns:
+            Nonnegative integer potential body-mass gain.
+        """
+        return integer_characteristic(
+            self.source,
+            organism,
+            self.characteristic_name,
+            context=simulation_state,
+            minimum=0,
+        )
 
 
 @attrs.frozen(slots=True, kw_only=True)
