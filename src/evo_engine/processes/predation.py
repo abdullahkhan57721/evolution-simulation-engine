@@ -122,6 +122,11 @@ class Predation:
             validator=attrs_validators.validate_int,
         )
 
+        @property
+        def deceased_organism_ids(self) -> tuple[int, ...]:
+            """Return the prey organism biologically killed by predation."""
+            return (self.prey_id,)
+
     def propose_events(
         self,
         simulation_state: SimulationState,

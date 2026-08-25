@@ -45,6 +45,11 @@ class Starvation:
             validator=attrs_validators.validate_int_ge(0),
         )
 
+        @property
+        def deceased_organism_ids(self) -> tuple[int, ...]:
+            """Return the organism biologically killed by starvation."""
+            return (self.organism_id,)
+
     def propose_events(
         self,
         simulation_state: SimulationState,
