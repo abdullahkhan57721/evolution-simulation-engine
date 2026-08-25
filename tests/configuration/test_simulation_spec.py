@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import attrs
 import pytest
 
+from evo_engine.behavior import UnrestrictedBehavior
 from evo_engine.configuration import (
     CHARACTERISTIC,
     ENVIRONMENTAL_FIELD,
@@ -105,7 +108,9 @@ def test_dependency_report_includes_provided_environmental_field() -> None:
     world = WorldState(
         width=2,
         height=2,
-        environmental_fields=(EnvironmentalField(name="temperature", default_value=20),),
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
     )
     developmental_model = LinearEnvironmentalDevelopment(
         environmental_field_name="temperature",
@@ -136,3 +141,68 @@ def test_compile_rejects_inconsistent_initial_genetic_cache() -> None:
 
     with pytest.raises(ValueError, match="genetic phenotype is inconsistent"):
         _spec(world=world, architecture=architecture).compile()
+
+
+def test_from_iterables_normalizes_observer_collections() -> None:
+    """Test iterable inputs become immutable specification tuples."""
+    spec = SimulationSpec.from_iterables(
+        initial_world_state=WorldState(width=2, height=2),
+        genetic_architecture=make_empty_architecture(),
+        step_coordinator=_RequirementCoordinator(),
+        stopping_condition=MaxSteps(max_steps=1),
+        observers=[],
+        telemetry_observers=[],
+    )
+
+    assert spec.observers == ()
+    assert spec.telemetry_observers == ()
+    assert isinstance(spec.behavior_selection_model, UnrestrictedBehavior)
+
+
+def test_from_iterables_preserves_explicit_behavior_model() -> None:
+    """Test explicit shared behavior configuration survives normalization."""
+    behavior = UnrestrictedBehavior()
+
+    spec = SimulationSpec.from_iterables(
+        initial_world_state=WorldState(width=2, height=2),
+        genetic_architecture=make_empty_architecture(),
+        step_coordinator=_RequirementCoordinator(),
+        stopping_condition=MaxSteps(max_steps=1),
+        behavior_selection_model=behavior,
+    )
+
+    assert spec.behavior_selection_model is behavior
+
+
+def test_spec_rejects_boolean_seed() -> None:
+    """Test Boolean seeds are rejected despite bool being an int subclass."""
+    with pytest.raises(TypeError, match="seed"):
+        SimulationSpec(
+            initial_world_state=WorldState(width=2, height=2),
+            genetic_architecture=make_empty_architecture(),
+            step_coordinator=_RequirementCoordinator(),
+            stopping_condition=MaxSteps(max_steps=1),
+            seed=True,
+        )
+
+
+def test_spec_rejects_step_coordinator_without_coordinate() -> None:
+    """Test structural coordinator compatibility is checked immediately."""
+    with pytest.raises(TypeError, match="step_coordinator"):
+        SimulationSpec(
+            initial_world_state=WorldState(width=2, height=2),
+            genetic_architecture=make_empty_architecture(),
+            step_coordinator=cast(Any, object()),
+            stopping_condition=MaxSteps(max_steps=1),
+        )
+
+
+def test_spec_rejects_stopping_condition_without_should_stop() -> None:
+    """Test structural stopping-condition compatibility is checked immediately."""
+    with pytest.raises(TypeError, match="stopping_condition"):
+        SimulationSpec(
+            initial_world_state=WorldState(width=2, height=2),
+            genetic_architecture=make_empty_architecture(),
+            step_coordinator=_RequirementCoordinator(),
+            stopping_condition=cast(Any, object()),
+        )
