@@ -1,6 +1,7 @@
 """Energy-cost, threshold, and expenditure policies for simulation processes."""
 
 from evo_engine.energetics.coefficients import (
+    CharacteristicCoefficient,
     CoefficientModel,
     CoefficientSource,
     GeneticPhenotypeCoefficient,
@@ -42,6 +43,7 @@ from evo_engine.life_history import (
 
 __all__ = [
     "AdditiveMetabolicCost",
+    "CharacteristicCoefficient",
     "CoefficientModel",
     "CoefficientSource",
     "DevelopmentalEnergyThreshold",
