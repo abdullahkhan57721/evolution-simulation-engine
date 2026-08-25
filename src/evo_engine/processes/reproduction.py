@@ -659,6 +659,9 @@ class Reproduction:
         offspring_mating_type = determine_offspring_mating_type(
             self.offspring_mating_type_model,
             parents,
+            offspring_genome=offspring_genome,
+            offspring_genetic_phenotype=offspring_genetic_phenotype,
+            offspring_developmental_profile=offspring_developmental_profile,
             simulation_state=simulation_state,
             rng=simulation_state.rng,
         )
