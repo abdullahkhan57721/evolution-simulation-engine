@@ -50,8 +50,7 @@ class SequentialStepCoordinator:
                 continue
 
             applied_events.extend(
-                attrs.evolve(event, stage_index=stage_index)
-                for event in stage_events
+                attrs.evolve(event, stage_index=stage_index) for event in stage_events
             )
 
         working_state.step_index += 1
