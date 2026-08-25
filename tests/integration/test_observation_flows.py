@@ -52,10 +52,7 @@ def test_reference_ecology_records_causal_events_for_each_committed_step() -> No
     assert tuple(step.completed_step_index for step in steps) == (1, 2, 3)
     assert all(step.events for step in steps)
     assert ecology.event_recorder.events_for_process("ResourceGeneration")
-    assert all(
-        event.stage_index >= 0
-        for event in ecology.event_recorder.events
-    )
+    assert all(event.stage_index >= 0 for event in ecology.event_recorder.events)
 
 
 def test_reference_observations_are_historical_values_not_live_world_views() -> None:
