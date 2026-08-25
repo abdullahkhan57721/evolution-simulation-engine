@@ -1,6 +1,5 @@
-"""Simulation orchestration and run-state components."""
+"""Domain-neutral simulation orchestration and transactional run state."""
 
-from evo_engine.engine.lifecycle import build_standard_lifecycle
 from evo_engine.engine.protocols import (
     EventMaterializer,
     Observer,
@@ -11,7 +10,7 @@ from evo_engine.engine.protocols import (
     StoppingCondition,
 )
 from evo_engine.engine.simulation import Simulation
-from evo_engine.engine.simulation_context import SimulationContext
+from evo_engine.engine.simulation_context import ContextValue, SimulationContext
 from evo_engine.engine.simulation_engine import SimulationEngine
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.engine.stage_coordinator import StageCoordinator
@@ -19,6 +18,7 @@ from evo_engine.engine.step_coordinator import SequentialStepCoordinator
 from evo_engine.engine.stopping_conditions import MaxSteps
 
 __all__ = [
+    "ContextValue",
     "EventMaterializer",
     "MaxSteps",
     "Observer",
@@ -33,5 +33,4 @@ __all__ = [
     "StageCoordinator",
     "StepCoordinator",
     "StoppingCondition",
-    "build_standard_lifecycle",
 ]
