@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 
 from evo_engine.behavior import BehaviorSelectionModel, UnrestrictedBehavior
+from evo_engine.engine.simulation_context import SimulationContext
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.world.world_state import WorldState
@@ -66,12 +67,20 @@ class Simulation:
                     "architecture."
                 )
 
-        self.state = SimulationState(
-            world=world,
+        context = SimulationContext(
             genetic_architecture=genetic_architecture,
             behavior_selection_model=behavior_selection_model,
+        )
+        self.state = SimulationState(
+            world=world,
+            context=context,
             rng=random.Random(seed),
         )
+
+    @property
+    def context(self) -> SimulationContext:
+        """Return immutable configuration shared by all state snapshots."""
+        return self.state.context
 
     @property
     def genetic_architecture(self) -> GeneticArchitecture:
