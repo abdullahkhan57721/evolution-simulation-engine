@@ -73,8 +73,7 @@ class EventRecorder:
         _validate_telemetry(telemetry)
         if (
             self._steps
-            and telemetry.completed_step_index
-            <= self._steps[-1].completed_step_index
+            and telemetry.completed_step_index <= self._steps[-1].completed_step_index
         ):
             raise ValueError(
                 "EventRecorder telemetry must have strictly increasing "
