@@ -144,9 +144,7 @@ def determine_offspring_mating_type(
     """
     method = getattr(model, "determine_mating_type", None)
     if not callable(method):
-        raise TypeError(
-            "model must provide a callable determine_mating_type method."
-        )
+        raise TypeError("model must provide a callable determine_mating_type method.")
 
     mating_type = method(
         parents,
