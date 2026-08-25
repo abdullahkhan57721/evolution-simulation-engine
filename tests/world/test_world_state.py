@@ -146,7 +146,9 @@ def test_environmental_field_uses_default_and_sparse_overrides() -> None:
     world = WorldState(
         width=3,
         height=3,
-        environmental_fields=(EnvironmentalField(name="temperature", default_value=20.0),),
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20.0),
+        ),
     )
 
     assert world.environmental_field_names == ("temperature",)
@@ -169,7 +171,9 @@ def test_environmental_mutation_is_journaled_only_for_effective_change() -> None
     world = WorldState(
         width=2,
         height=2,
-        environmental_fields=(EnvironmentalField(name="temperature", default_value=20),),
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
     )
     checkpoint = world.mutation_count
 
@@ -194,7 +198,9 @@ def test_environmental_fields_reject_unknown_names_and_invalid_coordinates() -> 
     world = WorldState(
         width=2,
         height=2,
-        environmental_fields=(EnvironmentalField(name="temperature", default_value=20),),
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
     )
 
     with pytest.raises(KeyError, match="humidity"):
@@ -228,7 +234,9 @@ def test_copy_is_transactionally_independent() -> None:
     world = WorldState(
         width=3,
         height=3,
-        environmental_fields=(EnvironmentalField(name="temperature", default_value=20),),
+        environmental_fields=(
+            EnvironmentalField(name="temperature", default_value=20),
+        ),
     )
     organism = make_organism(energy=10)
     world.add_organism(organism)
