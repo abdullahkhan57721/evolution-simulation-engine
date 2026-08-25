@@ -33,6 +33,11 @@ from evo_engine.reproduction.investment import (
     GeneticPhenotypeEnergyInvestment,
     ParentalInvestment,
 )
+from evo_engine.reproduction.mating_types import (
+    FixedMatingType,
+    OffspringMatingTypeModel,
+    determine_offspring_mating_type,
+)
 from evo_engine.reproduction.parent_selection import ParentSelection
 from evo_engine.reproduction.placement import (
     OffspringPlacement,
@@ -54,6 +59,17 @@ def _validate_reproduction_proposal(
         )
 
 
+def _validate_mating_type_label(
+    instance: object,
+    attribute: attrs.Attribute,
+    value: object,
+) -> None:
+    """Validate a materialized offspring mating-type label."""
+    validated = validators.validate_str(value, name=attribute.name)
+    if not validated.strip():
+        raise ValueError(f"{attribute.name} must not be empty or whitespace-only.")
+
+
 @attrs.frozen(slots=True, kw_only=True)
 class Reproduction:
     """Represent a one- or two-parent reproduction simulation process.
@@ -65,9 +81,10 @@ class Reproduction:
     and stage resolution chooses which competing proposals may occur.
 
     Resolved proposals are materialized before any stage event is applied.
-    Materialization performs inheritance, genetic phenotype expression, and
-    offspring placement. Application then only pays the recorded energy
-    investments and inserts the already-defined offspring into the world.
+    Materialization performs inheritance, genetic phenotype expression,
+    developmental realization, mating-type assignment, and offspring placement.
+    Application then only pays the recorded energy investments and inserts the
+    already-defined offspring into the world.
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
@@ -82,6 +99,8 @@ class Reproduction:
         offspring_placement: Policy choosing the offspring birth coordinate.
         offspring_body_mass_model: Policy determining newborn current body
             mass from the developmental profile and parents.
+        offspring_mating_type_model: Policy assigning immutable reproductive
+            mating type after a birth proposal is resolved.
     """
 
     behavioral_purpose: ClassVar[str] = REPRODUCTION_PURPOSE
@@ -103,6 +122,9 @@ class Reproduction:
     )
     offspring_body_mass_model: OffspringBodyMassModel = attrs.field(
         factory=AdultBodyMassAtBirth,
+    )
+    offspring_mating_type_model: OffspringMatingTypeModel = attrs.field(
+        factory=lambda: FixedMatingType(mating_type="default"),
     )
 
     def __attrs_post_init__(self) -> None:
@@ -163,6 +185,11 @@ class Reproduction:
                 "determine_body_mass",
                 "offspring_body_mass_model",
             ),
+            (
+                self.offspring_mating_type_model,
+                "determine_mating_type",
+                "offspring_mating_type_model",
+            ),
         )
 
         for policy, method_name, policy_name in required_methods:
@@ -189,6 +216,7 @@ class Reproduction:
             self.development_model,
             self.offspring_placement,
             self.offspring_body_mass_model,
+            self.offspring_mating_type_model,
         )
 
     @staticmethod
@@ -342,6 +370,8 @@ class Reproduction:
             offspring_developmental_profile: Individual developmental targets
                 realized from the offspring genetic phenotype.
             initial_body_mass: Current physical mass assigned at birth.
+            offspring_mating_type: Immutable reproductive mating type assigned
+                to the offspring.
             x: Final offspring horizontal birth coordinate.
             y: Final offspring vertical birth coordinate.
         """
@@ -360,6 +390,9 @@ class Reproduction:
         )
         initial_body_mass: int = attrs.field(
             validator=attrs_validators.validate_int_ge(1),
+        )
+        offspring_mating_type: str = attrs.field(
+            validator=_validate_mating_type_label,
         )
         x: int = attrs.field(
             validator=attrs_validators.validate_int_ge(0),
@@ -549,8 +582,9 @@ class Reproduction:
         """Materialize a resolved Reproduction proposal.
 
         Inheritance, mutation, recombination, genetic phenotype expression,
-        developmental realization, and random offspring placement happen here,
-        after resolution but before any event in the stage is applied.
+        developmental realization, mating-type assignment, and random offspring
+        placement happen here, after resolution but before any event in the
+        stage is applied.
 
         Args:
             simulation_state: Current pre-application simulation state.
@@ -594,9 +628,9 @@ class Reproduction:
 
         architecture = simulation_state.genetic_architecture
 
-        # Genetics and placement are deferred until after resolution so
+        # All stochastic offspring state is deferred until after resolution so
         # rejected mating candidates do not consume RNG or generate throwaway
-        # offspring state.
+        # individual state.
         offspring_genome = self.inheritance_model.inherit(
             tuple(parent.genome for parent in parents),
             genetic_architecture=architecture,
@@ -604,10 +638,6 @@ class Reproduction:
         )
 
         offspring_genetic_phenotype = architecture.express(offspring_genome)
-
-        # Developmental variation is sampled only for resolved births, just
-        # like inheritance and placement, so rejected proposals do not consume
-        # random draws or create unused individual targets.
         offspring_developmental_profile = realize_developmental_profile(
             self.development_model,
             offspring_genetic_phenotype,
@@ -626,6 +656,13 @@ class Reproduction:
             name="offspring initial body mass",
         )
 
+        offspring_mating_type = determine_offspring_mating_type(
+            self.offspring_mating_type_model,
+            parents,
+            simulation_state=simulation_state,
+            rng=simulation_state.rng,
+        )
+
         x, y = self.offspring_placement.choose_location(
             parents,
             simulation_state=simulation_state,
@@ -636,8 +673,9 @@ class Reproduction:
             proposal=resolved_event,
             offspring_genome=offspring_genome,
             offspring_genetic_phenotype=offspring_genetic_phenotype,
-            offspring_developmental_profile=(offspring_developmental_profile),
+            offspring_developmental_profile=offspring_developmental_profile,
             initial_body_mass=initial_body_mass,
+            offspring_mating_type=offspring_mating_type,
             x=x,
             y=y,
         )
@@ -686,7 +724,8 @@ class Reproduction:
             body_mass=materialized_event.initial_body_mass,
             genome=materialized_event.offspring_genome,
             genetic_phenotype=materialized_event.offspring_genetic_phenotype,
-            developmental_profile=(materialized_event.offspring_developmental_profile),
+            developmental_profile=materialized_event.offspring_developmental_profile,
+            mating_type=materialized_event.offspring_mating_type,
             x=materialized_event.x,
             y=materialized_event.y,
         )
