@@ -198,9 +198,7 @@ class PedigreeRecorder:
     @property
     def founder_ids(self) -> tuple[int, ...]:
         """Return baseline founder IDs in organism-ID order."""
-        return tuple(
-            record.organism_id for record in self.records if record.is_founder
-        )
+        return tuple(record.organism_id for record in self.records if record.is_founder)
 
     @property
     def living_ids(self) -> tuple[int, ...]:
@@ -358,36 +356,44 @@ class PedigreeRecorder:
         if not added_ids:
             return
 
-        event = applied_event.event
-        if isinstance(event, ParentageEvent):
-            parent_ids = _validate_parent_ids(event.parent_ids)
-        else:
-            parent_ids = ()
+        parent_ids = _parent_ids_for_event(applied_event.event)
+        self._require_known_parents(parent_ids)
 
         for organism_id in added_ids:
-            if organism_id in self._histories:
-                raise ValueError(
-                    f"Organism {organism_id} entered pedigree history more than once."
-                )
-
-            if parent_ids:
-                for parent_id in parent_ids:
-                    if parent_id not in self._histories:
-                        raise ValueError(
-                            f"Parent {parent_id} is absent from pedigree history."
-                        )
-
-            self._histories[organism_id] = _MutableLifeHistory(
-                organism_id=organism_id,
+            self._register_added_organism(
+                organism_id,
                 parent_ids=parent_ids,
-                is_founder=False,
-                entry_step=completed_step_index,
-                entry_age=0 if parent_ids else None,
-                birth_step=completed_step_index if parent_ids else None,
+                completed_step_index=completed_step_index,
             )
 
-            for parent_id in parent_ids:
-                self._histories[parent_id].offspring_ids.append(organism_id)
+    def _require_known_parents(self, parent_ids: tuple[int, ...]) -> None:
+        for parent_id in parent_ids:
+            if parent_id not in self._histories:
+                raise ValueError(f"Parent {parent_id} is absent from pedigree history.")
+
+    def _register_added_organism(
+        self,
+        organism_id: int,
+        *,
+        parent_ids: tuple[int, ...],
+        completed_step_index: int,
+    ) -> None:
+        if organism_id in self._histories:
+            raise ValueError(
+                f"Organism {organism_id} entered pedigree history more than once."
+            )
+
+        self._histories[organism_id] = _MutableLifeHistory(
+            organism_id=organism_id,
+            parent_ids=parent_ids,
+            is_founder=False,
+            entry_step=completed_step_index,
+            entry_age=0 if parent_ids else None,
+            birth_step=completed_step_index if parent_ids else None,
+        )
+
+        for parent_id in parent_ids:
+            self._histories[parent_id].offspring_ids.append(organism_id)
 
     def _record_mortality(
         self,
@@ -428,6 +434,12 @@ class PedigreeRecorder:
             history.death_step = completed_step_index
             history.death_cause = applied_event.process_name
             history.death_process_type = applied_event.process_type
+
+
+def _parent_ids_for_event(event: object) -> tuple[int, ...]:
+    if not isinstance(event, ParentageEvent):
+        return ()
+    return _validate_parent_ids(event.parent_ids)
 
 
 def _infer_birth_step(*, entry_step: int, entry_age: int) -> int | None:
