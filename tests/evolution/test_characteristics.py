@@ -6,6 +6,7 @@ from evo_engine.characteristics import (
     DevelopmentalProfileCharacteristics,
     GeneticPhenotypeCharacteristics,
 )
+from evo_engine.genetics import GeneticArchitecture
 from evo_engine.growth import CharacteristicGrowthRate
 from evo_engine.world import Organism
 from tests.helpers import (
@@ -16,7 +17,7 @@ from tests.helpers import (
 )
 
 
-def _organism_with_distinct_realized_growth() -> tuple[Organism, object]:
+def _organism_with_distinct_realized_growth() -> tuple[Organism, GeneticArchitecture]:
     architecture = make_integer_architecture("growth_rate")
     genome = make_diploid_genome(architecture, {"growth_rate": 2})
     genetic_phenotype = architecture.express(genome)
