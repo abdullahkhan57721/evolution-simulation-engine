@@ -14,7 +14,9 @@ from evo_engine.reproduction import (
 from tests.helpers import make_integer_architecture, make_organism, make_state
 
 
-def _scale(mating_type: str, numerator: int, denominator: int = 1) -> MatingTypeInvestmentScale:
+def _scale(
+    mating_type: str, numerator: int, denominator: int = 1
+) -> MatingTypeInvestmentScale:
     return MatingTypeInvestmentScale(
         mating_type=mating_type,
         numerator=numerator,
