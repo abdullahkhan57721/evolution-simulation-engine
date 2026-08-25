@@ -102,9 +102,7 @@ def test_engine_records_applied_events_only_after_commit() -> None:
     assert first.event_step_index == 0
     assert first.stage_index == 0
     assert first.process_name == "AddResourceProcess"
-    assert first.world_mutations == (
-        ResourcesChanged(x=0, y=0, before=0, after=1),
-    )
+    assert first.world_mutations == (ResourcesChanged(x=0, y=0, before=0, after=1),)
     assert simulation.state.world.resources[(0, 0)] == 2
 
 
