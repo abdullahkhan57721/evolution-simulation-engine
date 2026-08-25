@@ -1,6 +1,10 @@
 """Committed simulation event telemetry."""
 
-from evo_engine.telemetry.protocols import TelemetryObserver
+from evo_engine.telemetry.protocols import (
+    MortalityEvent,
+    ParentageEvent,
+    TelemetryObserver,
+)
 from evo_engine.telemetry.records import (
     AppliedEvent,
     CarcassAdded,
@@ -17,9 +21,11 @@ __all__ = [
     "AppliedEvent",
     "CarcassAdded",
     "CarcassRemoved",
+    "MortalityEvent",
     "OrganismAdded",
     "OrganismMoved",
     "OrganismRemoved",
+    "ParentageEvent",
     "ResourcesChanged",
     "StepTelemetry",
     "TelemetryObserver",
