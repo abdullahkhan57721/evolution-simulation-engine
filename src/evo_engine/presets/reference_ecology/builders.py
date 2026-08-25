@@ -18,9 +18,7 @@ from evo_engine.behavior import (
     PurposeMovementTargetRouter,
     PurposeTargetRoute,
 )
-from evo_engine.behavior import (
-    REPRODUCTION as REPRODUCTION_PURPOSE,
-)
+from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.energetics import (
     DevelopmentalEnergyThreshold,
     GeneticPhenotypeCoefficient,
@@ -54,7 +52,7 @@ from evo_engine.genetics import (
     SingleCrossoverRecombination,
 )
 from evo_engine.growth import GeneticPhenotypeGrowthRate
-from evo_engine.observation import EventRecorder, PopulationRecorder
+from evo_engine.observation import EventRecorder, PedigreeRecorder, PopulationRecorder
 from evo_engine.predation import (
     AllOfPredationEligibility,
     GeneticAttackAdvantagePreference,
@@ -98,9 +96,7 @@ from evo_engine.reproduction import (
 )
 from evo_engine.resolvers import AcceptAll
 from evo_engine.resolvers.predation import PreferenceOrder as PredationPreferenceOrder
-from evo_engine.resolvers.reproduction import (
-    PreferenceOrder as ReproductionPreferenceOrder,
-)
+from evo_engine.resolvers.reproduction import PreferenceOrder as ReproductionPreferenceOrder
 from evo_engine.resolvers.resource_allocation import EqualShare
 from evo_engine.spatial.boundary_conditions import Clamped
 from evo_engine.spatial.movement_patterns import MooreRandom
@@ -118,6 +114,8 @@ class ReferenceEcology:
         engine: Engine wired with the standard ecological lifecycle.
         recorder: Population recorder attached to committed reference states.
         event_recorder: Causal event recorder attached to committed steps.
+        pedigree_recorder: Pedigree and lifetime-fitness recorder attached to
+            both committed states and committed event telemetry.
     """
 
     config: ReferenceEcologyConfig = attrs.field(
@@ -134,6 +132,9 @@ class ReferenceEcology:
     )
     event_recorder: EventRecorder = attrs.field(
         validator=attrs.validators.instance_of(EventRecorder),
+    )
+    pedigree_recorder: PedigreeRecorder = attrs.field(
+        validator=attrs.validators.instance_of(PedigreeRecorder),
     )
 
 
@@ -269,7 +270,7 @@ def build_reference_engine(
                     PurposeTargetRoute(
                         behavioral_purpose=ENERGY_ACQUISITION,
                         target_model=NearestResourceTarget(
-                            sensory_accuracy_model=(GeneticPhenotypeSensoryAccuracy()),
+                            sensory_accuracy_model=GeneticPhenotypeSensoryAccuracy(),
                         ),
                     ),
                     PurposeTargetRoute(
@@ -384,25 +385,27 @@ def build_reference_ecology(
         config: Optional reference configuration. Defaults to standard values.
 
     Returns:
-        Bundle containing the configuration, simulation, engine, population
-        recorder, and committed causal event recorder.
+        Bundle containing population, event, and pedigree/lifetime-fitness
+        recorders alongside the configured simulation and engine.
     """
     config = resolve_reference_config(config)
     recorder = PopulationRecorder(
         trait_names=tuple(config.traits.as_mapping()),
     )
     event_recorder = EventRecorder()
+    pedigree_recorder = PedigreeRecorder()
 
     return ReferenceEcology(
         config=config,
         simulation=build_reference_simulation(config),
         engine=build_reference_engine(
             config,
-            observers=(recorder,),
-            telemetry_observers=(event_recorder,),
+            observers=(recorder, pedigree_recorder),
+            telemetry_observers=(event_recorder, pedigree_recorder),
         ),
         recorder=recorder,
         event_recorder=event_recorder,
+        pedigree_recorder=pedigree_recorder,
     )
 
 
