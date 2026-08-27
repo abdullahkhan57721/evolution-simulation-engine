@@ -1,4 +1,4 @@
-"""Tests for lifespan trait requirements propagated through lifecycle stages."""
+"""Tests for biological lifespan dependency validation."""
 
 from __future__ import annotations
 
@@ -42,11 +42,9 @@ def _lifespan_spec(*, architecture) -> SimulationSpec:
     )
 
 
-def test_default_age_mortality_propagates_maximum_age_requirement() -> None:
-    """Test the standard lifecycle exposes nested developmental lifespan traits."""
-    lifecycle = _developmental_lifespan_lifecycle()
-
-    assert lifecycle.required_traits == frozenset({MAXIMUM_AGE})
+def test_maximum_age_process_declares_biological_trait_requirement() -> None:
+    """Test lifespan semantics remain declared by the biological process."""
+    assert MaximumAgeMortality().required_traits == frozenset({MAXIMUM_AGE})
 
 
 def test_compile_rejects_missing_maximum_age_trait_before_runtime() -> None:
