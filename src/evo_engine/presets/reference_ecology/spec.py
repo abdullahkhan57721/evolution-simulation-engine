@@ -54,7 +54,7 @@ def build_reference_spec(
         step_coordinator=engine.step_coordinator,
         stopping_condition=engine.stopping_condition,
         seed=resolved_config.seed,
-        behavior_selection_model=simulation.context.behavior_selection_model,
+        behavior_selection_model=simulation.context.require("behavior_selection_model"),
         observers=observer_tuple,
         telemetry_observers=telemetry_observer_tuple,
     )
