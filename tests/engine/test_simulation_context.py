@@ -16,14 +16,16 @@ def test_transactional_copy_shares_simulation_context() -> None:
     copied = state.copy()
 
     assert copied.context is state.context
-    assert copied.genetic_architecture is state.context.genetic_architecture
-    assert copied.behavior_selection_model is state.context.behavior_selection_model
+    assert copied.genetic_architecture is state.context.require("genetic_architecture")
+    assert copied.behavior_selection_model is state.context.require(
+        "behavior_selection_model"
+    )
 
 
 def test_simulation_state_accepts_explicit_context() -> None:
     """Test callers may construct state from a complete shared context."""
     architecture = make_integer_architecture()
-    context = SimulationContext(genetic_architecture=architecture)
+    context = SimulationContext.from_mapping({"genetic_architecture": architecture})
 
     state = SimulationState(
         world=WorldState(width=2, height=2),
@@ -35,9 +37,9 @@ def test_simulation_state_accepts_explicit_context() -> None:
 
 
 def test_simulation_state_rejects_mixed_context_construction_styles() -> None:
-    """Test explicit context cannot conflict with legacy context arguments."""
+    """Test explicit context cannot conflict with separate context arguments."""
     architecture = make_integer_architecture()
-    context = SimulationContext(genetic_architecture=architecture)
+    context = SimulationContext.from_mapping({"genetic_architecture": architecture})
 
     with pytest.raises(TypeError, match="context cannot be combined"):
         SimulationState(
