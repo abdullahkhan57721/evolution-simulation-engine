@@ -139,8 +139,8 @@ def test_simulation_engine_runs_until_stopping_condition() -> None:
     assert simulation.state.world.organisms[0].age == 3
 
 
-def test_simulation_engine_rejects_missing_process_trait_before_step_zero() -> None:
-    """Test genetic phenotype dependencies fail fast before simulation execution."""
+def test_simulation_engine_does_not_validate_domain_specific_requirements() -> None:
+    """Test biological preflight validation is not a kernel responsibility."""
     from evo_engine.energetics import FixedLocomotionCost
     from evo_engine.genetics import MAX_SPEED
     from evo_engine.processes import Movement
@@ -159,30 +159,27 @@ def test_simulation_engine_rejects_missing_process_trait_before_step_zero() -> N
             amount=0,
         ),
     )
-    stage = StageCoordinator(
-        processes=(movement,),
-        resolver=AcceptAll(),
-    )
-    coordinator = SequentialStepCoordinator(
-        stages=(stage,),
-    )
     engine = SimulationEngine(
-        step_coordinator=coordinator,
+        step_coordinator=SequentialStepCoordinator(
+            stages=(
+                StageCoordinator(
+                    processes=(movement,),
+                    resolver=AcceptAll(),
+                ),
+            )
+        ),
         stopping_condition=MaxSteps(max_steps=0),
     )
 
     assert movement.required_traits == frozenset({MAX_SPEED})
-    assert stage.required_traits == frozenset({MAX_SPEED})
-    assert coordinator.required_traits == frozenset({MAX_SPEED})
 
-    with pytest.raises(ValueError, match="max_speed"):
-        engine.run(simulation)
+    engine.run(simulation)
 
     assert simulation.state.step_index == 0
 
 
 def test_simulation_engine_accepts_satisfied_process_trait_requirements() -> None:
-    """Test preflight validation succeeds when architecture defines dependencies."""
+    """Test domain-valid process configuration remains executable by the kernel."""
     from evo_engine.energetics import FixedLocomotionCost
     from evo_engine.genetics import MAX_SPEED
     from evo_engine.processes import Movement
