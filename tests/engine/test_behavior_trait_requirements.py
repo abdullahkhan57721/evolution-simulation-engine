@@ -5,31 +5,29 @@ from __future__ import annotations
 import pytest
 
 from evo_engine.behavior import EnergyConservationBehavior
+from evo_engine.configuration import SimulationSpec
 from evo_engine.energetics import DevelopmentalEnergyThreshold
-from evo_engine.engine import (
-    MaxSteps,
-    SequentialStepCoordinator,
-    Simulation,
-    SimulationEngine,
-)
+from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import ENERGY_CONSERVATION_THRESHOLD
 from evo_engine.world import WorldState
 from tests.helpers import make_empty_architecture, make_integer_architecture
 
 
-def _engine_that_runs_zero_steps() -> SimulationEngine:
-    return SimulationEngine(
+def _spec_with_behavior(*, architecture, behavior_selection_model) -> SimulationSpec:
+    return SimulationSpec(
+        initial_world_state=WorldState(width=2, height=2),
+        genetic_architecture=architecture,
         step_coordinator=SequentialStepCoordinator(stages=()),
         stopping_condition=MaxSteps(max_steps=0),
+        behavior_selection_model=behavior_selection_model,
     )
 
 
-def test_engine_rejects_missing_behavior_selection_trait_before_step_zero() -> None:
-    """Test shared behavior-model trait requirements are validated preflight."""
+def test_configuration_rejects_missing_behavior_selection_trait() -> None:
+    """Test behavior-model trait requirements are validated during preflight."""
     architecture = make_empty_architecture()
-    simulation = Simulation(
-        initial_world_state=WorldState(width=2, height=2),
-        genetic_architecture=architecture,
+    spec = _spec_with_behavior(
+        architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=DevelopmentalEnergyThreshold(
                 trait_name=ENERGY_CONSERVATION_THRESHOLD,
@@ -38,17 +36,14 @@ def test_engine_rejects_missing_behavior_selection_trait_before_step_zero() -> N
     )
 
     with pytest.raises(ValueError, match=ENERGY_CONSERVATION_THRESHOLD):
-        _engine_that_runs_zero_steps().run(simulation)
-
-    assert simulation.state.step_index == 0
+        spec.compile()
 
 
-def test_engine_accepts_satisfied_behavior_selection_trait_requirement() -> None:
-    """Test behavior-model preflight succeeds when architecture defines traits."""
+def test_configuration_accepts_satisfied_behavior_selection_trait() -> None:
+    """Test preflight succeeds when the biological architecture defines traits."""
     architecture = make_integer_architecture(ENERGY_CONSERVATION_THRESHOLD)
-    simulation = Simulation(
-        initial_world_state=WorldState(width=2, height=2),
-        genetic_architecture=architecture,
+    spec = _spec_with_behavior(
+        architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=DevelopmentalEnergyThreshold(
                 trait_name=ENERGY_CONSERVATION_THRESHOLD,
@@ -56,6 +51,6 @@ def test_engine_accepts_satisfied_behavior_selection_trait_requirement() -> None
         ),
     )
 
-    _engine_that_runs_zero_steps().run(simulation)
+    compiled = spec.compile()
 
-    assert simulation.state.step_index == 0
+    assert compiled.simulation.state.step_index == 0

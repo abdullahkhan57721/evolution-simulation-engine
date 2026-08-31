@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 
+from evo_engine.behavior import UnrestrictedBehavior
 from evo_engine.development import (
     IndependentDevelopment,
     LinearEnvironmentalDevelopment,
@@ -35,6 +36,7 @@ def test_offspring_development_samples_selected_birth_location() -> None:
     state = SimulationState(
         world=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
         rng=random.Random(1),
     )
     state.world.set_environmental_value("temperature", x=1, y=1, value=30)

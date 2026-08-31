@@ -1,4 +1,4 @@
-"""Coordinate a simulation update stage."""
+"""Coordinate one domain-neutral simulation update stage."""
 
 from __future__ import annotations
 
@@ -12,12 +12,11 @@ from evo_engine.engine.protocols import (
     SimulationEvent,
 )
 from evo_engine.engine.simulation_state import SimulationState
-from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.telemetry import AppliedEvent
 
 
 class StageCoordinator:
-    """Coordinate one simulation update stage."""
+    """Coordinate proposal, resolution, materialization, and application."""
 
     def __init__(
         self,
@@ -27,19 +26,14 @@ class StageCoordinator:
         """Initialize an update stage.
 
         Args:
-            processes: Simulation processes participating in the stage.
-            resolver: Resolver for proposed events in the stage.
+            processes: State-transition processes participating in the stage.
+            resolver: Resolver for competing proposed transitions.
 
         Raises:
             ValueError: If multiple processes use the same proposed event type.
         """
         self.processes = tuple(processes)
         self.resolver = resolver
-        self.required_traits = collect_required_traits(
-            *self.processes,
-            self.resolver,
-        )
-
         self._processes_by_event_type: dict[
             type[SimulationEvent],
             Process[Any, Any],
@@ -50,29 +44,26 @@ class StageCoordinator:
                 raise ValueError(
                     "Processes within a stage must have unique event types."
                 )
-
             self._processes_by_event_type[process.event_type] = process
 
     def coordinate(
         self,
         simulation_state: SimulationState,
     ) -> tuple[AppliedEvent, ...]:
-        """Coordinate one simulation update stage and return applied telemetry.
+        """Coordinate one stage and return telemetry for applied transitions.
 
-        All processes first propose events from the same starting state. The
-        stage resolver selects the events that may occur. Every resolved event
-        is then materialized before any event is applied, preserving stage
-        simultaneity while allowing post-resolution work such as inheritance,
-        mutation, recombination, or random placement. Processes without a
-        ``materialize_event`` method are treated as already materialized.
+        All processes propose from the same stage-start state. The resolver then
+        selects compatible transitions. Every selected transition is materialized
+        before any is applied, preserving stage simultaneity while allowing
+        accepted stochastic consequences to be determined after resolution.
 
-        Materialized events are applied in resolver-returned order. Each
-        successful application produces an immutable telemetry record containing
-        the materialized event and structural world mutations caused by it.
-        The enclosing step coordinator assigns the final lifecycle stage index.
+        The domain state may optionally expose ``mutation_count`` and
+        ``mutations_since`` to provide structural mutation telemetry. States that
+        do not implement that journal simply produce empty mutation telemetry;
+        the simulation kernel does not prescribe domain mutation types.
 
         Args:
-            simulation_state: Working simulation state to update.
+            simulation_state: Working transactional state.
 
         Returns:
             Applied event telemetry in resolver application order.
@@ -83,8 +74,7 @@ class StageCoordinator:
         proposed_events: list[SimulationEvent] = []
 
         for process in self.processes:
-            process_events = process.propose_events(simulation_state)
-            proposed_events.extend(process_events)
+            proposed_events.extend(process.propose_events(simulation_state))
 
         resolved_events = self.resolver.resolve_events(
             simulation_state=simulation_state,
@@ -92,10 +82,8 @@ class StageCoordinator:
         )
 
         materialized_events: list[tuple[Process[Any, Any], SimulationEvent]] = []
-
         for resolved_event in resolved_events:
             process = self._processes_by_event_type.get(type(resolved_event))
-
             if process is None:
                 raise RuntimeError(
                     "No process is registered for resolved event type "
@@ -109,18 +97,14 @@ class StageCoordinator:
                 )
             else:
                 materialized_event = resolved_event
-
             materialized_events.append((process, materialized_event))
 
         applied_events: list[AppliedEvent] = []
-        world = simulation_state.world
+        domain_state = simulation_state.world
 
         for process, materialized_event in materialized_events:
-            mutation_checkpoint = world.mutation_count
-            process.apply_event(
-                simulation_state,
-                materialized_event,
-            )
+            checkpoint = _mutation_checkpoint(domain_state)
+            process.apply_event(simulation_state, materialized_event)
             applied_events.append(
                 AppliedEvent(
                     event_step_index=materialized_event.step_index,
@@ -128,11 +112,37 @@ class StageCoordinator:
                     process_type=_qualified_type_name(process),
                     event_type=_qualified_type_name(materialized_event),
                     event=materialized_event,
-                    world_mutations=world.mutations_since(mutation_checkpoint),
+                    world_mutations=_mutations_since(domain_state, checkpoint),
                 )
             )
 
         return tuple(applied_events)
+
+
+def _mutation_checkpoint(domain_state: object) -> int | None:
+    mutation_count = getattr(domain_state, "mutation_count", None)
+    if mutation_count is None:
+        return None
+    if type(mutation_count) is not int or mutation_count < 0:
+        raise TypeError("domain-state mutation_count must be a nonnegative integer.")
+    return mutation_count
+
+
+def _mutations_since(
+    domain_state: object,
+    checkpoint: int | None,
+) -> tuple[Any, ...]:
+    if checkpoint is None:
+        return ()
+    mutations_since = getattr(domain_state, "mutations_since", None)
+    if not callable(mutations_since):
+        raise TypeError(
+            "domain state with mutation_count must provide callable mutations_since."
+        )
+    mutations = mutations_since(checkpoint)
+    if type(mutations) is not tuple:
+        raise TypeError("domain-state mutations_since must return a tuple.")
+    return mutations
 
 
 def _qualified_type_name(value: object) -> str:

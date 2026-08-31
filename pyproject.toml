@@ -67,6 +67,7 @@ type = "forbidden"
 source_modules = ["evo_engine.validation"]
 forbidden_modules = [
     "evo_engine.behavior",
+    "evo_engine.biology",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
@@ -92,9 +93,36 @@ type = "forbidden"
 source_modules = ["evo_engine.evolution"]
 forbidden_modules = [
     "evo_engine.behavior",
+    "evo_engine.biology",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.reproduction",
+    "evo_engine.resolvers",
+    "evo_engine.spatial",
+    "evo_engine.world",
+]
+
+[[tool.importlinter.contracts]]
+id = "engine-domain-neutral"
+name = "Simulation engine stays independent of modeled domains"
+type = "forbidden"
+source_modules = ["evo_engine.engine"]
+forbidden_modules = [
+    "evo_engine.behavior",
+    "evo_engine.biology",
+    "evo_engine.characteristics",
+    "evo_engine.configuration",
+    "evo_engine.development",
+    "evo_engine.energetics",
     "evo_engine.feeding",
     "evo_engine.genetics",
     "evo_engine.growth",
@@ -186,6 +214,7 @@ name = "Production simulation packages do not depend on experiment runners"
 type = "forbidden"
 source_modules = [
     "evo_engine.behavior",
+    "evo_engine.biology",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
@@ -212,6 +241,7 @@ name = "Lower layers do not depend on simulation configuration composition"
 type = "forbidden"
 source_modules = [
     "evo_engine.behavior",
+    "evo_engine.biology",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",

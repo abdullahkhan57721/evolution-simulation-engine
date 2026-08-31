@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from evo_engine.configuration import SimulationSpec
 from evo_engine.engine import (
     MaxSteps,
     SequentialStepCoordinator,
@@ -123,22 +124,30 @@ def test_engine_does_not_observe_failed_transactional_step() -> None:
     assert simulation.state.world.organisms[0].age == 0
 
 
-def test_engine_preflights_observer_trait_requirements_before_observation() -> None:
-    """Test observer trait dependencies fail before step zero is recorded."""
-    simulation = _simulation_with_one_organism()
+def test_configuration_preflights_observer_trait_requirements() -> None:
+    """Test observer biological dependencies fail during configuration preflight."""
+    architecture = make_empty_architecture()
+    world = WorldState(width=1, height=1)
+    world.add_organism(
+        make_organism(
+            genetic_architecture=architecture,
+        )
+    )
     recorder = PopulationRecorder(
         trait_names=("missing_trait",),
     )
-    engine = _aging_engine(
-        max_steps=0,
+    spec = SimulationSpec(
+        initial_world_state=world,
+        genetic_architecture=architecture,
+        step_coordinator=SequentialStepCoordinator(stages=()),
+        stopping_condition=MaxSteps(max_steps=0),
         observers=(recorder,),
     )
 
     with pytest.raises(ValueError, match="missing_trait"):
-        engine.run(simulation)
+        spec.compile()
 
     assert recorder.observations == ()
-    assert simulation.state.step_index == 0
 
 
 def test_engine_rejects_non_observer_component() -> None:

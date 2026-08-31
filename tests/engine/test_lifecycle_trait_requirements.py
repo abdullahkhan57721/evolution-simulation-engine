@@ -1,17 +1,13 @@
-"""Tests for lifespan trait requirements propagated through lifecycle stages."""
+"""Tests for biological lifespan dependency validation."""
 
 from __future__ import annotations
 
 import pytest
 
+from evo_engine.biology import build_standard_lifecycle
+from evo_engine.configuration import SimulationSpec
 from evo_engine.energetics import FixedMetabolicCost
-from evo_engine.engine import (
-    MaxSteps,
-    Simulation,
-    SimulationEngine,
-    StageCoordinator,
-    build_standard_lifecycle,
-)
+from evo_engine.engine import MaxSteps, StageCoordinator
 from evo_engine.genetics import MAXIMUM_AGE
 from evo_engine.processes import Aging, MaximumAgeMortality, Metabolism, Starvation
 from evo_engine.resolvers import AcceptAll
@@ -37,41 +33,32 @@ def _developmental_lifespan_lifecycle():
     )
 
 
-def test_default_age_mortality_propagates_maximum_age_requirement() -> None:
-    """Test the standard lifecycle exposes nested developmental lifespan traits."""
-    lifecycle = _developmental_lifespan_lifecycle()
-
-    assert lifecycle.required_traits == frozenset({MAXIMUM_AGE})
-
-
-def test_engine_rejects_missing_maximum_age_trait_before_step_zero() -> None:
-    """Test developmental lifespan misconfiguration fails during preflight."""
-    simulation = Simulation(
+def _lifespan_spec(*, architecture) -> SimulationSpec:
+    return SimulationSpec(
         initial_world_state=WorldState(width=2, height=2),
-        genetic_architecture=make_empty_architecture(),
-    )
-    engine = SimulationEngine(
+        genetic_architecture=architecture,
         step_coordinator=_developmental_lifespan_lifecycle(),
         stopping_condition=MaxSteps(max_steps=0),
     )
+
+
+def test_maximum_age_process_declares_biological_trait_requirement() -> None:
+    """Test lifespan semantics remain declared by the biological process."""
+    assert MaximumAgeMortality().required_traits == frozenset({MAXIMUM_AGE})
+
+
+def test_compile_rejects_missing_maximum_age_trait_before_runtime() -> None:
+    """Test developmental lifespan misconfiguration fails during compilation."""
+    spec = _lifespan_spec(architecture=make_empty_architecture())
 
     with pytest.raises(ValueError, match=MAXIMUM_AGE):
-        engine.run(simulation)
-
-    assert simulation.state.step_index == 0
+        spec.compile()
 
 
-def test_engine_accepts_configured_maximum_age_trait() -> None:
+def test_compile_accepts_configured_maximum_age_trait() -> None:
     """Test lifespan preflight succeeds when the architecture defines the trait."""
-    simulation = Simulation(
-        initial_world_state=WorldState(width=2, height=2),
-        genetic_architecture=make_integer_architecture(MAXIMUM_AGE),
-    )
-    engine = SimulationEngine(
-        step_coordinator=_developmental_lifespan_lifecycle(),
-        stopping_condition=MaxSteps(max_steps=0),
-    )
+    spec = _lifespan_spec(architecture=make_integer_architecture(MAXIMUM_AGE))
 
-    engine.run(simulation)
+    compiled = spec.compile()
 
-    assert simulation.state.step_index == 0
+    assert compiled.simulation.state.step_index == 0
