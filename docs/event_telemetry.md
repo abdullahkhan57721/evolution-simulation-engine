@@ -1,13 +1,13 @@
 # Event Telemetry and Causal History
 
-Population observations answer **what state did the simulation reach?** Event
+State observations answer **what state did the simulation reach?** Event
 telemetry answers the complementary question **what committed events caused that
 state?**
 
-The two systems deliberately remain separate. State observers receive immutable
-summaries of authoritative `WorldState` values. Telemetry observers receive an
-ordered causal history of materialized events that were successfully applied
-inside a completed transaction.
+The two systems deliberately remain separate. State observers receive the
+committed domain state. Telemetry observers receive an ordered causal history of
+materialized events that were successfully applied inside a completed
+transaction.
 
 ## Commit semantics
 
@@ -21,7 +21,7 @@ SimulationEngine
             → resolve
             → materialize
             → apply
-                → capture event + structural effects
+                → capture event + domain effects
         → all stages succeed
         → increment completed step
         → commit SimulationState
@@ -40,29 +40,42 @@ Each `AppliedEvent` records:
 - its event step index;
 - its zero-based lifecycle stage index;
 - the fully qualified process and event types;
-- structural world mutations caused by that event.
+- opaque domain effects caused by that event, in occurrence order.
 
-Keeping the materialized event preserves process-specific information without
-making the telemetry package depend on concrete processes. For example,
-`Movement.Event` can still expose displacement, target, purpose, and energetic
-cost, while `Reproduction.Event` can still expose parents and parental
-investment.
+The telemetry envelope deliberately does not prescribe effect types. A biological
+world may attach organism, carcass, resource, or environmental mutations; a
+nonbiological simulation may attach entirely different effect objects. Consumers
+interpret only the effect types belonging to their domain.
 
-## Structural world effects
+Keeping the materialized event likewise preserves process-specific information
+without making the telemetry package depend on concrete processes. For example,
+`Movement.Event` can expose displacement and energetic cost while a different
+domain can expose unrelated event data through the same envelope.
 
-`WorldState` maintains a transaction-local mutation journal. Built-in mutation
-records cover:
+## Biological world effects
 
-- organism addition and removal;
-- organism movement;
-- carcass addition and removal;
-- resource quantity changes with before/after values.
+`WorldState` maintains a transaction-local mutation journal. Its world-domain
+mutation records include:
+
+- `OrganismAdded`, `OrganismRemoved`, and `OrganismMoved`;
+- `CarcassAdded` and `CarcassRemoved`;
+- `ResourcesChanged`;
+- `EnvironmentalValueChanged`.
+
+These records live in `evo_engine.world`, not in the generic telemetry package.
+`StageCoordinator` treats values returned by the optional world journal as opaque
+objects and attaches them to `AppliedEvent.effects`.
 
 The journal is cleared when a new transactional world copy is created. A stage
 captures a journal checkpoint immediately before applying each event and then
-associates only subsequent mutations with that event.
+associates only subsequent mutations with that event. This avoids repeatedly
+comparing complete world snapshots after every event.
 
-This avoids repeatedly comparing complete world snapshots after every event.
+Biological observers perform biological interpretation. For example,
+`PedigreeRecorder` filters committed effects for `OrganismAdded` and
+`OrganismRemoved` while separately using parentage and mortality event semantics.
+The generic telemetry envelope itself does not expose organism-specific
+convenience properties.
 
 ## Recording a run
 
@@ -91,28 +104,21 @@ movement_events = recorder.events_for_process("Movement")
 `EventRecorder.steps` preserves commit order, and each step preserves lifecycle
 stage and resolver application order.
 
-## Reference ecology
+## Architectural boundary
 
-`build_reference_ecology()` attaches both measurement layers automatically:
+The dependency direction is intentional:
 
-```python
-from evo_engine.presets import build_reference_ecology
+```text
+telemetry
+    → generic AppliedEvent / StepTelemetry envelopes
 
-ecology = build_reference_ecology()
-ecology.engine.run(ecology.simulation)
+world
+    → biological/ecological mutation records
 
-population_history = ecology.recorder.observations
-causal_history = ecology.event_recorder.steps
+observation
+    → domain-specific interpretation of event + effect objects
 ```
 
-The population recorder answers questions such as how mean growth rate or
-population size changed. The event recorder can then be used to investigate the
-mechanisms behind those changes, such as mortality, reproduction, feeding,
-growth, or movement events.
-
-## Scope
-
-This milestone records causal event history but does not yet infer biological
-fitness, pedigree, allele frequencies, or statistical experimental outcomes.
-Those analyses should consume committed observations and telemetry rather than
-being embedded inside simulation processes.
+This lets the same commit/rollback and causal-history machinery support domains
+that do not contain organisms, carcasses, spatial resources, or biological
+mortality.

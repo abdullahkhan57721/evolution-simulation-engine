@@ -1,0 +1,89 @@
+"""Tests for domain-neutral committed effect telemetry."""
+
+from __future__ import annotations
+
+import copy
+
+import attrs
+
+from evo_engine.engine import SimulationState, StageCoordinator
+from evo_engine.resolvers import AcceptAll
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class JobCompleted:
+    """Nonbiological effect emitted by a scheduling state."""
+
+    job_name: str
+
+
+@attrs.define(slots=True, kw_only=True)
+class SchedulingState:
+    """Minimal transactional state with an application-effect journal."""
+
+    completed_jobs: set[str] = attrs.field(factory=set)
+    _mutations: list[object] = attrs.field(factory=list, repr=False)
+
+    @property
+    def mutation_count(self) -> int:
+        """Return current transaction-local journal length."""
+        return len(self._mutations)
+
+    def mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+        """Return effects recorded after a journal checkpoint."""
+        return tuple(self._mutations[checkpoint:])
+
+    def complete(self, job_name: str) -> None:
+        """Complete a job and record its domain effect."""
+        self.completed_jobs.add(job_name)
+        self._mutations.append(JobCompleted(job_name=job_name))
+
+    def copy(self) -> SchedulingState:
+        """Return a transactional copy with a fresh effect journal."""
+        copied = copy.deepcopy(self)
+        copied._mutations.clear()
+        return copied
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class CompleteJob:
+    """Nonbiological process completing one scheduled job."""
+
+    @attrs.frozen(slots=True, kw_only=True)
+    class Event:
+        """Represent one proposed job completion."""
+
+        step_index: int
+        job_name: str
+
+    @property
+    def event_type(self) -> type[Event]:
+        """Return the process event type."""
+        return self.Event
+
+    def propose_events(self, simulation_state: SimulationState) -> list[Event]:
+        """Propose one job completion."""
+        return [self.Event(step_index=simulation_state.step_index, job_name="batch-7")]
+
+    def apply_event(
+        self,
+        simulation_state: SimulationState,
+        event: Event,
+    ) -> None:
+        """Apply the job completion to scheduling state."""
+        simulation_state.world.complete(event.job_name)
+
+
+def test_stage_coordinator_records_arbitrary_domain_effects() -> None:
+    """Test committed-effect capture without biological world types."""
+    state = SimulationState(world=SchedulingState())
+    stage = StageCoordinator(
+        processes=(CompleteJob(),),
+        resolver=AcceptAll(),
+    )
+
+    applied = stage.coordinate(state)
+
+    assert state.world.completed_jobs == {"batch-7"}
+    assert len(applied) == 1
+    assert applied[0].effects == (JobCompleted(job_name="batch-7"),)

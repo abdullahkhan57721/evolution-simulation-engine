@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-from evo_engine.telemetry import (
-    OrganismMoved,
-    OrganismRemoved,
-    ResourcesChanged,
-)
+from evo_engine.world import OrganismMoved, OrganismRemoved, ResourcesChanged
 from tests.helpers import add_organism, make_state
 
 

@@ -10,8 +10,7 @@ from evo_engine.ecology import (
 )
 from evo_engine.engine import SimulationState
 from evo_engine.processes import EnvironmentalChange
-from evo_engine.telemetry import EnvironmentalValueChanged
-from evo_engine.world import EnvironmentalField, WorldState
+from evo_engine.world import EnvironmentalField, EnvironmentalValueChanged, WorldState
 from tests.helpers import make_empty_architecture
 
 

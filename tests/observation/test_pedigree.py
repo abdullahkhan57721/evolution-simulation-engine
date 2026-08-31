@@ -5,12 +5,8 @@ from __future__ import annotations
 import attrs
 
 from evo_engine.observation import PedigreeRecorder
-from evo_engine.telemetry import (
-    AppliedEvent,
-    OrganismAdded,
-    OrganismRemoved,
-    StepTelemetry,
-)
+from evo_engine.telemetry import AppliedEvent, StepTelemetry
+from evo_engine.world import OrganismAdded, OrganismRemoved
 from tests.helpers import add_organism, make_state
 
 
@@ -41,7 +37,7 @@ def _applied_event(
     event: object,
     *,
     process_type: str,
-    world_mutations: tuple[object, ...],
+    effects: tuple[object, ...],
 ) -> AppliedEvent:
     return AppliedEvent(
         event_step_index=0,
@@ -49,7 +45,7 @@ def _applied_event(
         process_type=process_type,
         event_type=f"tests.{type(event).__name__}",
         event=event,
-        world_mutations=world_mutations,  # type: ignore[arg-type]
+        effects=effects,
     )
 
 
@@ -72,7 +68,7 @@ def test_pedigree_recorder_tracks_birth_parentage_death_and_fitness() -> None:
                         parent_ids=(parent_a.id, parent_b.id),
                     ),
                     process_type="evo_engine.processes.reproduction.Reproduction",
-                    world_mutations=(OrganismAdded(organism_id=child_id),),
+                    effects=(OrganismAdded(organism_id=child_id),),
                 ),
             ),
         )
@@ -97,7 +93,7 @@ def test_pedigree_recorder_tracks_birth_parentage_death_and_fitness() -> None:
                         deceased_organism_ids=(child_id,),
                     ),
                     process_type="evo_engine.processes.starvation.Starvation",
-                    world_mutations=(OrganismRemoved(organism_id=child_id),),
+                    effects=(OrganismRemoved(organism_id=child_id),),
                 ),
             ),
         )
@@ -125,7 +121,7 @@ def test_non_mortality_removal_does_not_become_a_death() -> None:
                 _applied_event(
                     RemovalEvent(step_index=0),
                     process_type="tests.Migration",
-                    world_mutations=(OrganismRemoved(organism_id=organism.id),),
+                    effects=(OrganismRemoved(organism_id=organism.id),),
                 ),
             ),
         )
