@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 
+from evo_engine.behavior import UnrestrictedBehavior
 from evo_engine.development import (
     EnvironmentalThresholdDevelopment,
     IndependentDevelopment,
@@ -71,6 +72,7 @@ def test_environment_can_determine_offspring_mating_type_through_development() -
     state = SimulationState(
         world=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
         rng=random.Random(1),
     )
     parent = Organism.from_genome(
