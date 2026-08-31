@@ -48,15 +48,15 @@ def test_step_telemetry_filters_events_by_process_name() -> None:
     first = AppliedEvent(
         event_step_index=0,
         stage_index=0,
-        process_type="pkg.Growth",
-        event_type="pkg.Growth.Event",
+        process_type="pkg.Dispatch",
+        event_type="pkg.Dispatch.Event",
         event=ExampleEvent(step_index=0, amount=1),
     )
     second = AppliedEvent(
         event_step_index=0,
         stage_index=1,
-        process_type="pkg.Movement",
-        event_type="pkg.Movement.Event",
+        process_type="pkg.Archive",
+        event_type="pkg.Archive.Event",
         event=ExampleEvent(step_index=0, amount=2),
     )
     telemetry = StepTelemetry(
@@ -64,5 +64,5 @@ def test_step_telemetry_filters_events_by_process_name() -> None:
         events=(first, second),
     )
 
-    assert telemetry.events_for_process("Growth") == (first,)
-    assert telemetry.events_for_process("pkg.Movement") == (second,)
+    assert telemetry.events_for_process("Dispatch") == (first,)
+    assert telemetry.events_for_process("pkg.Archive") == (second,)

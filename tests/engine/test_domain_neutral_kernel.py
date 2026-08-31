@@ -1,131 +1,205 @@
-"""Tests proving the simulation kernel does not require biological state."""
+"""Architecture tests for the domain-neutral simulation kernel boundary."""
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import ast
+from collections.abc import Iterable
 from pathlib import Path
 
-import attrs
-
-import evo_engine.engine as kernel
 from evo_engine.engine import (
     MaxSteps,
     SequentialStepCoordinator,
     Simulation,
-    SimulationEvent,
-    SimulationState,
+    SimulationEngine,
     StageCoordinator,
 )
+from evo_engine.resolvers import AcceptAll
 
-_BIOLOGICAL_LIFECYCLE_IDENTIFIERS = (
-    "starvation_stage",
-    "maximum_age_mortality_stage",
-    "metabolism_stage",
-    "aging_stage",
-    "predation_stage",
-    "resource_consumption_stage",
-    "growth_stage",
-    "reproduction_stage",
+from tests.engine.helpers import CounterState, IncrementProcess
+
+_DOMAIN_MODULE_PREFIXES = (
+    "evo_engine.behavior",
+    "evo_engine.biology",
+    "evo_engine.development",
+    "evo_engine.ecology",
+    "evo_engine.energetics",
+    "evo_engine.experiments",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.reproduction",
+    "evo_engine.spatial",
+    "evo_engine.world",
 )
-
-
-@attrs.define(slots=True)
-class _CounterState:
-    value: int = 0
-
-    def copy(self) -> _CounterState:
-        return _CounterState(value=self.value)
-
-
-@attrs.frozen(slots=True, kw_only=True)
-class _IncrementEvent:
-    step_index: int
-
-
-@attrs.frozen(slots=True)
-class _IncrementProcess:
-    @property
-    def event_type(self) -> type[_IncrementEvent]:
-        return _IncrementEvent
-
-    def propose_events(
-        self,
-        simulation_state: SimulationState,
-    ) -> list[_IncrementEvent]:
-        return [_IncrementEvent(step_index=simulation_state.step_index)]
-
-    def apply_event(
-        self,
-        simulation_state: SimulationState,
-        event: _IncrementEvent,
-        /,
-    ) -> None:
-        simulation_state.world.value += 1
-
-
-@attrs.frozen(slots=True)
-class _AcceptAll:
-    def resolve_events(
-        self,
-        simulation_state: SimulationState,
-        proposed_events: Sequence[SimulationEvent],
-    ) -> Sequence[SimulationEvent]:
-        return proposed_events
+_DOMAIN_TEST_HELPERS = ("tests.helpers",)
+_DOMAIN_IDENTIFIER_FRAGMENTS = (
+    "organism",
+    "genetic",
+    "genome",
+    "phenotype",
+    "mating",
+    "reproduction",
+    "offspring",
+    "predator",
+    "prey",
+    "starvation",
+    "metabolism",
+    "carcass",
+    "body_mass",
+    "energy",
+    "aging",
+)
+_KERNEL_SOURCE_PATHS = (
+    Path("src/evo_engine/engine"),
+    Path("src/evo_engine/configuration"),
+    Path("src/evo_engine/telemetry"),
+    Path("src/evo_engine/access.py"),
+    Path("src/evo_engine/admission.py"),
+    Path("src/evo_engine/characteristics.py"),
+    Path("src/evo_engine/departure.py"),
+    Path("src/evo_engine/production.py"),
+    Path("src/evo_engine/propagation.py"),
+    Path("src/evo_engine/reference.py"),
+    Path("src/evo_engine/validation"),
+    Path("src/evo_engine/resolvers/_preference_order.py"),
+    Path("src/evo_engine/resolvers/accept_all.py"),
+)
+_KERNEL_TEST_PATHS = (
+    Path("tests/engine"),
+    Path("tests/configuration"),
+    Path("tests/telemetry"),
+    Path("tests/test_access.py"),
+    Path("tests/test_admission.py"),
+    Path("tests/test_characteristics.py"),
+    Path("tests/test_departure.py"),
+    Path("tests/test_production.py"),
+    Path("tests/test_propagation.py"),
+    Path("tests/test_reference.py"),
+    Path("tests/validation"),
+    Path("tests/resolvers/test_generic_preference_order.py"),
+    Path("tests/resolvers/test_preference_order_import_boundary.py"),
+)
 
 
 def test_kernel_runs_nonbiological_transactional_state() -> None:
     """Test core execution works with an arbitrary copyable state object."""
     simulation = Simulation(
-        initial_world_state=_CounterState(),
+        initial_world_state=CounterState(),
         seed=7,
-        selection_pressure="frequency_dependent",
+        selection_policy="priority",
     )
-    stage = StageCoordinator(
-        processes=(_IncrementProcess(),),
-        resolver=_AcceptAll(),
-    )
-    coordinator = SequentialStepCoordinator(stages=(stage,))
-
-    from evo_engine.engine import SimulationEngine
-
     engine = SimulationEngine(
-        step_coordinator=coordinator,
+        step_coordinator=SequentialStepCoordinator(
+            stages=(
+                StageCoordinator(
+                    processes=(IncrementProcess(),),
+                    resolver=AcceptAll(),
+                ),
+            )
+        ),
         stopping_condition=MaxSteps(max_steps=3),
     )
+
     engine.run(simulation)
 
     assert simulation.state.world.value == 3
     assert simulation.state.step_index == 3
-    assert simulation.context.require("selection_pressure") == "frequency_dependent"
+    assert simulation.context.require("selection_policy") == "priority"
 
 
-def test_kernel_context_accepts_arbitrary_domain_services() -> None:
-    """Test the kernel stores domain configuration without assigning semantics."""
-    service = object()
-    simulation = Simulation(
-        initial_world_state=_CounterState(),
-        heritable_state_schema=service,
+def test_kernel_source_does_not_import_modeled_domains() -> None:
+    """Test every production kernel module stays above modeled domains."""
+    violations = _import_violations(
+        _python_files(_KERNEL_SOURCE_PATHS),
+        forbidden_prefixes=_DOMAIN_MODULE_PREFIXES,
     )
 
-    assert simulation.context.require("heritable_state_schema") is service
-    assert simulation.heritable_state_schema is service
+    assert violations == []
 
 
-def test_engine_does_not_export_biological_lifecycle_preset() -> None:
-    """Test biological lifecycle composition is not part of the kernel API."""
-    assert not hasattr(kernel, "build_standard_lifecycle")
-
-
-def test_engine_contains_no_biological_lifecycle_policy() -> None:
-    """Test lifecycle-specific biological vocabulary stays outside the kernel."""
-    engine_root = Path("src/evo_engine/engine")
-    assert not (engine_root / "lifecycle.py").exists()
-
-    violations: list[str] = []
-    for path in sorted(engine_root.glob("*.py")):
-        source = path.read_text(encoding="utf-8")
-        for identifier in _BIOLOGICAL_LIFECYCLE_IDENTIFIERS:
-            if identifier in source:
-                violations.append(f"{path}: contains {identifier}")
+def test_kernel_tests_do_not_import_modeled_domains_or_domain_helpers() -> None:
+    """Test kernel tests cannot normalize domain coupling through fixtures."""
+    violations = _import_violations(
+        _python_files(_KERNEL_TEST_PATHS),
+        forbidden_prefixes=(
+            *_DOMAIN_MODULE_PREFIXES,
+            *_DOMAIN_TEST_HELPERS,
+        ),
+    )
 
     assert violations == []
+
+
+def test_kernel_tests_use_domain_neutral_identifiers() -> None:
+    """Test kernel-facing fixtures avoid modeled-domain vocabulary."""
+    guard_path = Path(__file__)
+    violations: list[str] = []
+
+    for path in _python_files(_KERNEL_TEST_PATHS):
+        if path == guard_path:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for identifier in _declared_identifiers(tree):
+            lowered = identifier.lower()
+            for fragment in _DOMAIN_IDENTIFIER_FRAGMENTS:
+                if fragment in lowered:
+                    violations.append(f"{path}: identifier {identifier!r}")
+                    break
+
+    assert violations == []
+
+
+def _python_files(paths: Iterable[Path]) -> tuple[Path, ...]:
+    files: list[Path] = []
+    for path in paths:
+        if path.is_dir():
+            files.extend(sorted(path.rglob("*.py")))
+        elif path.exists():
+            files.append(path)
+    return tuple(files)
+
+
+def _import_violations(
+    paths: Iterable[Path],
+    *,
+    forbidden_prefixes: tuple[str, ...],
+) -> list[str]:
+    violations: list[str] = []
+
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            for module in _imported_modules(node):
+                if module.startswith(forbidden_prefixes):
+                    violations.append(f"{path}: imports {module}")
+
+    return violations
+
+
+def _imported_modules(node: ast.AST) -> tuple[str, ...]:
+    if isinstance(node, ast.Import):
+        return tuple(alias.name for alias in node.names)
+    if isinstance(node, ast.ImportFrom) and node.module is not None:
+        return (node.module,)
+    return ()
+
+
+def _declared_identifiers(tree: ast.AST) -> tuple[str, ...]:
+    identifiers: list[str] = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            identifiers.append(node.id)
+        elif isinstance(node, ast.Attribute):
+            identifiers.append(node.attr)
+        elif isinstance(node, ast.arg):
+            identifiers.append(node.arg)
+        elif isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            identifiers.append(node.name)
+
+    return tuple(identifiers)
