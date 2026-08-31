@@ -74,7 +74,9 @@ class SimulationContext:
         object.__setattr__(
             context,
             "_values",
-            tuple(_ContextValue(name=name, value=value) for name, value in values.items()),
+            tuple(
+                _ContextValue(name=name, value=value) for name, value in values.items()
+            ),
         )
         attrs.validate(context)
         return context
