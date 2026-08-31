@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.behavior import ENERGY_ACQUISITION, behavior_is_allowed
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.feeding import (
@@ -16,7 +17,12 @@ from evo_engine.feeding import (
     determine_intake_capacity,
 )
 from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.validation import attrs_validators
+from evo_engine.world.access import WorldOrganismAccess
+from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
+from evo_engine.world.world_state import WorldState
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -31,6 +37,7 @@ class ResourceConsumption:
     Resource allocation and physiology therefore remain separate concerns:
     resolvers decide how much food an organism receives, while this process
     converts the resolved allocation into organism energy during application.
+    Organism storage access and reference derivation are delegated independently.
 
     Attributes:
         requested_amount: Resource units requested by each eligible organism
@@ -41,6 +48,8 @@ class ResourceConsumption:
         assimilation_model: Model converting actually consumed resource units
             into usable organism energy. Defaults to one energy unit per
             consumed resource unit.
+        access_model: Policy providing read-only access to active organisms.
+        reference_model: Policy deriving stable references for active organisms.
     """
 
     behavioral_purpose: ClassVar[str] = ENERGY_ACQUISITION
@@ -52,9 +61,25 @@ class ResourceConsumption:
     assimilation_model: AssimilationModel = attrs.field(
         factory=FullAssimilation,
     )
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
+    )
 
     def __attrs_post_init__(self) -> None:
-        """Validate configured feeding-physiology collaborators."""
+        """Validate configured feeding-physiology and entity collaborators."""
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
+
         if self.intake_capacity_model is not None and not callable(
             getattr(
                 self.intake_capacity_model,
@@ -137,8 +162,9 @@ class ResourceConsumption:
             allocation is resolved.
         """
         events: list[ResourceConsumption.Event] = []
+        world = simulation_state.world
 
-        for organism in simulation_state.world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             if not behavior_is_allowed(
                 organism,
                 behavioral_purpose=self.behavioral_purpose,
@@ -162,7 +188,10 @@ class ResourceConsumption:
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    organism_id=organism.id,
+                    organism_id=self.reference_model.reference(
+                        organism,
+                        state=world,
+                    ),
                     x=organism.x,
                     y=organism.y,
                     amount=amount,
@@ -186,7 +215,10 @@ class ResourceConsumption:
             simulation_state: Current simulation state.
             resolved_event: Resolved Resource Consumption event to apply.
         """
-        organism = simulation_state.world.organisms[resolved_event.organism_id]
+        organism = self.access_model.get(
+            resolved_event.organism_id,
+            state=simulation_state.world,
+        )
         energy_gain = determine_assimilated_energy(
             self.assimilation_model,
             organism,
