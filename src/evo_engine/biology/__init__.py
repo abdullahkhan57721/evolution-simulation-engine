@@ -1,7 +1,6 @@
 """Biological specializations layered on generic simulation infrastructure."""
 
 from evo_engine.biology.configuration import (
-    BEHAVIOR_SELECTION_MODEL,
     CHARACTERISTIC,
     ENVIRONMENTAL_FIELD,
     GENETIC_ARCHITECTURE,
@@ -13,7 +12,6 @@ from evo_engine.biology.configuration import (
 from evo_engine.biology.lifecycle import build_standard_lifecycle
 
 __all__ = [
-    "BEHAVIOR_SELECTION_MODEL",
     "CHARACTERISTIC",
     "ENVIRONMENTAL_FIELD",
     "GENETIC_ARCHITECTURE",
