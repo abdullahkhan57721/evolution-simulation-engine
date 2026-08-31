@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from evo_engine.configuration import SimulationSpec
+from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.engine import (
     MaxSteps,
     SequentialStepCoordinator,
@@ -136,7 +136,7 @@ def test_configuration_preflights_observer_trait_requirements() -> None:
     recorder = PopulationRecorder(
         trait_names=("missing_trait",),
     )
-    spec = SimulationSpec(
+    spec = BiologicalSimulationSpec(
         initial_world_state=world,
         genetic_architecture=architecture,
         step_coordinator=SequentialStepCoordinator(stages=()),
