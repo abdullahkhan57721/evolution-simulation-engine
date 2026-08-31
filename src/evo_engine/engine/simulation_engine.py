@@ -79,11 +79,11 @@ class SimulationEngine:
     def _observe(self, simulation_state: SimulationState) -> None:
         for observer in self.observers:
             if observer.should_observe(
-                simulation_state.world,
+                simulation_state.domain_state,
                 step_index=simulation_state.step_index,
             ):
                 observer.observe(
-                    simulation_state.world,
+                    simulation_state.domain_state,
                     step_index=simulation_state.step_index,
                 )
 
