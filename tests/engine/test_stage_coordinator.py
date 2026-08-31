@@ -9,7 +9,6 @@ import pytest
 
 from evo_engine.engine import SimulationEvent, SimulationState, StageCoordinator
 from evo_engine.resolvers import AcceptAll
-
 from tests.engine.helpers import CounterState, IncrementProcess
 
 

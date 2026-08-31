@@ -7,7 +7,6 @@ from typing import assert_type
 import pytest
 
 from evo_engine.engine import ContextKey, SimulationContext, SimulationState
-
 from tests.engine.helpers import CounterState
 
 

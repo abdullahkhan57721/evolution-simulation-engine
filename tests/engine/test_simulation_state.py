@@ -6,7 +6,6 @@ import random
 
 from evo_engine.engine import SimulationState
 from evo_engine.telemetry import StepTelemetry
-
 from tests.engine.helpers import CounterState
 
 

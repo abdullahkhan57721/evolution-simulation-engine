@@ -15,7 +15,6 @@ from evo_engine.engine import (
     StageCoordinator,
 )
 from evo_engine.resolvers import AcceptAll
-
 from tests.engine.helpers import CounterState, IncrementEvent, IncrementProcess
 
 

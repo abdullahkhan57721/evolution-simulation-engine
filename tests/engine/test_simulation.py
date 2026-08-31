@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from evo_engine.engine import Simulation, SimulationContext
-
 from tests.engine.helpers import CounterState
 
 

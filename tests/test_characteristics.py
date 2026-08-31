@@ -54,11 +54,14 @@ def test_characteristic_source_protocol_supports_nonbiological_entities() -> Non
         MappingCharacteristicSource()
     )
 
-    assert source.value_for(
-        Record(values={"latency": 5}),
-        "latency",
-        context=LookupContext(offset=2),
-    ) == 7
+    assert (
+        source.value_for(
+            Record(values={"latency": 5}),
+            "latency",
+            context=LookupContext(offset=2),
+        )
+        == 7
+    )
 
 
 def test_requirement_provider_protocol_is_structural() -> None:

@@ -15,7 +15,6 @@ from evo_engine.engine import (
 )
 from evo_engine.resolvers import AcceptAll
 from evo_engine.telemetry import StepTelemetry
-
 from tests.engine.helpers import CounterState, IncrementProcess
 
 
@@ -63,9 +62,10 @@ def test_engine_emits_telemetry_only_for_committed_steps() -> None:
     ).run(simulation)
 
     assert tuple(record.completed_step_index for record in recorder.records) == (1, 2)
-    assert tuple(
-        record.events[0].event_step_index for record in recorder.records
-    ) == (0, 1)
+    assert tuple(record.events[0].event_step_index for record in recorder.records) == (
+        0,
+        1,
+    )
     assert simulation.state.world.value == 2
 
 

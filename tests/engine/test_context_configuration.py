@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from evo_engine.engine import Simulation, SimulationState
-
 from tests.engine.helpers import CounterState
 
 
