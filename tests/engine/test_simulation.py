@@ -105,7 +105,9 @@ def test_simulation_does_not_validate_biological_state_consistency() -> None:
         genetic_architecture=architecture,
     )
 
-    assert simulation.state.world.organisms[0].genetic_phenotype["adult_body_mass"] == 99
+    assert (
+        simulation.state.world.organisms[0].genetic_phenotype["adult_body_mass"] == 99
+    )
 
 
 def test_simulation_accepts_empty_genetics() -> None:
