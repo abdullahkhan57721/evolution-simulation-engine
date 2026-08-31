@@ -117,10 +117,7 @@ def resolve_capacity_preference_order(
             participant_keys=participant_keys,
             resolver_name=resolver_name,
         )
-        if any(
-            accepted_counts.get(key, 0) >= max_events_per_key
-            for key in event_keys
-        ):
+        if any(accepted_counts.get(key, 0) >= max_events_per_key for key in event_keys):
             continue
 
         resolved_events.append(event)
