@@ -15,6 +15,10 @@ class Simulation:
     deterministic RNG ownership, and simulation-step state. Domain packages are
     responsible for defining entities, modeled semantics, and configuration
     services stored in ``SimulationContext``.
+
+    Named context values accepted during construction are normalized into the
+    immutable context. They are never exposed as dynamic ``Simulation`` or
+    ``SimulationState`` attributes.
     """
 
     def __init__(
@@ -22,6 +26,7 @@ class Simulation:
         initial_world_state: object,
         seed: int | None = None,
         context: SimulationContext | None = None,
+        **context_values: object,
     ) -> None:
         """Initialize a simulation from arbitrary copyable model state.
 
@@ -30,20 +35,19 @@ class Simulation:
                 callable ``copy`` method for transactional isolation.
             seed: Seed for the simulation random-number generator.
             context: Optional immutable shared simulation context.
-
-        Raises:
-            TypeError: If the state is not copyable or the seed is invalid.
+            **context_values: Optional named configuration services. These may be
+                supplied only when ``context`` is omitted.
         """
         copy_world_state = getattr(initial_world_state, "copy", None)
         if not callable(copy_world_state):
             raise TypeError("initial_world_state must provide a callable copy method.")
         if type(seed) is bool or (seed is not None and type(seed) is not int):
             raise TypeError("seed must be an integer or None, not a Boolean.")
+        if context is not None and context_values:
+            raise TypeError("context cannot be combined with separate context values.")
         if context is None:
-            context = SimulationContext()
+            context = SimulationContext.from_mapping(context_values)
 
-        # Caller-owned state is configuration input, never authoritative mutable
-        # simulation state.
         world = copy_world_state()
         self.state = SimulationState(
             world=world,
