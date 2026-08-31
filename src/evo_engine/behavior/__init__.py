@@ -30,6 +30,7 @@ from evo_engine.behavior.purposes import (
     validate_behavioral_purpose,
 )
 from evo_engine.behavior.selection import (
+    BEHAVIOR_SELECTION_MODEL,
     BehaviorSelectionModel,
     EnergyConservationBehavior,
     UnrestrictedBehavior,
@@ -51,6 +52,7 @@ from evo_engine.behavior.sensory_range import (
 )
 
 __all__ = [
+    "BEHAVIOR_SELECTION_MODEL",
     "BUILTIN_BEHAVIORAL_PURPOSES",
     "BehaviorSelectionModel",
     "BehavioralPurposeProvider",
