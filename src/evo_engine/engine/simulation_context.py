@@ -3,25 +3,46 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Generic, TypeVar, cast
 
 import attrs
+
+T = TypeVar("T")
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class ContextKey(Generic[T]):
+    """Define a typed key for one immutable simulation-context service."""
+
+    name: str
+    value_type: type[T]
+
+    def __attrs_post_init__(self) -> None:
+        if type(self.name) is not str:
+            raise TypeError("ContextKey.name must be a string.")
+        if not self.name.strip():
+            raise ValueError("ContextKey.name must not be blank.")
+        if not isinstance(self.value_type, type):
+            raise TypeError("ContextKey.value_type must be a type.")
+
+    def validate(self, value: object) -> T:
+        """Validate and return a value bound to this key."""
+        if not isinstance(value, self.value_type):
+            raise TypeError(
+                f"context value for {self.name!r} must be a "
+                f"{self.value_type.__name__}."
+            )
+        return cast(T, value)
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class ContextValue:
-    """Bind one named immutable configuration service to a simulation context.
-
-    Attributes:
-        name: Stable namespaced identifier for the configured service.
-        value: Domain-defined immutable configuration value.
-    """
+    """Bind one named immutable configuration service to a simulation context."""
 
     name: str
     value: object = attrs.field(repr=False)
 
     def __attrs_post_init__(self) -> None:
-        """Validate the service identifier."""
         if type(self.name) is not str:
             raise TypeError("ContextValue.name must be a string.")
         if not self.name.strip():
@@ -30,25 +51,13 @@ class ContextValue:
 
 @attrs.frozen(slots=True, kw_only=True)
 class SimulationContext:
-    """Hold immutable domain configuration shared by all state snapshots.
-
-    The simulation kernel deliberately assigns no semantics to context values.
-    Biological simulations may store a genetic architecture, behavior policy,
-    or developmental configuration; another evolutionary domain may store
-    entirely different services. The kernel only preserves the values by
-    reference across transactional state copies.
-
-    Attributes:
-        values: Named immutable domain configuration services.
-    """
+    """Hold immutable domain configuration shared by all state snapshots."""
 
     values: tuple[ContextValue, ...] = ()
 
     def __attrs_post_init__(self) -> None:
-        """Validate context values and namespaced-key uniqueness."""
         if type(self.values) is not tuple:
             raise TypeError("SimulationContext.values must be a tuple.")
-
         seen: set[str] = set()
         for index, item in enumerate(self.values):
             if not isinstance(item, ContextValue):
@@ -64,53 +73,30 @@ class SimulationContext:
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, object]) -> SimulationContext:
-        """Build a context from named domain configuration values.
-
-        Args:
-            values: Mapping from stable service names to configuration values.
-
-        Returns:
-            Immutable simulation context.
-        """
+        """Build a context from named domain configuration values."""
         return cls(
             values=tuple(
                 ContextValue(name=name, value=value) for name, value in values.items()
             )
         )
 
-    def require(self, name: str) -> Any:
-        """Return a required domain configuration service.
-
-        Args:
-            name: Stable namespaced service identifier.
-
-        Returns:
-            Configured service value.
-
-        Raises:
-            KeyError: If the requested service is not configured.
-        """
+    def require(self, key: str | ContextKey[T]) -> Any | T:
+        """Return a required domain configuration service."""
+        name = key.name if isinstance(key, ContextKey) else key
         if type(name) is not str:
             raise TypeError("context service name must be a string.")
         if not name.strip():
             raise ValueError("context service name must not be blank.")
-
         for item in self.values:
             if item.name == name:
+                if isinstance(key, ContextKey):
+                    return key.validate(item.value)
                 return item.value
         raise KeyError(f"simulation context does not provide {name!r}.")
 
-    def get(self, name: str, default: Any = None) -> Any:
-        """Return an optional domain configuration service.
-
-        Args:
-            name: Stable namespaced service identifier.
-            default: Value returned when the service is absent.
-
-        Returns:
-            Configured value or ``default``.
-        """
+    def get(self, key: str | ContextKey[T], default: Any = None) -> Any | T:
+        """Return an optional domain configuration service."""
         try:
-            return self.require(name)
+            return self.require(key)
         except KeyError:
             return default
