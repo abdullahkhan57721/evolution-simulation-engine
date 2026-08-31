@@ -39,7 +39,7 @@ def test_simulation_copies_initial_world() -> None:
 
 
 def test_simulation_exposes_shared_genetic_architecture() -> None:
-    """Test that simulation-level genetics are shared model configuration."""
+    """Test arbitrary configured services remain accessible through context."""
     architecture = make_empty_architecture()
 
     simulation = Simulation(
@@ -72,17 +72,17 @@ def test_simulation_seed_makes_rng_reproducible() -> None:
     "initial_world_state",
     [None, object(), "world"],
 )
-def test_simulation_rejects_invalid_world(initial_world_state: object) -> None:
-    """Test that Simulation requires a WorldState."""
+def test_simulation_rejects_noncopyable_state(initial_world_state: object) -> None:
+    """Test that Simulation requires transactionally copyable model state."""
     with pytest.raises(TypeError):
         Simulation(
-            initial_world_state=initial_world_state,  # type: ignore[arg-type]
+            initial_world_state=initial_world_state,
             genetic_architecture=make_empty_architecture(),
         )
 
 
-def test_simulation_rejects_genetic_phenotype_inconsistent_with_architecture() -> None:
-    """Test that initial organisms cannot carry stale expressed traits."""
+def test_simulation_does_not_validate_biological_state_consistency() -> None:
+    """Test cross-domain consistency checks remain outside the generic kernel."""
     architecture = make_integer_architecture("adult_body_mass")
     genome = make_diploid_genome(
         architecture,
@@ -100,15 +100,16 @@ def test_simulation_rejects_genetic_phenotype_inconsistent_with_architecture() -
     )
     world.add_organism(organism)
 
-    with pytest.raises(ValueError):
-        Simulation(
-            initial_world_state=world,
-            genetic_architecture=architecture,
-        )
+    simulation = Simulation(
+        initial_world_state=world,
+        genetic_architecture=architecture,
+    )
+
+    assert simulation.state.world.organisms[0].genetic_phenotype["adult_body_mass"] == 99
 
 
 def test_simulation_accepts_empty_genetics() -> None:
-    """Test the explicit no-genetics model."""
+    """Test a domain may explicitly configure an empty genetics model."""
     architecture = make_empty_architecture()
     world = WorldState(width=2, height=2)
     world.add_organism(
