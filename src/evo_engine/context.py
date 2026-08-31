@@ -13,10 +13,15 @@ D = TypeVar("D")
 
 @attrs.frozen(slots=True, kw_only=True)
 class ContextKey(Generic[T]):
-    """Define a typed key for one immutable simulation-context service."""
+    """Define a typed key for one immutable simulation-context service.
+
+    ``T`` describes the statically returned service type. ``value_type`` is the
+    runtime ``isinstance`` validator and intentionally accepts structural,
+    runtime-checkable protocol classes as well as concrete classes.
+    """
 
     name: str
-    value_type: type[T]
+    value_type: type[Any]
 
     def __attrs_post_init__(self) -> None:
         """Validate key identity and runtime value type."""
