@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any, Generic, TypeVar, cast
+from typing import Any, Generic, TypeVar, cast, overload
 
 import attrs
 
 T = TypeVar("T")
+D = TypeVar("D")
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -79,6 +80,12 @@ class SimulationContext:
             )
         )
 
+    @overload
+    def require(self, key: ContextKey[T]) -> T: ...
+
+    @overload
+    def require(self, key: str) -> Any: ...
+
     def require(self, key: str | ContextKey[T]) -> Any | T:
         """Return a required domain configuration service."""
         name = key.name if isinstance(key, ContextKey) else key
@@ -93,7 +100,20 @@ class SimulationContext:
                 return item.value
         raise KeyError(f"simulation context does not provide {name!r}.")
 
-    def get(self, key: str | ContextKey[T], default: Any = None) -> Any | T:
+    @overload
+    def get(self, key: ContextKey[T], default: None = None) -> T | None: ...
+
+    @overload
+    def get(self, key: ContextKey[T], default: D) -> T | D: ...
+
+    @overload
+    def get(self, key: str, default: Any = None) -> Any: ...
+
+    def get(
+        self,
+        key: str | ContextKey[T],
+        default: D | None = None,
+    ) -> Any | T | D | None:
         """Return an optional domain configuration service."""
         try:
             return self.require(key)
