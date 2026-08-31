@@ -9,7 +9,13 @@ from evo_engine.energetics import (
 )
 from evo_engine.genetics.builtin_traits import ADULT_BODY_MASS, MAX_SPEED
 from evo_engine.growth import FixedGrowthRate
-from evo_engine.processes import Aging, Growth, Metabolism, Movement, ResourceConsumption
+from evo_engine.processes import (
+    Aging,
+    Growth,
+    Metabolism,
+    Movement,
+    ResourceConsumption,
+)
 from evo_engine.spatial.boundary_conditions import Clamped
 from evo_engine.spatial.movement_patterns import UniformRandom
 from evo_engine.world import Organism, WorldState
