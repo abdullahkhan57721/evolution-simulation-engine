@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators
+from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
@@ -17,22 +19,34 @@ from evo_engine.world.world_state import WorldState
 class Starvation:
     """Kill organisms whose energy has reached zero.
 
-    Biological mortality semantics remain on this process and its events.
-    Structural removal from world state is delegated to ``departure_model``.
+    Biological mortality semantics remain on this process and its events. Read
+    access and structural removal are delegated independently so the process
+    does not own world storage mechanics.
 
     Attributes:
+        access_model: Policy providing read-only access to active organisms.
         departure_model: Policy removing a deceased organism from active world
             state during mechanical application.
     """
 
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate the configured departure policy."""
-        if not callable(getattr(self.departure_model, "depart", None)):
-            raise TypeError("departure_model must provide a callable depart method.")
+        """Validate configured lifecycle policies."""
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.departure_model, "depart", "departure_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
 
     @property
     def event_type(self) -> type[Starvation.Event]:
@@ -88,8 +102,9 @@ class Starvation:
             Proposed Starvation events.
         """
         events: list[Starvation.Event] = []
+        world = simulation_state.world
 
-        for organism in simulation_state.world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             if organism.energy != 0:
                 continue
 
