@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from evo_engine.telemetry import OrganismRemoved
-from evo_engine.world import WorldOrganismDeparture
+from evo_engine.world import OrganismRemoved, WorldOrganismDeparture
 from tests.helpers import add_organism, make_state
 
 
