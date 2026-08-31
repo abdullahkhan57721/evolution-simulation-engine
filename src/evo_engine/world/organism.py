@@ -44,7 +44,9 @@ class Organism:
     multi-type compatibility systems.
 
     ``heritable_state`` exposes ``genome`` through the domain-neutral
-    ``EvolutionaryEntity`` contract without replacing the biology-oriented API.
+    ``EvolutionaryEntity`` contract. ``transmissible_state`` exposes the same
+    genome through the still more general propagation contract. Neither alias
+    replaces the biology-oriented ``genome`` API.
 
     Attributes:
         age: Organism age in simulation timesteps.
@@ -235,6 +237,11 @@ class Organism:
     @property
     def heritable_state(self) -> Genome:
         """Return the organism genome through the general evolution contract."""
+        return self.genome
+
+    @property
+    def transmissible_state(self) -> Genome:
+        """Return the organism genome through the general propagation contract."""
         return self.genome
 
     def _assign_id(self, organism_id: int) -> None:
