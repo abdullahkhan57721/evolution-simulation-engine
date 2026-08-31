@@ -11,7 +11,11 @@ from evo_engine.engine.protocols import (
     StoppingCondition,
 )
 from evo_engine.engine.simulation import Simulation
-from evo_engine.engine.simulation_context import ContextValue, SimulationContext
+from evo_engine.engine.simulation_context import (
+    ContextKey,
+    ContextValue,
+    SimulationContext,
+)
 from evo_engine.engine.simulation_engine import SimulationEngine
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.engine.stage_coordinator import StageCoordinator
@@ -19,6 +23,7 @@ from evo_engine.engine.step_coordinator import SequentialStepCoordinator
 from evo_engine.engine.stopping_conditions import MaxSteps
 
 __all__ = [
+    "ContextKey",
     "ContextValue",
     "EventMaterializer",
     "MaxSteps",

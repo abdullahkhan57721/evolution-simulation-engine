@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from evo_engine.behavior import EnergyConservationBehavior
-from evo_engine.configuration import SimulationSpec
+from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.energetics import DevelopmentalEnergyThreshold
 from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import ENERGY_CONSERVATION_THRESHOLD
@@ -13,8 +13,10 @@ from evo_engine.world import WorldState
 from tests.helpers import make_empty_architecture, make_integer_architecture
 
 
-def _spec_with_behavior(*, architecture, behavior_selection_model) -> SimulationSpec:
-    return SimulationSpec(
+def _spec_with_behavior(
+    *, architecture, behavior_selection_model
+) -> BiologicalSimulationSpec:
+    return BiologicalSimulationSpec(
         initial_world_state=WorldState(width=2, height=2),
         genetic_architecture=architecture,
         step_coordinator=SequentialStepCoordinator(stages=()),

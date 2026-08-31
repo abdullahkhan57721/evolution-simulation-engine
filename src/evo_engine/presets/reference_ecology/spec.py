@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from evo_engine.configuration import SimulationSpec
+from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.engine import Observer
 from evo_engine.presets.reference_ecology.builders import (
     build_reference_engine,
@@ -22,22 +22,8 @@ def build_reference_spec(
     *,
     observers: Iterable[Observer] = (),
     telemetry_observers: Iterable[TelemetryObserver] = (),
-) -> SimulationSpec:
-    """Build an immutable, dependency-validatable reference simulation spec.
-
-    The existing reference simulation and engine builders remain available as
-    lower-level biological composition APIs. This function lifts those same
-    configured components into ``SimulationSpec`` so cross-component validation
-    happens before mutable runtime is created.
-
-    Args:
-        config: Optional reference configuration. Defaults to standard values.
-        observers: Optional committed-state observers.
-        telemetry_observers: Optional committed-event observers.
-
-    Returns:
-        Reference ecology specification ready for ``compile()``.
-    """
+) -> BiologicalSimulationSpec:
+    """Build an immutable, dependency-validatable reference simulation spec."""
     resolved_config = resolve_reference_config(config)
     observer_tuple = tuple(observers)
     telemetry_observer_tuple = tuple(telemetry_observers)
@@ -48,7 +34,7 @@ def build_reference_spec(
         telemetry_observers=telemetry_observer_tuple,
     )
 
-    return SimulationSpec(
+    return BiologicalSimulationSpec(
         initial_world_state=simulation.state.world,
         genetic_architecture=simulation.genetic_architecture,
         step_coordinator=engine.step_coordinator,

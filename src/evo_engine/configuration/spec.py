@@ -1,4 +1,4 @@
-"""Typed simulation specification and compilation boundary."""
+"""Domain-neutral simulation specification and compilation boundary."""
 
 from __future__ import annotations
 
@@ -6,30 +6,21 @@ from collections.abc import Iterable
 
 import attrs
 
-from evo_engine.behavior import BehaviorSelectionModel, UnrestrictedBehavior
+from evo_engine.configuration.dependencies import Dependency, DependencyReport
 from evo_engine.engine import (
     Observer,
     Simulation,
+    SimulationContext,
     SimulationEngine,
     StepCoordinator,
     StoppingCondition,
 )
-from evo_engine.genetics import GeneticArchitecture
 from evo_engine.telemetry import TelemetryObserver
-from evo_engine.world import WorldState
-
-from .dependencies import DependencyReport
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class CompiledSimulation:
-    """Bundle a validated simulation and engine produced from one specification.
-
-    Attributes:
-        simulation: Mutable simulation initialized from the validated spec.
-        engine: Runtime engine matching the validated spec.
-        dependency_report: Static dependency analysis performed at compilation.
-    """
+    """Bundle a validated simulation and matching runtime engine."""
 
     simulation: Simulation = attrs.field(
         validator=attrs.validators.instance_of(Simulation),
@@ -44,45 +35,25 @@ class CompiledSimulation:
 
 @attrs.frozen(slots=True, kw_only=True)
 class SimulationSpec:
-    """Describe a complete biological simulation before mutable runtime exists.
+    """Describe a complete domain-neutral simulation before mutable runtime exists."""
 
-    ``SimulationSpec`` is the configuration boundary for cross-component
-    validation. Individual model constructors validate their own local values;
-    compilation validates relationships among models, required capabilities,
-    and initial biological state before creating a runnable simulation.
-
-    Attributes:
-        initial_world_state: Initial world supplied as configuration input.
-        genetic_architecture: Shared biological heritable-state architecture.
-        step_coordinator: Complete configured timestep coordinator.
-        stopping_condition: Condition terminating the simulation.
-        seed: Optional deterministic random seed.
-        behavior_selection_model: Shared behavioral policy.
-        observers: Observers of committed world states.
-        telemetry_observers: Observers of committed event telemetry.
-    """
-
-    initial_world_state: WorldState = attrs.field(
-        validator=attrs.validators.instance_of(WorldState),
-    )
-    genetic_architecture: GeneticArchitecture = attrs.field(
-        validator=attrs.validators.instance_of(GeneticArchitecture),
-    )
+    initial_world_state: object
     step_coordinator: StepCoordinator
     stopping_condition: StoppingCondition
     seed: int | None = attrs.field(
         default=None,
         validator=attrs.validators.optional(attrs.validators.instance_of(int)),
     )
-    behavior_selection_model: BehaviorSelectionModel = attrs.field(
-        factory=UnrestrictedBehavior,
-        validator=attrs.validators.instance_of(BehaviorSelectionModel),
-    )
+    context: SimulationContext = attrs.field(factory=SimulationContext)
     observers: tuple[Observer, ...] = ()
     telemetry_observers: tuple[TelemetryObserver, ...] = ()
+    required_dependencies: frozenset[Dependency] = frozenset()
+    provided_dependencies: frozenset[Dependency] = frozenset()
 
     def __attrs_post_init__(self) -> None:
-        """Validate structural component protocols and observer collections."""
+        """Validate structural runtime contracts and immutable collections."""
+        if not callable(getattr(self.initial_world_state, "copy", None)):
+            raise TypeError("initial_world_state must provide a callable copy method.")
         if type(self.seed) is bool:
             raise TypeError("seed must be an integer or None, not a Boolean.")
         if not callable(getattr(self.step_coordinator, "coordinate", None)):
@@ -105,66 +76,47 @@ class SimulationSpec:
                 raise TypeError(
                     f"telemetry_observers[{index}] must implement TelemetryObserver."
                 )
+        if type(self.required_dependencies) is not frozenset:
+            raise TypeError("required_dependencies must be a frozenset.")
+        if type(self.provided_dependencies) is not frozenset:
+            raise TypeError("provided_dependencies must be a frozenset.")
 
     @classmethod
     def from_iterables(
         cls,
         *,
-        initial_world_state: WorldState,
-        genetic_architecture: GeneticArchitecture,
+        initial_world_state: object,
         step_coordinator: StepCoordinator,
         stopping_condition: StoppingCondition,
         seed: int | None = None,
-        behavior_selection_model: BehaviorSelectionModel | None = None,
+        context: SimulationContext | None = None,
         observers: Iterable[Observer] = (),
         telemetry_observers: Iterable[TelemetryObserver] = (),
+        required_dependencies: Iterable[Dependency] = (),
+        provided_dependencies: Iterable[Dependency] = (),
     ) -> SimulationSpec:
-        """Build a specification while normalizing observer iterables to tuples.
-
-        Args:
-            initial_world_state: Initial world supplied as configuration input.
-            genetic_architecture: Shared biological genetic architecture.
-            step_coordinator: Complete configured timestep coordinator.
-            stopping_condition: Condition terminating the simulation.
-            seed: Optional deterministic random seed.
-            behavior_selection_model: Optional shared behavior policy.
-            observers: State observers to attach to the compiled engine.
-            telemetry_observers: Telemetry observers to attach to the engine.
-
-        Returns:
-            Immutable simulation specification.
-        """
-        kwargs: dict[str, object] = {
-            "initial_world_state": initial_world_state,
-            "genetic_architecture": genetic_architecture,
-            "step_coordinator": step_coordinator,
-            "stopping_condition": stopping_condition,
-            "seed": seed,
-            "observers": tuple(observers),
-            "telemetry_observers": tuple(telemetry_observers),
-        }
-        if behavior_selection_model is not None:
-            kwargs["behavior_selection_model"] = behavior_selection_model
-        return cls(**kwargs)  # type: ignore[arg-type]
+        """Build a specification while normalizing iterable inputs."""
+        return cls(
+            initial_world_state=initial_world_state,
+            step_coordinator=step_coordinator,
+            stopping_condition=stopping_condition,
+            seed=seed,
+            context=SimulationContext() if context is None else context,
+            observers=tuple(observers),
+            telemetry_observers=tuple(telemetry_observers),
+            required_dependencies=frozenset(required_dependencies),
+            provided_dependencies=frozenset(provided_dependencies),
+        )
 
     def compile(self) -> CompiledSimulation:
-        """Validate the complete object graph and create runnable runtime objects.
-
-        Returns:
-            Validated simulation, matching engine, and dependency report.
-
-        Raises:
-            ValueError: If cross-component dependencies or initial biological
-                state are inconsistent.
-        """
+        """Run generic preflight and create runnable runtime objects."""
         from evo_engine.configuration.validation import SimulationSpecValidator
 
         report = SimulationSpecValidator().validate(self)
         simulation = Simulation(
             initial_world_state=self.initial_world_state,
-            genetic_architecture=self.genetic_architecture,
             seed=self.seed,
-            behavior_selection_model=self.behavior_selection_model,
+            context=self.context,
         )
         engine = SimulationEngine(
             step_coordinator=self.step_coordinator,

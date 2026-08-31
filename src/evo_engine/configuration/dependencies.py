@@ -1,37 +1,23 @@
-"""Collect and validate cross-component simulation dependencies."""
+"""Domain-neutral dependency declarations for simulation configuration."""
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from typing import Protocol, runtime_checkable
 
 import attrs
 
-from evo_engine.evolution import CharacteristicRequirementProvider
-from evo_engine.genetics import GeneticArchitecture
-from evo_engine.genetics.requirements import TraitRequirementProvider
 from evo_engine.validation import attrs_validators
-from evo_engine.world import WorldState
-
-TRAIT = "trait"
-CHARACTERISTIC = "characteristic"
-ENVIRONMENTAL_FIELD = "environmental_field"
 
 
 @attrs.frozen(slots=True, order=True, kw_only=True)
 class Dependency:
-    """Represent one named capability required or provided by configuration.
-
-    Attributes:
-        category: Extensible dependency namespace such as ``trait`` or
-            ``environmental_field``.
-        name: Name within the dependency namespace.
-    """
+    """Represent one named capability required or provided by configuration."""
 
     category: str = attrs.field(validator=attrs_validators.validate_str)
     name: str = attrs.field(validator=attrs_validators.validate_str)
 
     def __attrs_post_init__(self) -> None:
-        """Reject blank dependency categories and names."""
         if not self.category.strip():
             raise ValueError("dependency category must not be blank.")
         if not self.name.strip():
@@ -40,12 +26,7 @@ class Dependency:
 
 @attrs.frozen(slots=True, kw_only=True)
 class DependencyReport:
-    """Summarize required, provided, and missing simulation capabilities.
-
-    Attributes:
-        required: Capabilities required by configured component objects.
-        provided: Capabilities supplied by the configured biological context.
-    """
+    """Summarize required, provided, and missing configuration capabilities."""
 
     required: frozenset[Dependency]
     provided: frozenset[Dependency]
@@ -56,11 +37,7 @@ class DependencyReport:
         return self.required - self.provided
 
     def require_satisfied(self) -> None:
-        """Raise if any required simulation capability is unavailable.
-
-        Raises:
-            ValueError: If one or more required capabilities are missing.
-        """
+        """Raise if one or more required capabilities are unavailable."""
         if not self.missing:
             return
         formatted = ", ".join(
@@ -72,153 +49,92 @@ class DependencyReport:
         )
 
 
-def collect_component_dependencies(*components: object) -> frozenset[Dependency]:
-    """Recursively collect declared dependencies from a component object graph.
+@runtime_checkable
+class DependencyRequirementProvider(Protocol):
+    """Declare domain-neutral capabilities required by one component."""
 
-    The collector understands existing genetic-trait requirements, generic
-    characteristic requirements, and ``required_environmental_fields``. It
-    traverses attrs objects, ordinary configured Python objects, mappings, and
-    standard containers. This lets leaf policies declare their own dependencies
-    without requiring every coordinator and composite to duplicate declarations.
+    @property
+    def required_dependencies(self) -> frozenset[Dependency]:
+        """Return capabilities required by this component."""
+        ...
 
-    Args:
-        components: Root configured components to inspect.
 
-    Returns:
-        All dependencies declared anywhere below the supplied roots.
-    """
-    dependencies: set[Dependency] = set()
+def iter_configuration_components(*components: object) -> Iterator[object]:
+    """Yield each nonterminal object in a configured component graph once."""
     seen: set[int] = set()
-
     for component in components:
-        _collect_from_object(component, dependencies=dependencies, seen=seen)
+        yield from _iter_object_graph(component, seen=seen)
 
+
+def collect_component_dependencies(*components: object) -> frozenset[Dependency]:
+    """Recursively collect generic dependency declarations from an object graph."""
+    dependencies: set[Dependency] = set()
+    for component in iter_configuration_components(*components):
+        _collect_declared_dependencies(component, dependencies=dependencies)
     return frozenset(dependencies)
-
-
-def provided_biological_dependencies(
-    genetic_architecture: GeneticArchitecture,
-    world: WorldState,
-) -> frozenset[Dependency]:
-    """Return capabilities supplied by a biological simulation context.
-
-    Every genetic architecture trait is available both as raw genetic
-    expression and, by the development invariant, as a developmental
-    characteristic with the same name. World environmental fields provide
-    named environmental capabilities.
-
-    Args:
-        genetic_architecture: Genetic architecture configured for the run.
-        world: Initial world defining named environmental fields.
-
-    Returns:
-        Capabilities available to configured components.
-    """
-    provided: set[Dependency] = set()
-    for trait_name in genetic_architecture.trait_names:
-        provided.add(Dependency(category=TRAIT, name=trait_name))
-        provided.add(Dependency(category=CHARACTERISTIC, name=trait_name))
-    for field_name in world.environmental_field_names:
-        provided.add(Dependency(category=ENVIRONMENTAL_FIELD, name=field_name))
-    return frozenset(provided)
 
 
 def dependency_report(
     *,
     components: tuple[object, ...],
-    genetic_architecture: GeneticArchitecture,
-    world: WorldState,
+    required: frozenset[Dependency] = frozenset(),
+    provided: frozenset[Dependency] = frozenset(),
 ) -> DependencyReport:
-    """Build a dependency report for a biological simulation specification.
-
-    Args:
-        components: Configured component roots.
-        genetic_architecture: Genetic architecture supplying trait capabilities.
-        world: Initial world supplying environmental capabilities.
-
-    Returns:
-        Dependency report containing required and provided capabilities.
-    """
+    """Build a generic dependency report for configured components."""
     return DependencyReport(
-        required=collect_component_dependencies(*components),
-        provided=provided_biological_dependencies(genetic_architecture, world),
+        required=collect_component_dependencies(*components) | required,
+        provided=provided,
     )
 
 
-def _collect_from_object(
+def _collect_declared_dependencies(
     value: object,
     *,
     dependencies: set[Dependency],
-    seen: set[int],
 ) -> None:
+    if not isinstance(value, DependencyRequirementProvider):
+        return
+    declared = value.required_dependencies
+    if type(declared) is not frozenset:
+        raise TypeError(
+            f"{type(value).__name__}.required_dependencies must be a frozenset."
+        )
+    for dependency in declared:
+        if not isinstance(dependency, Dependency):
+            raise TypeError("required_dependencies entries must be Dependency objects.")
+    dependencies.update(declared)
+
+
+def _iter_object_graph(
+    value: object,
+    *,
+    seen: set[int],
+) -> Iterator[object]:
     if _is_terminal(value):
         return
-
     identity = id(value)
     if identity in seen:
         return
     seen.add(identity)
 
-    _collect_declared_requirements(value, dependencies=dependencies)
+    yield value
+    for child in _child_values(value):
+        yield from _iter_object_graph(child, seen=seen)
 
+
+def _child_values(value: object) -> tuple[object, ...]:
     if attrs.has(type(value)):
-        for attribute in attrs.fields(type(value)):
-            _collect_from_object(
-                getattr(value, attribute.name),
-                dependencies=dependencies,
-                seen=seen,
-            )
-        return
-
+        return tuple(
+            getattr(value, attribute.name) for attribute in attrs.fields(type(value))
+        )
     if isinstance(value, Mapping):
-        for item in value.values():
-            _collect_from_object(item, dependencies=dependencies, seen=seen)
-        return
-
+        return tuple(value.values())
     if isinstance(value, (tuple, list, set, frozenset)):
-        for item in value:
-            _collect_from_object(item, dependencies=dependencies, seen=seen)
-        return
-
+        return tuple(value)
     try:
-        attributes = vars(value)
+        return tuple(vars(value).values())
     except TypeError:
-        return
-
-    for item in attributes.values():
-        _collect_from_object(item, dependencies=dependencies, seen=seen)
-
-
-def _collect_declared_requirements(
-    component: object,
-    *,
-    dependencies: set[Dependency],
-) -> None:
-    if isinstance(component, TraitRequirementProvider):
-        dependencies.update(
-            Dependency(category=TRAIT, name=name) for name in component.required_traits
-        )
-
-    if isinstance(component, CharacteristicRequirementProvider):
-        dependencies.update(
-            Dependency(category=CHARACTERISTIC, name=name)
-            for name in component.required_characteristics
-        )
-
-    environmental_fields = getattr(component, "required_environmental_fields", None)
-    if environmental_fields is None:
-        return
-    if type(environmental_fields) is not frozenset:
-        raise TypeError(
-            f"{type(component).__name__}.required_environmental_fields must be a "
-            "frozenset."
-        )
-    for field_name in environmental_fields:
-        if type(field_name) is not str:
-            raise TypeError("required environmental field names must be strings.")
-        if not field_name.strip():
-            raise ValueError("required environmental field names must not be blank.")
-        dependencies.add(Dependency(category=ENVIRONMENTAL_FIELD, name=field_name))
+        return ()
 
 
 def _is_terminal(value: object) -> bool:

@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from evo_engine.configuration import CHARACTERISTIC, Dependency
+from evo_engine.biology import CHARACTERISTIC
+from evo_engine.configuration import Dependency
 from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
