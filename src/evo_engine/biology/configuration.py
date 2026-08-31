@@ -14,11 +14,7 @@ from evo_engine.behavior import (
 from evo_engine.configuration import CompiledSimulation, Dependency, SimulationSpec
 from evo_engine.configuration.dependencies import iter_configuration_components
 from evo_engine.context import SimulationContext
-from evo_engine.engine import (
-    Observer,
-    StepCoordinator,
-    StoppingCondition,
-)
+from evo_engine.engine import Observer, StepCoordinator, StoppingCondition
 from evo_engine.evolution import CharacteristicRequirementProvider
 from evo_engine.genetics import GENETIC_ARCHITECTURE, GeneticArchitecture
 from evo_engine.genetics.requirements import TraitRequirementProvider
@@ -113,7 +109,7 @@ class BiologicalSimulationSpec:
             }
         )
         generic_spec = SimulationSpec(
-            initial_domain_state=self.initial_world_state,
+            initial_world_state=self.initial_world_state,
             step_coordinator=self.step_coordinator,
             stopping_condition=self.stopping_condition,
             seed=self.seed,
