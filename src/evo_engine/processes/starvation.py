@@ -4,13 +4,35 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators
 from evo_engine.world.carcass import Carcass
+from evo_engine.world.departure import WorldOrganismDeparture
+from evo_engine.world.organism import Organism
+from evo_engine.world.world_state import WorldState
 
 
+@attrs.frozen(slots=True, kw_only=True)
 class Starvation:
-    """Represent the Starvation simulation process."""
+    """Kill organisms whose energy has reached zero.
+
+    Biological mortality semantics remain on this process and its events.
+    Structural removal from world state is delegated to ``departure_model``.
+
+    Attributes:
+        departure_model: Policy removing a deceased organism from active world
+            state during mechanical application.
+    """
+
+    departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismDeparture,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate the configured departure policy."""
+        if not callable(getattr(self.departure_model, "depart", None)):
+            raise TypeError("departure_model must provide a callable depart method.")
 
     @property
     def event_type(self) -> type[Starvation.Event]:
@@ -90,8 +112,9 @@ class Starvation:
     ) -> None:
         """Apply a resolved Starvation event.
 
-        The organism is removed from the active world and replaced by a
-        carcass containing the recorded resource units.
+        The mortality event remains the source of biological death semantics.
+        Structural world departure is delegated separately, then a carcass is
+        added when the recorded body mass yields resources.
 
         Args:
             simulation_state: Current simulation state.
@@ -99,7 +122,10 @@ class Starvation:
         """
         world = simulation_state.world
 
-        world.remove_organism(resolved_event.organism_id)
+        self.departure_model.depart(
+            resolved_event.organism_id,
+            state=world,
+        )
 
         if resolved_event.carcass_resource_units == 0:
             return
