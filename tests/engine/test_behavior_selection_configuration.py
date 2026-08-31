@@ -1,36 +1,25 @@
-"""Tests for configuring behavior selection on simulation state."""
+"""Tests for domain configuration carried by the simulation kernel."""
 
 from __future__ import annotations
 
-from typing import cast
-
-import pytest
-
-from evo_engine.behavior import (
-    BehaviorSelectionModel,
-    EnergyConservationBehavior,
-    UnrestrictedBehavior,
-)
+from evo_engine.behavior import EnergyConservationBehavior
 from evo_engine.engine import Simulation
 from evo_engine.world import WorldState
 from tests.helpers import make_empty_architecture
 
 
-def test_simulation_defaults_to_unrestricted_behavior() -> None:
-    """Test existing simulations retain unrestricted behavioral semantics."""
+def test_simulation_does_not_install_domain_behavior_defaults() -> None:
+    """Test the generic kernel does not invent biological behavior services."""
     simulation = Simulation(
         initial_world_state=WorldState(width=3, height=3),
         genetic_architecture=make_empty_architecture(),
     )
 
-    assert isinstance(
-        simulation.state.behavior_selection_model,
-        UnrestrictedBehavior,
-    )
+    assert not hasattr(simulation.state, "behavior_selection_model")
 
 
 def test_simulation_uses_configured_behavior_selection_model() -> None:
-    """Test simulations retain the explicitly configured selector."""
+    """Test simulations retain an explicitly configured domain service."""
     model = EnergyConservationBehavior(
         energy_threshold=10,
     )
@@ -44,7 +33,7 @@ def test_simulation_uses_configured_behavior_selection_model() -> None:
 
 
 def test_transactional_state_copy_shares_behavior_selection_configuration() -> None:
-    """Test state copies share pure behavior-selection configuration."""
+    """Test state copies share immutable domain configuration services."""
     model = EnergyConservationBehavior(
         energy_threshold=10,
     )
@@ -59,11 +48,13 @@ def test_transactional_state_copy_shares_behavior_selection_configuration() -> N
     assert copied.behavior_selection_model is model
 
 
-def test_simulation_rejects_invalid_behavior_selection_model() -> None:
-    """Test simulation configuration requires the structural selector contract."""
-    with pytest.raises(TypeError, match="BehaviorSelectionModel"):
-        Simulation(
-            initial_world_state=WorldState(width=3, height=3),
-            genetic_architecture=make_empty_architecture(),
-            behavior_selection_model=cast(BehaviorSelectionModel, object()),
-        )
+def test_simulation_does_not_validate_opaque_domain_services() -> None:
+    """Test domain-specific validation is not a kernel responsibility."""
+    service = object()
+
+    simulation = Simulation(
+        initial_world_state=WorldState(width=3, height=3),
+        behavior_selection_model=service,
+    )
+
+    assert simulation.state.behavior_selection_model is service
