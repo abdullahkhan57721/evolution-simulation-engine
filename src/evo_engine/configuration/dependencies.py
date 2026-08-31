@@ -102,7 +102,9 @@ def _collect_from_object(
             )
         for dependency in declared:
             if not isinstance(dependency, Dependency):
-                raise TypeError("required_dependencies entries must be Dependency objects.")
+                raise TypeError(
+                    "required_dependencies entries must be Dependency objects."
+                )
         dependencies.update(declared)
 
     if attrs.has(type(value)):
