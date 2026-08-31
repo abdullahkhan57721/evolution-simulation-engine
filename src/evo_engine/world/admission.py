@@ -1,9 +1,10 @@
-"""World adapters for admitting produced entities."""
+"""World adapters for admitting entities into biological state."""
 
 from __future__ import annotations
 
 import attrs
 
+from evo_engine.world.carcass import Carcass
 from evo_engine.world.organism import Organism
 from evo_engine.world.world_state import WorldState
 
@@ -30,3 +31,27 @@ class WorldOrganismAdmission:
             state: Biological world receiving the organism.
         """
         state.add_organism(entity)
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class WorldCarcassAdmission:
+    """Admit a carcass into biological world state.
+
+    The adapter delegates coordinate validation, permanent carcass ID
+    assignment, membership mutation, and mutation journaling to
+    ``WorldState.add_carcass``.
+    """
+
+    def admit(
+        self,
+        entity: Carcass,
+        *,
+        state: WorldState,
+    ) -> None:
+        """Add an already-created carcass to world state.
+
+        Args:
+            entity: Carcass ready to enter the world.
+            state: Biological world receiving the carcass.
+        """
+        state.add_carcass(entity)
