@@ -1,13 +1,16 @@
 # Lifecycle and Age Mortality
 
-The engine keeps **process behavior** separate from **timestep ordering**.
-Individual processes do not decide when metabolism, movement, reproduction, or
-mortality should occur. `SequentialStepCoordinator` owns ordering, and
-`build_standard_lifecycle()` provides one recommended ecological preset.
+The simulation architecture keeps **process behavior** separate from **timestep
+ordering**. Individual processes do not decide when metabolism, movement,
+reproduction, or mortality should occur. The domain-neutral
+`SequentialStepCoordinator` owns ordered stage execution, while
+`evo_engine.biology.build_standard_lifecycle()` provides one recommended
+biological/ecological preset.
 
-This keeps lifecycle assumptions configurable. A simulation can use the
-standard preset, omit optional stages, or assemble a completely different
-sequence directly with `SequentialStepCoordinator`.
+This keeps lifecycle assumptions configurable and outside the kernel. A
+biological simulation can use the standard preset, omit optional stages, or
+assemble a completely different sequence directly with
+`SequentialStepCoordinator`.
 
 ## Standard lifecycle
 
@@ -33,9 +36,9 @@ START OF TIMESTEP
 END OF TIMESTEP
 ```
 
-The factory accepts already-configured `StageCoordinator` instances. It does
-not import concrete process classes, preserving the engine's orchestration
-boundary.
+The biological factory accepts already-configured `StageCoordinator` instances.
+It composes domain stages without changing the kernel's generic orchestration
+machinery.
 
 ## Why the mortality checkpoints repeat
 
@@ -147,7 +150,7 @@ MaximumAgeMortality
 
 Because `DevelopmentalMaximumAge` declares its trait requirement,
 `MaximumAgeMortality.required_traits` propagates `MAXIMUM_AGE` into the normal
-engine preflight checks.
+biological preflight checks.
 
 Custom simulations can also point `DevelopmentalMaximumAge` at another trait
 name or provide any object with a compatible `determine_maximum_age()` method.
@@ -167,8 +170,9 @@ processes alter body mass during life.
 A minimal lifecycle can be assembled as follows:
 
 ```python
+from evo_engine.biology import build_standard_lifecycle
 from evo_engine.energetics import FixedMetabolicCost
-from evo_engine.engine import StageCoordinator, build_standard_lifecycle
+from evo_engine.engine import StageCoordinator
 from evo_engine.processes import Aging, MaximumAgeMortality, Metabolism, Starvation
 from evo_engine.resolvers import AcceptAll
 
@@ -205,8 +209,8 @@ stage is `None`, the factory simply omits it.
 
 ## Ordering is a modeling choice
 
-`build_standard_lifecycle()` is deliberately a preset rather than an invariant
-of `SimulationEngine`.
+`build_standard_lifecycle()` is deliberately a biological preset rather than an
+invariant of `SimulationEngine`.
 
 For example, a different model might represent seasonal reproduction before
 somatic growth, environmental turnover after consumer activity, or probabilistic
