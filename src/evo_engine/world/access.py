@@ -1,0 +1,45 @@
+"""World adapters for read-only organism access."""
+
+from __future__ import annotations
+
+import attrs
+
+from evo_engine.world.organism import Organism
+from evo_engine.world.world_state import WorldState
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class WorldOrganismAccess:
+    """Read organisms from biological world state without mutating membership."""
+
+    def get(
+        self,
+        reference: int,
+        *,
+        state: WorldState,
+    ) -> Organism:
+        """Return one organism by stable world identifier.
+
+        Args:
+            reference: Stable organism identifier.
+            state: Biological world containing the organism.
+
+        Returns:
+            Referenced organism.
+        """
+        return state.organisms[reference]
+
+    def entities(
+        self,
+        *,
+        state: WorldState,
+    ) -> tuple[Organism, ...]:
+        """Return a stable snapshot of organisms in world iteration order.
+
+        Args:
+            state: Biological world whose organisms are read.
+
+        Returns:
+            Tuple snapshot of current organisms.
+        """
+        return tuple(state.organisms.values())
