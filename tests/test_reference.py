@@ -34,11 +34,14 @@ def test_entity_reference_model_supports_nonbiological_references() -> None:
     """Test references may use arbitrary entity, state, and reference types."""
     state = {"primary": "alpha", "secondary": "beta"}
 
-    assert derive_reference(
-        CatalogReference(),
-        "beta",
-        state=state,
-    ) == "secondary"
+    assert (
+        derive_reference(
+            CatalogReference(),
+            "beta",
+            state=state,
+        )
+        == "secondary"
+    )
 
 
 def test_entity_reference_model_is_read_only() -> None:
