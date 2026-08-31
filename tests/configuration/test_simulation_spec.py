@@ -8,11 +8,8 @@ import attrs
 import pytest
 
 from evo_engine.behavior import UnrestrictedBehavior
-from evo_engine.biology import (
-    CHARACTERISTIC,
-    ENVIRONMENTAL_FIELD,
-    BiologicalSimulationSpec as SimulationSpec,
-)
+from evo_engine.biology import CHARACTERISTIC, ENVIRONMENTAL_FIELD
+from evo_engine.biology import BiologicalSimulationSpec as SimulationSpec
 from evo_engine.configuration import Dependency
 from evo_engine.development import LinearEnvironmentalDevelopment
 from evo_engine.engine import MaxSteps, SimulationState, StepCoordinator
