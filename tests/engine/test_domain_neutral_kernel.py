@@ -19,6 +19,7 @@ from tests.engine.helpers import CounterState, IncrementProcess
 _DOMAIN_MODULE_PREFIXES = (
     "evo_engine.behavior",
     "evo_engine.biology",
+    "evo_engine.characteristics",
     "evo_engine.development",
     "evo_engine.ecology",
     "evo_engine.energetics",
@@ -59,7 +60,6 @@ _KERNEL_SOURCE_PATHS = (
     Path("src/evo_engine/telemetry"),
     Path("src/evo_engine/access.py"),
     Path("src/evo_engine/admission.py"),
-    Path("src/evo_engine/characteristics.py"),
     Path("src/evo_engine/departure.py"),
     Path("src/evo_engine/production.py"),
     Path("src/evo_engine/propagation.py"),
@@ -74,7 +74,6 @@ _KERNEL_TEST_PATHS = (
     Path("tests/telemetry"),
     Path("tests/test_access.py"),
     Path("tests/test_admission.py"),
-    Path("tests/test_characteristics.py"),
     Path("tests/test_departure.py"),
     Path("tests/test_production.py"),
     Path("tests/test_propagation.py"),
