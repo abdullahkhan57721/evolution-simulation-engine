@@ -8,12 +8,7 @@ import attrs
 
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.behavior import behavior_is_allowed
-from evo_engine.development.context import DevelopmentLocation
-from evo_engine.development.models import (
-    DeterministicDevelopment,
-    DevelopmentModel,
-    realize_developmental_profile,
-)
+from evo_engine.development.models import DeterministicDevelopment, DevelopmentModel
 from evo_engine.development.profile import DevelopmentalProfile
 from evo_engine.energetics.expenditure import (
     EnergyExpenditurePolicy,
@@ -37,7 +32,10 @@ from evo_engine.reproduction.investment import (
 from evo_engine.reproduction.mating_types import (
     FixedMatingType,
     OffspringMatingTypeModel,
-    determine_offspring_mating_type,
+)
+from evo_engine.reproduction.offspring_production import (
+    BiologicalOffspringProduction,
+    OffspringProductionContext,
 )
 from evo_engine.reproduction.parent_selection import ParentSelection
 from evo_engine.reproduction.placement import (
@@ -60,17 +58,6 @@ def _validate_reproduction_proposal(
         )
 
 
-def _validate_mating_type_label(
-    instance: object,
-    attribute: attrs.Attribute,
-    value: object,
-) -> None:
-    """Validate a materialized offspring mating-type label."""
-    validated = validators.validate_str(value, name=attribute.name)
-    if not validated.strip():
-        raise ValueError(f"{attribute.name} must not be empty or whitespace-only.")
-
-
 @attrs.frozen(slots=True, kw_only=True)
 class Reproduction:
     """Represent a one- or two-parent reproduction simulation process.
@@ -82,27 +69,27 @@ class Reproduction:
     and stage resolution chooses which competing proposals may occur.
 
     Resolved proposals are materialized before any stage event is applied.
-    Materialization performs inheritance, genetic phenotype expression,
-    offspring placement, location-aware developmental realization, mating-type
-    assignment, and newborn body-state determination. Application then only
-    pays the recorded energy investments and inserts the already-defined
-    offspring into the world.
+    Materialization first propagates transmissible genetic state through the
+    configured inheritance model, then delegates concrete offspring construction
+    to a biological entity-production model. Application only pays the recorded
+    energy investments and inserts the already-produced offspring into the world.
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
         parent_selection: Policy proposing one- or two-parent groups.
-        inheritance_model: Policy producing an offspring genome from resolved
-            parent genomes.
+        inheritance_model: Biological adapter that propagates an offspring genome
+            from resolved parent transmissible states.
         parental_investment: Policy determining each parent's energy cost.
         energy_expenditure_policy: Policy deciding whether each parent may pay
             its proposed energy contribution.
         development_model: Policy realizing individual developmental targets
-            from the offspring genetic phenotype.
-        offspring_placement: Policy choosing the offspring birth coordinate.
-        offspring_body_mass_model: Policy determining newborn current body
-            mass from the developmental profile and parents.
+            during offspring production.
+        offspring_placement: Policy choosing the offspring birth coordinate
+            during offspring production.
+        offspring_body_mass_model: Policy determining newborn current body mass
+            during offspring production.
         offspring_mating_type_model: Policy assigning immutable reproductive
-            mating type after a birth proposal is resolved.
+            mating type during offspring production.
     """
 
     behavioral_purpose: ClassVar[str] = REPRODUCTION_PURPOSE
@@ -128,9 +115,13 @@ class Reproduction:
     offspring_mating_type_model: OffspringMatingTypeModel = attrs.field(
         factory=lambda: FixedMatingType(mating_type="default"),
     )
+    _offspring_production_model: BiologicalOffspringProduction = attrs.field(
+        init=False,
+        repr=False,
+    )
 
     def __attrs_post_init__(self) -> None:
-        """Validate reproduction configuration."""
+        """Validate reproduction configuration and compose offspring production."""
         parent_selection_count = self._validate_parent_count(
             self.parent_selection,
             name="parent_selection",
@@ -147,21 +138,13 @@ class Reproduction:
             )
 
         required_methods = (
-            (
-                self.eligibility,
-                "is_eligible",
-                "eligibility",
-            ),
+            (self.eligibility, "is_eligible", "eligibility"),
             (
                 self.parent_selection,
                 "propose_parent_groups",
                 "parent_selection",
             ),
-            (
-                self.inheritance_model,
-                "inherit",
-                "inheritance_model",
-            ),
+            (self.inheritance_model, "propagate", "inheritance_model"),
             (
                 self.parental_investment,
                 "determine_investments",
@@ -172,39 +155,23 @@ class Reproduction:
                 "can_spend",
                 "energy_expenditure_policy",
             ),
-            (
-                self.development_model,
-                "develop",
-                "development_model",
-            ),
-            (
-                self.offspring_placement,
-                "choose_location",
-                "offspring_placement",
-            ),
-            (
-                self.offspring_body_mass_model,
-                "determine_body_mass",
-                "offspring_body_mass_model",
-            ),
-            (
-                self.offspring_mating_type_model,
-                "determine_mating_type",
-                "offspring_mating_type_model",
-            ),
         )
-
         for policy, method_name, policy_name in required_methods:
-            if not callable(
-                getattr(
-                    policy,
-                    method_name,
-                    None,
-                )
-            ):
+            if not callable(getattr(policy, method_name, None)):
                 raise TypeError(
                     f"{policy_name} must provide a callable {method_name} method."
                 )
+
+        object.__setattr__(
+            self,
+            "_offspring_production_model",
+            BiologicalOffspringProduction(
+                development_model=self.development_model,
+                offspring_placement=self.offspring_placement,
+                offspring_body_mass_model=self.offspring_body_mass_model,
+                offspring_mating_type_model=self.offspring_mating_type_model,
+            ),
+        )
 
     @property
     def required_traits(self) -> frozenset[str]:
@@ -215,10 +182,7 @@ class Reproduction:
             self.inheritance_model,
             self.parental_investment,
             self.energy_expenditure_policy,
-            self.development_model,
-            self.offspring_placement,
-            self.offspring_body_mass_model,
-            self.offspring_mating_type_model,
+            self._offspring_production_model,
         )
 
     @staticmethod
@@ -364,45 +328,28 @@ class Reproduction:
     class Event:
         """Represent a materialized Reproduction event.
 
+        The event owns the fully produced offspring entity. Compatibility
+        properties expose the previously public materialized-offspring fields.
+
         Attributes:
             proposal: Resolved proposal from which the event was materialized.
-            offspring_genome: Fully determined offspring genome.
-            offspring_genetic_phenotype: Genetic phenotype expressed from the
-                offspring genome.
-            offspring_developmental_profile: Individual developmental targets
-                realized from the offspring genetic phenotype at the selected
-                birth location.
-            initial_body_mass: Current physical mass assigned at birth.
-            offspring_mating_type: Immutable reproductive mating type assigned
-                to the offspring.
-            x: Final offspring horizontal birth coordinate.
-            y: Final offspring vertical birth coordinate.
+            offspring: Fully produced newborn, not yet inserted into the world.
         """
 
         proposal: Reproduction.Proposal = attrs.field(
             validator=_validate_reproduction_proposal,
         )
-        offspring_genome: Genome = attrs.field(
-            validator=attrs.validators.instance_of(Genome),
+        offspring: Organism = attrs.field(
+            validator=attrs.validators.instance_of(Organism),
         )
-        offspring_genetic_phenotype: GeneticPhenotype = attrs.field(
-            validator=attrs.validators.instance_of(GeneticPhenotype),
-        )
-        offspring_developmental_profile: DevelopmentalProfile = attrs.field(
-            validator=attrs.validators.instance_of(DevelopmentalProfile),
-        )
-        initial_body_mass: int = attrs.field(
-            validator=attrs_validators.validate_int_ge(1),
-        )
-        offspring_mating_type: str = attrs.field(
-            validator=_validate_mating_type_label,
-        )
-        x: int = attrs.field(
-            validator=attrs_validators.validate_int_ge(0),
-        )
-        y: int = attrs.field(
-            validator=attrs_validators.validate_int_ge(0),
-        )
+
+        def __attrs_post_init__(self) -> None:
+            """Validate consistency between committed and produced energy."""
+            if self.offspring.energy != self.proposal.initial_energy:
+                raise ValueError(
+                    "offspring energy must equal the proposal's committed "
+                    "parental energy investment."
+                )
 
         @property
         def step_index(self) -> int:
@@ -423,6 +370,41 @@ class Reproduction:
         def initial_energy(self) -> int:
             """Return total parental energy invested in the offspring."""
             return self.proposal.initial_energy
+
+        @property
+        def offspring_genome(self) -> Genome:
+            """Return the produced offspring genome."""
+            return self.offspring.genome
+
+        @property
+        def offspring_genetic_phenotype(self) -> GeneticPhenotype:
+            """Return the produced offspring genetic phenotype."""
+            return self.offspring.genetic_phenotype
+
+        @property
+        def offspring_developmental_profile(self) -> DevelopmentalProfile:
+            """Return the produced offspring developmental profile."""
+            return self.offspring.developmental_profile
+
+        @property
+        def initial_body_mass(self) -> int:
+            """Return the produced offspring initial body mass."""
+            return self.offspring.body_mass
+
+        @property
+        def offspring_mating_type(self) -> str:
+            """Return the produced offspring mating type."""
+            return self.offspring.mating_type
+
+        @property
+        def x(self) -> int:
+            """Return the produced offspring horizontal coordinate."""
+            return self.offspring.x
+
+        @property
+        def y(self) -> int:
+            """Return the produced offspring vertical coordinate."""
+            return self.offspring.y
 
     @property
     def event_type(self) -> type[Reproduction.Proposal]:
@@ -584,18 +566,17 @@ class Reproduction:
     ) -> Reproduction.Event:
         """Materialize a resolved Reproduction proposal.
 
-        Inheritance, mutation, recombination, genetic phenotype expression,
-        offspring placement, location-aware developmental realization,
-        mating-type assignment, and newborn body-state determination happen
-        here, after resolution but before any event in the stage is applied.
+        State propagation and entity production are intentionally distinct.
+        Inheritance first propagates a genome from parental transmissible state.
+        Biological offspring production then turns that finalized genome into a
+        complete newborn organism.
 
         Args:
             simulation_state: Current pre-application simulation state.
             resolved_event: Resolved Reproduction proposal to materialize.
 
         Returns:
-            Fully determined Reproduction event ready for mechanical
-            application.
+            Fully determined Reproduction event ready for mechanical application.
 
         Raises:
             RuntimeError: If a resolved parent can no longer pay its recorded
@@ -604,7 +585,6 @@ class Reproduction:
                 configured inheritance model.
         """
         world = simulation_state.world
-
         parents = tuple(
             world.organisms[parent_id] for parent_id in resolved_event.parent_ids
         )
@@ -634,59 +614,25 @@ class Reproduction:
         # All stochastic offspring state is deferred until after resolution so
         # rejected mating candidates do not consume RNG or generate throwaway
         # individual state.
-        offspring_genome = self.inheritance_model.inherit(
-            tuple(parent.genome for parent in parents),
-            genetic_architecture=architecture,
+        offspring_genome = self.inheritance_model.propagate(
+            tuple(parent.transmissible_state for parent in parents),
+            recipient=None,
+            context=architecture,
             rng=simulation_state.rng,
         )
-
-        offspring_genetic_phenotype = architecture.express(offspring_genome)
-
-        # Placement precedes development because local environmental development
-        # must sample the location where this offspring will actually be born.
-        x, y = self.offspring_placement.choose_location(
-            parents,
-            simulation_state=simulation_state,
-            rng=simulation_state.rng,
-        )
-        offspring_developmental_profile = realize_developmental_profile(
-            self.development_model,
-            offspring_genetic_phenotype,
-            rng=simulation_state.rng,
-            simulation_state=simulation_state,
-            location=DevelopmentLocation(x=x, y=y),
-        )
-
-        initial_body_mass = self.offspring_body_mass_model.determine_body_mass(
-            offspring_developmental_profile,
-            parents,
-            simulation_state=simulation_state,
-        )
-        validators.validate_int_ge(
-            initial_body_mass,
-            bound=1,
-            name="offspring initial body mass",
-        )
-
-        offspring_mating_type = determine_offspring_mating_type(
-            self.offspring_mating_type_model,
-            parents,
-            offspring_genome=offspring_genome,
-            offspring_genetic_phenotype=offspring_genetic_phenotype,
-            offspring_developmental_profile=offspring_developmental_profile,
-            simulation_state=simulation_state,
+        offspring = self._offspring_production_model.produce(
+            offspring_genome,
+            source_entities=parents,
+            context=OffspringProductionContext(
+                simulation_state=simulation_state,
+                initial_energy=resolved_event.initial_energy,
+            ),
             rng=simulation_state.rng,
         )
 
         return self.Event(
             proposal=resolved_event,
-            offspring_genome=offspring_genome,
-            offspring_genetic_phenotype=offspring_genetic_phenotype,
-            offspring_developmental_profile=offspring_developmental_profile,
-            initial_body_mass=initial_body_mass,
-            offspring_mating_type=offspring_mating_type,
-            x=x,
-            y=y,
+            offspring=offspring,
         )
 
     def apply_event(
@@ -727,16 +673,4 @@ class Reproduction:
         for parent_id, amount in materialized_event.parent_energy_contributions:
             world.organisms[parent_id].energy -= amount
 
-        offspring = Organism(
-            age=0,
-            energy=materialized_event.initial_energy,
-            body_mass=materialized_event.initial_body_mass,
-            genome=materialized_event.offspring_genome,
-            genetic_phenotype=materialized_event.offspring_genetic_phenotype,
-            developmental_profile=materialized_event.offspring_developmental_profile,
-            mating_type=materialized_event.offspring_mating_type,
-            x=materialized_event.x,
-            y=materialized_event.y,
-        )
-
-        world.add_organism(offspring)
+        world.add_organism(materialized_event.offspring)
