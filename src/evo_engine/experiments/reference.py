@@ -9,6 +9,7 @@ from importlib import metadata
 
 import attrs
 
+from evo_engine.genetics import GENETIC_ARCHITECTURE
 from evo_engine.observation import (
     GeneticCompositionObservation,
     IndividualLifeHistory,
@@ -22,17 +23,7 @@ _PACKAGE_NAME = "evolution-simulation-engine"
 
 @attrs.frozen(slots=True, kw_only=True)
 class RunMetadata:
-    """Record information required to identify and reproduce one replicate.
-
-    Attributes:
-        seed: Random seed used for the replicate.
-        engine_version: Installed Evolution Simulation Engine package version.
-        python_version: Python interpreter version used for the run.
-        config_json: Canonical JSON representation of the complete run config.
-        trait_names: Ordered genetic-phenotype trait names.
-        locus_names: Ordered inherited locus names.
-        completed_steps: Number of committed simulation steps.
-    """
+    """Record information required to identify and reproduce one replicate."""
 
     seed: int
     engine_version: str
@@ -50,27 +41,12 @@ class RunMetadata:
         _validate_nonempty_string(self.config_json, name="config_json")
         validators.validate_tuple(self.trait_names, name="trait_names")
         validators.validate_tuple(self.locus_names, name="locus_names")
-        validators.validate_int_ge(
-            self.completed_steps,
-            bound=0,
-            name="completed_steps",
-        )
+        validators.validate_int_ge(self.completed_steps, bound=0, name="completed_steps")
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class ReferenceReplicateResult:
-    """Immutable measurements from one reference-ecology replicate.
-
-    Attributes:
-        metadata: Reproducibility metadata for the replicate.
-        final_population_size: Active population at run completion.
-        final_carcass_count: Carcass count at run completion.
-        final_total_resources: Environmental resource units at run completion.
-        population_history: Committed population-state observations.
-        genetic_history: Committed raw allele/genotype observations.
-        life_histories: Individual pedigree and lifetime-fitness records.
-        event_counts: Applied event counts keyed by unqualified process name.
-    """
+    """Immutable measurements from one reference-ecology replicate."""
 
     metadata: RunMetadata
     final_population_size: int
@@ -82,22 +58,9 @@ class ReferenceReplicateResult:
     event_counts: tuple[tuple[str, int], ...]
 
     def __attrs_post_init__(self) -> None:
-        """Validate replicate summary invariants."""
-        validators.validate_int_ge(
-            self.final_population_size,
-            bound=0,
-            name="final_population_size",
-        )
-        validators.validate_int_ge(
-            self.final_carcass_count,
-            bound=0,
-            name="final_carcass_count",
-        )
-        validators.validate_int_ge(
-            self.final_total_resources,
-            bound=0,
-            name="final_total_resources",
-        )
+        validators.validate_int_ge(self.final_population_size, bound=0, name="final_population_size")
+        validators.validate_int_ge(self.final_carcass_count, bound=0, name="final_carcass_count")
+        validators.validate_int_ge(self.final_total_resources, bound=0, name="final_total_resources")
         validators.validate_tuple(self.population_history, name="population_history")
         validators.validate_tuple(self.genetic_history, name="genetic_history")
         validators.validate_tuple(self.life_histories, name="life_histories")
@@ -105,28 +68,17 @@ class ReferenceReplicateResult:
 
     @property
     def seed(self) -> int:
-        """Return the replicate random seed."""
         return self.metadata.seed
 
     @property
     def total_births(self) -> int:
-        """Return the number of observed nonfounder organisms."""
         return sum(not history.is_founder for history in self.life_histories)
 
     @property
     def total_deaths(self) -> int:
-        """Return the number of recorded biological deaths."""
         return sum(not history.is_alive for history in self.life_histories)
 
     def event_count(self, process_name: str) -> int:
-        """Return committed event count for one process.
-
-        Args:
-            process_name: Unqualified process class name.
-
-        Returns:
-            Applied event count, or zero when no events were recorded.
-        """
         validated_name = _validate_nonempty_string(process_name, name="process_name")
         for name, count in self.event_counts:
             if name == validated_name:
@@ -136,16 +88,11 @@ class ReferenceReplicateResult:
 
 @attrs.frozen(slots=True, kw_only=True)
 class ReferenceExperimentResult:
-    """Immutable collection of independent reference-ecology replicates.
-
-    Attributes:
-        replicates: Replicate results in requested seed order.
-    """
+    """Immutable collection of independent reference-ecology replicates."""
 
     replicates: tuple[ReferenceReplicateResult, ...]
 
     def __attrs_post_init__(self) -> None:
-        """Validate replicate collection."""
         validators.validate_tuple(self.replicates, name="replicates")
         if not self.replicates:
             raise ValueError("replicates must not be empty.")
@@ -155,21 +102,9 @@ class ReferenceExperimentResult:
 
     @property
     def seeds(self) -> tuple[int, ...]:
-        """Return replicate seeds in run order."""
         return tuple(replicate.seed for replicate in self.replicates)
 
     def replicate(self, seed: int) -> ReferenceReplicateResult:
-        """Return the replicate for a seed.
-
-        Args:
-            seed: Replicate seed to retrieve.
-
-        Returns:
-            Matching replicate result.
-
-        Raises:
-            KeyError: If no replicate used the requested seed.
-        """
         validated_seed = validators.validate_int(seed, name="seed")
         for replicate in self.replicates:
             if replicate.seed == validated_seed:
@@ -182,55 +117,30 @@ def run_reference_replicates(
     *,
     seeds: tuple[int, ...],
 ) -> ReferenceExperimentResult:
-    """Run independent reference-ecology replicates for requested seeds.
-
-    Each replicate receives a fresh simulation, engine, RNG, and recorder set.
-    The supplied configuration is immutable and is copied with only ``seed``
-    changed for each run.
-
-    Args:
-        config: Baseline reference configuration. Defaults to reference values.
-        seeds: Unique random seeds in desired run order.
-
-    Returns:
-        Immutable experiment result containing all replicate measurements.
-
-    Raises:
-        ValueError: If seeds is empty or contains duplicates.
-    """
     resolved_config = config if config is not None else ReferenceEcologyConfig()
     _validate_seeds(seeds)
     return ReferenceExperimentResult(
         replicates=tuple(
-            _run_reference_replicate(
-                attrs.evolve(resolved_config, seed=seed),
-            )
+            _run_reference_replicate(attrs.evolve(resolved_config, seed=seed))
             for seed in seeds
         )
     )
 
 
-def _run_reference_replicate(
-    config: ReferenceEcologyConfig,
-) -> ReferenceReplicateResult:
+def _run_reference_replicate(config: ReferenceEcologyConfig) -> ReferenceReplicateResult:
     ecology = build_reference_ecology(config)
     ecology.engine.run(ecology.simulation)
     world = ecology.simulation.state.world
-    event_counts = Counter(
-        event.process_name for event in ecology.event_recorder.events
-    )
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
+    event_counts = Counter(event.process_name for event in ecology.event_recorder.events)
     return ReferenceReplicateResult(
         metadata=RunMetadata(
             seed=config.seed,
             engine_version=_engine_version(),
             python_version=platform.python_version(),
             config_json=_canonical_config_json(config),
-            trait_names=tuple(
-                sorted(ecology.simulation.genetic_architecture.trait_names)
-            ),
-            locus_names=tuple(
-                locus.name for locus in ecology.simulation.genetic_architecture.loci
-            ),
+            trait_names=tuple(sorted(architecture.trait_names)),
+            locus_names=tuple(locus.name for locus in architecture.loci),
             completed_steps=ecology.simulation.state.step_index,
         ),
         final_population_size=len(world.organisms),
@@ -244,11 +154,7 @@ def _run_reference_replicate(
 
 
 def _canonical_config_json(config: ReferenceEcologyConfig) -> str:
-    return json.dumps(
-        attrs.asdict(config),
-        sort_keys=True,
-        separators=(",", ":"),
-    )
+    return json.dumps(attrs.asdict(config), sort_keys=True, separators=(",", ":"))
 
 
 def _engine_version() -> str:
