@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from evo_engine.behavior import UnrestrictedBehavior
 from evo_engine.energetics import FixedMetabolicCost, LinearGrowthCost
 from evo_engine.engine import SequentialStepCoordinator, Simulation, StageCoordinator
 from evo_engine.genetics import ClonalInheritance
@@ -43,6 +44,7 @@ def test_resource_competition_resolves_before_application() -> None:
     simulation = Simulation(
         initial_world_state=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
     first = add_organism(
         simulation.state,
@@ -92,6 +94,7 @@ def test_metabolism_then_starvation_across_sequential_stages() -> None:
     simulation = Simulation(
         initial_world_state=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
 
     coordinator = SequentialStepCoordinator(
@@ -137,6 +140,7 @@ def test_reproduction_materializes_only_resolved_births() -> None:
     simulation = Simulation(
         initial_world_state=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
         seed=2,
     )
     process = Reproduction(
@@ -178,6 +182,7 @@ def test_growth_then_starvation_uses_grown_body_mass_for_carcass() -> None:
     simulation = Simulation(
         initial_world_state=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
     coordinator = SequentialStepCoordinator(
         stages=(
@@ -225,6 +230,7 @@ def test_same_stage_growth_energy_oversubscription_rolls_back_step() -> None:
     simulation = Simulation(
         initial_world_state=world,
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
     coordinator = SequentialStepCoordinator(
         stages=(
