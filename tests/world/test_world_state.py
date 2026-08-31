@@ -6,8 +6,12 @@ import math
 
 import pytest
 
-from evo_engine.telemetry import EnvironmentalValueChanged
-from evo_engine.world import Carcass, EnvironmentalField, WorldState
+from evo_engine.world import (
+    Carcass,
+    EnvironmentalField,
+    EnvironmentalValueChanged,
+    WorldState,
+)
 from tests.helpers import make_organism
 
 
