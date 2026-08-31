@@ -1,6 +1,5 @@
 """Domain-neutral simulation orchestration and transactional run state."""
 
-from evo_engine.engine.lifecycle import build_standard_lifecycle
 from evo_engine.engine.protocols import (
     EventMaterializer,
     Observer,
@@ -39,5 +38,4 @@ __all__ = [
     "StageCoordinator",
     "StepCoordinator",
     "StoppingCondition",
-    "build_standard_lifecycle",
 ]
