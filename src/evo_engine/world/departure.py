@@ -71,6 +71,4 @@ def _satisfies_carcass_contract(
 _WORLD_ORGANISM_DEPARTURE_CONTRACT = _satisfies_organism_contract(
     WorldOrganismDeparture()
 )
-_WORLD_CARCASS_DEPARTURE_CONTRACT = _satisfies_carcass_contract(
-    WorldCarcassDeparture()
-)
+_WORLD_CARCASS_DEPARTURE_CONTRACT = _satisfies_carcass_contract(WorldCarcassDeparture())
