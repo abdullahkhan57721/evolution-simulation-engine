@@ -13,6 +13,7 @@ from evo_engine.development.models import (
     realize_developmental_profile,
 )
 from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.genetics import GENETIC_ARCHITECTURE
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.production import EntityProductionModel
@@ -49,21 +50,12 @@ class OffspringProductionContext:
 class BiologicalOffspringProduction(
     EntityProductionModel[Genome, Organism, OffspringProductionContext, Organism]
 ):
-    """Produce a newborn organism from an already-propagated genome.
+    """Produce a newborn organism from an already-propagated genome."""
 
-    Genetic propagation is deliberately outside this model. Production starts
-    with a finalized offspring genome and is responsible only for expressing
-    that genome and constructing the concrete biological entity.
-    """
-
-    development_model: DevelopmentModel = attrs.field(
-        factory=DeterministicDevelopment,
-    )
-    offspring_placement: OffspringPlacement = attrs.field(
-        factory=RandomParentLocation,
-    )
+    development_model: DevelopmentModel = attrs.field(factory=DeterministicDevelopment)
+    offspring_placement: OffspringPlacement = attrs.field(factory=RandomParentLocation)
     offspring_body_mass_model: OffspringBodyMassModel = attrs.field(
-        factory=AdultBodyMassAtBirth,
+        factory=AdultBodyMassAtBirth
     )
     offspring_mating_type_model: OffspringMatingTypeModel = attrs.field(
         factory=lambda: FixedMatingType(mating_type="default"),
@@ -124,7 +116,7 @@ class BiologicalOffspringProduction(
                 )
 
         simulation_state = context.simulation_state
-        architecture = simulation_state.genetic_architecture
+        architecture = simulation_state.context.require(GENETIC_ARCHITECTURE)
         architecture.validate_genome(state)
         genetic_phenotype = architecture.express(state)
 
@@ -140,7 +132,6 @@ class BiologicalOffspringProduction(
             simulation_state=simulation_state,
             location=DevelopmentLocation(x=x, y=y),
         )
-
         body_mass = self.offspring_body_mass_model.determine_body_mass(
             developmental_profile,
             source_entities,
@@ -151,7 +142,6 @@ class BiologicalOffspringProduction(
             bound=1,
             name="offspring initial body mass",
         )
-
         mating_type = determine_offspring_mating_type(
             self.offspring_mating_type_model,
             source_entities,
@@ -161,7 +151,6 @@ class BiologicalOffspringProduction(
             simulation_state=simulation_state,
             rng=rng,
         )
-
         return Organism(
             age=0,
             energy=context.initial_energy,
