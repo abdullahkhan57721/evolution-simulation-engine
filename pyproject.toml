@@ -66,6 +66,7 @@ name = "Validation is a dependency foundation"
 type = "forbidden"
 source_modules = ["evo_engine.validation"]
 forbidden_modules = [
+    "evo_engine.access",
     "evo_engine.admission",
     "evo_engine.behavior",
     "evo_engine.biology",
@@ -91,11 +92,45 @@ forbidden_modules = [
 ]
 
 [[tool.importlinter.contracts]]
+id = "access-foundation"
+name = "Entity access is a domain-neutral foundation"
+type = "forbidden"
+source_modules = ["evo_engine.access"]
+forbidden_modules = [
+    "evo_engine.admission",
+    "evo_engine.behavior",
+    "evo_engine.biology",
+    "evo_engine.characteristics",
+    "evo_engine.configuration",
+    "evo_engine.departure",
+    "evo_engine.development",
+    "evo_engine.energetics",
+    "evo_engine.engine",
+    "evo_engine.evolution",
+    "evo_engine.experiments",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.production",
+    "evo_engine.propagation",
+    "evo_engine.reproduction",
+    "evo_engine.resolvers",
+    "evo_engine.spatial",
+    "evo_engine.world",
+]
+
+[[tool.importlinter.contracts]]
 id = "admission-foundation"
 name = "Entity admission is a domain-neutral foundation"
 type = "forbidden"
 source_modules = ["evo_engine.admission"]
 forbidden_modules = [
+    "evo_engine.access",
     "evo_engine.behavior",
     "evo_engine.biology",
     "evo_engine.characteristics",
@@ -128,6 +163,7 @@ name = "Entity departure is a domain-neutral foundation"
 type = "forbidden"
 source_modules = ["evo_engine.departure"]
 forbidden_modules = [
+    "evo_engine.access",
     "evo_engine.admission",
     "evo_engine.behavior",
     "evo_engine.biology",
@@ -160,6 +196,7 @@ name = "State propagation is a domain-neutral foundation"
 type = "forbidden"
 source_modules = ["evo_engine.propagation"]
 forbidden_modules = [
+    "evo_engine.access",
     "evo_engine.admission",
     "evo_engine.behavior",
     "evo_engine.biology",
@@ -192,6 +229,7 @@ name = "Entity production is a domain-neutral foundation"
 type = "forbidden"
 source_modules = ["evo_engine.production"]
 forbidden_modules = [
+    "evo_engine.access",
     "evo_engine.admission",
     "evo_engine.behavior",
     "evo_engine.biology",
@@ -345,6 +383,7 @@ id = "experiments-are-top-level-consumers"
 name = "Production simulation packages do not depend on experiment runners"
 type = "forbidden"
 source_modules = [
+    "evo_engine.access",
     "evo_engine.admission",
     "evo_engine.behavior",
     "evo_engine.biology",
@@ -402,6 +441,7 @@ id = "generic-foundations-do-not-use-biological-characteristics"
 name = "Generic foundations do not depend on biological characteristic adapters"
 type = "forbidden"
 source_modules = [
+    "evo_engine.access",
     "evo_engine.admission",
     "evo_engine.departure",
     "evo_engine.evolution",
