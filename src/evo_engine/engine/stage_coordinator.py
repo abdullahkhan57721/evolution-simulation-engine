@@ -49,6 +49,8 @@ class StageCoordinator:
     def coordinate(
         self,
         simulation_state: SimulationState,
+        *,
+        stage_index: int = 0,
     ) -> tuple[AppliedEvent, ...]:
         """Coordinate one stage and return telemetry for applied transitions.
 
@@ -65,13 +67,21 @@ class StageCoordinator:
 
         Args:
             simulation_state: Working transactional state.
+            stage_index: Zero-based index of this stage in the enclosing step.
 
         Returns:
             Applied event telemetry in resolver application order.
 
         Raises:
             RuntimeError: If a resolved event has no registered process.
+            TypeError: If stage_index is not an integer.
+            ValueError: If stage_index is negative.
         """
+        if type(stage_index) is not int:
+            raise TypeError("stage_index must be an integer.")
+        if stage_index < 0:
+            raise ValueError("stage_index must be nonnegative.")
+
         proposed_events: list[SimulationEvent] = []
 
         for process in self.processes:
@@ -101,7 +111,7 @@ class StageCoordinator:
             materialized_events.append((process, materialized_event))
 
         applied_events: list[AppliedEvent] = []
-        domain_state = simulation_state.world
+        domain_state = simulation_state.domain_state
 
         for process, materialized_event in materialized_events:
             checkpoint = _mutation_checkpoint(domain_state)
@@ -109,7 +119,7 @@ class StageCoordinator:
             applied_events.append(
                 AppliedEvent(
                     event_step_index=materialized_event.step_index,
-                    stage_index=0,
+                    stage_index=stage_index,
                     process_type=_qualified_type_name(process),
                     event_type=_qualified_type_name(materialized_event),
                     event=materialized_event,
