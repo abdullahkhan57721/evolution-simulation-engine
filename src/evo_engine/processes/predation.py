@@ -16,12 +16,14 @@ from evo_engine.genetics.requirements import (
     validate_required_traits,
 )
 from evo_engine.predation import LargerPredatorEligibility, NeutralPredationPreference
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import attrs_validators
 from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
 from evo_engine.world.world_state import WorldState
 
 CanPredate = Callable[
@@ -44,9 +46,10 @@ class Predation:
     declared callback dependencies, preserving support for ordinary functions
     and lambdas while enabling structured trait-aware policies.
 
-    Predation retains the biological meaning of killing prey. Read access and
-    structural removal are delegated independently so the process does not own
-    world storage mechanics and generic departure remains independent of death.
+    Predation retains the biological meaning of killing prey. Read access,
+    reference derivation, and structural removal are delegated independently so
+    the process does not own world storage or identity mechanics and generic
+    departure remains independent of death.
 
     Attributes:
         neighborhood: Spatial neighborhood within which predation is possible.
@@ -59,6 +62,7 @@ class Predation:
             custom callbacks. Trait-aware policy objects contribute their own
             requirements automatically.
         access_model: Policy providing read-only access to active organisms.
+        reference_model: Policy deriving world references for active organisms.
         departure_model: Policy removing killed prey from active world state
             during mechanical application.
     """
@@ -86,6 +90,9 @@ class Predation:
     access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismAccess,
     )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
+    )
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
     )
@@ -95,6 +102,7 @@ class Predation:
         for policy, method_name, policy_name in (
             (self.access_model, "get", "access_model"),
             (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
             (self.departure_model, "depart", "departure_model"),
         ):
             if not callable(getattr(policy, method_name, None)):
@@ -191,7 +199,17 @@ class Predation:
         simulation_state: SimulationState,
     ) -> Predation.Event | None:
         """Return one feasible predator-prey event or None."""
-        if predator.id == prey.id:
+        world = simulation_state.world
+        predator_id = self.reference_model.reference(
+            predator,
+            state=world,
+        )
+        prey_id = self.reference_model.reference(
+            prey,
+            state=world,
+        )
+
+        if predator_id == prey_id:
             return None
 
         if not self._within_neighborhood(
@@ -218,8 +236,8 @@ class Predation:
 
         return self.Event(
             step_index=simulation_state.step_index,
-            predator_id=predator.id,
-            prey_id=prey.id,
+            predator_id=predator_id,
+            prey_id=prey_id,
             x=prey.x,
             y=prey.y,
             predator_energy_gain=predator_energy_gain,
