@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from typing import Protocol, runtime_checkable
 
 import attrs
@@ -59,12 +59,18 @@ class DependencyRequirementProvider(Protocol):
         ...
 
 
+def iter_configuration_components(*components: object) -> Iterator[object]:
+    """Yield each nonterminal object in a configured component graph once."""
+    seen: set[int] = set()
+    for component in components:
+        yield from _iter_object_graph(component, seen=seen)
+
+
 def collect_component_dependencies(*components: object) -> frozenset[Dependency]:
     """Recursively collect generic dependency declarations from an object graph."""
     dependencies: set[Dependency] = set()
-    seen: set[int] = set()
-    for component in components:
-        _collect_from_object(component, dependencies=dependencies, seen=seen)
+    for component in iter_configuration_components(*components):
+        _collect_declared_dependencies(component, dependencies=dependencies)
     return frozenset(dependencies)
 
 
@@ -81,12 +87,29 @@ def dependency_report(
     )
 
 
-def _collect_from_object(
+def _collect_declared_dependencies(
     value: object,
     *,
     dependencies: set[Dependency],
-    seen: set[int],
 ) -> None:
+    if not isinstance(value, DependencyRequirementProvider):
+        return
+    declared = value.required_dependencies
+    if type(declared) is not frozenset:
+        raise TypeError(
+            f"{type(value).__name__}.required_dependencies must be a frozenset."
+        )
+    for dependency in declared:
+        if not isinstance(dependency, Dependency):
+            raise TypeError("required_dependencies entries must be Dependency objects.")
+    dependencies.update(declared)
+
+
+def _iter_object_graph(
+    value: object,
+    *,
+    seen: set[int],
+) -> Iterator[object]:
     if _is_terminal(value):
         return
     identity = id(value)
@@ -94,44 +117,24 @@ def _collect_from_object(
         return
     seen.add(identity)
 
-    if isinstance(value, DependencyRequirementProvider):
-        declared = value.required_dependencies
-        if type(declared) is not frozenset:
-            raise TypeError(
-                f"{type(value).__name__}.required_dependencies must be a frozenset."
-            )
-        for dependency in declared:
-            if not isinstance(dependency, Dependency):
-                raise TypeError(
-                    "required_dependencies entries must be Dependency objects."
-                )
-        dependencies.update(declared)
+    yield value
+    for child in _child_values(value):
+        yield from _iter_object_graph(child, seen=seen)
 
+
+def _child_values(value: object) -> tuple[object, ...]:
     if attrs.has(type(value)):
-        for attribute in attrs.fields(type(value)):
-            _collect_from_object(
-                getattr(value, attribute.name),
-                dependencies=dependencies,
-                seen=seen,
-            )
-        return
-
+        return tuple(
+            getattr(value, attribute.name) for attribute in attrs.fields(type(value))
+        )
     if isinstance(value, Mapping):
-        for item in value.values():
-            _collect_from_object(item, dependencies=dependencies, seen=seen)
-        return
-
+        return tuple(value.values())
     if isinstance(value, (tuple, list, set, frozenset)):
-        for item in value:
-            _collect_from_object(item, dependencies=dependencies, seen=seen)
-        return
-
+        return tuple(value)
     try:
-        attributes = vars(value)
+        return tuple(vars(value).values())
     except TypeError:
-        return
-    for item in attributes.values():
-        _collect_from_object(item, dependencies=dependencies, seen=seen)
+        return ()
 
 
 def _is_terminal(value: object) -> bool:
