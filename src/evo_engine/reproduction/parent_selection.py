@@ -13,9 +13,11 @@ from evo_engine.genetics.requirements import (
     collect_required_traits,
     validate_required_traits,
 )
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
+from evo_engine.world.world_state import WorldState
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -71,12 +73,15 @@ class ParentSelection(Protocol):
         eligible_parents: Sequence[Organism],
         *,
         simulation_state: SimulationState,
+        reference_model: EntityReferenceModel[Organism, WorldState, int],
     ) -> Sequence[ParentGroup]:
         """Propose candidate parent groups.
 
         Args:
             eligible_parents: Organisms individually eligible to reproduce.
             simulation_state: Current simulation state.
+            reference_model: Policy deriving state-local organism references for
+                resolver-facing parent groups.
 
         Returns:
             Candidate one- or two-parent groups.
@@ -98,19 +103,27 @@ class SingleParent:
         eligible_parents: Sequence[Organism],
         *,
         simulation_state: SimulationState,
+        reference_model: EntityReferenceModel[Organism, WorldState, int],
     ) -> list[ParentGroup]:
         """Propose one reproductive group per eligible organism.
 
         Args:
             eligible_parents: Organisms individually eligible to reproduce.
             simulation_state: Current simulation state.
+            reference_model: Policy deriving state-local organism references.
 
         Returns:
             Candidate one-parent groups.
         """
+        world = simulation_state.world
         return [
             ParentGroup(
-                parent_ids=(parent.id,),
+                parent_ids=(
+                    reference_model.reference(
+                        parent,
+                        state=world,
+                    ),
+                ),
             )
             for parent in eligible_parents
         ]
@@ -208,12 +221,14 @@ class PairwiseMating:
         eligible_parents: Sequence[Organism],
         *,
         simulation_state: SimulationState,
+        reference_model: EntityReferenceModel[Organism, WorldState, int],
     ) -> list[ParentGroup]:
         """Propose every spatially and biologically valid parent pair.
 
         Args:
             eligible_parents: Organisms individually eligible to reproduce.
             simulation_state: Current simulation state.
+            reference_model: Policy deriving state-local organism references.
 
         Returns:
             Candidate two-parent groups.
@@ -266,8 +281,14 @@ class PairwiseMating:
             events.append(
                 ParentGroup(
                     parent_ids=(
-                        first_parent.id,
-                        second_parent.id,
+                        reference_model.reference(
+                            first_parent,
+                            state=world,
+                        ),
+                        reference_model.reference(
+                            second_parent,
+                            state=world,
+                        ),
                     ),
                     preference_score=preference_score,
                 )

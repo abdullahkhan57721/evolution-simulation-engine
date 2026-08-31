@@ -17,6 +17,7 @@ from evo_engine.reproduction import (
     SingleParent,
 )
 from evo_engine.spatial.neighborhoods import SameCell
+from evo_engine.world import WorldOrganismReference
 from tests.helpers import (
     add_organism,
     make_integer_architecture,
@@ -96,6 +97,7 @@ def test_single_parent_proposes_one_group_per_parent() -> None:
             second,
         ),
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert [group.parent_ids for group in groups] == [
@@ -121,6 +123,7 @@ def test_pairwise_mating_proposes_each_unique_pair_once() -> None:
     ).propose_parent_groups(
         parents,
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert [group.parent_ids for group in groups] == [
@@ -152,6 +155,7 @@ def test_pairwise_mating_filters_by_neighborhood() -> None:
             second,
         ),
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert groups == []
@@ -171,6 +175,7 @@ def test_pairwise_mating_filters_by_biological_compatibility() -> None:
     ).propose_parent_groups(
         parents,
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert groups == []
@@ -190,6 +195,7 @@ def test_pairwise_mating_records_preference_score() -> None:
     ).propose_parent_groups(
         parents,
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert groups[0].preference_score == 7
@@ -228,6 +234,7 @@ def test_pairwise_mating_requires_exact_callback_return_types(
         policy.propose_parent_groups(
             parents,
             simulation_state=state,
+            reference_model=WorldOrganismReference(),
         )
 
 

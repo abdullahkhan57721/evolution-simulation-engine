@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.admission import EntityAdmissionModel
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.behavior import behavior_is_allowed
@@ -21,6 +22,7 @@ from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.inheritance import InheritanceModel
 from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.reproduction.birth_mass import (
     AdultBodyMassAtBirth,
     OffspringBodyMassModel,
@@ -44,8 +46,10 @@ from evo_engine.reproduction.placement import (
     RandomParentLocation,
 )
 from evo_engine.validation import attrs_validators, validators
+from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.admission import WorldOrganismAdmission
 from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
 from evo_engine.world.world_state import WorldState
 
 
@@ -78,6 +82,11 @@ class Reproduction:
     energy investments and delegates entry of the already-produced offspring to
     a separate entity-admission model.
 
+    Parent enumeration, resolver-facing reference derivation, and later parent
+    resolution are delegated to generic entity lifecycle policies. Biological
+    eligibility, mating, inheritance, investment, and offspring construction
+    remain reproduction-domain responsibilities.
+
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
         parent_selection: Policy proposing one- or two-parent groups.
@@ -94,6 +103,9 @@ class Reproduction:
             during offspring production.
         offspring_mating_type_model: Policy assigning immutable reproductive
             mating type during offspring production.
+        access_model: Policy enumerating and resolving active parent organisms.
+        reference_model: Policy deriving state-local parent references used by
+            parent groups and reproduction proposals.
         offspring_admission_model: Policy admitting the fully produced offspring
             into biological world state during mechanical application.
     """
@@ -120,6 +132,12 @@ class Reproduction:
     )
     offspring_mating_type_model: OffspringMatingTypeModel = attrs.field(
         factory=lambda: FixedMatingType(mating_type="default"),
+    )
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
     )
     offspring_admission_model: EntityAdmissionModel[Organism, WorldState] = attrs.field(
         factory=WorldOrganismAdmission,
@@ -164,6 +182,9 @@ class Reproduction:
                 "can_spend",
                 "energy_expenditure_policy",
             ),
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
             (
                 self.offspring_admission_model,
                 "admit",
@@ -439,12 +460,20 @@ class Reproduction:
             Candidate Reproduction proposals permitted by the configured
             expenditure policy.
         """
+        world = simulation_state.world
         eligible_parents = self._eligible_parents(simulation_state)
         parent_groups = self.parent_selection.propose_parent_groups(
             eligible_parents,
             simulation_state=simulation_state,
+            reference_model=self.reference_model,
         )
-        parents_by_id = {parent.id: parent for parent in eligible_parents}
+        parents_by_id = {
+            self.reference_model.reference(
+                parent,
+                state=world,
+            ): parent
+            for parent in eligible_parents
+        }
 
         proposals: list[Reproduction.Proposal] = []
 
@@ -466,8 +495,9 @@ class Reproduction:
     ) -> list[Organism]:
         """Return behaviorally selected, individually eligible parents."""
         eligible_parents: list[Organism] = []
+        world = simulation_state.world
 
-        for organism in simulation_state.world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             if not behavior_is_allowed(
                 organism,
                 behavioral_purpose=self.behavioral_purpose,
@@ -519,9 +549,9 @@ class Reproduction:
         return self.Proposal(
             step_index=simulation_state.step_index,
             parent_energy_contributions=tuple(
-                (parent.id, investment)
-                for parent, investment in zip(
-                    parents,
+                (parent_id, investment)
+                for parent_id, investment in zip(
+                    parent_ids,
                     investments,
                     strict=True,
                 )
@@ -601,7 +631,11 @@ class Reproduction:
         """
         world = simulation_state.world
         parents = tuple(
-            world.organisms[parent_id] for parent_id in resolved_event.parent_ids
+            self.access_model.get(
+                parent_id,
+                state=world,
+            )
+            for parent_id in resolved_event.parent_ids
         )
 
         if len(parents) != self.inheritance_model.parent_count:
@@ -611,7 +645,10 @@ class Reproduction:
             )
 
         for parent_id, amount in resolved_event.parent_energy_contributions:
-            parent = world.organisms[parent_id]
+            parent = self.access_model.get(
+                parent_id,
+                state=world,
+            )
             if not energy_expenditure_is_allowed(
                 self.energy_expenditure_policy,
                 parent,
@@ -670,9 +707,13 @@ class Reproduction:
                 contribution under the configured expenditure policy.
         """
         world = simulation_state.world
+        resolved_parents: list[tuple[Organism, int]] = []
 
         for parent_id, amount in materialized_event.parent_energy_contributions:
-            parent = world.organisms[parent_id]
+            parent = self.access_model.get(
+                parent_id,
+                state=world,
+            )
 
             if not energy_expenditure_is_allowed(
                 self.energy_expenditure_policy,
@@ -686,11 +727,13 @@ class Reproduction:
                     "policy."
                 )
 
+            resolved_parents.append((parent, amount))
+
         # Validate every contribution before charging any parent. This keeps
         # application atomic if a stale materialized event can no longer be
         # permitted.
-        for parent_id, amount in materialized_event.parent_energy_contributions:
-            world.organisms[parent_id].energy -= amount
+        for parent, amount in resolved_parents:
+            parent.energy -= amount
 
         self.offspring_admission_model.admit(
             materialized_event.offspring,

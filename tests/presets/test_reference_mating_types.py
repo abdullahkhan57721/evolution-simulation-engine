@@ -48,6 +48,7 @@ def test_reference_pairing_requires_different_mating_types() -> None:
     groups = process.parent_selection.propose_parent_groups(
         organisms,
         simulation_state=simulation.state,
+        reference_model=process.reference_model,
     )
 
     assert groups
