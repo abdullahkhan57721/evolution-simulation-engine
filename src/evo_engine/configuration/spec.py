@@ -53,9 +53,7 @@ class SimulationSpec:
     def __attrs_post_init__(self) -> None:
         """Validate structural runtime contracts and immutable collections."""
         if not callable(getattr(self.initial_domain_state, "copy", None)):
-            raise TypeError(
-                "initial_domain_state must provide a callable copy method."
-            )
+            raise TypeError("initial_domain_state must provide a callable copy method.")
         if type(self.seed) is bool:
             raise TypeError("seed must be an integer or None, not a Boolean.")
         if not callable(getattr(self.step_coordinator, "coordinate", None)):
