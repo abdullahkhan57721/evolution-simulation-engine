@@ -14,11 +14,13 @@ from evo_engine.life_history import (
     determine_maximum_age,
     validate_maximum_age_source,
 )
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.validation import attrs_validators
 from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
 from evo_engine.world.world_state import WorldState
 
 
@@ -27,12 +29,14 @@ class MaximumAgeMortality:
     """Kill organisms that have reached their configured maximum age.
 
     Biological mortality semantics remain on this process and its events.
-    Read access and structural removal are delegated independently so the
-    process does not own world storage mechanics.
+    Read access, reference derivation, and structural removal are delegated
+    independently so the process does not own world storage or identity
+    mechanics.
 
     Attributes:
         maximum_age: Fixed or organism-specific maximum-age source.
         access_model: Policy providing read-only access to active organisms.
+        reference_model: Policy deriving world references for active organisms.
         departure_model: Policy removing a deceased organism from active world
             state during mechanical application.
     """
@@ -42,6 +46,9 @@ class MaximumAgeMortality:
     )
     access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismAccess,
+    )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
     )
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
@@ -53,6 +60,7 @@ class MaximumAgeMortality:
         for policy, method_name, policy_name in (
             (self.access_model, "get", "access_model"),
             (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
             (self.departure_model, "depart", "departure_model"),
         ):
             if not callable(getattr(policy, method_name, None)):
@@ -130,7 +138,10 @@ class MaximumAgeMortality:
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    organism_id=organism.id,
+                    organism_id=self.reference_model.reference(
+                        organism,
+                        state=world,
+                    ),
                     x=organism.x,
                     y=organism.y,
                     carcass_resource_units=organism.body_mass,
