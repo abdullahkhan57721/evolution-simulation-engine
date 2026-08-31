@@ -11,7 +11,7 @@ from evo_engine.telemetry import (
     StepTelemetry,
 )
 from evo_engine.validation import attrs_validators, validators
-from evo_engine.world import WorldState
+from evo_engine.world import OrganismAdded, OrganismRemoved, WorldState
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -352,7 +352,7 @@ class PedigreeRecorder:
         *,
         completed_step_index: int,
     ) -> None:
-        added_ids = applied_event.added_organism_ids
+        added_ids = _added_organism_ids(applied_event)
         if not added_ids:
             return
 
@@ -406,7 +406,7 @@ class PedigreeRecorder:
             return
 
         deceased_ids = _validate_deceased_ids(event.deceased_organism_ids)
-        removed_ids = frozenset(applied_event.removed_organism_ids)
+        removed_ids = frozenset(_removed_organism_ids(applied_event))
         unremoved_ids = tuple(
             organism_id
             for organism_id in deceased_ids
@@ -434,6 +434,22 @@ class PedigreeRecorder:
             history.death_step = completed_step_index
             history.death_cause = applied_event.process_name
             history.death_process_type = applied_event.process_type
+
+
+def _added_organism_ids(applied_event: AppliedEvent) -> tuple[int, ...]:
+    return tuple(
+        effect.organism_id
+        for effect in applied_event.effects
+        if isinstance(effect, OrganismAdded)
+    )
+
+
+def _removed_organism_ids(applied_event: AppliedEvent) -> tuple[int, ...]:
+    return tuple(
+        effect.organism_id
+        for effect in applied_event.effects
+        if isinstance(effect, OrganismRemoved)
+    )
 
 
 def _parent_ids_for_event(event: object) -> tuple[int, ...]:
