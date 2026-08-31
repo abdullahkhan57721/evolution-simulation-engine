@@ -47,6 +47,10 @@ from evo_engine.reproduction.movement import (
     PreferredMateTarget,
     ReproductiveEligibilityMovementCondition,
 )
+from evo_engine.reproduction.offspring_production import (
+    BiologicalOffspringProduction,
+    OffspringProductionContext,
+)
 from evo_engine.reproduction.parent_selection import (
     PairwiseMating,
     ParentGroup,
@@ -66,6 +70,7 @@ __all__ = [
     "AllOfEligibility",
     "AllOfMatingCompatibility",
     "AlwaysEligible",
+    "BiologicalOffspringProduction",
     "CharacteristicEnergyInvestment",
     "ChooserSignalCompatibility",
     "ChooserSignalMarginPreference",
@@ -93,6 +98,7 @@ __all__ = [
     "OffspringBodyMassModel",
     "OffspringMatingTypeModel",
     "OffspringPlacement",
+    "OffspringProductionContext",
     "PairwiseMating",
     "ParentalInvestment",
     "ParentGroup",
