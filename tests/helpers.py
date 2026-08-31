@@ -5,10 +5,12 @@ from __future__ import annotations
 import random
 from collections.abc import Mapping
 
-from evo_engine.behavior import UnrestrictedBehavior
+from evo_engine.behavior import BEHAVIOR_SELECTION_MODEL, UnrestrictedBehavior
+from evo_engine.context import SimulationContext
 from evo_engine.development import DevelopmentalProfile
 from evo_engine.engine import SimulationState
 from evo_engine.genetics import (
+    GENETIC_ARCHITECTURE,
     Chromosome,
     GeneticArchitecture,
     GeneticPhenotype,
@@ -24,22 +26,15 @@ from evo_engine.world import Organism, WorldState
 
 def make_empty_architecture() -> GeneticArchitecture:
     """Return a genetic architecture with no modeled loci or traits."""
-    return GeneticArchitecture(
-        loci=(),
-        traits=(),
-    )
+    return GeneticArchitecture(loci=(), traits=())
 
 
 def make_empty_genome() -> Genome:
     """Return a genome with no modeled chromosomes."""
-    return Genome(
-        chromosomes=(),
-    )
+    return Genome(chromosomes=())
 
 
-def make_integer_architecture(
-    *trait_names: str,
-) -> GeneticArchitecture:
+def make_integer_architecture(*trait_names: str) -> GeneticArchitecture:
     """Return one-locus integer traits on a single modeled chromosome."""
     loci = tuple(
         Locus(
@@ -49,10 +44,7 @@ def make_integer_architecture(
             domain=IntegerAlleleDomain(),
             mutation=NoMutation(),
         )
-        for index, trait_name in enumerate(
-            trait_names,
-            start=1,
-        )
+        for index, trait_name in enumerate(trait_names, start=1)
     )
     traits = tuple(
         Trait(
@@ -62,11 +54,7 @@ def make_integer_architecture(
         )
         for trait_name in trait_names
     )
-
-    return GeneticArchitecture(
-        loci=loci,
-        traits=traits,
-    )
+    return GeneticArchitecture(loci=loci, traits=traits)
 
 
 def make_diploid_genome(
@@ -78,17 +66,10 @@ def make_diploid_genome(
         genetic_architecture.locus(locus_name).create_allele(value)
         for locus_name, value in trait_values.items()
     )
-
     return Genome(
         chromosomes=(
-            Chromosome(
-                name="1",
-                alleles=alleles,
-            ),
-            Chromosome(
-                name="1",
-                alleles=alleles,
-            ),
+            Chromosome(name="1", alleles=alleles),
+            Chromosome(name="1", alleles=alleles),
         )
     )
 
@@ -107,15 +88,10 @@ def make_organism(
     """Return an organism configured for a test."""
     if genetic_architecture is None:
         genetic_architecture = make_empty_architecture()
-
     if trait_values is None:
         genome = make_empty_genome()
     else:
-        genome = make_diploid_genome(
-            genetic_architecture,
-            trait_values,
-        )
-
+        genome = make_diploid_genome(genetic_architecture, trait_values)
     return Organism.from_genome(
         genetic_architecture=genetic_architecture,
         genome=genome,
@@ -138,14 +114,16 @@ def make_state(
     """Return an empty biological simulation state for a test."""
     if genetic_architecture is None:
         genetic_architecture = make_empty_architecture()
-
+    behavior_selection_model = UnrestrictedBehavior()
+    context = SimulationContext.from_mapping(
+        {
+            GENETIC_ARCHITECTURE.name: genetic_architecture,
+            BEHAVIOR_SELECTION_MODEL.name: behavior_selection_model,
+        }
+    )
     return SimulationState(
-        world=WorldState(
-            width=width,
-            height=height,
-        ),
-        genetic_architecture=genetic_architecture,
-        behavior_selection_model=UnrestrictedBehavior(),
+        world=WorldState(width=width, height=height),
+        context=context,
         rng=random.Random(seed),
     )
 
@@ -163,7 +141,7 @@ def add_organism(
 ) -> Organism:
     """Create, add, and return an organism using the state's architecture."""
     organism = make_organism(
-        genetic_architecture=state.genetic_architecture,
+        genetic_architecture=state.context.require(GENETIC_ARCHITECTURE),
         trait_values=trait_values,
         age=age,
         energy=energy,
@@ -178,13 +156,9 @@ def add_organism(
 
 def genetic_phenotype(**trait_values: int) -> GeneticPhenotype:
     """Return a simple integer genetic phenotype."""
-    return GeneticPhenotype(
-        trait_values=tuple(trait_values.items()),
-    )
+    return GeneticPhenotype(trait_values=tuple(trait_values.items()))
 
 
 def developmental_profile(**target_values: int) -> DevelopmentalProfile:
     """Return a simple integer developmental profile."""
-    return DevelopmentalProfile(
-        target_values=tuple(target_values.items()),
-    )
+    return DevelopmentalProfile(target_values=tuple(target_values.items()))
