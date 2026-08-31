@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import attrs
 
-from evo_engine.telemetry import (
-    AppliedEvent,
-    MortalityEvent,
-    ParentageEvent,
-    StepTelemetry,
-)
+from evo_engine.biology.event_protocols import MortalityEvent, ParentageEvent
+from evo_engine.telemetry import AppliedEvent, StepTelemetry
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world import OrganismAdded, OrganismRemoved, WorldState
 

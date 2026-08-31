@@ -1,4 +1,4 @@
-"""Architecture guard for the committed telemetry package."""
+"""Architecture guards for the committed telemetry package."""
 
 from __future__ import annotations
 
@@ -25,6 +25,10 @@ _FORBIDDEN_DOMAIN_PREFIXES = (
     "evo_engine.spatial",
     "evo_engine.world",
 )
+_FORBIDDEN_BIOLOGICAL_PROTOCOL_NAMES = {
+    "MortalityEvent",
+    "ParentageEvent",
+}
 
 
 def test_telemetry_does_not_import_modeled_domains() -> None:
@@ -41,6 +45,22 @@ def test_telemetry_does_not_import_modeled_domains() -> None:
                     violations.append(f"{path}: imports {module}")
 
     assert violations == []
+
+
+def test_telemetry_declares_no_biological_event_protocols() -> None:
+    """Test biological event interpretation contracts live outside telemetry."""
+    telemetry_root = Path("src/evo_engine/telemetry")
+    declared_names: set[str] = set()
+
+    for path in sorted(telemetry_root.glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        declared_names.update(
+            node.name
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+        )
+
+    assert declared_names.isdisjoint(_FORBIDDEN_BIOLOGICAL_PROTOCOL_NAMES)
 
 
 def _imported_modules(node: ast.AST) -> tuple[str, ...]:
