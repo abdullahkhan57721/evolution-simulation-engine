@@ -37,6 +37,6 @@ class PreferenceOrder:
             proposed_events,
             event_type=Reproduction.Proposal,
             preference_score=lambda proposal: proposal.preference_score,
-            participant_ids=lambda proposal: proposal.parent_ids,
+            participant_keys=lambda proposal: proposal.parent_ids,
             resolver_name=type(self).__name__,
         )
