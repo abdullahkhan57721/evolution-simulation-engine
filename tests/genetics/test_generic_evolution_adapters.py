@@ -1,4 +1,4 @@
-"""Tests for biological genetics adapters to general evolution contracts."""
+"""Tests for biological genetics adapters to general contracts."""
 
 from __future__ import annotations
 
@@ -45,7 +45,7 @@ def test_categorical_mutation_supports_noninteger_heritable_values() -> None:
 
 
 def test_mutation_policies_expose_general_variation_operation() -> None:
-    """Test biological mutation implements domain-neutral variation semantics."""
+    """Test biological mutation implements general variation semantics."""
     mutation = UniformChoiceMutation(
         probability_ppm=1_000_000,
         choices=("a", "b"),
@@ -54,17 +54,18 @@ def test_mutation_policies_expose_general_variation_operation() -> None:
     assert mutation.vary("a", rng=random.Random(1)) == "b"
 
 
-def test_clonal_inheritance_exposes_general_transmission_operation() -> None:
-    """Test biological inheritance implements domain-neutral transmission."""
+def test_clonal_inheritance_adapts_to_general_propagation() -> None:
+    """Test biological inheritance implements domain-neutral propagation."""
     architecture = GeneticArchitecture(loci=(), traits=())
     genome = Genome(chromosomes=())
     inheritance = ClonalInheritance()
 
-    result = inheritance.transmit(
+    result = inheritance.propagate(
         (genome,),
+        recipient=object(),
         context=architecture,
         rng=random.Random(1),
     )
 
     assert result == genome
-    assert inheritance.contributor_count == 1
+    assert inheritance.parent_count == 1

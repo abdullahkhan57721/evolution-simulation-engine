@@ -1,10 +1,9 @@
-"""Domain-neutral contracts for evolutionary systems.
+"""General contracts specific to evolutionary systems.
 
-The contracts in this module intentionally avoid biological vocabulary. They
-capture the minimum reusable semantics needed by evolutionary systems: entities
-carry heritable state, inherited state may be expressed into operative state,
-variation may alter transmitted information, and transmission constructs new
-heritable state from one or more contributors.
+These abstractions describe evolutionary semantics such as heritable state,
+expression, and variation. Domain-neutral state propagation lives separately in
+``evo_engine.propagation`` so the simulator can also represent non-hereditary,
+non-parental, and non-biological state transfer.
 """
 
 from __future__ import annotations
@@ -16,8 +15,6 @@ EntityHeritableStateT = TypeVar("EntityHeritableStateT", covariant=True)
 ExpressionInputT = TypeVar("ExpressionInputT", contravariant=True)
 ExpressionOutputT = TypeVar("ExpressionOutputT", covariant=True)
 VariationValueT = TypeVar("VariationValueT")
-TransmissionStateT = TypeVar("TransmissionStateT")
-TransmissionContextT = TypeVar("TransmissionContextT", contravariant=True)
 
 
 class EvolutionaryEntity(Protocol[EntityHeritableStateT]):
@@ -25,7 +22,7 @@ class EvolutionaryEntity(Protocol[EntityHeritableStateT]):
 
     @property
     def heritable_state(self) -> EntityHeritableStateT:
-        """Return the entity state that may be transmitted to descendants."""
+        """Return the entity state that may be inherited by descendants."""
         ...
 
 
@@ -61,33 +58,5 @@ class VariationOperator(Protocol[VariationValueT]):
 
         Returns:
             Varied or unchanged value.
-        """
-        ...
-
-
-class TransmissionModel(Protocol[TransmissionStateT, TransmissionContextT]):
-    """Construct descendant heritable state from contributing parent states."""
-
-    @property
-    def contributor_count(self) -> int:
-        """Return the number of required contributing parent states."""
-        ...
-
-    def transmit(
-        self,
-        parent_states: tuple[TransmissionStateT, ...],
-        *,
-        context: TransmissionContextT,
-        rng: random.Random,
-    ) -> TransmissionStateT:
-        """Return descendant heritable state.
-
-        Args:
-            parent_states: Heritable states contributing to the descendant.
-            context: Domain-specific immutable transmission configuration.
-            rng: Random-number generator owned by the simulation.
-
-        Returns:
-            Descendant heritable state.
         """
         ...

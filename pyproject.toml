@@ -80,6 +80,36 @@ forbidden_modules = [
     "evo_engine.predation",
     "evo_engine.presets",
     "evo_engine.processes",
+    "evo_engine.propagation",
+    "evo_engine.reproduction",
+    "evo_engine.resolvers",
+    "evo_engine.spatial",
+    "evo_engine.world",
+]
+
+[[tool.importlinter.contracts]]
+id = "propagation-foundation"
+name = "State propagation is a domain-neutral foundation"
+type = "forbidden"
+source_modules = ["evo_engine.propagation"]
+forbidden_modules = [
+    "evo_engine.behavior",
+    "evo_engine.biology",
+    "evo_engine.characteristics",
+    "evo_engine.configuration",
+    "evo_engine.development",
+    "evo_engine.energetics",
+    "evo_engine.engine",
+    "evo_engine.evolution",
+    "evo_engine.experiments",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
     "evo_engine.spatial",
@@ -227,6 +257,7 @@ source_modules = [
     "evo_engine.predation",
     "evo_engine.presets",
     "evo_engine.processes",
+    "evo_engine.propagation",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
     "evo_engine.spatial",
@@ -268,6 +299,7 @@ type = "forbidden"
 source_modules = [
     "evo_engine.evolution",
     "evo_engine.genetics",
+    "evo_engine.propagation",
     "evo_engine.validation",
 ]
 forbidden_modules = ["evo_engine.characteristics"]
