@@ -118,7 +118,9 @@ class DispatchProcess:
         """Return the proposal type owned by this process."""
         return DispatchProposal
 
-    def propose_events(self, simulation_state: SimulationState) -> list[DispatchProposal]:
+    def propose_events(
+        self, simulation_state: SimulationState
+    ) -> list[DispatchProposal]:
         """Propose every currently pending job from the stage-start state."""
         return [
             DispatchProposal(
@@ -225,7 +227,9 @@ class AllJobsAudited:
     def should_stop(self, simulation_state: SimulationState) -> bool:
         """Return whether all jobs are audited or the defensive limit is reached."""
         world = simulation_state.world
-        all_done = not world.pending_jobs and set(world.completed_jobs) == world.audited_jobs
+        all_done = (
+            not world.pending_jobs and set(world.completed_jobs) == world.audited_jobs
+        )
         return all_done or simulation_state.step_index >= self.max_steps
 
 
@@ -328,7 +332,11 @@ def test_complete_nonbiological_simulation_uses_public_kernel_contracts() -> Non
     final_state = compiled.simulation.state
     assert final_state.step_index == 2
     assert final_state.world.pending_jobs == {}
-    assert tuple(final_state.world.completed_jobs) == ("lathe-high", "mill", "lathe-low")
+    assert tuple(final_state.world.completed_jobs) == (
+        "lathe-high",
+        "mill",
+        "lathe-low",
+    )
     assert final_state.world.audited_jobs == {"lathe-high", "mill", "lathe-low"}
 
     expected_rng = random.Random(17)
@@ -337,12 +345,18 @@ def test_complete_nonbiological_simulation_uses_public_kernel_contracts() -> Non
     )
     assert tuple(final_state.world.completed_jobs.values()) == expected_tickets
 
-    assert tuple(snapshot.step_index for snapshot in state_observer.snapshots) == (0, 1, 2)
+    assert tuple(snapshot.step_index for snapshot in state_observer.snapshots) == (
+        0,
+        1,
+        2,
+    )
     assert state_observer.snapshots[1].pending == ("lathe-low",)
     assert state_observer.snapshots[1].completed == ("lathe-high", "mill")
     assert state_observer.snapshots[1].audited == ("lathe-high", "mill")
 
-    assert tuple(record.completed_step_index for record in telemetry_observer.records) == (
+    assert tuple(
+        record.completed_step_index for record in telemetry_observer.records
+    ) == (
         1,
         2,
     )
