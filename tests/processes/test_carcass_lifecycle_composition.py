@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from evo_engine.processes import Decomposition, MaximumAgeMortality, Predation, Starvation
+from evo_engine.processes import (
+    Decomposition,
+    MaximumAgeMortality,
+    Predation,
+    Starvation,
+)
 from evo_engine.spatial.neighborhoods import SameCell
 from evo_engine.world import Carcass, WorldState
 from tests.helpers import add_organism, make_state
