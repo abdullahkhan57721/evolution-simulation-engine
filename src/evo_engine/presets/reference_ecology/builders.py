@@ -20,6 +20,7 @@ from evo_engine.behavior import (
     PurposeTargetRoute,
 )
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
+from evo_engine.biology import build_standard_lifecycle
 from evo_engine.characteristics import DevelopmentalProfileCharacteristics
 from evo_engine.energetics import (
     AdditiveMetabolicCost,
@@ -40,7 +41,6 @@ from evo_engine.engine import (
     Simulation,
     SimulationEngine,
     StageCoordinator,
-    build_standard_lifecycle,
 )
 from evo_engine.feeding import (
     CharacteristicAssimilationEfficiency,

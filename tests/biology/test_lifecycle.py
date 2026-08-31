@@ -1,11 +1,12 @@
-"""Tests for the standard ecological lifecycle preset."""
+"""Tests for the standard biological and ecological lifecycle preset."""
 
 from __future__ import annotations
 
 import attrs
 
+from evo_engine.biology import build_standard_lifecycle
 from evo_engine.energetics import FixedMetabolicCost
-from evo_engine.engine import StageCoordinator, build_standard_lifecycle
+from evo_engine.engine import StageCoordinator
 from evo_engine.processes import Aging, MaximumAgeMortality, Metabolism, Starvation
 from evo_engine.resolvers import AcceptAll
 from evo_engine.validation import attrs_validators

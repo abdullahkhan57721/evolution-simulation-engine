@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 
 import attrs
 
+import evo_engine.engine as kernel
 from evo_engine.engine import (
     MaxSteps,
     SequentialStepCoordinator,
@@ -13,6 +15,17 @@ from evo_engine.engine import (
     SimulationEvent,
     SimulationState,
     StageCoordinator,
+)
+
+_BIOLOGICAL_LIFECYCLE_IDENTIFIERS = (
+    "starvation_stage",
+    "maximum_age_mortality_stage",
+    "metabolism_stage",
+    "aging_stage",
+    "predation_stage",
+    "resource_consumption_stage",
+    "growth_stage",
+    "reproduction_stage",
 )
 
 
@@ -96,3 +109,23 @@ def test_kernel_context_accepts_arbitrary_domain_services() -> None:
 
     assert simulation.context.require("heritable_state_schema") is service
     assert simulation.heritable_state_schema is service
+
+
+def test_engine_does_not_export_biological_lifecycle_preset() -> None:
+    """Test biological lifecycle composition is not part of the kernel API."""
+    assert not hasattr(kernel, "build_standard_lifecycle")
+
+
+def test_engine_contains_no_biological_lifecycle_policy() -> None:
+    """Test lifecycle-specific biological vocabulary stays outside the kernel."""
+    engine_root = Path("src/evo_engine/engine")
+    assert not (engine_root / "lifecycle.py").exists()
+
+    violations: list[str] = []
+    for path in sorted(engine_root.glob("*.py")):
+        source = path.read_text(encoding="utf-8")
+        for identifier in _BIOLOGICAL_LIFECYCLE_IDENTIFIERS:
+            if identifier in source:
+                violations.append(f"{path}: contains {identifier}")
+
+    assert violations == []
