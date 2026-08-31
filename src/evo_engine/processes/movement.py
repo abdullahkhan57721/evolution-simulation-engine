@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.behavior import (
     EXPLORATION,
     FixedMovementIntent,
@@ -29,6 +30,7 @@ from evo_engine.energetics.locomotion import LocomotionCostModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.builtin_traits import MAX_SPEED
 from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.spatial.boundary_conditions import BoundaryCondition
 from evo_engine.spatial.movement_patterns import MovementPattern
 from evo_engine.spatial.targeted_movement import (
@@ -36,6 +38,10 @@ from evo_engine.spatial.targeted_movement import (
     TargetedMovementModel,
 )
 from evo_engine.validation import attrs_validators, validators
+from evo_engine.world.access import WorldOrganismAccess
+from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
+from evo_engine.world.world_state import WorldState
 
 
 def _validate_event_behavioral_purpose(
@@ -72,7 +78,8 @@ class Movement:
     ``energy_expenditure_policy`` decides whether the fully priced movement may
     be paid. The default ``SpendToZero`` allows an affordable movement to spend
     the organism to exactly zero energy, but does not allow a full movement
-    whose cost exceeds available energy.
+    whose cost exceeds available energy. Organism storage access and reference
+    derivation are delegated independently from world-specific movement.
 
     Attributes:
         movement_pattern: Pattern used for untargeted movement displacements.
@@ -87,6 +94,8 @@ class Movement:
             each movement attempt.
         targeted_movement_model: Model choosing displacement toward a selected
             movement target.
+        access_model: Policy providing read-only access to active organisms.
+        reference_model: Policy deriving stable references for active organisms.
     """
 
     movement_pattern: MovementPattern
@@ -104,6 +113,12 @@ class Movement:
     )
     targeted_movement_model: TargetedMovementModel = attrs.field(
         factory=StraightLineTowardTarget,
+    )
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
     )
 
     def __attrs_post_init__(self) -> None:
@@ -134,6 +149,9 @@ class Movement:
                 "choose_displacement",
                 "targeted_movement_model",
             ),
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
         )
 
         for model, method_name, field_name in required_methods:
@@ -259,7 +277,7 @@ class Movement:
         events: list[Movement.Event] = []
         world = simulation_state.world
 
-        for organism in world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             behavioral_purpose = determine_movement_purpose(
                 self.movement_intent_model,
                 organism,
@@ -335,7 +353,10 @@ class Movement:
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    organism_id=organism.id,
+                    organism_id=self.reference_model.reference(
+                        organism,
+                        state=world,
+                    ),
                     dx=dx,
                     dy=dy,
                     new_x=new_x,
@@ -418,7 +439,10 @@ class Movement:
                 under the configured expenditure policy.
         """
         world = simulation_state.world
-        organism = world.organisms[resolved_event.organism_id]
+        organism = self.access_model.get(
+            resolved_event.organism_id,
+            state=world,
+        )
 
         if not energy_expenditure_is_allowed(
             self.energy_expenditure_policy,
@@ -427,8 +451,8 @@ class Movement:
             simulation_state=simulation_state,
         ):
             raise RuntimeError(
-                f"Organism {organism.id} cannot pay its recorded locomotion "
-                "energy cost under the configured expenditure policy."
+                f"Organism {resolved_event.organism_id} cannot pay its recorded "
+                "locomotion energy cost under the configured expenditure policy."
             )
 
         world.move_organism(
