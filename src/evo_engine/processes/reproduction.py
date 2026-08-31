@@ -6,6 +6,7 @@ from typing import ClassVar
 
 import attrs
 
+from evo_engine.admission import EntityAdmissionModel
 from evo_engine.behavior import REPRODUCTION as REPRODUCTION_PURPOSE
 from evo_engine.behavior import behavior_is_allowed
 from evo_engine.development.models import DeterministicDevelopment, DevelopmentModel
@@ -43,7 +44,9 @@ from evo_engine.reproduction.placement import (
     RandomParentLocation,
 )
 from evo_engine.validation import attrs_validators, validators
+from evo_engine.world.admission import WorldOrganismAdmission
 from evo_engine.world.organism import Organism
+from evo_engine.world.world_state import WorldState
 
 
 def _validate_reproduction_proposal(
@@ -71,8 +74,9 @@ class Reproduction:
     Resolved proposals are materialized before any stage event is applied.
     Materialization first propagates transmissible genetic state through the
     configured inheritance model, then delegates concrete offspring construction
-    to a biological entity-production model. Application only pays the recorded
-    energy investments and inserts the already-produced offspring into the world.
+    to a biological entity-production model. Application pays the recorded
+    energy investments and delegates entry of the already-produced offspring to
+    a separate entity-admission model.
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
@@ -90,6 +94,8 @@ class Reproduction:
             during offspring production.
         offspring_mating_type_model: Policy assigning immutable reproductive
             mating type during offspring production.
+        offspring_admission_model: Policy admitting the fully produced offspring
+            into biological world state during mechanical application.
     """
 
     behavioral_purpose: ClassVar[str] = REPRODUCTION_PURPOSE
@@ -114,6 +120,9 @@ class Reproduction:
     )
     offspring_mating_type_model: OffspringMatingTypeModel = attrs.field(
         factory=lambda: FixedMatingType(mating_type="default"),
+    )
+    offspring_admission_model: EntityAdmissionModel[Organism, WorldState] = attrs.field(
+        factory=WorldOrganismAdmission,
     )
     _offspring_production_model: BiologicalOffspringProduction = attrs.field(
         init=False,
@@ -155,6 +164,11 @@ class Reproduction:
                 "can_spend",
                 "energy_expenditure_policy",
             ),
+            (
+                self.offspring_admission_model,
+                "admit",
+                "offspring_admission_model",
+            ),
         )
         for policy, method_name, policy_name in required_methods:
             if not callable(getattr(policy, method_name, None)):
@@ -183,6 +197,7 @@ class Reproduction:
             self.parental_investment,
             self.energy_expenditure_policy,
             self._offspring_production_model,
+            self.offspring_admission_model,
         )
 
     @staticmethod
@@ -333,7 +348,7 @@ class Reproduction:
 
         Attributes:
             proposal: Resolved proposal from which the event was materialized.
-            offspring: Fully produced newborn, not yet inserted into the world.
+            offspring: Fully produced newborn, not yet admitted to the world.
         """
 
         proposal: Reproduction.Proposal = attrs.field(
@@ -569,7 +584,7 @@ class Reproduction:
         State propagation and entity production are intentionally distinct.
         Inheritance first propagates a genome from parental transmissible state.
         Biological offspring production then turns that finalized genome into a
-        complete newborn organism.
+        complete newborn organism. Admission remains deferred until application.
 
         Args:
             simulation_state: Current pre-application simulation state.
@@ -642,6 +657,10 @@ class Reproduction:
     ) -> None:
         """Mechanically apply a materialized Reproduction event.
 
+        Parent expenditure and entity admission are distinct application
+        responsibilities. The admission model owns how the already-produced
+        offspring becomes part of world state.
+
         Args:
             simulation_state: Current simulation state.
             materialized_event: Fully determined Reproduction event to apply.
@@ -673,4 +692,7 @@ class Reproduction:
         for parent_id, amount in materialized_event.parent_energy_contributions:
             world.organisms[parent_id].energy -= amount
 
-        world.add_organism(materialized_event.offspring)
+        self.offspring_admission_model.admit(
+            materialized_event.offspring,
+            state=world,
+        )
