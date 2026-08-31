@@ -1,4 +1,4 @@
-"""Tests for dependency-aware SimulationSpec compilation."""
+"""Tests for dependency-aware biological simulation compilation."""
 
 from __future__ import annotations
 
@@ -8,12 +8,12 @@ import attrs
 import pytest
 
 from evo_engine.behavior import UnrestrictedBehavior
-from evo_engine.configuration import (
+from evo_engine.biology import (
     CHARACTERISTIC,
     ENVIRONMENTAL_FIELD,
-    Dependency,
-    SimulationSpec,
+    BiologicalSimulationSpec as SimulationSpec,
 )
+from evo_engine.configuration import Dependency
 from evo_engine.development import LinearEnvironmentalDevelopment
 from evo_engine.engine import MaxSteps, SimulationState, StepCoordinator
 from evo_engine.genetics import GeneticArchitecture, GeneticPhenotype
