@@ -29,8 +29,7 @@ class ContextKey(Generic[T]):
         """Validate and return a value bound to this key."""
         if not isinstance(value, self.value_type):
             raise TypeError(
-                f"context value for {self.name!r} must be a "
-                f"{self.value_type.__name__}."
+                f"context value for {self.name!r} must be a {self.value_type.__name__}."
             )
         return cast(T, value)
 
