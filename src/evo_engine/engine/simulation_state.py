@@ -13,7 +13,7 @@ from evo_engine.telemetry import StepTelemetry
 from evo_engine.validation import attrs_validators
 
 
-def _validate_domain_state(
+def _validate_world(
     instance: object, attribute: attrs.Attribute, value: object
 ) -> None:
     """Require transactional model state to provide a copy operation."""
@@ -28,23 +28,23 @@ def _validate_domain_state(
 class SimulationState:
     """Represent one transactional snapshot of an arbitrary simulated system.
 
-    ``domain_state`` is intentionally domain-neutral. The kernel requires only
-    that it can be copied transactionally. Domain packages define the concrete
-    state stored there and the operations processes may perform on it.
+    ``world`` is domain-neutral simulation terminology: it may hold any
+    domain-defined copyable model state, not necessarily a physical or biological
+    world. Domain packages define the concrete state and operations carried there.
 
     ``context`` contains immutable configuration services shared by reference
-    across copies. The kernel assigns no modeled-domain semantics to those
-    values.
+    across copies. Configuration is accessed explicitly through
+    ``state.context.require(...)`` rather than dynamic state attributes.
 
     Attributes:
-        domain_state: Current domain-defined model state.
+        world: Current domain-defined model state.
         context: Immutable configuration shared across transactional copies.
         step_index: Index of the current committed simulation state.
         rng: Random number generator owned by the simulation.
         last_step_telemetry: Telemetry for the most recently committed step.
     """
 
-    domain_state: Any = attrs.field(validator=_validate_domain_state)
+    world: Any = attrs.field(validator=_validate_world)
     context: SimulationContext = attrs.field(
         factory=SimulationContext,
         validator=attrs.validators.instance_of(SimulationContext),
@@ -77,7 +77,7 @@ class SimulationState:
             Independent working simulation state.
         """
         return SimulationState(
-            domain_state=self.domain_state.copy(),
+            world=self.world.copy(),
             context=self.context,
             step_index=self.step_index,
             rng=copy.deepcopy(self.rng),
