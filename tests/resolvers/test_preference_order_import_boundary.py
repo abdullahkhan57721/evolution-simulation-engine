@@ -5,8 +5,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-
-FORBIDDEN_DOMAIN_PREFIXES = (
+_FORBIDDEN_DOMAIN_PREFIXES = (
     "evo_engine.behavior",
     "evo_engine.biology",
     "evo_engine.characteristics",
@@ -41,7 +40,7 @@ def test_generic_preference_resolution_imports_no_modeled_domain() -> None:
     forbidden = tuple(
         imported
         for imported in imports
-        if imported.startswith(FORBIDDEN_DOMAIN_PREFIXES)
+        if imported.startswith(_FORBIDDEN_DOMAIN_PREFIXES)
     )
     assert forbidden == ()
 
