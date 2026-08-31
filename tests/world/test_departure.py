@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from evo_engine.telemetry import OrganismRemoved
 from evo_engine.world import WorldOrganismDeparture
 
 from tests.helpers import add_organism, make_state
@@ -21,5 +22,4 @@ def test_world_organism_departure_removes_and_returns_organism() -> None:
     assert departed is organism
     assert organism.id not in state.world.organisms
     mutations = state.world.mutations_since(checkpoint)
-    assert len(mutations) == 1
-    assert mutations[0].organism_id == organism.id
+    assert mutations == (OrganismRemoved(organism_id=organism.id),)
