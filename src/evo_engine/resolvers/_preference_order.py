@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Hashable, Iterable, Sequence
 from typing import TypeVar
 
 from evo_engine.engine.protocols import SimulationEvent
@@ -11,6 +11,10 @@ EventT = TypeVar(
     "EventT",
     bound=SimulationEvent,
 )
+ConflictKeyT = TypeVar(
+    "ConflictKeyT",
+    bound=Hashable,
+)
 
 
 def resolve_exclusive_preference_order(
@@ -18,20 +22,21 @@ def resolve_exclusive_preference_order(
     *,
     event_type: type[EventT],
     preference_score: Callable[[EventT], int],
-    participant_ids: Callable[[EventT], Iterable[int]],
+    participant_keys: Callable[[EventT], Iterable[ConflictKeyT]],
     resolver_name: str,
 ) -> list[EventT]:
-    """Resolve events greedily by preference with exclusive participants.
+    """Resolve events greedily by preference with exclusive conflict keys.
 
     Higher preference scores are considered first. Proposal order breaks ties.
-    Once an event is accepted, none of its participants may appear in another
-    accepted event.
+    Once an event is accepted, none of its conflict keys may appear in another
+    accepted event. Keys may be any hashable domain reference or resource token;
+    the resolver does not interpret their meaning.
 
     Args:
         proposed_events: Proposed simulation events.
         event_type: Event type accepted by the resolver.
         preference_score: Function returning an event's preference score.
-        participant_ids: Function returning IDs participating in an event.
+        participant_keys: Function returning hashable conflict keys for an event.
         resolver_name: Resolver name used in validation errors.
 
     Returns:
@@ -39,7 +44,7 @@ def resolve_exclusive_preference_order(
 
     Raises:
         TypeError: If a proposal is not of event_type.
-        ValueError: If an event reports duplicate participant IDs.
+        ValueError: If an event reports duplicate conflict keys.
     """
     indexed_events: list[tuple[int, EventT]] = []
 
@@ -65,25 +70,25 @@ def resolve_exclusive_preference_order(
         ),
     )
 
-    participating_ids: set[int] = set()
+    participating_keys: set[ConflictKeyT] = set()
     resolved_events: list[EventT] = []
 
     for _, event in ordered_events:
-        ids = tuple(participant_ids(event))
+        event_keys = tuple(participant_keys(event))
 
-        if len(set(ids)) != len(ids):
+        if len(set(event_keys)) != len(event_keys):
             raise ValueError(
-                f"{resolver_name} received an event with duplicate participant IDs."
+                f"{resolver_name} received an event with duplicate conflict keys."
             )
 
-        event_ids = set(ids)
+        conflict_keys = set(event_keys)
 
         # Greedy exclusivity turns the proposal graph into a compatible
         # matching without requiring a global optimization algorithm.
-        if event_ids & participating_ids:
+        if conflict_keys & participating_keys:
             continue
 
         resolved_events.append(event)
-        participating_ids.update(event_ids)
+        participating_keys.update(conflict_keys)
 
     return resolved_events
