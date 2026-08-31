@@ -19,14 +19,14 @@ class Simulation:
 
     def __init__(
         self,
-        initial_domain_state: object,
+        initial_world_state: object,
         seed: int | None = None,
         context: SimulationContext | None = None,
     ) -> None:
         """Initialize a simulation from arbitrary copyable model state.
 
         Args:
-            initial_domain_state: Initial domain-defined state. Must provide a
+            initial_world_state: Initial domain-defined state. Must provide a
                 callable ``copy`` method for transactional isolation.
             seed: Seed for the simulation random-number generator.
             context: Optional immutable shared simulation context.
@@ -34,9 +34,9 @@ class Simulation:
         Raises:
             TypeError: If the state is not copyable or the seed is invalid.
         """
-        copy_domain_state = getattr(initial_domain_state, "copy", None)
-        if not callable(copy_domain_state):
-            raise TypeError("initial_domain_state must provide a callable copy method.")
+        copy_world_state = getattr(initial_world_state, "copy", None)
+        if not callable(copy_world_state):
+            raise TypeError("initial_world_state must provide a callable copy method.")
         if type(seed) is bool or (seed is not None and type(seed) is not int):
             raise TypeError("seed must be an integer or None, not a Boolean.")
         if context is None:
@@ -44,9 +44,9 @@ class Simulation:
 
         # Caller-owned state is configuration input, never authoritative mutable
         # simulation state.
-        domain_state = copy_domain_state()
+        world = copy_world_state()
         self.state = SimulationState(
-            domain_state=domain_state,
+            world=world,
             context=context,
             rng=random.Random(seed),
         )
