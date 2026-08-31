@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import collect_required_traits
@@ -14,6 +15,7 @@ from evo_engine.life_history import (
     validate_maximum_age_source,
 )
 from evo_engine.validation import attrs_validators
+from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
@@ -25,17 +27,21 @@ class MaximumAgeMortality:
     """Kill organisms that have reached their configured maximum age.
 
     Biological mortality semantics remain on this process and its events.
-    Structural removal from world state is delegated to ``departure_model`` so
-    generic departure is not itself interpreted as death.
+    Read access and structural removal are delegated independently so the
+    process does not own world storage mechanics.
 
     Attributes:
         maximum_age: Fixed or organism-specific maximum-age source.
+        access_model: Policy providing read-only access to active organisms.
         departure_model: Policy removing a deceased organism from active world
             state during mechanical application.
     """
 
     maximum_age: MaximumAgeSource = attrs.field(
         factory=DevelopmentalMaximumAge,
+    )
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
     )
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
@@ -44,8 +50,15 @@ class MaximumAgeMortality:
     def __attrs_post_init__(self) -> None:
         """Validate configured mortality policies."""
         validate_maximum_age_source(self.maximum_age)
-        if not callable(getattr(self.departure_model, "depart", None)):
-            raise TypeError("departure_model must provide a callable depart method.")
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.departure_model, "depart", "departure_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
 
     @property
     def required_traits(self) -> frozenset[str]:
@@ -103,8 +116,9 @@ class MaximumAgeMortality:
             Proposed maximum-age mortality events.
         """
         events: list[MaximumAgeMortality.Event] = []
+        world = simulation_state.world
 
-        for organism in simulation_state.world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             maximum_age = determine_maximum_age(
                 self.maximum_age,
                 organism,
