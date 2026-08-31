@@ -64,4 +64,4 @@ def test_missing_context_attribute_uses_normal_attribute_semantics() -> None:
     """Test the kernel never synthesizes attributes from context service names."""
     simulation = Simulation(initial_world_state=CounterState())
     with pytest.raises(AttributeError, match="missing_service"):
-        getattr(simulation, "missing_service")
+        _ = simulation.missing_service  # type: ignore[attr-defined]
