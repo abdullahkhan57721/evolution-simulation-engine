@@ -58,9 +58,10 @@ class StageCoordinator:
         accepted stochastic consequences to be determined after resolution.
 
         The domain state may optionally expose ``mutation_count`` and
-        ``mutations_since`` to provide structural mutation telemetry. States that
-        do not implement that journal simply produce empty mutation telemetry;
-        the simulation kernel does not prescribe domain mutation types.
+        ``mutations_since``. Mutations captured through that journal are attached
+        to committed telemetry as opaque domain effects. States without a journal
+        simply produce empty effect telemetry; the kernel does not prescribe
+        domain effect types or meanings.
 
         Args:
             simulation_state: Working transactional state.
@@ -112,7 +113,7 @@ class StageCoordinator:
                     process_type=_qualified_type_name(process),
                     event_type=_qualified_type_name(materialized_event),
                     event=materialized_event,
-                    world_mutations=_mutations_since(domain_state, checkpoint),
+                    effects=_mutations_since(domain_state, checkpoint),
                 )
             )
 
