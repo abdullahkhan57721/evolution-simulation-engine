@@ -8,6 +8,7 @@ from evo_engine.behavior import (
     FixedMovementIntent,
     FixedSensoryRange,
     NearestResourceTarget,
+    UnrestrictedBehavior,
 )
 from evo_engine.energetics import FixedLocomotionCost
 from evo_engine.engine import Simulation
@@ -70,6 +71,7 @@ def test_resource_outside_sensory_range_uses_untargeted_search_pattern() -> None
     simulation = Simulation(
         initial_world_state=WorldState(width=8, height=4),
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
     add_organism(
         simulation.state,
@@ -108,6 +110,7 @@ def test_resource_on_current_cell_prevents_random_departure() -> None:
     simulation = Simulation(
         initial_world_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
     organism = add_organism(
         simulation.state,
@@ -142,6 +145,7 @@ def test_resource_seeker_reaches_visible_food_over_repeated_movement() -> None:
     simulation = Simulation(
         initial_world_state=WorldState(width=5, height=3),
         genetic_architecture=architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
     )
     organism = add_organism(
         simulation.state,
