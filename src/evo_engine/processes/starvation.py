@@ -5,11 +5,13 @@ from __future__ import annotations
 import attrs
 
 from evo_engine.access import EntityAccessModel
+from evo_engine.admission import EntityAdmissionModel
 from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.reference import EntityReferenceModel
 from evo_engine.validation import attrs_validators
 from evo_engine.world.access import WorldOrganismAccess
+from evo_engine.world.admission import WorldCarcassAdmission
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
@@ -22,15 +24,17 @@ class Starvation:
     """Kill organisms whose energy has reached zero.
 
     Biological mortality semantics remain on this process and its events. Read
-    access, reference derivation, and structural removal are delegated
-    independently so the process does not own world storage or identity
-    mechanics.
+    access, reference derivation, structural removal, and carcass admission are
+    delegated independently so the process does not own world storage or
+    identity mechanics.
 
     Attributes:
         access_model: Policy providing read-only access to active organisms.
         reference_model: Policy deriving world references for active organisms.
         departure_model: Policy removing a deceased organism from active world
             state during mechanical application.
+        carcass_admission_model: Policy admitting the resulting carcass to world
+            state when death leaves biomass behind.
     """
 
     access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
@@ -42,6 +46,9 @@ class Starvation:
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
     )
+    carcass_admission_model: EntityAdmissionModel[Carcass, WorldState] = attrs.field(
+        factory=WorldCarcassAdmission,
+    )
 
     def __attrs_post_init__(self) -> None:
         """Validate configured lifecycle policies."""
@@ -50,6 +57,7 @@ class Starvation:
             (self.access_model, "entities", "access_model"),
             (self.reference_model, "reference", "reference_model"),
             (self.departure_model, "depart", "departure_model"),
+            (self.carcass_admission_model, "admit", "carcass_admission_model"),
         ):
             if not callable(getattr(policy, method_name, None)):
                 raise TypeError(
@@ -139,8 +147,8 @@ class Starvation:
         """Apply a resolved Starvation event.
 
         The mortality event remains the source of biological death semantics.
-        Structural world departure is delegated separately, then a carcass is
-        added when the recorded body mass yields resources.
+        Organism departure and resulting carcass admission are separate
+        structural lifecycle operations.
 
         Args:
             simulation_state: Current simulation state.
@@ -162,4 +170,7 @@ class Starvation:
             resource_units=resolved_event.carcass_resource_units,
         )
 
-        world.add_carcass(carcass)
+        self.carcass_admission_model.admit(
+            carcass,
+            state=world,
+        )

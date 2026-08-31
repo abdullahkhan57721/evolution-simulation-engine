@@ -8,6 +8,7 @@ from typing import ClassVar
 import attrs
 
 from evo_engine.access import EntityAccessModel
+from evo_engine.admission import EntityAdmissionModel
 from evo_engine.behavior import ENERGY_ACQUISITION, behavior_is_allowed
 from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
@@ -20,6 +21,7 @@ from evo_engine.reference import EntityReferenceModel
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import attrs_validators
 from evo_engine.world.access import WorldOrganismAccess
+from evo_engine.world.admission import WorldCarcassAdmission
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
@@ -47,9 +49,9 @@ class Predation:
     and lambdas while enabling structured trait-aware policies.
 
     Predation retains the biological meaning of killing prey. Read access,
-    reference derivation, and structural removal are delegated independently so
-    the process does not own world storage or identity mechanics and generic
-    departure remains independent of death.
+    reference derivation, structural removal, and carcass admission are
+    delegated independently so the process does not own world storage or
+    identity mechanics and generic departure remains independent of death.
 
     Attributes:
         neighborhood: Spatial neighborhood within which predation is possible.
@@ -65,6 +67,8 @@ class Predation:
         reference_model: Policy deriving world references for active organisms.
         departure_model: Policy removing killed prey from active world state
             during mechanical application.
+        carcass_admission_model: Policy admitting unconsumed prey biomass as a
+            carcass when any remains.
     """
 
     behavioral_purpose: ClassVar[str] = ENERGY_ACQUISITION
@@ -96,6 +100,9 @@ class Predation:
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
     )
+    carcass_admission_model: EntityAdmissionModel[Carcass, WorldState] = attrs.field(
+        factory=WorldCarcassAdmission,
+    )
 
     def __attrs_post_init__(self) -> None:
         """Validate policies and aggregate genetic phenotype dependencies."""
@@ -104,6 +111,7 @@ class Predation:
             (self.access_model, "entities", "access_model"),
             (self.reference_model, "reference", "reference_model"),
             (self.departure_model, "depart", "departure_model"),
+            (self.carcass_admission_model, "admit", "carcass_admission_model"),
         ):
             if not callable(getattr(policy, method_name, None)):
                 raise TypeError(
@@ -322,10 +330,11 @@ class Predation:
         if resolved_event.carcass_resource_units == 0:
             return
 
-        world.add_carcass(
+        self.carcass_admission_model.admit(
             Carcass(
                 x=resolved_event.x,
                 y=resolved_event.y,
                 resource_units=resolved_event.carcass_resource_units,
-            )
+            ),
+            state=world,
         )
