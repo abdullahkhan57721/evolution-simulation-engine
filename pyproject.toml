@@ -80,6 +80,7 @@ forbidden_modules = [
     "evo_engine.predation",
     "evo_engine.presets",
     "evo_engine.processes",
+    "evo_engine.production",
     "evo_engine.propagation",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
@@ -110,6 +111,37 @@ forbidden_modules = [
     "evo_engine.predation",
     "evo_engine.presets",
     "evo_engine.processes",
+    "evo_engine.production",
+    "evo_engine.reproduction",
+    "evo_engine.resolvers",
+    "evo_engine.spatial",
+    "evo_engine.world",
+]
+
+[[tool.importlinter.contracts]]
+id = "production-foundation"
+name = "Entity production is a domain-neutral foundation"
+type = "forbidden"
+source_modules = ["evo_engine.production"]
+forbidden_modules = [
+    "evo_engine.behavior",
+    "evo_engine.biology",
+    "evo_engine.characteristics",
+    "evo_engine.configuration",
+    "evo_engine.development",
+    "evo_engine.energetics",
+    "evo_engine.engine",
+    "evo_engine.evolution",
+    "evo_engine.experiments",
+    "evo_engine.feeding",
+    "evo_engine.genetics",
+    "evo_engine.growth",
+    "evo_engine.life_history",
+    "evo_engine.observation",
+    "evo_engine.predation",
+    "evo_engine.presets",
+    "evo_engine.processes",
+    "evo_engine.propagation",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
     "evo_engine.spatial",
@@ -257,6 +289,7 @@ source_modules = [
     "evo_engine.predation",
     "evo_engine.presets",
     "evo_engine.processes",
+    "evo_engine.production",
     "evo_engine.propagation",
     "evo_engine.reproduction",
     "evo_engine.resolvers",
@@ -299,6 +332,7 @@ type = "forbidden"
 source_modules = [
     "evo_engine.evolution",
     "evo_engine.genetics",
+    "evo_engine.production",
     "evo_engine.propagation",
     "evo_engine.validation",
 ]
