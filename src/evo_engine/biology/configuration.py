@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 
 import attrs
 
 from evo_engine.behavior import BehaviorSelectionModel, UnrestrictedBehavior
 from evo_engine.configuration import CompiledSimulation, Dependency, SimulationSpec
+from evo_engine.configuration.dependencies import iter_configuration_components
 from evo_engine.engine import (
     ContextKey,
     Observer,
@@ -146,9 +147,8 @@ class BiologicalSimulationSpec:
 def collect_biological_dependencies(*components: object) -> frozenset[Dependency]:
     """Collect biological trait, characteristic, and environment dependencies."""
     dependencies: set[Dependency] = set()
-    seen: set[int] = set()
-    for component in components:
-        _collect_from_object(component, dependencies=dependencies, seen=seen)
+    for component in iter_configuration_components(*components):
+        _collect_biological_requirements(component, dependencies=dependencies)
     return frozenset(dependencies)
 
 
@@ -166,19 +166,11 @@ def provided_biological_dependencies(
     return frozenset(provided)
 
 
-def _collect_from_object(
+def _collect_biological_requirements(
     value: object,
     *,
     dependencies: set[Dependency],
-    seen: set[int],
 ) -> None:
-    if _is_terminal(value):
-        return
-    identity = id(value)
-    if identity in seen:
-        return
-    seen.add(identity)
-
     if isinstance(value, TraitRequirementProvider):
         dependencies.update(
             Dependency(category=TRAIT, name=name) for name in value.required_traits
@@ -188,41 +180,22 @@ def _collect_from_object(
             Dependency(category=CHARACTERISTIC, name=name)
             for name in value.required_characteristics
         )
+    _collect_environmental_field_requirements(value, dependencies=dependencies)
+
+
+def _collect_environmental_field_requirements(
+    value: object,
+    *,
+    dependencies: set[Dependency],
+) -> None:
     environmental_fields = getattr(value, "required_environmental_fields", None)
-    if environmental_fields is not None:
-        if type(environmental_fields) is not frozenset:
-            raise TypeError(
-                f"{type(value).__name__}.required_environmental_fields must be a "
-                "frozenset."
-            )
-        dependencies.update(
-            Dependency(category=ENVIRONMENTAL_FIELD, name=name)
-            for name in environmental_fields
+    if environmental_fields is None:
+        return
+    if type(environmental_fields) is not frozenset:
+        raise TypeError(
+            f"{type(value).__name__}.required_environmental_fields must be a frozenset."
         )
-
-    if attrs.has(type(value)):
-        for attribute in attrs.fields(type(value)):
-            _collect_from_object(
-                getattr(value, attribute.name),
-                dependencies=dependencies,
-                seen=seen,
-            )
-        return
-    if isinstance(value, Mapping):
-        for item in value.values():
-            _collect_from_object(item, dependencies=dependencies, seen=seen)
-        return
-    if isinstance(value, (tuple, list, set, frozenset)):
-        for item in value:
-            _collect_from_object(item, dependencies=dependencies, seen=seen)
-        return
-    try:
-        attributes = vars(value)
-    except TypeError:
-        return
-    for item in attributes.values():
-        _collect_from_object(item, dependencies=dependencies, seen=seen)
-
-
-def _is_terminal(value: object) -> bool:
-    return value is None or type(value) in (str, int, float, bool, bytes, type)
+    dependencies.update(
+        Dependency(category=ENVIRONMENTAL_FIELD, name=name)
+        for name in environmental_fields
+    )
