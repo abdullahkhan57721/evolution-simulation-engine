@@ -37,7 +37,7 @@ class PreferenceOrder:
             proposed_events,
             event_type=Predation.Event,
             preference_score=lambda event: event.preference_score,
-            participant_ids=lambda event: (
+            participant_keys=lambda event: (
                 event.predator_id,
                 event.prey_id,
             ),
