@@ -7,7 +7,6 @@ from typing import Protocol
 
 import attrs
 
-from evo_engine.evolution import TransmissionModel
 from evo_engine.genetics.chromosome import Chromosome
 from evo_engine.genetics.gamete import Gamete
 from evo_engine.genetics.gamete_formation import (
@@ -16,13 +15,14 @@ from evo_engine.genetics.gamete_formation import (
 )
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.genetics.genome import Genome
+from evo_engine.propagation import PropagationModel
 
 
 class InheritanceModel(
-    TransmissionModel[Genome, GeneticArchitecture],
+    PropagationModel[Genome, object, GeneticArchitecture],
     Protocol,
 ):
-    """Define biological inheritance as general heritable-state transmission."""
+    """Define biological inheritance as a generic state-propagation adapter."""
 
     @property
     def parent_count(self) -> int:
@@ -132,11 +132,6 @@ class ClonalInheritance:
         """Return one required biological parent."""
         return 1
 
-    @property
-    def contributor_count(self) -> int:
-        """Return one contributing heritable state through the general API."""
-        return self.parent_count
-
     def inherit(
         self,
         parent_genomes: tuple[Genome, ...],
@@ -183,16 +178,22 @@ class ClonalInheritance:
 
         return offspring_genome
 
-    def transmit(
+    def propagate(
         self,
-        parent_states: tuple[Genome, ...],
+        source_states: tuple[Genome, ...],
         *,
+        recipient: object,
         context: GeneticArchitecture,
         rng: random.Random,
     ) -> Genome:
-        """Transmit genomes through the domain-neutral evolution contract."""
+        """Propagate a clonal genome through the domain-neutral contract.
+
+        ``recipient`` is intentionally unused because current clonal inheritance
+        is recipient-independent. The generic contract still supplies it so
+        other propagation models may make recipient-specific decisions.
+        """
         return self.inherit(
-            parent_states,
+            source_states,
             genetic_architecture=context,
             rng=rng,
         )
@@ -214,11 +215,6 @@ class SexualInheritance:
     def parent_count(self) -> int:
         """Return two required biological parents."""
         return 2
-
-    @property
-    def contributor_count(self) -> int:
-        """Return two contributing heritable states through the general API."""
-        return self.parent_count
 
     def __attrs_post_init__(self) -> None:
         """Validate sexual-inheritance configuration."""
@@ -291,16 +287,22 @@ class SexualInheritance:
 
         return offspring_genome
 
-    def transmit(
+    def propagate(
         self,
-        parent_states: tuple[Genome, ...],
+        source_states: tuple[Genome, ...],
         *,
+        recipient: object,
         context: GeneticArchitecture,
         rng: random.Random,
     ) -> Genome:
-        """Transmit genomes through the domain-neutral evolution contract."""
+        """Propagate a sexual genome through the domain-neutral contract.
+
+        ``recipient`` is intentionally unused because current sexual inheritance
+        is recipient-independent. The generic contract still supplies it so
+        other propagation models may make recipient-specific decisions.
+        """
         return self.inherit(
-            parent_states,
+            source_states,
             genetic_architecture=context,
             rng=rng,
         )
