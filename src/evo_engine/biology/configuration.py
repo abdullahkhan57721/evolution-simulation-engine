@@ -29,10 +29,6 @@ GENETIC_ARCHITECTURE = ContextKey[GeneticArchitecture](
     name="genetic_architecture",
     value_type=GeneticArchitecture,
 )
-BEHAVIOR_SELECTION_MODEL = ContextKey[BehaviorSelectionModel](
-    name="behavior_selection_model",
-    value_type=BehaviorSelectionModel,
-)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -114,7 +110,7 @@ class BiologicalSimulationSpec:
         context = SimulationContext.from_mapping(
             {
                 GENETIC_ARCHITECTURE.name: self.genetic_architecture,
-                BEHAVIOR_SELECTION_MODEL.name: self.behavior_selection_model,
+                "behavior_selection_model": self.behavior_selection_model,
             }
         )
         generic_spec = SimulationSpec(
