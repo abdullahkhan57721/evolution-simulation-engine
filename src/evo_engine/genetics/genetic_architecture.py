@@ -6,6 +6,7 @@ from typing import Any
 
 import attrs
 
+from evo_engine.context import ContextKey
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.locus import Locus
@@ -253,3 +254,9 @@ class GeneticArchitecture:
                 for trait in self.traits
             )
         )
+
+
+GENETIC_ARCHITECTURE = ContextKey[GeneticArchitecture](
+    name="genetic_architecture",
+    value_type=GeneticArchitecture,
+)
