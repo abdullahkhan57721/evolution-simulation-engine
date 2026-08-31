@@ -7,6 +7,7 @@ from typing import ClassVar
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.behavior import ENERGY_ACQUISITION, behavior_is_allowed
 from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
@@ -17,6 +18,7 @@ from evo_engine.genetics.requirements import (
 from evo_engine.predation import LargerPredatorEligibility, NeutralPredationPreference
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import attrs_validators
+from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
 from evo_engine.world.organism import Organism
@@ -42,9 +44,9 @@ class Predation:
     declared callback dependencies, preserving support for ordinary functions
     and lambdas while enabling structured trait-aware policies.
 
-    Predation retains the biological meaning of killing prey. Structural
-    removal of that prey from active state is delegated to ``departure_model``
-    so generic entity departure remains independent of mortality semantics.
+    Predation retains the biological meaning of killing prey. Read access and
+    structural removal are delegated independently so the process does not own
+    world storage mechanics and generic departure remains independent of death.
 
     Attributes:
         neighborhood: Spatial neighborhood within which predation is possible.
@@ -56,6 +58,7 @@ class Predation:
         required_traits: Additional genetic phenotype traits read by opaque
             custom callbacks. Trait-aware policy objects contribute their own
             requirements automatically.
+        access_model: Policy providing read-only access to active organisms.
         departure_model: Policy removing killed prey from active world state
             during mechanical application.
     """
@@ -80,14 +83,24 @@ class Predation:
     required_traits: frozenset[str] = attrs.field(
         factory=frozenset,
     )
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
     departure_model: EntityDepartureModel[int, WorldState, Organism] = attrs.field(
         factory=WorldOrganismDeparture,
     )
 
     def __attrs_post_init__(self) -> None:
         """Validate policies and aggregate genetic phenotype dependencies."""
-        if not callable(getattr(self.departure_model, "depart", None)):
-            raise TypeError("departure_model must provide a callable depart method.")
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.departure_model, "depart", "departure_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
 
         declared_requirements = validate_required_traits(
             self.required_traits,
@@ -148,7 +161,7 @@ class Predation:
     ) -> list[Predation.Event]:
         """Propose behaviorally selected, feasible predation events."""
         world = simulation_state.world
-        organisms = tuple(world.organisms.values())
+        organisms = self.access_model.entities(state=world)
         events: list[Predation.Event] = []
 
         for predator in organisms:
@@ -277,7 +290,10 @@ class Predation:
     ) -> None:
         """Apply a resolved Predation event."""
         world = simulation_state.world
-        predator = world.organisms[resolved_event.predator_id]
+        predator = self.access_model.get(
+            resolved_event.predator_id,
+            state=world,
+        )
 
         self.departure_model.depart(
             resolved_event.prey_id,

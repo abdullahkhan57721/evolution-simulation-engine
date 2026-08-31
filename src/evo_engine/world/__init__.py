@@ -1,5 +1,6 @@
 """World entities and mutable world state."""
 
+from evo_engine.world.access import WorldOrganismAccess
 from evo_engine.world.admission import WorldOrganismAdmission
 from evo_engine.world.carcass import Carcass
 from evo_engine.world.departure import WorldOrganismDeparture
@@ -11,6 +12,7 @@ __all__ = [
     "Carcass",
     "EnvironmentalField",
     "Organism",
+    "WorldOrganismAccess",
     "WorldOrganismAdmission",
     "WorldOrganismDeparture",
     "WorldState",
