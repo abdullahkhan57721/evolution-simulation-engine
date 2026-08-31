@@ -4,21 +4,57 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
+from evo_engine.departure import EntityDepartureModel
 from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.validation import attrs_validators
+from evo_engine.world.access import WorldCarcassAccess
+from evo_engine.world.carcass import Carcass
+from evo_engine.world.departure import WorldCarcassDeparture
+from evo_engine.world.reference import WorldCarcassReference
+from evo_engine.world.world_state import WorldState
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class Decomposition:
     """Represent the Decomposition simulation process.
 
+    Carcass storage mechanics are delegated through the same domain-neutral
+    access, reference, and departure contracts used by other entity types.
+
     Attributes:
         amount: Maximum carcass resource units decomposed per carcass per step.
+        access_model: Policy providing read-only access to active carcasses.
+        reference_model: Policy deriving references for active carcasses.
+        departure_model: Policy removing exhausted carcasses from world state.
     """
 
     amount: int = attrs.field(
         validator=attrs_validators.validate_int_ge(0),
     )
+    access_model: EntityAccessModel[int, WorldState, Carcass] = attrs.field(
+        factory=WorldCarcassAccess,
+    )
+    reference_model: EntityReferenceModel[Carcass, WorldState, int] = attrs.field(
+        factory=WorldCarcassReference,
+    )
+    departure_model: EntityDepartureModel[int, WorldState, Carcass] = attrs.field(
+        factory=WorldCarcassDeparture,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate configured carcass lifecycle policies."""
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
+            (self.departure_model, "depart", "departure_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
 
     @property
     def event_type(self) -> type[Decomposition.Event]:
@@ -31,7 +67,7 @@ class Decomposition:
 
         Attributes:
             step_index: Simulation step associated with the event.
-            carcass_id: ID of the decomposing carcass.
+            carcass_id: Reference of the decomposing carcass.
             x: Horizontal coordinate of the carcass.
             y: Vertical coordinate of the carcass.
             amount: Resource units decomposed during the event.
@@ -69,9 +105,10 @@ class Decomposition:
         Returns:
             Proposed Decomposition events.
         """
+        world = simulation_state.world
         events: list[Decomposition.Event] = []
 
-        for carcass in simulation_state.world.carcasses.values():
+        for carcass in self.access_model.entities(state=world):
             amount = min(
                 self.amount,
                 carcass.resource_units,
@@ -80,7 +117,10 @@ class Decomposition:
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    carcass_id=carcass.id,
+                    carcass_id=self.reference_model.reference(
+                        carcass,
+                        state=world,
+                    ),
                     x=carcass.x,
                     y=carcass.y,
                     amount=amount,
@@ -97,15 +137,18 @@ class Decomposition:
         """Apply a resolved Decomposition event.
 
         Decomposed carcass resource units become environmental resource units.
-        A carcass is removed when no resource units remain.
+        A carcass is removed through the configured departure policy when no
+        resource units remain.
 
         Args:
             simulation_state: Current simulation state.
             resolved_event: Resolved Decomposition event to apply.
         """
         world = simulation_state.world
-
-        carcass = world.carcasses[resolved_event.carcass_id]
+        carcass = self.access_model.get(
+            resolved_event.carcass_id,
+            state=world,
+        )
 
         if resolved_event.amount > 0:
             carcass.resource_units -= resolved_event.amount
@@ -117,4 +160,7 @@ class Decomposition:
             )
 
         if carcass.resource_units == 0:
-            world.remove_carcass(resolved_event.carcass_id)
+            self.departure_model.depart(
+                resolved_event.carcass_id,
+                state=world,
+            )
