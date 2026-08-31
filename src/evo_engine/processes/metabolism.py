@@ -4,10 +4,16 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.energetics.metabolism import MetabolicCostModel
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics.requirements import collect_required_traits
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.validation import attrs_validators, validators
+from evo_engine.world.access import WorldOrganismAccess
+from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
+from evo_engine.world.world_state import WorldState
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -16,13 +22,34 @@ class Metabolism:
 
     The process determines when metabolic expenditure occurs. The configured
     cost model determines how much energy each organism spends, keeping the
-    biological scaling law independent of engine orchestration.
+    biological scaling law independent of engine orchestration. Read access and
+    reference derivation are delegated independently from metabolic semantics.
 
     Attributes:
         cost_model: Model used to calculate per-organism metabolic cost.
+        access_model: Policy providing read-only access to active organisms.
+        reference_model: Policy deriving stable references for active organisms.
     """
 
     cost_model: MetabolicCostModel
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate configured entity policies."""
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
 
     @property
     def required_traits(self) -> frozenset[str]:
@@ -71,8 +98,9 @@ class Metabolism:
             ValueError: If the cost model returns a negative cost.
         """
         events: list[Metabolism.Event] = []
+        world = simulation_state.world
 
-        for organism in simulation_state.world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             energy_cost = self.cost_model.calculate_cost(
                 organism,
                 simulation_state,
@@ -86,7 +114,10 @@ class Metabolism:
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    organism_id=organism.id,
+                    organism_id=self.reference_model.reference(
+                        organism,
+                        state=world,
+                    ),
                     energy_cost=energy_cost,
                 )
             )
@@ -107,7 +138,10 @@ class Metabolism:
             simulation_state: Current simulation state.
             resolved_event: Resolved Metabolism event to apply.
         """
-        organism = simulation_state.world.organisms[resolved_event.organism_id]
+        organism = self.access_model.get(
+            resolved_event.organism_id,
+            state=simulation_state.world,
+        )
 
         organism.energy = max(
             0,

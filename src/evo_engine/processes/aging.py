@@ -4,12 +4,46 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.access import EntityAccessModel
 from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.validation import attrs_validators
+from evo_engine.world.access import WorldOrganismAccess
+from evo_engine.world.organism import Organism
+from evo_engine.world.reference import WorldOrganismReference
+from evo_engine.world.world_state import WorldState
 
 
+@attrs.frozen(slots=True, kw_only=True)
 class Aging:
-    """Represent the Aging simulation process."""
+    """Represent the Aging simulation process.
+
+    Read access and reference derivation are delegated so aging retains only
+    the biological meaning of increasing organism age.
+
+    Attributes:
+        access_model: Policy providing read-only access to active organisms.
+        reference_model: Policy deriving stable references for active organisms.
+    """
+
+    access_model: EntityAccessModel[int, WorldState, Organism] = attrs.field(
+        factory=WorldOrganismAccess,
+    )
+    reference_model: EntityReferenceModel[Organism, WorldState, int] = attrs.field(
+        factory=WorldOrganismReference,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate configured entity policies."""
+        for policy, method_name, policy_name in (
+            (self.access_model, "get", "access_model"),
+            (self.access_model, "entities", "access_model"),
+            (self.reference_model, "reference", "reference_model"),
+        ):
+            if not callable(getattr(policy, method_name, None)):
+                raise TypeError(
+                    f"{policy_name} must provide a callable {method_name} method."
+                )
 
     @property
     def event_type(self) -> type[Aging.Event]:
@@ -47,12 +81,16 @@ class Aging:
             Proposed Aging events.
         """
         events: list[Aging.Event] = []
+        world = simulation_state.world
 
-        for organism in simulation_state.world.organisms.values():
+        for organism in self.access_model.entities(state=world):
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    organism_id=organism.id,
+                    organism_id=self.reference_model.reference(
+                        organism,
+                        state=world,
+                    ),
                 )
             )
 
@@ -69,6 +107,9 @@ class Aging:
             simulation_state: Current simulation state.
             resolved_event: Resolved Aging event to apply.
         """
-        organism = simulation_state.world.organisms[resolved_event.organism_id]
+        organism = self.access_model.get(
+            resolved_event.organism_id,
+            state=simulation_state.world,
+        )
 
         organism.age += 1
