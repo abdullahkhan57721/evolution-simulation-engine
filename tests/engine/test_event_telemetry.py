@@ -1,4 +1,4 @@
-"""Tests for SimulationEngine committed event telemetry integration."""
+"""Tests for domain-neutral SimulationEngine telemetry integration."""
 
 from __future__ import annotations
 
@@ -10,109 +10,101 @@ from evo_engine.engine import (
     SequentialStepCoordinator,
     Simulation,
     SimulationEngine,
+    SimulationState,
     StageCoordinator,
 )
-from evo_engine.observation import EventRecorder
 from evo_engine.resolvers import AcceptAll
-from evo_engine.world import ResourcesChanged, WorldState
-from tests.helpers import make_empty_architecture
+from evo_engine.telemetry import StepTelemetry
+from tests.engine.helpers import CounterState, IncrementProcess
 
 
-@attrs.frozen(slots=True, kw_only=True)
-class AddResourceProcess:
-    """Add one resource unit for telemetry tests."""
+class RecordingTelemetryObserver:
+    """Record selected committed step telemetry."""
 
-    @attrs.frozen(slots=True, kw_only=True)
-    class Event:
-        """Resource-addition event."""
+    def __init__(self, *, minimum_step: int = 0) -> None:
+        self.minimum_step = minimum_step
+        self.records: list[StepTelemetry] = []
 
-        step_index: int
-        amount: int = 1
+    def should_observe_telemetry(self, telemetry: StepTelemetry) -> bool:
+        return telemetry.completed_step_index >= self.minimum_step
 
-    @property
-    def event_type(self) -> type[Event]:
-        """Return event type."""
-        return self.Event
-
-    def propose_events(self, simulation_state):
-        """Propose one resource addition."""
-        return [self.Event(step_index=simulation_state.step_index)]
-
-    def apply_event(self, simulation_state, event) -> None:
-        """Apply one resource addition."""
-        simulation_state.world.add_resources(x=0, y=0, amount=event.amount)
+    def observe_telemetry(self, telemetry: StepTelemetry) -> None:
+        self.records.append(telemetry)
 
 
-@attrs.frozen(slots=True, kw_only=True)
-class FailingProcess:
-    """Raise after mutating the transactional working world."""
-
-    @attrs.frozen(slots=True, kw_only=True)
-    class Event:
-        """Failing event."""
-
-        step_index: int
-
-    @property
-    def event_type(self) -> type[Event]:
-        """Return event type."""
-        return self.Event
-
-    def propose_events(self, simulation_state):
-        """Propose one failing event."""
-        return [self.Event(step_index=simulation_state.step_index)]
-
-    def apply_event(self, simulation_state, event) -> None:
-        """Mutate then fail so transaction rollback can be verified."""
-        simulation_state.world.add_resources(x=0, y=0, amount=100)
-        raise RuntimeError("failed telemetry step")
-
-
-def _simulation() -> Simulation:
-    architecture = make_empty_architecture()
-    return Simulation(
-        initial_world_state=WorldState(width=1, height=1),
-        genetic_architecture=architecture,
-    )
-
-
-def test_engine_records_applied_events_only_after_commit() -> None:
-    """Test telemetry preserves committed step, process, event, and domain effects."""
-    recorder = EventRecorder()
-    engine = SimulationEngine(
+def _engine(
+    *,
+    max_steps: int,
+    telemetry_observers=(),
+) -> SimulationEngine:
+    return SimulationEngine(
         step_coordinator=SequentialStepCoordinator(
             stages=(
                 StageCoordinator(
-                    processes=(AddResourceProcess(),),
+                    processes=(IncrementProcess(),),
                     resolver=AcceptAll(),
                 ),
             )
         ),
-        stopping_condition=MaxSteps(max_steps=2),
-        telemetry_observers=(recorder,),
+        stopping_condition=MaxSteps(max_steps=max_steps),
+        telemetry_observers=telemetry_observers,
     )
-    simulation = _simulation()
 
-    engine.run(simulation)
 
-    assert tuple(step.completed_step_index for step in recorder.steps) == (1, 2)
-    assert len(recorder.events) == 2
-    first = recorder.events[0]
-    assert first.event_step_index == 0
-    assert first.stage_index == 0
-    assert first.process_name == "AddResourceProcess"
-    assert first.effects == (ResourcesChanged(x=0, y=0, before=0, after=1),)
-    assert simulation.state.world.resources[(0, 0)] == 2
+def test_engine_emits_telemetry_only_for_committed_steps() -> None:
+    """Test telemetry observers receive one record per committed step."""
+    recorder = RecordingTelemetryObserver()
+    simulation = Simulation(initial_world_state=CounterState())
+
+    _engine(
+        max_steps=2,
+        telemetry_observers=(recorder,),
+    ).run(simulation)
+
+    assert tuple(record.completed_step_index for record in recorder.records) == (1, 2)
+    assert tuple(record.events[0].event_step_index for record in recorder.records) == (
+        0,
+        1,
+    )
+    assert simulation.state.world.value == 2
 
 
 def test_failed_transaction_produces_no_committed_telemetry() -> None:
-    """Test events from a failed working copy never reach telemetry observers."""
-    recorder = EventRecorder()
+    """Test a failed working copy never reaches telemetry observers."""
+    recorder = RecordingTelemetryObserver()
+    simulation = Simulation(initial_world_state=CounterState())
+
+    @attrs.frozen(slots=True, kw_only=True)
+    class FailureEvent:
+        step_index: int
+
+    @attrs.frozen(slots=True)
+    class FailingProcess:
+        @property
+        def event_type(self) -> type[FailureEvent]:
+            return FailureEvent
+
+        def propose_events(
+            self,
+            simulation_state: SimulationState,
+        ) -> list[FailureEvent]:
+            return [FailureEvent(step_index=simulation_state.step_index)]
+
+        def apply_event(
+            self,
+            simulation_state: SimulationState,
+            event: FailureEvent,
+            /,
+        ) -> None:
+            del event
+            simulation_state.world.value = 100
+            raise RuntimeError("failed telemetry step")
+
     engine = SimulationEngine(
         step_coordinator=SequentialStepCoordinator(
             stages=(
                 StageCoordinator(
-                    processes=(AddResourceProcess(),),
+                    processes=(IncrementProcess(),),
                     resolver=AcceptAll(),
                 ),
                 StageCoordinator(
@@ -124,11 +116,32 @@ def test_failed_transaction_produces_no_committed_telemetry() -> None:
         stopping_condition=MaxSteps(max_steps=1),
         telemetry_observers=(recorder,),
     )
-    simulation = _simulation()
 
     with pytest.raises(RuntimeError, match="failed telemetry step"):
         engine.run(simulation)
 
-    assert recorder.steps == ()
+    assert recorder.records == []
     assert simulation.state.step_index == 0
-    assert simulation.state.world.resources == {}
+    assert simulation.state.world.value == 0
+
+
+def test_engine_respects_telemetry_observer_filter() -> None:
+    """Test telemetry scheduling policy remains inside the observer."""
+    recorder = RecordingTelemetryObserver(minimum_step=2)
+    simulation = Simulation(initial_world_state=CounterState())
+
+    _engine(
+        max_steps=3,
+        telemetry_observers=(recorder,),
+    ).run(simulation)
+
+    assert tuple(record.completed_step_index for record in recorder.records) == (2, 3)
+
+
+def test_engine_rejects_non_telemetry_observer_component() -> None:
+    """Test telemetry observer configuration is structurally validated."""
+    with pytest.raises(TypeError, match=r"telemetry_observers\[0\]"):
+        _engine(
+            max_steps=0,
+            telemetry_observers=(object(),),
+        )

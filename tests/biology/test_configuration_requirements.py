@@ -1,4 +1,4 @@
-"""Tests for trait requirements declared by shared behavior configuration."""
+"""Tests for biological configuration requirements moved out of kernel tests."""
 
 from __future__ import annotations
 
@@ -9,12 +9,15 @@ from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.energetics import DevelopmentalEnergyThreshold
 from evo_engine.engine import MaxSteps, SequentialStepCoordinator
 from evo_engine.genetics import ENERGY_CONSERVATION_THRESHOLD
+from evo_engine.observation import PopulationRecorder
 from evo_engine.world import WorldState
 from tests.helpers import make_empty_architecture, make_integer_architecture
 
 
 def _spec_with_behavior(
-    *, architecture, behavior_selection_model
+    *,
+    architecture,
+    behavior_selection_model,
 ) -> BiologicalSimulationSpec:
     return BiologicalSimulationSpec(
         initial_world_state=WorldState(width=2, height=2),
@@ -56,3 +59,20 @@ def test_configuration_accepts_satisfied_behavior_selection_trait() -> None:
     compiled = spec.compile()
 
     assert compiled.simulation.state.step_index == 0
+
+
+def test_configuration_preflights_observer_trait_requirements() -> None:
+    """Test observer biological dependencies fail during configuration preflight."""
+    recorder = PopulationRecorder(trait_names=("missing_trait",))
+    spec = BiologicalSimulationSpec(
+        initial_world_state=WorldState(width=1, height=1),
+        genetic_architecture=make_empty_architecture(),
+        step_coordinator=SequentialStepCoordinator(stages=()),
+        stopping_condition=MaxSteps(max_steps=0),
+        observers=(recorder,),
+    )
+
+    with pytest.raises(ValueError, match="missing_trait"):
+        spec.compile()
+
+    assert recorder.observations == ()

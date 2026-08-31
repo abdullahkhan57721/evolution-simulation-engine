@@ -1,53 +1,55 @@
-"""Tests for SimulationEngine observer integration."""
+"""Tests for SimulationEngine observer integration without domain fixtures."""
 
 from __future__ import annotations
 
+import attrs
 import pytest
 
-from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.engine import (
     MaxSteps,
     SequentialStepCoordinator,
     Simulation,
     SimulationEngine,
+    SimulationState,
     StageCoordinator,
 )
-from evo_engine.observation import PopulationRecorder
-from evo_engine.processes import Aging
 from evo_engine.resolvers import AcceptAll
-from evo_engine.world import WorldState
-from tests.helpers import make_empty_architecture, make_organism
+from tests.engine.helpers import CounterState, IncrementProcess
 
 
 class RecordingObserver:
-    """Record committed step index and first-organism age for engine tests."""
+    """Record selected committed counter states."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        every_n_steps: int = 1,
+        include_step_zero: bool = True,
+    ) -> None:
+        self.every_n_steps = every_n_steps
+        self.include_step_zero = include_step_zero
         self.records: list[tuple[int, int]] = []
 
     def should_observe(
         self,
-        world_state: WorldState,
+        world_state: CounterState,
         *,
         step_index: int,
     ) -> bool:
-        return True
+        if step_index == 0 and not self.include_step_zero:
+            return False
+        return step_index % self.every_n_steps == 0
 
     def observe(
         self,
-        world_state: WorldState,
+        world_state: CounterState,
         *,
         step_index: int,
     ) -> None:
-        self.records.append(
-            (
-                step_index,
-                world_state.organisms[0].age,
-            )
-        )
+        self.records.append((step_index, world_state.value))
 
 
-def _aging_engine(
+def _incrementing_engine(
     *,
     max_steps: int,
     observers=(),
@@ -56,7 +58,7 @@ def _aging_engine(
         step_coordinator=SequentialStepCoordinator(
             stages=(
                 StageCoordinator(
-                    processes=(Aging(),),
+                    processes=(IncrementProcess(),),
                     resolver=AcceptAll(),
                 ),
             )
@@ -66,30 +68,15 @@ def _aging_engine(
     )
 
 
-def _simulation_with_one_organism() -> Simulation:
-    architecture = make_empty_architecture()
-    world = WorldState(width=1, height=1)
-    world.add_organism(
-        make_organism(
-            genetic_architecture=architecture,
-        )
-    )
-    return Simulation(
-        initial_world_state=world,
-        genetic_architecture=architecture,
-    )
-
-
 def test_engine_observes_step_zero_and_each_committed_step() -> None:
-    """Test observers see the baseline and only authoritative post-step states."""
-    simulation = _simulation_with_one_organism()
+    """Test observers see the baseline and authoritative post-step states."""
+    simulation = Simulation(initial_world_state=CounterState())
     observer = RecordingObserver()
-    engine = _aging_engine(
+
+    _incrementing_engine(
         max_steps=2,
         observers=(observer,),
-    )
-
-    engine.run(simulation)
+    ).run(simulation)
 
     assert observer.records == [
         (0, 0),
@@ -100,18 +87,18 @@ def test_engine_observes_step_zero_and_each_committed_step() -> None:
 
 def test_engine_does_not_observe_failed_transactional_step() -> None:
     """Test observers never see a working state from a failed step."""
-    simulation = _simulation_with_one_organism()
+    simulation = Simulation(initial_world_state=CounterState())
     observer = RecordingObserver()
 
-    class FailingStage:
-        def coordinate(self, simulation_state) -> None:
-            simulation_state.world.organisms[0].age = 99
+    @attrs.frozen(slots=True)
+    class FailingCoordinator:
+        def coordinate(self, simulation_state: SimulationState) -> SimulationState:
+            working_state = simulation_state.copy()
+            working_state.world.value = 99
             raise RuntimeError("failed step")
 
     engine = SimulationEngine(
-        step_coordinator=SequentialStepCoordinator(
-            stages=(FailingStage(),),  # type: ignore[arg-type]
-        ),
+        step_coordinator=FailingCoordinator(),
         stopping_condition=MaxSteps(max_steps=1),
         observers=(observer,),
     )
@@ -121,59 +108,32 @@ def test_engine_does_not_observe_failed_transactional_step() -> None:
 
     assert observer.records == [(0, 0)]
     assert simulation.state.step_index == 0
-    assert simulation.state.world.organisms[0].age == 0
-
-
-def test_configuration_preflights_observer_trait_requirements() -> None:
-    """Test observer biological dependencies fail during configuration preflight."""
-    architecture = make_empty_architecture()
-    world = WorldState(width=1, height=1)
-    world.add_organism(
-        make_organism(
-            genetic_architecture=architecture,
-        )
-    )
-    recorder = PopulationRecorder(
-        trait_names=("missing_trait",),
-    )
-    spec = BiologicalSimulationSpec(
-        initial_world_state=world,
-        genetic_architecture=architecture,
-        step_coordinator=SequentialStepCoordinator(stages=()),
-        stopping_condition=MaxSteps(max_steps=0),
-        observers=(recorder,),
-    )
-
-    with pytest.raises(ValueError, match="missing_trait"):
-        spec.compile()
-
-    assert recorder.observations == ()
+    assert simulation.state.world.value == 0
 
 
 def test_engine_rejects_non_observer_component() -> None:
     """Test observer configuration is structurally validated."""
     with pytest.raises(TypeError, match=r"observers\[0\]"):
-        _aging_engine(
+        _incrementing_engine(
             max_steps=0,
             observers=(object(),),
         )
 
 
-def test_engine_respects_observer_schedule() -> None:
-    """Test observer-specific scheduling remains outside engine policy."""
-    simulation = _simulation_with_one_organism()
-    recorder = PopulationRecorder(
+def test_engine_respects_observer_owned_schedule() -> None:
+    """Test scheduling policy remains inside the observer."""
+    simulation = Simulation(initial_world_state=CounterState())
+    observer = RecordingObserver(
         every_n_steps=2,
         include_step_zero=False,
     )
-    engine = _aging_engine(
+
+    _incrementing_engine(
         max_steps=5,
-        observers=(recorder,),
-    )
+        observers=(observer,),
+    ).run(simulation)
 
-    engine.run(simulation)
-
-    assert tuple(observation.step_index for observation in recorder.observations) == (
-        2,
-        4,
-    )
+    assert observer.records == [
+        (2, 2),
+        (4, 4),
+    ]
