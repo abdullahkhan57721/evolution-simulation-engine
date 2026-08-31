@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import assert_type
+
 import attrs
 import pytest
 
@@ -80,11 +82,14 @@ def test_generic_preflight_accepts_explicit_domain_capability() -> None:
 
 
 def test_typed_context_key_validates_service_type() -> None:
-    """Test typed keys validate runtime service types at the context boundary."""
+    """Test typed keys preserve static types and validate runtime service types."""
     key = ContextKey(name="population_size", value_type=int)
     context = SimulationContext.from_mapping({"population_size": 12})
 
-    assert context.require(key) == 12
+    population_size = context.require(key)
+    assert_type(population_size, int)
+    assert population_size == 12
+    assert_type(context.get(key), int | None)
 
     wrong_context = SimulationContext.from_mapping({"population_size": "twelve"})
     with pytest.raises(TypeError, match="population_size"):
