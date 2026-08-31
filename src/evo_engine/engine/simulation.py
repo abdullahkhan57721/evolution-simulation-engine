@@ -66,6 +66,10 @@ class Simulation:
     def __getattr__(self, name: str) -> Any:
         """Resolve domain configuration from the generic context service map."""
         try:
-            return self.context.require(name)
+            state = object.__getattribute__(self, "state")
+        except AttributeError:
+            raise AttributeError(name) from None
+        try:
+            return state.context.require(name)
         except KeyError as error:
             raise AttributeError(name) from error
