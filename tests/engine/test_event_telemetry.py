@@ -14,8 +14,7 @@ from evo_engine.engine import (
 )
 from evo_engine.observation import EventRecorder
 from evo_engine.resolvers import AcceptAll
-from evo_engine.telemetry import ResourcesChanged
-from evo_engine.world import WorldState
+from evo_engine.world import ResourcesChanged, WorldState
 from tests.helpers import make_empty_architecture
 
 
@@ -78,7 +77,7 @@ def _simulation() -> Simulation:
 
 
 def test_engine_records_applied_events_only_after_commit() -> None:
-    """Test telemetry preserves committed step, process, event, and world effects."""
+    """Test telemetry preserves committed step, process, event, and domain effects."""
     recorder = EventRecorder()
     engine = SimulationEngine(
         step_coordinator=SequentialStepCoordinator(
@@ -102,7 +101,7 @@ def test_engine_records_applied_events_only_after_commit() -> None:
     assert first.event_step_index == 0
     assert first.stage_index == 0
     assert first.process_name == "AddResourceProcess"
-    assert first.world_mutations == (ResourcesChanged(x=0, y=0, before=0, after=1),)
+    assert first.effects == (ResourcesChanged(x=0, y=0, before=0, after=1),)
     assert simulation.state.world.resources[(0, 0)] == 2
 
 
