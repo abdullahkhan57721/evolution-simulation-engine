@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 from collections.abc import Mapping
 
+from evo_engine.behavior import UnrestrictedBehavior
 from evo_engine.development import DevelopmentalProfile
 from evo_engine.engine import SimulationState
 from evo_engine.genetics import (
@@ -134,7 +135,7 @@ def make_state(
     genetic_architecture: GeneticArchitecture | None = None,
     seed: int = 1,
 ) -> SimulationState:
-    """Return an empty simulation state for a test."""
+    """Return an empty biological simulation state for a test."""
     if genetic_architecture is None:
         genetic_architecture = make_empty_architecture()
 
@@ -144,6 +145,7 @@ def make_state(
             height=height,
         ),
         genetic_architecture=genetic_architecture,
+        behavior_selection_model=UnrestrictedBehavior(),
         rng=random.Random(seed),
     )
 
