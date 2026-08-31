@@ -118,7 +118,7 @@ class Observer(Protocol):
 
     def should_observe(
         self,
-        world_state: Any,
+        domain_state: Any,
         *,
         step_index: int,
     ) -> bool:
@@ -127,7 +127,7 @@ class Observer(Protocol):
 
     def observe(
         self,
-        world_state: Any,
+        domain_state: Any,
         *,
         step_index: int,
     ) -> None:
