@@ -52,7 +52,10 @@ from evo_engine.genetics.gamete_formation import (
     GameteFormation,
     MeioticGameteFormation,
 )
-from evo_engine.genetics.genetic_architecture import GeneticArchitecture
+from evo_engine.genetics.genetic_architecture import (
+    GENETIC_ARCHITECTURE,
+    GeneticArchitecture,
+)
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.inheritance import (
@@ -90,6 +93,7 @@ __all__ = [
     "ENDURANCE",
     "ENERGY_CONSERVATION_THRESHOLD",
     "ENERGY_RESERVE",
+    "GENETIC_ARCHITECTURE",
     "GROWTH_RATE",
     "LOCOMOTION_COST_COEFFICIENT",
     "MATE_SEARCH_RANGE",
