@@ -159,6 +159,16 @@ class DispatchProcess:
         simulation_state.world.complete_job(event.job_name, ticket=event.ticket)
 
 
+def _dispatch_priority(event: DispatchProposal) -> int:
+    """Return one dispatch proposal's preference score."""
+    return event.priority
+
+
+def _dispatch_machine_keys(event: DispatchProposal) -> tuple[str, ...]:
+    """Return the machine-capacity key claimed by one dispatch proposal."""
+    return (event.machine,)
+
+
 @attrs.frozen(slots=True)
 class MachineCapacityResolver:
     """Allow one accepted job per machine in each dispatch stage."""
@@ -173,8 +183,8 @@ class MachineCapacityResolver:
         return resolve_capacity_preference_order(
             proposed_events,
             event_type=DispatchProposal,
-            preference_score=lambda event: event.priority,
-            participant_keys=lambda event: (event.machine,),
+            preference_score=_dispatch_priority,
+            participant_keys=_dispatch_machine_keys,
             max_events_per_key=1,
             resolver_name=type(self).__name__,
         )
