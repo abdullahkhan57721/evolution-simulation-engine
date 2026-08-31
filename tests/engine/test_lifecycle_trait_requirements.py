@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from evo_engine.biology import build_standard_lifecycle
-from evo_engine.configuration import SimulationSpec
+from evo_engine.biology import BiologicalSimulationSpec, build_standard_lifecycle
 from evo_engine.energetics import FixedMetabolicCost
 from evo_engine.engine import MaxSteps, StageCoordinator
 from evo_engine.genetics import MAXIMUM_AGE
@@ -33,8 +32,8 @@ def _developmental_lifespan_lifecycle():
     )
 
 
-def _lifespan_spec(*, architecture) -> SimulationSpec:
-    return SimulationSpec(
+def _lifespan_spec(*, architecture) -> BiologicalSimulationSpec:
+    return BiologicalSimulationSpec(
         initial_world_state=WorldState(width=2, height=2),
         genetic_architecture=architecture,
         step_coordinator=_developmental_lifespan_lifecycle(),
