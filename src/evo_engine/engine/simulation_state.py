@@ -116,7 +116,11 @@ class SimulationState:
         with stable namespaced service identifiers.
         """
         try:
-            return self.context.require(name)
+            context = object.__getattribute__(self, "context")
+        except AttributeError:
+            raise AttributeError(name) from None
+        try:
+            return context.require(name)
         except KeyError as error:
             raise AttributeError(name) from error
 
