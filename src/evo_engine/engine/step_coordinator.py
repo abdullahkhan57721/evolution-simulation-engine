@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import attrs
-
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.engine.stage_coordinator import StageCoordinator
 from evo_engine.telemetry import AppliedEvent, StepTelemetry
@@ -46,13 +44,9 @@ class SequentialStepCoordinator:
         for stage_index, stage in enumerate(self.stages):
             stage_events = stage.coordinate(
                 simulation_state=working_state,
+                stage_index=stage_index,
             )
-            if stage_events is None:
-                continue
-
-            applied_events.extend(
-                attrs.evolve(event, stage_index=stage_index) for event in stage_events
-            )
+            applied_events.extend(stage_events)
 
         working_state.step_index += 1
         working_state.last_step_telemetry = StepTelemetry(
