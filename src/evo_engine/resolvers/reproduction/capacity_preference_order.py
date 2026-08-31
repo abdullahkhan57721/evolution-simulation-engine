@@ -9,6 +9,7 @@ import attrs
 from evo_engine.engine.protocols import SimulationEvent
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.processes.reproduction import Reproduction
+from evo_engine.resolvers._preference_order import resolve_capacity_preference_order
 from evo_engine.validation import attrs_validators
 
 
@@ -23,6 +24,10 @@ class CapacityPreferenceOrder:
     ``max_events_per_parent=1`` reproduces exclusive-parent resolution. Larger
     capacities permit mating systems in which an individual may participate in
     multiple successful reproductive events during one lifecycle stage.
+
+    The greedy capacity algorithm itself is domain-neutral; this adapter only
+    maps Reproduction proposal preference and parent references into that
+    generic conflict-resolution primitive.
 
     Attributes:
         max_events_per_parent: Maximum accepted reproductive events involving
@@ -39,24 +44,11 @@ class CapacityPreferenceOrder:
         proposed_events: Sequence[SimulationEvent],
     ) -> list[Reproduction.Proposal]:
         """Return preferred proposals that fit every parent's stage capacity."""
-        proposals: list[tuple[int, Reproduction.Proposal]] = []
-        for index, event in enumerate(proposed_events):
-            if not isinstance(event, Reproduction.Proposal):
-                raise TypeError(
-                    f"{type(self).__name__} requires Reproduction.Proposal events."
-                )
-            proposals.append((index, event))
-
-        proposals.sort(key=lambda indexed: (-indexed[1].preference_score, indexed[0]))
-        accepted: list[Reproduction.Proposal] = []
-        counts: dict[int, int] = {}
-        for _, proposal in proposals:
-            if any(
-                counts.get(parent_id, 0) >= self.max_events_per_parent
-                for parent_id in proposal.parent_ids
-            ):
-                continue
-            accepted.append(proposal)
-            for parent_id in proposal.parent_ids:
-                counts[parent_id] = counts.get(parent_id, 0) + 1
-        return accepted
+        return resolve_capacity_preference_order(
+            proposed_events,
+            event_type=Reproduction.Proposal,
+            preference_score=lambda proposal: proposal.preference_score,
+            participant_keys=lambda proposal: proposal.parent_ids,
+            max_events_per_key=self.max_events_per_parent,
+            resolver_name=type(self).__name__,
+        )
