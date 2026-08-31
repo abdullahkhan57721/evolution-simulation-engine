@@ -8,7 +8,10 @@ from types import MappingProxyType
 
 import attrs
 
-from evo_engine.telemetry import (
+from evo_engine.validation import attrs_validators, validators
+from evo_engine.world.carcass import Carcass
+from evo_engine.world.environment import EnvironmentalField
+from evo_engine.world.mutations import (
     CarcassAdded,
     CarcassRemoved,
     EnvironmentalValueChanged,
@@ -18,9 +21,6 @@ from evo_engine.telemetry import (
     ResourcesChanged,
     WorldMutation,
 )
-from evo_engine.validation import attrs_validators, validators
-from evo_engine.world.carcass import Carcass
-from evo_engine.world.environment import EnvironmentalField
 from evo_engine.world.organism import Organism
 
 
