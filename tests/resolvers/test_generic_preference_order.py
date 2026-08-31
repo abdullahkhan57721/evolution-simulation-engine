@@ -81,7 +81,9 @@ def test_exclusive_preference_order_rejects_duplicate_conflict_keys() -> None:
         resolve_jobs([duplicate])
 
 
-def test_capacity_preference_order_allows_repeated_resource_use_up_to_capacity() -> None:
+def test_capacity_preference_order_allows_repeated_resource_use_up_to_capacity() -> (
+    None
+):
     """Test a named resource may participate in multiple accepted events."""
     first = JobProposal(
         step_index=0,
