@@ -55,17 +55,24 @@ class AppliedEvent:
         )
 
     @classmethod
-    def _from_validated(
+    def _from_kernel_values(
         cls,
         *,
-        event_step_index: int,
+        event_step_index: object,
         stage_index: int,
         process_type: str,
         event_type: str,
         event: object,
         effects: tuple[object, ...],
     ) -> Self:
-        """Construct from values already validated by trusted kernel orchestration."""
+        """Construct from kernel-owned metadata and validate event-carried index."""
+        if type(event_step_index) is not int or event_step_index < 0:
+            event_step_index = validators.validate_int_ge(
+                value=event_step_index,
+                bound=0,
+                name="AppliedEvent.event_step_index",
+            )
+
         instance = object.__new__(cls)
         object.__setattr__(instance, "event_step_index", event_step_index)
         object.__setattr__(instance, "stage_index", stage_index)
