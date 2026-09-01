@@ -122,7 +122,9 @@ def _measure_scenario(
     print(f"completed steps:         {benchmark.outcome.completed_steps}")
     print(f"median seconds:          {benchmark.median_seconds:.6f}")
     print(f"median seconds / step:   {benchmark.median_seconds_per_step:.6f}")
-    print(f"min / max seconds:       {benchmark.minimum_seconds:.6f} / {benchmark.maximum_seconds:.6f}")
+    print(
+        f"min / max seconds:       {benchmark.minimum_seconds:.6f} / {benchmark.maximum_seconds:.6f}"
+    )
     print(f"profile total calls:     {profile.total_calls}")
     print(f"profile primitive calls: {profile.primitive_calls}")
     print(f"profile CPU seconds:     {profile.total_seconds:.6f}")
