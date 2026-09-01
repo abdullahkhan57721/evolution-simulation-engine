@@ -62,7 +62,8 @@ class SimulationContext:
 
     Construct an empty context directly or use :meth:`from_mapping` to bind
     named services. The storage representation is intentionally private so it
-    may change without expanding the public kernel API.
+    may change without expanding the public kernel API. Successful typed
+    lookups are memoized internally because the bound services cannot change.
     """
 
     _values: tuple[_ContextValue, ...] = attrs.field(
@@ -70,6 +71,12 @@ class SimulationContext:
         init=False,
         repr=False,
         validator=attrs.validators.instance_of(tuple),
+    )
+    _typed_cache: dict[ContextKey[Any], object] = attrs.field(
+        factory=dict,
+        init=False,
+        repr=False,
+        eq=False,
     )
 
     @classmethod
@@ -94,15 +101,24 @@ class SimulationContext:
 
     def require(self, key: str | ContextKey[T]) -> Any | T:
         """Return a required domain configuration service."""
-        name = key.name if isinstance(key, ContextKey) else key
+        typed_key = key if isinstance(key, ContextKey) else None
+        if typed_key is not None:
+            try:
+                return cast(T, self._typed_cache[typed_key])
+            except KeyError:
+                pass
+
+        name = typed_key.name if typed_key is not None else key
         if type(name) is not str:
             raise TypeError("context service name must be a string.")
         if not name.strip():
             raise ValueError("context service name must not be blank.")
         for item in self._values:
             if item.name == name:
-                if isinstance(key, ContextKey):
-                    return key.validate(item.value)
+                if typed_key is not None:
+                    value = typed_key.validate(item.value)
+                    self._typed_cache[typed_key] = value
+                    return value
                 return item.value
         raise KeyError(f"simulation context does not provide {name!r}.")
 
