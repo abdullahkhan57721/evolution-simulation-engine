@@ -38,7 +38,7 @@ Each `AppliedEvent` records:
 
 - the materialized domain event itself;
 - its event step index;
-- its zero-based lifecycle stage index;
+- its zero-based update-stage index;
 - the fully qualified process and event types;
 - opaque domain effects caused by that event, in occurrence order.
 
@@ -54,8 +54,8 @@ domain can expose unrelated event data through the same envelope.
 
 ## Biological world effects
 
-`WorldState` maintains a transaction-local mutation journal. Its world-domain
-mutation records include:
+`WorldState` maintains a transaction-local journal of world mutations. Its
+world-domain mutation records include:
 
 - `OrganismAdded`, `OrganismRemoved`, and `OrganismMoved`;
 - `CarcassAdded` and `CarcassRemoved`;
@@ -63,12 +63,15 @@ mutation records include:
 - `EnvironmentalValueChanged`.
 
 These records live in `evo_engine.world`, not in the generic telemetry package.
-`StageCoordinator` treats values returned by the optional world journal as opaque
-objects and attaches them to `AppliedEvent.effects`.
+For the kernel-facing journal contract, `WorldState.effect_count` exposes the
+current checkpoint and `WorldState.effects_since(...)` returns subsequent world
+mutations as opaque domain effects. `StageCoordinator` knows only those generic
+effect-journal names; it does not depend on `WorldMutation` or any biological
+world type.
 
 The journal is cleared when a new transactional world copy is created. A stage
-captures a journal checkpoint immediately before applying each event and then
-associates only subsequent mutations with that event. This avoids repeatedly
+captures an effect checkpoint immediately before applying each event and then
+associates only subsequent effects with that event. This avoids repeatedly
 comparing complete world snapshots after every event.
 
 Biological observers perform biological interpretation. For example,
@@ -101,8 +104,8 @@ for step in recorder.steps:
 movement_events = recorder.events_for_process("Movement")
 ```
 
-`EventRecorder.steps` preserves commit order, and each step preserves lifecycle
-stage and resolver application order.
+`EventRecorder.steps` preserves commit order, and each step preserves update-stage
+and resolver application order.
 
 ## Architectural boundary
 
