@@ -150,7 +150,7 @@ class StageCoordinator:
                 mutations_since,
             )
             applied_events.append(
-                AppliedEvent(
+                AppliedEvent._from_kernel_values(
                     event_step_index=materialized_event.step_index,
                     stage_index=stage_index,
                     process_type=process_type_name,

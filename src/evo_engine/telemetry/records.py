@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Self
+
 import attrs
 
 from evo_engine.validation import attrs_validators, validators
@@ -51,6 +53,34 @@ class AppliedEvent:
             self.effects,
             name="effects",
         )
+
+    @classmethod
+    def _from_kernel_values(
+        cls,
+        *,
+        event_step_index: object,
+        stage_index: int,
+        process_type: str,
+        event_type: str,
+        event: object,
+        effects: tuple[object, ...],
+    ) -> Self:
+        """Construct from kernel-owned metadata and validate event-carried index."""
+        if type(event_step_index) is not int or event_step_index < 0:
+            event_step_index = validators.validate_int_ge(
+                value=event_step_index,
+                bound=0,
+                name="AppliedEvent.event_step_index",
+            )
+
+        instance = object.__new__(cls)
+        object.__setattr__(instance, "event_step_index", event_step_index)
+        object.__setattr__(instance, "stage_index", stage_index)
+        object.__setattr__(instance, "process_type", process_type)
+        object.__setattr__(instance, "event_type", event_type)
+        object.__setattr__(instance, "event", event)
+        object.__setattr__(instance, "effects", effects)
+        return instance
 
     @property
     def process_name(self) -> str:
