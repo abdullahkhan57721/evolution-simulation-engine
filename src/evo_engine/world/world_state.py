@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 from collections.abc import Mapping
 from types import MappingProxyType
 
@@ -434,11 +433,45 @@ class WorldState:
         validators.validate_int_gt(value=amount, bound=0, name="amount")
 
     def copy(self) -> WorldState:
-        """Return an independent deep copy with a fresh mutation journal.
+        """Return an independent semantic copy with a fresh mutation journal.
+
+        Immutable world definitions and immutable organism genetics/developmental
+        state are intentionally shared. Mutable entity state, sparse resources,
+        environmental overrides, and allocation counters are copied explicitly.
 
         Returns:
-            Deep copy of ecological state with no transaction-local mutations.
+            Independent ecological state with no transaction-local mutations.
         """
-        copied = copy.deepcopy(self)
-        copied._mutations.clear()
+        copied = type(self)(
+            width=self.width,
+            height=self.height,
+            environmental_fields=self.environmental_fields,
+        )
+        copied._organisms = {
+            organism_id: _copy_organism(organism)
+            for organism_id, organism in self._organisms.items()
+        }
+        copied._resources = self._resources.copy()
+        copied._environmental_values = {
+            field_name: overrides.copy()
+            for field_name, overrides in self._environmental_values.items()
+        }
+        copied._next_organism_id = self._next_organism_id
+        copied._carcasses = {
+            carcass_id: _copy_carcass(carcass)
+            for carcass_id, carcass in self._carcasses.items()
+        }
+        copied._next_carcass_id = self._next_carcass_id
         return copied
+
+
+def _copy_organism(organism: Organism) -> Organism:
+    copied = attrs.evolve(organism)
+    copied._assign_id(organism.id)
+    return copied
+
+
+def _copy_carcass(carcass: Carcass) -> Carcass:
+    copied = attrs.evolve(carcass)
+    copied._assign_id(carcass.id)
+    return copied
