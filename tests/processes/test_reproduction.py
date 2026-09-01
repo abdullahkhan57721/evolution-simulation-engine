@@ -187,7 +187,7 @@ def test_apply_event_is_mechanical_and_does_not_advance_rng() -> None:
 
     assert state.rng.random() == expected_rng.random()
     assert parent.energy == 15
-    assert state.world.organisms[1].energy == 5
+    assert state.domain_state.organisms[1].energy == 5
 
 
 def test_materialize_rechecks_recorded_parent_affordability() -> None:
@@ -258,7 +258,7 @@ def test_apply_rechecks_parent_affordability_atomically() -> None:
 
     assert first.energy == 10
     assert second.energy == 2
-    assert len(state.world.organisms) == 2
+    assert len(state.domain_state.organisms) == 2
 
 
 def test_two_parent_materialization_uses_sexual_inheritance() -> None:
@@ -342,7 +342,7 @@ def test_default_reproduction_materializes_current_mass_from_adult_target() -> N
 
     process.apply_event(state, event)
 
-    assert state.world.organisms[1].body_mass == 7
+    assert state.domain_state.organisms[1].body_mass == 7
 
 
 def test_reproduction_declares_only_configured_policy_trait_dependencies() -> None:
@@ -433,7 +433,7 @@ def test_reproduction_materializes_development_after_genetic_expression() -> Non
     assert event.initial_body_mass == 11
 
     process.apply_event(state, event)
-    offspring = state.world.organisms[1]
+    offspring = state.domain_state.organisms[1]
 
     assert offspring.genetic_phenotype[ADULT_BODY_MASS] == 20
     assert offspring.developmental_profile[ADULT_BODY_MASS] == 23
