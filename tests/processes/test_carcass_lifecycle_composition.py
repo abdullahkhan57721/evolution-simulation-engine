@@ -68,7 +68,7 @@ def test_decomposition_uses_generic_carcass_lifecycle_policies() -> None:
     """Test decomposition delegates carcass reads, references, and departure."""
     state = make_state()
     carcass = Carcass(x=1, y=1, resource_units=3)
-    state.world.add_carcass(carcass)
+    state.domain_state.add_carcass(carcass)
     access = RecordingCarcassAccess(carcass)
     reference = RecordingCarcassReference()
     departure = RecordingCarcassDeparture()
@@ -85,8 +85,8 @@ def test_decomposition_uses_generic_carcass_lifecycle_policies() -> None:
     assert reference.entities == [carcass]
     assert access.references == [carcass.id]
     assert departure.references == [carcass.id]
-    assert not state.world.carcasses
-    assert state.world.resources[(1, 1)] == 3
+    assert not state.domain_state.carcasses
+    assert state.domain_state.resources[(1, 1)] == 3
 
 
 def test_starvation_delegates_carcass_admission() -> None:
@@ -99,10 +99,10 @@ def test_starvation_delegates_carcass_admission() -> None:
 
     process.apply_event(state, event)
 
-    assert organism.id not in state.world.organisms
-    assert not state.world.carcasses
+    assert organism.id not in state.domain_state.organisms
+    assert not state.domain_state.carcasses
     assert len(admission.entities) == 1
-    assert admission.states == [state.world]
+    assert admission.states == [state.domain_state]
     assert (admission.entities[0].x, admission.entities[0].y) == (1, 2)
     assert admission.entities[0].resource_units == 4
 
@@ -120,10 +120,10 @@ def test_maximum_age_mortality_delegates_carcass_admission() -> None:
 
     process.apply_event(state, event)
 
-    assert organism.id not in state.world.organisms
-    assert not state.world.carcasses
+    assert organism.id not in state.domain_state.organisms
+    assert not state.domain_state.carcasses
     assert len(admission.entities) == 1
-    assert admission.states == [state.world]
+    assert admission.states == [state.domain_state]
     assert admission.entities[0].resource_units == 6
 
 
@@ -151,9 +151,9 @@ def test_predation_delegates_carcass_admission() -> None:
 
     process.apply_event(state, event)
 
-    assert prey.id not in state.world.organisms
+    assert prey.id not in state.domain_state.organisms
     assert predator.energy == 12
-    assert not state.world.carcasses
+    assert not state.domain_state.carcasses
     assert len(admission.entities) == 1
-    assert admission.states == [state.world]
+    assert admission.states == [state.domain_state]
     assert admission.entities[0].resource_units == 2
