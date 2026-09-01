@@ -179,14 +179,14 @@ def test_environmental_mutation_is_journaled_only_for_effective_change() -> None
             EnvironmentalField(name="temperature", default_value=20),
         ),
     )
-    checkpoint = world.mutation_count
+    checkpoint = world.effect_count
 
     world.set_environmental_value("temperature", x=1, y=0, value=20)
-    assert world.mutation_count == checkpoint
+    assert world.effect_count == checkpoint
 
     world.change_environmental_value("temperature", x=1, y=0, delta=2.5)
 
-    assert world.mutations_since(checkpoint) == (
+    assert world.effects_since(checkpoint) == (
         EnvironmentalValueChanged(
             field_name="temperature",
             x=1,
@@ -257,4 +257,4 @@ def test_copy_is_transactionally_independent() -> None:
     assert world.environmental_value("temperature", x=0, y=0) == 22
     assert copied.environmental_value("temperature", x=0, y=0) == 25
     assert copied.organisms[0].genome is world.organisms[0].genome
-    assert copied.mutation_count == 2
+    assert copied.effect_count == 2

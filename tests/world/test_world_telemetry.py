@@ -10,14 +10,14 @@ def test_world_journals_effects_in_occurrence_order() -> None:
     """Test structural world changes can be read from an effect checkpoint."""
     state = make_state()
     organism = add_organism(state, x=1, y=1)
-    checkpoint = state.world.effect_count
+    checkpoint = state.domain_state.effect_count
 
-    state.world.move_organism(organism_id=organism.id, x=2, y=1)
-    state.world.add_resources(x=2, y=1, amount=5)
-    state.world.remove_resources(x=2, y=1, amount=2)
-    state.world.remove_organism(organism.id)
+    state.domain_state.move_organism(organism_id=organism.id, x=2, y=1)
+    state.domain_state.add_resources(x=2, y=1, amount=5)
+    state.domain_state.remove_resources(x=2, y=1, amount=2)
+    state.domain_state.remove_organism(organism.id)
 
-    assert state.world.effects_since(checkpoint) == (
+    assert state.domain_state.effects_since(checkpoint) == (
         OrganismMoved(
             organism_id=organism.id,
             from_x=1,
@@ -35,9 +35,9 @@ def test_world_copy_starts_fresh_effect_journal() -> None:
     """Test transactional copies preserve ecology but not prior telemetry noise."""
     state = make_state()
     organism = add_organism(state)
-    state.world.add_resources(x=0, y=0, amount=3)
+    state.domain_state.add_resources(x=0, y=0, amount=3)
 
-    copied = state.world.copy()
+    copied = state.domain_state.copy()
 
     assert copied.effect_count == 0
     assert organism.id in copied.organisms

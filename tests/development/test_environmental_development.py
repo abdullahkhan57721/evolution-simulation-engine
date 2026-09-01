@@ -29,7 +29,7 @@ def _state() -> SimulationState:
         ),
     )
     return SimulationState(
-        world=world,
+        domain_state=world,
         genetic_architecture=make_empty_architecture(),
         rng=random.Random(1),
     )
@@ -38,7 +38,7 @@ def _state() -> SimulationState:
 def test_linear_environmental_development_uses_local_exposure() -> None:
     """Test additive plasticity samples the explicit developmental location."""
     state = _state()
-    state.world.set_environmental_value("temperature", x=1, y=1, value=30)
+    state.domain_state.set_environmental_value("temperature", x=1, y=1, value=30)
     model = LinearEnvironmentalDevelopment(
         environmental_field_name="temperature",
         reference_environment=20,
@@ -59,7 +59,7 @@ def test_linear_environmental_development_uses_local_exposure() -> None:
 def test_genotype_scaled_environment_has_different_reaction_norm_slopes() -> None:
     """Test the environmental response magnitude depends on genetic value."""
     state = _state()
-    state.world.set_environmental_value("temperature", x=0, y=0, value=30)
+    state.domain_state.set_environmental_value("temperature", x=0, y=0, value=30)
     model = GenotypeScaledEnvironmentalDevelopment(
         environmental_field_name="temperature",
         reference_environment=20,
@@ -87,7 +87,7 @@ def test_genotype_scaled_environment_has_different_reaction_norm_slopes() -> Non
 def test_independent_development_propagates_location_to_trait_models() -> None:
     """Test environment-aware trait models compose with IndependentDevelopment."""
     state = _state()
-    state.world.set_environmental_value("temperature", x=1, y=0, value=24)
+    state.domain_state.set_environmental_value("temperature", x=1, y=0, value=24)
     phenotype = GeneticPhenotype(trait_values=(("size", 10), ("other", 7)))
     model = IndependentDevelopment(
         trait_models=(
@@ -115,8 +115,8 @@ def test_independent_development_propagates_location_to_trait_models() -> None:
 def test_world_mean_sampling_supports_global_developmental_exposure() -> None:
     """Test global exposure is explicit and independent of a location."""
     state = _state()
-    state.world.set_environmental_value("temperature", x=0, y=0, value=28)
-    state.world.set_environmental_value("temperature", x=1, y=0, value=24)
+    state.domain_state.set_environmental_value("temperature", x=0, y=0, value=28)
+    state.domain_state.set_environmental_value("temperature", x=1, y=0, value=24)
     model = EnvironmentalThresholdDevelopment(
         environmental_field_name="temperature",
         threshold=22,

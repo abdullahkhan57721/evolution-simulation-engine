@@ -131,7 +131,7 @@ class DispatchProcess:
                 machine=job.machine,
                 priority=job.priority,
             )
-            for job in simulation_state.world.pending_jobs.values()
+            for job in simulation_state.domain_state.pending_jobs.values()
         ]
 
     def materialize_event(
@@ -156,7 +156,7 @@ class DispatchProcess:
         /,
     ) -> None:
         """Commit one accepted dispatch to scheduling state."""
-        simulation_state.world.complete_job(event.job_name, ticket=event.ticket)
+        simulation_state.domain_state.complete_job(event.job_name, ticket=event.ticket)
 
 
 def _dispatch_priority(event: DispatchProposal) -> int:
@@ -214,8 +214,8 @@ class AuditProcess:
                 step_index=simulation_state.step_index,
                 job_name=job_name,
             )
-            for job_name in simulation_state.world.completed_jobs
-            if job_name not in simulation_state.world.audited_jobs
+            for job_name in simulation_state.domain_state.completed_jobs
+            if job_name not in simulation_state.domain_state.audited_jobs
         ]
 
     def apply_event(
@@ -225,7 +225,7 @@ class AuditProcess:
         /,
     ) -> None:
         """Commit one audit."""
-        simulation_state.world.audit_job(event.job_name)
+        simulation_state.domain_state.audit_job(event.job_name)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -236,7 +236,7 @@ class AllJobsAudited:
 
     def should_stop(self, simulation_state: SimulationState) -> bool:
         """Return whether all jobs are audited or the defensive limit is reached."""
-        domain_state = simulation_state.world
+        domain_state = simulation_state.domain_state
         all_done = (
             not domain_state.pending_jobs
             and set(domain_state.completed_jobs) == domain_state.audited_jobs
@@ -325,7 +325,7 @@ def test_complete_nonbiological_simulation_uses_public_kernel_contracts() -> Non
         )
     )
     compiled = SimulationSpec(
-        initial_world_state=initial_state,
+        initial_domain_state=initial_state,
         step_coordinator=coordinator,
         stopping_condition=AllJobsAudited(),
         seed=17,
@@ -342,19 +342,23 @@ def test_complete_nonbiological_simulation_uses_public_kernel_contracts() -> Non
 
     final_state = compiled.simulation.state
     assert final_state.step_index == 2
-    assert final_state.world.pending_jobs == {}
-    assert tuple(final_state.world.completed_jobs) == (
+    assert final_state.domain_state.pending_jobs == {}
+    assert tuple(final_state.domain_state.completed_jobs) == (
         "lathe-high",
         "mill",
         "lathe-low",
     )
-    assert final_state.world.audited_jobs == {"lathe-high", "mill", "lathe-low"}
+    assert final_state.domain_state.audited_jobs == {
+        "lathe-high",
+        "mill",
+        "lathe-low",
+    }
 
     expected_rng = random.Random(17)
     expected_tickets = tuple(
         f"JOB-{expected_rng.randrange(1000, 10000)}" for _ in range(3)
     )
-    assert tuple(final_state.world.completed_jobs.values()) == expected_tickets
+    assert tuple(final_state.domain_state.completed_jobs.values()) == expected_tickets
 
     assert tuple(snapshot.step_index for snapshot in state_observer.snapshots) == (
         0,

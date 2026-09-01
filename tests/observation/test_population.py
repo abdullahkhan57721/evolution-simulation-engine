@@ -39,12 +39,12 @@ def test_population_recorder_summarizes_world_and_integer_traits() -> None:
         mating_type="beta",
         x=1,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=0,
         y=0,
         amount=7,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=1,
         y=1,
         amount=5,
@@ -54,7 +54,7 @@ def test_population_recorder_summarizes_world_and_integer_traits() -> None:
     )
 
     recorder.observe(
-        state.world,
+        state.domain_state,
         step_index=0,
     )
 
@@ -110,7 +110,7 @@ def test_population_recorder_records_empty_population() -> None:
     recorder = PopulationRecorder()
 
     recorder.observe(
-        state.world,
+        state.domain_state,
         step_index=4,
     )
 
@@ -132,30 +132,32 @@ def test_population_recorder_observation_interval_and_step_zero() -> None:
         include_step_zero=True,
     )
 
-    assert recorder.should_observe(state.world, step_index=0)
-    recorder.observe(state.world, step_index=0)
-    assert not recorder.should_observe(state.world, step_index=0)
-    assert not recorder.should_observe(state.world, step_index=1)
-    assert recorder.should_observe(state.world, step_index=2)
+    assert recorder.should_observe(state.domain_state, step_index=0)
+    recorder.observe(state.domain_state, step_index=0)
+    assert not recorder.should_observe(state.domain_state, step_index=0)
+    assert not recorder.should_observe(state.domain_state, step_index=1)
+    assert recorder.should_observe(state.domain_state, step_index=2)
 
     recorder_without_baseline = PopulationRecorder(
         include_step_zero=False,
     )
-    assert not recorder_without_baseline.should_observe(state.world, step_index=0)
-    assert recorder_without_baseline.should_observe(state.world, step_index=1)
+    assert not recorder_without_baseline.should_observe(
+        state.domain_state, step_index=0
+    )
+    assert recorder_without_baseline.should_observe(state.domain_state, step_index=1)
 
 
 def test_population_recorder_requires_strictly_increasing_observation_steps() -> None:
     """Test manually recorded history cannot move backward or duplicate a step."""
     state = make_state()
     recorder = PopulationRecorder()
-    recorder.observe(state.world, step_index=2)
+    recorder.observe(state.domain_state, step_index=2)
 
     with pytest.raises(ValueError, match="strictly increasing"):
-        recorder.observe(state.world, step_index=2)
+        recorder.observe(state.domain_state, step_index=2)
 
     with pytest.raises(ValueError, match="strictly increasing"):
-        recorder.observe(state.world, step_index=1)
+        recorder.observe(state.domain_state, step_index=1)
 
 
 def test_population_recorder_exposes_trait_requirements_and_immutable_history() -> None:
@@ -170,7 +172,7 @@ def test_population_recorder_exposes_trait_requirements_and_immutable_history() 
         state,
         trait_values={"a": 1, "b": 2},
     )
-    recorder.observe(state.world, step_index=0)
+    recorder.observe(state.domain_state, step_index=0)
 
     assert recorder.required_traits == frozenset({"a", "b"})
     assert type(recorder.observations) is tuple
@@ -183,13 +185,13 @@ def test_population_recorder_clear_resets_history() -> None:
     """Test recorded history can be explicitly cleared for recorder reuse."""
     state = make_state()
     recorder = PopulationRecorder()
-    recorder.observe(state.world, step_index=0)
+    recorder.observe(state.domain_state, step_index=0)
 
     recorder.clear()
 
     assert recorder.observations == ()
     assert recorder.latest is None
-    assert recorder.should_observe(state.world, step_index=0)
+    assert recorder.should_observe(state.domain_state, step_index=0)
 
 
 @pytest.mark.parametrize(

@@ -30,7 +30,7 @@ def test_carcass_lifecycle_adapters_share_world_membership_semantics() -> None:
 
     assert removed is carcass
     assert not world.carcasses
-    assert world.mutation_count == 2
+    assert world.effect_count == 2
 
 
 def test_carcass_reference_is_state_local() -> None:

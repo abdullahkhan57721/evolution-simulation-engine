@@ -12,15 +12,15 @@ def test_world_organism_reference_returns_registered_id_without_mutation() -> No
     """Test world reference derivation preserves state and returns permanent ID."""
     state = make_state()
     organism = add_organism(state)
-    checkpoint = state.world.mutation_count
+    checkpoint = state.domain_state.effect_count
 
     reference = WorldOrganismReference().reference(
         organism,
-        state=state.world,
+        state=state.domain_state,
     )
 
     assert reference == organism.id
-    assert state.world.mutations_since(checkpoint) == ()
+    assert state.domain_state.effects_since(checkpoint) == ()
 
 
 def test_world_organism_reference_rejects_entity_from_another_world() -> None:
@@ -36,5 +36,5 @@ def test_world_organism_reference_rejects_entity_from_another_world() -> None:
     ):
         WorldOrganismReference().reference(
             foreign,
-            state=state.world,
+            state=state.domain_state,
         )

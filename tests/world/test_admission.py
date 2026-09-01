@@ -13,9 +13,9 @@ def test_world_organism_admission_delegates_world_entry_mechanics() -> None:
 
     WorldOrganismAdmission().admit(
         organism,
-        state=state.world,
+        state=state.domain_state,
     )
 
     assert organism.id == 0
-    assert state.world.organisms == {0: organism}
-    assert state.world.mutation_count == 1
+    assert state.domain_state.organisms == {0: organism}
+    assert state.domain_state.effect_count == 1
