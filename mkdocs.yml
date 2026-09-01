@@ -26,6 +26,7 @@ nav:
   - Allele and Genotype Frequencies: genetic_composition.md
   - Reproducible Experiments and Export: experiments.md
   - Exact Checkpoint and Resume: checkpointing.md
+  - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md
   - Development Log: development_log.md
   - API Reference:
