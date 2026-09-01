@@ -1,0 +1,82 @@
+name: Implementation milestone
+description: Implement a scoped feature, refactor, hardening task, or other code milestone.
+title: ""
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for implementation-ready work. If the public architecture is still unresolved, use the Architecture/design form first.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What concrete outcome should exist when this issue is complete?
+      placeholder: Describe the intended end state, not only the first code change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Why is this work useful or necessary now?
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: What nearby work is deliberately outside this issue?
+      placeholder: List scope boundaries that prevent this milestone from expanding unexpectedly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Architectural constraints
+      description: Which existing contracts, ADRs, dependency rules, or semantics must be preserved?
+      placeholder: Link to relevant docs/ADRs/tests when possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: contracts
+    attributes:
+      label: Proposed contracts / API
+      description: Describe public types, methods, protocols, data flow, or other agreed interfaces if relevant.
+      placeholder: Write "No public contract change" when not applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Use concrete, verifiable completion criteria.
+      placeholder: |
+        - [ ] Behavior/API implemented
+        - [ ] Edge cases covered
+        - [ ] Architecture boundaries preserved
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation required
+      description: Identify targeted tests, documentation, architecture checks, and performance evidence required for this milestone.
+      placeholder: Include the full protected quality gate unless there is a documented reason not to.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies / blockers
+      description: Which issues, PRs, decisions, or external facts must be resolved first?
+      placeholder: Write "None" if there are no known blockers.
+    validations:
+      required: true

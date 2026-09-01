@@ -1,19 +1,20 @@
 #!/usr/bin/env bash
 # Run ./scripts/check_all --help to see common wrapper and raw tool commands.
-# Run the repository's routine full quality suite.
+# Run the repository's routine local quality suite.
 #
-# Runs every check even after failures and summarizes results at the end.
-# By default, pauses after each check so you can review its output before continuing.
-# Diagnostics that are intentionally excluded because they are slow/on-demand:
-#   diagrams, benchmark, profile, memory, mutation
+# Runs every routine check even after failures and summarizes results at the end.
+# By default, pauses after each check so output can be reviewed before continuing.
+# GitHub Actions additionally runs performance/profile regression checks and
+# uploads their artifacts.
 #
 # Current routine checks:
 #   1. Ruff lint + formatting verification
 #   2. Pyright static type checking
-#   3. Import Linter architecture contracts (SKIP until configured)
-#   4. Complexipy cognitive complexity + threshold gate
-#   5. pytest with line + branch coverage
-#   6. MkDocs strict documentation build
+#   3. Import Linter architecture contracts
+#   4. Focused simulation-kernel semantic contracts
+#   5. Complexipy cognitive complexity + threshold gate
+#   6. pytest with line + branch coverage
+#   7. MkDocs strict documentation build
 #
 # Usage:
 #   ./scripts/check_all
@@ -34,7 +35,7 @@ Usage:
   COVERAGE_FAIL_UNDER=90 ./scripts/check_all
 
 Default behavior:
-  Runs all six routine checks.
+  Runs all seven routine local checks.
   After each check finishes, pauses so you can review the output.
   Press Enter when you are ready to continue to the next check.
 
@@ -46,9 +47,13 @@ Routine quality gates run by check_all:
   ./scripts/lint
   ./scripts/typecheck
   ./scripts/architecture
+  ./scripts/kernel_contracts
   ./scripts/complexity
   ./scripts/coverage
   ./scripts/docs
+
+GitHub Actions additionally runs the repository's performance/profile regression
+checks and uploads performance artifacts.
 
 Useful individual commands:
   ./scripts/lint --help
@@ -56,19 +61,13 @@ Useful individual commands:
   ./scripts/test --help
   ./scripts/coverage --help
   ./scripts/architecture --help
+  ./scripts/kernel_contracts
   ./scripts/complexity --help
   ./scripts/docs --help
 
-On-demand diagnostics not run by check_all:
-  ./scripts/diagrams --help
-  ./scripts/benchmark --help
-  ./scripts/profile --help
-  ./scripts/memory --help
-  ./scripts/mutation --help
-
 Typical workflow:
-  venv/bin/ruff check . --fix && venv/bin/ruff format .
-  ./scripts/check_all
+  ./scripts/fix
+  ./scripts/check_all --no-pause
 
 For CI/non-interactive use:
   ./scripts/check_all --no-pause
@@ -130,26 +129,30 @@ skips=0
 ruff_result=""
 pyright_result=""
 architecture_result=""
+kernel_contracts_result=""
 complexity_result=""
 coverage_result=""
 docs_result=""
 
-run_check "1/6 — RUFF" "$SCRIPT_DIR/lint" ruff_result
-pause_for_review "2/6 — PYRIGHT"
+run_check "1/7 — RUFF" "$SCRIPT_DIR/lint" ruff_result
+pause_for_review "2/7 — PYRIGHT"
 
-run_check "2/6 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
-pause_for_review "3/6 — IMPORT LINTER"
+run_check "2/7 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
+pause_for_review "3/7 — IMPORT LINTER"
 
-run_check "3/6 — IMPORT LINTER" "$SCRIPT_DIR/architecture" architecture_result
-pause_for_review "4/6 — COMPLEXIPY"
+run_check "3/7 — IMPORT LINTER" "$SCRIPT_DIR/architecture" architecture_result
+pause_for_review "4/7 — KERNEL CONTRACTS"
 
-run_check "4/6 — COMPLEXIPY" "$SCRIPT_DIR/complexity" complexity_result
-pause_for_review "5/6 — PYTEST + COVERAGE"
+run_check "4/7 — KERNEL CONTRACTS" "$SCRIPT_DIR/kernel_contracts" kernel_contracts_result
+pause_for_review "5/7 — COMPLEXIPY"
 
-run_check "5/6 — PYTEST + COVERAGE" "$SCRIPT_DIR/coverage" coverage_result
-pause_for_review "6/6 — MKDOCS"
+run_check "5/7 — COMPLEXIPY" "$SCRIPT_DIR/complexity" complexity_result
+pause_for_review "6/7 — PYTEST + COVERAGE"
 
-run_check "6/6 — MKDOCS" "$SCRIPT_DIR/docs" docs_result
+run_check "6/7 — PYTEST + COVERAGE" "$SCRIPT_DIR/coverage" coverage_result
+pause_for_review "7/7 — MKDOCS"
+
+run_check "7/7 — MKDOCS" "$SCRIPT_DIR/docs" docs_result
 pause_for_review "the final summary"
 
 separator
@@ -158,6 +161,7 @@ printf '%s\n' "=================================================================
 printf '%-20s %s\n' "Ruff" "$ruff_result"
 printf '%-20s %s\n' "Pyright" "$pyright_result"
 printf '%-20s %s\n' "Import Linter" "$architecture_result"
+printf '%-20s %s\n' "Kernel Contracts" "$kernel_contracts_result"
 printf '%-20s %s\n' "Complexipy" "$complexity_result"
 printf '%-20s %s\n' "pytest + coverage" "$coverage_result"
 printf '%-20s %s\n' "MkDocs" "$docs_result"

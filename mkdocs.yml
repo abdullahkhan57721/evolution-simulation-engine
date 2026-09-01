@@ -5,7 +5,17 @@ theme:
 
 nav:
   - Home: index.md
-  - Simulation Kernel Contract: kernel_contract.md
+  - Architecture:
+      - Overview: architecture/index.md
+      - Simulation Kernel Contract: kernel_contract.md
+      - Decisions:
+          - ADR Guide: decisions/README.md
+          - ADR Template: decisions/_template.md
+          - "0001 — Domain-neutral kernel": decisions/0001-domain-neutral-kernel.md
+          - "0002 — Stage simultaneity": decisions/0002-stage-simultaneity.md
+          - "0003 — Transactional state and RNG": decisions/0003-transactional-state-and-rng.md
+          - "0004 — Readability before micro-optimization": decisions/0004-readability-before-micro-optimization.md
+          - "0005 — Repository collaboration memory": decisions/0005-repository-collaboration-memory.md
   - General Evolution Framework: general_evolution_framework.md
   - Model Notes: model_notes.md
   - Energy Expenditure: energy_expenditure.md
