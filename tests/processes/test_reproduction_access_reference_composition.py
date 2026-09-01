@@ -86,7 +86,7 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
     ]
     assert excluded.energy == 10
     assert selected.energy == 5
-    assert len(state.world.organisms) == 3
+    assert len(state.domain_state.organisms) == 3
 
 
 def test_pairwise_mating_derives_group_ids_through_reference_policy() -> None:
