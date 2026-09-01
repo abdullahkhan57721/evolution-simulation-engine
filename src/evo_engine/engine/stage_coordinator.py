@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any
+from collections.abc import Callable, Sequence
+from typing import Any, cast
 
 from evo_engine.engine.protocols import (
     EventMaterializer,
@@ -13,6 +13,11 @@ from evo_engine.engine.protocols import (
 )
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.telemetry import AppliedEvent
+
+_MaterializerCallable = Callable[
+    [SimulationState, SimulationEvent],
+    SimulationEvent,
+]
 
 
 class StageCoordinator:
@@ -30,12 +35,24 @@ class StageCoordinator:
             type[SimulationEvent],
             Process[Any, Any],
         ] = {}
+        self._materializers_by_event_type: dict[
+            type[SimulationEvent],
+            _MaterializerCallable,
+        ] = {}
+
         for process in self.processes:
-            if process.event_type in self._processes_by_event_type:
+            event_type = process.event_type
+            if event_type in self._processes_by_event_type:
                 raise ValueError(
                     "Processes within a stage must have unique event types."
                 )
-            self._processes_by_event_type[process.event_type] = process
+
+            self._processes_by_event_type[event_type] = process
+            if isinstance(process, EventMaterializer):
+                self._materializers_by_event_type[event_type] = cast(
+                    _MaterializerCallable,
+                    process.materialize_event,
+                )
 
     def coordinate(
         self,
@@ -70,19 +87,22 @@ class StageCoordinator:
 
         materialized_events: list[tuple[Process[Any, Any], SimulationEvent]] = []
         for resolved_event in resolved_events:
-            process = self._processes_by_event_type.get(type(resolved_event))
+            event_type = type(resolved_event)
+            process = self._processes_by_event_type.get(event_type)
             if process is None:
                 raise RuntimeError(
                     "No process is registered for resolved event type "
-                    f"{type(resolved_event).__name__}."
+                    f"{event_type.__name__}."
                 )
-            if isinstance(process, EventMaterializer):
-                materialized_event = process.materialize_event(
+
+            materializer = self._materializers_by_event_type.get(event_type)
+            if materializer is None:
+                materialized_event = resolved_event
+            else:
+                materialized_event = materializer(
                     simulation_state,
                     resolved_event,
                 )
-            else:
-                materialized_event = resolved_event
             materialized_events.append((process, materialized_event))
 
         applied_events: list[AppliedEvent] = []
