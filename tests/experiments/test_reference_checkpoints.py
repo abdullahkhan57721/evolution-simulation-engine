@@ -46,7 +46,9 @@ def _assert_equivalent_ecologies(
 ) -> None:
     assert actual.config == expected.config
     assert actual.simulation.state.step_index == expected.simulation.state.step_index
-    assert actual.simulation.state.world == expected.simulation.state.world
+    assert (
+        actual.simulation.state.domain_state == expected.simulation.state.domain_state
+    )
     assert (
         actual.simulation.state.last_step_telemetry
         == expected.simulation.state.last_step_telemetry
