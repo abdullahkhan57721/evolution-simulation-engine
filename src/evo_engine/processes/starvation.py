@@ -118,7 +118,7 @@ class Starvation:
             Proposed Starvation events.
         """
         events: list[Starvation.Event] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         for organism in self.access_model.entities(state=world):
             if organism.energy != 0:
@@ -154,7 +154,7 @@ class Starvation:
             simulation_state: Current simulation state.
             resolved_event: Resolved Starvation event to apply.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         self.departure_model.depart(
             resolved_event.organism_id,

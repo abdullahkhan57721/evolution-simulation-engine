@@ -80,7 +80,7 @@ def test_biological_production_builds_but_does_not_insert_offspring() -> None:
     assert offspring.energy == 7
     assert offspring.body_mass == 2
     assert (offspring.x, offspring.y) == (4, 6)
-    assert len(state.world.organisms) == 1
+    assert len(state.domain_state.organisms) == 1
     with pytest.raises(RuntimeError):
         _ = offspring.id
 
@@ -109,9 +109,9 @@ def test_reproduction_uses_generic_propagation_before_entity_production() -> Non
 
     assert event.offspring.genome == parent.genome
     assert event.offspring.energy == 5
-    assert len(state.world.organisms) == 1
+    assert len(state.domain_state.organisms) == 1
 
     process.apply_event(state, event)
 
-    assert len(state.world.organisms) == 2
-    assert state.world.organisms[1] is event.offspring
+    assert len(state.domain_state.organisms) == 2
+    assert state.domain_state.organisms[1] is event.offspring

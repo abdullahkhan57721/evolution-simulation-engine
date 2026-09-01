@@ -42,7 +42,7 @@ def test_resource_competition_resolves_before_application() -> None:
         height=3,
     )
     simulation = Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -58,7 +58,7 @@ def test_resource_competition_resolves_before_application() -> None:
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(
+    simulation.state.domain_state.add_resources(
         x=1,
         y=1,
         amount=5,
@@ -75,7 +75,7 @@ def test_resource_competition_resolves_before_application() -> None:
 
     assert first.energy == 3
     assert second.energy == 2
-    assert (1, 1) not in simulation.state.world.resources
+    assert (1, 1) not in simulation.state.domain_state.resources
 
 
 def test_metabolism_then_starvation_across_sequential_stages() -> None:
@@ -92,7 +92,7 @@ def test_metabolism_then_starvation_across_sequential_stages() -> None:
     )
     world.add_organism(organism)
     simulation = Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -118,8 +118,10 @@ def test_metabolism_then_starvation_across_sequential_stages() -> None:
 
     simulation.state = coordinator.coordinate(simulation.state)
 
-    assert not simulation.state.world.organisms
-    assert next(iter(simulation.state.world.carcasses.values())).resource_units == 4
+    assert not simulation.state.domain_state.organisms
+    assert (
+        next(iter(simulation.state.domain_state.carcasses.values())).resource_units == 4
+    )
 
 
 def test_reproduction_materializes_only_resolved_births() -> None:
@@ -138,7 +140,7 @@ def test_reproduction_materializes_only_resolved_births() -> None:
     )
     world.add_organism(parent)
     simulation = Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
         seed=2,
@@ -160,9 +162,9 @@ def test_reproduction_materializes_only_resolved_births() -> None:
         resolver=AcceptAll(),
     ).coordinate(simulation.state)
 
-    assert len(simulation.state.world.organisms) == 2
-    assert simulation.state.world.organisms[0].energy == 15
-    assert simulation.state.world.organisms[1].energy == 5
+    assert len(simulation.state.domain_state.organisms) == 2
+    assert simulation.state.domain_state.organisms[0].energy == 15
+    assert simulation.state.domain_state.organisms[1].energy == 5
 
 
 def test_growth_then_starvation_uses_grown_body_mass_for_carcass() -> None:
@@ -180,7 +182,7 @@ def test_growth_then_starvation_uses_grown_body_mass_for_carcass() -> None:
     )
     world.add_organism(organism)
     simulation = Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -208,8 +210,8 @@ def test_growth_then_starvation_uses_grown_body_mass_for_carcass() -> None:
 
     simulation.state = coordinator.coordinate(simulation.state)
 
-    assert not simulation.state.world.organisms
-    carcass = next(iter(simulation.state.world.carcasses.values()))
+    assert not simulation.state.domain_state.organisms
+    carcass = next(iter(simulation.state.domain_state.carcasses.values()))
     assert carcass.resource_units == 5
 
 
@@ -228,7 +230,7 @@ def test_same_stage_growth_energy_oversubscription_rolls_back_step() -> None:
     )
     world.add_organism(organism)
     simulation = Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -258,7 +260,7 @@ def test_same_stage_growth_energy_oversubscription_rolls_back_step() -> None:
     with pytest.raises(RuntimeError, match="no longer affordable"):
         coordinator.coordinate(simulation.state)
 
-    authoritative = simulation.state.world.organisms[organism.id]
+    authoritative = simulation.state.domain_state.organisms[organism.id]
     assert authoritative.body_mass == 10
     assert authoritative.energy == 5
     assert simulation.state.step_index == 0

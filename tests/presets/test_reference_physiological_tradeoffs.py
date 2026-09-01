@@ -29,7 +29,7 @@ def _metabolism(config: ReferenceEcologyConfig) -> Metabolism:
 
 def _founder_cost(config: ReferenceEcologyConfig) -> int:
     simulation = build_reference_simulation(config)
-    founder = next(iter(simulation.state.world.organisms.values()))
+    founder = next(iter(simulation.state.domain_state.organisms.values()))
     return _metabolism(config).cost_model.calculate_cost(founder, simulation.state)
 
 

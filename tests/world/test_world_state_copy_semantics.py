@@ -28,7 +28,7 @@ def test_copy_shares_only_immutable_world_and_organism_state() -> None:
     assert copied_organism.genetic_phenotype is organism.genetic_phenotype
     assert copied_organism.developmental_profile is organism.developmental_profile
     assert copied_carcass is not carcass
-    assert copied.mutation_count == 0
+    assert copied.effect_count == 0
 
     copied_organism.energy = 1
     copied_carcass.resource_units = 2

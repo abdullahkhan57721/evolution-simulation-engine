@@ -140,7 +140,7 @@ def _run_reference_replicate(
 ) -> ReferenceReplicateResult:
     ecology = build_reference_ecology(config)
     ecology.engine.run(ecology.simulation)
-    world = ecology.simulation.state.world
+    world = ecology.simulation.state.domain_state
     architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
     event_counts = Counter(
         event.process_name for event in ecology.event_recorder.events

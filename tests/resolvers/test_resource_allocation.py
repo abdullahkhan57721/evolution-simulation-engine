@@ -40,7 +40,7 @@ def make_resource_state(
     state = make_state(seed=1)
     for _ in range(organism_count):
         add_organism(state)
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=0,
         y=0,
         amount=available,
@@ -129,7 +129,7 @@ def test_allocation_is_independent_between_coordinates() -> None:
         available=4,
         organism_count=2,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=1,
         y=1,
         amount=3,

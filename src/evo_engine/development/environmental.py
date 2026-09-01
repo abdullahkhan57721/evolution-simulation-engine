@@ -49,7 +49,7 @@ class LocalEnvironmentalSampling:
         """
         if location is None:
             raise ValueError("location is required for local environmental sampling.")
-        return simulation_state.world.environmental_value(
+        return simulation_state.domain_state.environmental_value(
             field_name,
             x=location.x,
             y=location.y,
@@ -68,7 +68,7 @@ class WorldMeanEnvironmentalSampling:
         location: DevelopmentLocation | None,
     ) -> int | float:
         """Return the world-wide arithmetic mean environmental exposure."""
-        world = simulation_state.world
+        world = simulation_state.domain_state
         total = sum(
             world.environmental_value(field_name, x=x, y=y)
             for y in range(world.height)

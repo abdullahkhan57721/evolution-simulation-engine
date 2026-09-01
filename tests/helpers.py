@@ -122,7 +122,7 @@ def make_state(
         }
     )
     return SimulationState(
-        world=WorldState(width=width, height=height),
+        domain_state=WorldState(width=width, height=height),
         context=context,
         rng=random.Random(seed),
     )
@@ -150,7 +150,7 @@ def add_organism(
         x=x,
         y=y,
     )
-    state.world.add_organism(organism)
+    state.domain_state.add_organism(organism)
     return organism
 
 

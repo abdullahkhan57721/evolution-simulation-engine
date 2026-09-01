@@ -40,7 +40,7 @@ def test_starvation_delegates_departure_but_retains_death_semantics() -> None:
     Starvation(departure_model=departure).apply_event(state, event)
 
     assert departure.references == [victim.id]
-    assert victim.id not in state.world.organisms
+    assert victim.id not in state.domain_state.organisms
     assert event.deceased_organism_ids == (victim.id,)
 
 
@@ -60,7 +60,7 @@ def test_maximum_age_mortality_delegates_structural_departure() -> None:
     MaximumAgeMortality(departure_model=departure).apply_event(state, event)
 
     assert departure.references == [victim.id]
-    assert victim.id not in state.world.organisms
+    assert victim.id not in state.domain_state.organisms
     assert event.deceased_organism_ids == (victim.id,)
 
 
@@ -89,5 +89,5 @@ def test_predation_delegates_prey_departure_but_retains_kill_semantics() -> None
     process.apply_event(state, event)
 
     assert departure.references == [prey.id]
-    assert prey.id not in state.world.organisms
+    assert prey.id not in state.domain_state.organisms
     assert event.deceased_organism_ids == (prey.id,)

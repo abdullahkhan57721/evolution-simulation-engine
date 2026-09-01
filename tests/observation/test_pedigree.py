@@ -55,7 +55,7 @@ def test_pedigree_recorder_tracks_birth_parentage_death_and_fitness() -> None:
     parent_a = add_organism(state, age=2)
     parent_b = add_organism(state, age=3)
     recorder = PedigreeRecorder()
-    recorder.observe(state.world, step_index=0)
+    recorder.observe(state.domain_state, step_index=0)
     child_id = max(parent_a.id, parent_b.id) + 100
 
     recorder.observe_telemetry(
@@ -112,7 +112,7 @@ def test_non_mortality_removal_does_not_become_a_death() -> None:
     state = make_state()
     organism = add_organism(state)
     recorder = PedigreeRecorder()
-    recorder.observe(state.world, step_index=0)
+    recorder.observe(state.domain_state, step_index=0)
 
     recorder.observe_telemetry(
         StepTelemetry(

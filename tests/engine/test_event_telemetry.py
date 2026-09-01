@@ -54,7 +54,7 @@ def _engine(
 def test_engine_emits_telemetry_only_for_committed_steps() -> None:
     """Test telemetry observers receive one record per committed step."""
     recorder = RecordingTelemetryObserver()
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
 
     _engine(
         max_steps=2,
@@ -66,13 +66,13 @@ def test_engine_emits_telemetry_only_for_committed_steps() -> None:
         0,
         1,
     )
-    assert simulation.state.world.value == 2
+    assert simulation.state.domain_state.value == 2
 
 
 def test_failed_transaction_produces_no_committed_telemetry() -> None:
     """Test a failed working copy never reaches telemetry observers."""
     recorder = RecordingTelemetryObserver()
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
 
     @attrs.frozen(slots=True, kw_only=True)
     class FailureEvent:
@@ -97,7 +97,7 @@ def test_failed_transaction_produces_no_committed_telemetry() -> None:
             /,
         ) -> None:
             del event
-            simulation_state.world.value = 100
+            simulation_state.domain_state.value = 100
             raise RuntimeError("failed telemetry step")
 
     engine = SimulationEngine(
@@ -122,13 +122,13 @@ def test_failed_transaction_produces_no_committed_telemetry() -> None:
 
     assert recorder.records == []
     assert simulation.state.step_index == 0
-    assert simulation.state.world.value == 0
+    assert simulation.state.domain_state.value == 0
 
 
 def test_engine_respects_telemetry_observer_filter() -> None:
     """Test telemetry scheduling policy remains inside the observer."""
     recorder = RecordingTelemetryObserver(minimum_step=2)
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
 
     _engine(
         max_steps=3,

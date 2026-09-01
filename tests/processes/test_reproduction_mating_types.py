@@ -53,7 +53,7 @@ def test_materialized_event_records_and_applies_offspring_mating_type() -> None:
 
     process.apply_event(state, event)
 
-    assert state.world.organisms[1].mating_type == "offspring"
+    assert state.domain_state.organisms[1].mating_type == "offspring"
 
 
 def test_materialization_can_assign_mating_type_from_offspring_genetics() -> None:
@@ -92,7 +92,7 @@ def test_materialization_can_assign_mating_type_from_offspring_genetics() -> Non
         energy=20,
         mating_type="parent",
     )
-    state.world.add_organism(parent)
+    state.domain_state.add_organism(parent)
     process = _process(
         mating_type_model=GeneticPhenotypeMatingType(trait_name=trait_name)
     )

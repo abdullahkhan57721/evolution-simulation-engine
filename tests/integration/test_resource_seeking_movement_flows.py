@@ -24,7 +24,7 @@ def test_hungry_organism_moves_toward_detectable_resource() -> None:
     """Test energy-acquisition movement targets visible food under conservation."""
     architecture = make_integer_architecture(MAX_SPEED, SENSORY_RANGE)
     simulation = Simulation(
-        initial_world_state=WorldState(width=8, height=3),
+        initial_domain_state=WorldState(width=8, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -40,7 +40,7 @@ def test_hungry_organism_moves_toward_detectable_resource() -> None:
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(x=4, y=1, amount=5)
+    simulation.state.domain_state.add_resources(x=4, y=1, amount=5)
     process = Movement(
         movement_pattern=UniformRandom(),
         boundary_condition=Clamped(),
@@ -69,7 +69,7 @@ def test_resource_outside_sensory_range_uses_untargeted_search_pattern() -> None
 
     architecture = make_integer_architecture(MAX_SPEED)
     simulation = Simulation(
-        initial_world_state=WorldState(width=8, height=4),
+        initial_domain_state=WorldState(width=8, height=4),
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -79,7 +79,7 @@ def test_resource_outside_sensory_range_uses_untargeted_search_pattern() -> None
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(x=6, y=1, amount=10)
+    simulation.state.domain_state.add_resources(x=6, y=1, amount=10)
     process = Movement(
         movement_pattern=SearchPattern(),
         boundary_condition=Clamped(),
@@ -108,7 +108,7 @@ def test_resource_on_current_cell_prevents_random_departure() -> None:
 
     architecture = make_integer_architecture(MAX_SPEED, SENSORY_RANGE)
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -121,7 +121,7 @@ def test_resource_on_current_cell_prevents_random_departure() -> None:
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(x=1, y=1, amount=4)
+    simulation.state.domain_state.add_resources(x=1, y=1, amount=4)
     process = Movement(
         movement_pattern=PatternThatMustNotRun(),
         boundary_condition=Clamped(),
@@ -143,7 +143,7 @@ def test_resource_seeker_reaches_visible_food_over_repeated_movement() -> None:
     """Test repeated target-directed movement converges on a resource cell."""
     architecture = make_integer_architecture(MAX_SPEED, SENSORY_RANGE)
     simulation = Simulation(
-        initial_world_state=WorldState(width=5, height=3),
+        initial_domain_state=WorldState(width=5, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
     )
@@ -156,7 +156,7 @@ def test_resource_seeker_reaches_visible_food_over_repeated_movement() -> None:
         x=0,
         y=1,
     )
-    simulation.state.world.add_resources(x=2, y=1, amount=5)
+    simulation.state.domain_state.add_resources(x=2, y=1, amount=5)
     process = Movement(
         movement_pattern=UniformRandom(),
         boundary_condition=Clamped(),

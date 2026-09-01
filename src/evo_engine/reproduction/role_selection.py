@@ -178,7 +178,7 @@ class DirectedPairwiseMating:
         *,
         simulation_state: SimulationState,
     ) -> bool:
-        world = simulation_state.world
+        world = simulation_state.domain_state
         return self.neighborhood.contains(
             center_x=first_parent.x,
             center_y=first_parent.y,

@@ -135,10 +135,10 @@ def test_entry_max_age_checkpoint_prevents_overage_turn() -> None:
 
     next_state = lifecycle.coordinate(state)
 
-    assert organism.id in state.world.organisms
-    assert organism.id not in next_state.world.organisms
+    assert organism.id in state.domain_state.organisms
+    assert organism.id not in next_state.domain_state.organisms
     assert next_state.step_index == 1
-    carcass = next(iter(next_state.world.carcasses.values()))
+    carcass = next(iter(next_state.domain_state.carcasses.values()))
     assert carcass.resource_units == 4
 
 
@@ -164,8 +164,8 @@ def test_post_aging_checkpoint_removes_organism_when_age_reaches_maximum() -> No
 
     next_state = lifecycle.coordinate(state)
 
-    assert organism.id not in next_state.world.organisms
-    carcass = next(iter(next_state.world.carcasses.values()))
+    assert organism.id not in next_state.domain_state.organisms
+    carcass = next(iter(next_state.domain_state.carcasses.values()))
     assert carcass.resource_units == 3
 
 
@@ -190,8 +190,8 @@ def test_post_aging_checkpoint_keeps_organism_below_maximum_age() -> None:
 
     next_state = lifecycle.coordinate(state)
 
-    assert next_state.world.organisms[organism.id].age == 4
-    assert not next_state.world.carcasses
+    assert next_state.domain_state.organisms[organism.id].age == 4
+    assert not next_state.domain_state.carcasses
 
 
 def test_post_metabolism_starvation_checkpoint_prevents_aging() -> None:
@@ -216,8 +216,8 @@ def test_post_metabolism_starvation_checkpoint_prevents_aging() -> None:
 
     next_state = lifecycle.coordinate(state)
 
-    assert organism.id not in next_state.world.organisms
-    carcass = next(iter(next_state.world.carcasses.values()))
+    assert organism.id not in next_state.domain_state.organisms
+    carcass = next(iter(next_state.domain_state.carcasses.values()))
     assert carcass.resource_units == 2
 
 
@@ -243,10 +243,10 @@ def test_boundary_birth_occurs_after_aging_and_newborn_remains_age_zero() -> Non
 
     next_state = lifecycle.coordinate(state)
 
-    assert next_state.world.organisms[founder.id].age == 1
+    assert next_state.domain_state.organisms[founder.id].age == 1
     newborns = [
         organism
-        for organism_id, organism in next_state.world.organisms.items()
+        for organism_id, organism in next_state.domain_state.organisms.items()
         if organism_id != founder.id
     ]
     assert len(newborns) == 1

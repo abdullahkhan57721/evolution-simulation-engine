@@ -115,7 +115,7 @@ class SingleParent:
         Returns:
             Candidate one-parent groups.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         return [
             ParentGroup(
                 parent_ids=(
@@ -238,7 +238,7 @@ class PairwiseMating:
                 preference function does not return an integer.
         """
         events: list[ParentGroup] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         # combinations() treats parent roles as interchangeable and avoids
         # emitting both (A, B) and (B, A). Role-specific reproduction can use

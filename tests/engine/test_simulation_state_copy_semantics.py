@@ -12,7 +12,7 @@ def test_copy_preserves_exact_rng_state_without_sharing_generator() -> None:
     """Test transaction copies clone the complete RNG state exactly."""
     rng = random.Random(91)
     rng.gauss(0.0, 1.0)
-    state = SimulationState(world=CounterState(), rng=rng)
+    state = SimulationState(domain_state=CounterState(), rng=rng)
 
     copied = state.copy()
 

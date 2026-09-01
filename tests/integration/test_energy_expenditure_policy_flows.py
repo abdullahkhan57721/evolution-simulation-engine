@@ -106,7 +106,7 @@ def test_reproduction_reserve_policy_blocks_then_allows_exact_reserve() -> None:
     process.apply_event(state, event)
 
     assert parent.energy == 6
-    assert state.world.organisms[1].energy == 5
+    assert state.domain_state.organisms[1].energy == 5
 
 
 def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
@@ -122,7 +122,7 @@ def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
         process.materialize_event(state, proposal)
 
     assert state.rng.getstate() == rng_state
-    assert len(state.world.organisms) == 1
+    assert len(state.domain_state.organisms) == 1
 
 
 def test_reproduction_application_rechecks_reserve_atomically() -> None:
@@ -138,7 +138,7 @@ def test_reproduction_application_rechecks_reserve_atomically() -> None:
         process.apply_event(state, event)
 
     assert parent.energy == 9
-    assert len(state.world.organisms) == 1
+    assert len(state.domain_state.organisms) == 1
 
 
 def test_growth_collects_expenditure_policy_trait_requirements() -> None:

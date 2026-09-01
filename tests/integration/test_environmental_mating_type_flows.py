@@ -70,7 +70,7 @@ def test_environment_can_determine_offspring_mating_type_through_development() -
         ),
     )
     state = SimulationState(
-        world=world,
+        domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
         rng=random.Random(1),
@@ -80,7 +80,7 @@ def test_environment_can_determine_offspring_mating_type_through_development() -
         genome=genome,
         energy=20,
     )
-    state.world.add_organism(parent)
+    state.domain_state.add_organism(parent)
     development = IndependentDevelopment(
         trait_models=(
             (

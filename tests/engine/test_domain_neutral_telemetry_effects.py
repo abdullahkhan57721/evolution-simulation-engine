@@ -23,93 +23,93 @@ class SchedulingState:
     """Minimal transactional state with an application-effect journal."""
 
     completed_jobs: set[str] = attrs.field(factory=set)
-    _mutations: list[object] = attrs.field(factory=list, repr=False)
+    _effects: list[object] = attrs.field(factory=list, repr=False)
 
     @property
-    def mutation_count(self) -> int:
+    def effect_count(self) -> int:
         """Return current transaction-local journal length."""
-        return len(self._mutations)
+        return len(self._effects)
 
-    def mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+    def effects_since(self, checkpoint: int) -> tuple[object, ...]:
         """Return effects recorded after a journal checkpoint."""
-        return tuple(self._mutations[checkpoint:])
+        return tuple(self._effects[checkpoint:])
 
     def complete(self, job_name: str) -> None:
         """Complete a job and record its domain effect."""
         self.completed_jobs.add(job_name)
-        self._mutations.append(JobCompleted(job_name=job_name))
+        self._effects.append(JobCompleted(job_name=job_name))
 
     def copy(self) -> SchedulingState:
         """Return a transactional copy with a fresh effect journal."""
         copied = copy.deepcopy(self)
-        copied._mutations.clear()
+        copied._effects.clear()
         return copied
 
 
 @attrs.define(slots=True, kw_only=True)
 class CountingSchedulingState:
-    """Scheduling state exposing a counted stable journal-reader capability."""
+    """Scheduling state exposing a counted stable effect-reader capability."""
 
     completed_jobs: set[str] = attrs.field(factory=set)
-    _mutations: list[object] = attrs.field(factory=list, repr=False)
-    mutation_reader_accesses: int = 0
+    _effects: list[object] = attrs.field(factory=list, repr=False)
+    effect_reader_accesses: int = 0
 
     @property
-    def mutation_count(self) -> int:
+    def effect_count(self) -> int:
         """Return current transaction-local journal length."""
-        return len(self._mutations)
+        return len(self._effects)
 
     @property
-    def mutations_since(self) -> Callable[[int], tuple[object, ...]]:
+    def effects_since(self) -> Callable[[int], tuple[object, ...]]:
         """Return the journal reader while counting capability resolution."""
-        self.mutation_reader_accesses += 1
-        return self._read_mutations_since
+        self.effect_reader_accesses += 1
+        return self._read_effects_since
 
-    def _read_mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+    def _read_effects_since(self, checkpoint: int) -> tuple[object, ...]:
         """Return effects recorded after a journal checkpoint."""
-        return tuple(self._mutations[checkpoint:])
+        return tuple(self._effects[checkpoint:])
 
     def complete(self, job_name: str) -> None:
         """Complete a job and record its domain effect."""
         self.completed_jobs.add(job_name)
-        self._mutations.append(JobCompleted(job_name=job_name))
+        self._effects.append(JobCompleted(job_name=job_name))
 
     def copy(self) -> CountingSchedulingState:
         """Return a transactional copy with a fresh effect journal."""
         copied = copy.deepcopy(self)
-        copied._mutations.clear()
+        copied._effects.clear()
         return copied
 
 
 @attrs.define(slots=True, kw_only=True)
 class DelayedJournalSchedulingState:
-    """Scheduling state whose mutation checkpoint becomes available mid-stage."""
+    """Scheduling state whose effect checkpoint becomes available mid-stage."""
 
     completed_jobs: set[str] = attrs.field(factory=set)
-    _mutations: list[object] = attrs.field(factory=list, repr=False)
+    _effects: list[object] = attrs.field(factory=list, repr=False)
     journal_enabled: bool = False
 
     @property
-    def mutation_count(self) -> int | None:
+    def effect_count(self) -> int | None:
         """Return the journal length only after the first completed job."""
         if not self.journal_enabled:
             return None
-        return len(self._mutations)
+        return len(self._effects)
 
-    def mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+    def effects_since(self, checkpoint: int) -> tuple[object, ...]:
         """Return effects recorded after a journal checkpoint."""
-        return tuple(self._mutations[checkpoint:])
+        return tuple(self._effects[checkpoint:])
 
     def complete(self, job_name: str) -> None:
         """Complete a job, record its effect, and expose the journal."""
         self.completed_jobs.add(job_name)
-        self._mutations.append(JobCompleted(job_name=job_name))
+        self._effects.append(JobCompleted(job_name=job_name))
         self.journal_enabled = True
 
     def copy(self) -> DelayedJournalSchedulingState:
         """Return a transactional copy with a fresh effect journal."""
         copied = copy.deepcopy(self)
-        copied._mutations.clear()
+        copied._effects.clear()
         return copied
 
 
@@ -144,12 +144,12 @@ class CompleteJob:
         event: Event,
     ) -> None:
         """Apply the job completion to scheduling state."""
-        simulation_state.world.complete(event.job_name)
+        simulation_state.domain_state.complete(event.job_name)
 
 
 def test_stage_coordinator_records_arbitrary_domain_effects() -> None:
     """Test committed-effect capture without biological world types."""
-    state = SimulationState(world=SchedulingState())
+    state = SimulationState(domain_state=SchedulingState())
     stage = StageCoordinator(
         processes=(CompleteJob(),),
         resolver=AcceptAll(),
@@ -157,14 +157,14 @@ def test_stage_coordinator_records_arbitrary_domain_effects() -> None:
 
     applied = stage.coordinate(state)
 
-    assert state.world.completed_jobs == {"batch-7"}
+    assert state.domain_state.completed_jobs == {"batch-7"}
     assert len(applied) == 1
     assert applied[0].effects == (JobCompleted(job_name="batch-7"),)
 
 
-def test_stage_coordinator_resolves_mutation_reader_once_per_stage() -> None:
-    """Test repeated event capture reuses one stable journal reader binding."""
-    state = SimulationState(world=CountingSchedulingState())
+def test_stage_coordinator_resolves_effect_reader_once_per_stage() -> None:
+    """Test repeated event capture reuses one stable effect-reader binding."""
+    state = SimulationState(domain_state=CountingSchedulingState())
     stage = StageCoordinator(
         processes=(CompleteJob(job_names=("batch-7", "batch-8")),),
         resolver=AcceptAll(),
@@ -172,16 +172,16 @@ def test_stage_coordinator_resolves_mutation_reader_once_per_stage() -> None:
 
     applied = stage.coordinate(state)
 
-    assert state.world.mutation_reader_accesses == 1
+    assert state.domain_state.effect_reader_accesses == 1
     assert tuple(event.effects for event in applied) == (
         (JobCompleted(job_name="batch-7"),),
         (JobCompleted(job_name="batch-8"),),
     )
 
 
-def test_stage_coordinator_rechecks_dynamic_mutation_checkpoint_each_event() -> None:
+def test_stage_coordinator_rechecks_dynamic_effect_checkpoint_each_event() -> None:
     """Test a journal becoming available mid-stage is detected on the next event."""
-    state = SimulationState(world=DelayedJournalSchedulingState())
+    state = SimulationState(domain_state=DelayedJournalSchedulingState())
     stage = StageCoordinator(
         processes=(CompleteJob(job_names=("batch-7", "batch-8")),),
         resolver=AcceptAll(),
@@ -189,7 +189,7 @@ def test_stage_coordinator_rechecks_dynamic_mutation_checkpoint_each_event() -> 
 
     applied = stage.coordinate(state)
 
-    assert state.world.completed_jobs == {"batch-7", "batch-8"}
+    assert state.domain_state.completed_jobs == {"batch-7", "batch-8"}
     assert tuple(event.effects for event in applied) == (
         (),
         (JobCompleted(job_name="batch-8"),),

@@ -32,7 +32,8 @@ def test_reference_founders_have_balanced_mating_types() -> None:
         ReferenceEcologyConfig(initial_population=7)
     )
     counts = Counter(
-        organism.mating_type for organism in simulation.state.world.organisms.values()
+        organism.mating_type
+        for organism in simulation.state.domain_state.organisms.values()
     )
 
     assert counts == {"type_a": 4, "type_b": 3}
@@ -43,7 +44,7 @@ def test_reference_pairing_requires_different_mating_types() -> None:
     config = ReferenceEcologyConfig(initial_population=6)
     simulation = build_reference_simulation(config)
     process = _reference_reproduction(config)
-    organisms = tuple(simulation.state.world.organisms.values())
+    organisms = tuple(simulation.state.domain_state.organisms.values())
 
     groups = process.parent_selection.propose_parent_groups(
         organisms,
@@ -55,8 +56,8 @@ def test_reference_pairing_requires_different_mating_types() -> None:
     for group in groups:
         first_id, second_id = group.parent_ids
         assert (
-            simulation.state.world.organisms[first_id].mating_type
-            != simulation.state.world.organisms[second_id].mating_type
+            simulation.state.domain_state.organisms[first_id].mating_type
+            != simulation.state.domain_state.organisms[second_id].mating_type
         )
 
 

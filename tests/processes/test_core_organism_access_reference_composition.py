@@ -135,7 +135,7 @@ def test_resource_consumption_delegates_organism_access_and_reference() -> None:
     state = make_state()
     excluded = add_organism(state, energy=10, x=0, y=0)
     selected = add_organism(state, energy=10, x=1, y=1)
-    state.world.add_resources(x=1, y=1, amount=3)
+    state.domain_state.add_resources(x=1, y=1, amount=3)
     access = RecordingOrganismAccess(selected)
     reference = RecordingOrganismReference()
     process = ResourceConsumption(
@@ -152,7 +152,7 @@ def test_resource_consumption_delegates_organism_access_and_reference() -> None:
     assert access.references == [selected.id]
     assert excluded.energy == 10
     assert selected.energy == 13
-    assert (1, 1) not in state.world.resources
+    assert (1, 1) not in state.domain_state.resources
 
 
 def test_movement_delegates_organism_access_and_reference() -> None:

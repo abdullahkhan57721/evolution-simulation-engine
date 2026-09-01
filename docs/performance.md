@@ -10,8 +10,8 @@ Kernel optimization uses synthetic, domain-neutral scenarios rather than the ref
 
 The fixed kernel scenarios each run `50` steps with `100` generic events per step:
 
-- **`kernel-core`** exercises proposal, resolution, materialization/application orchestration, transactional state copying, and committed telemetry without a mutation journal.
-- **`kernel-journaled`** runs the same workload with a generic optional mutation journal so checkpoint/effect-capture overhead remains visible.
+- **`kernel-core`** exercises proposal, resolution, materialization/application orchestration, transactional state copying, and committed telemetry without an effect journal.
+- **`kernel-journaled`** runs the same workload with a generic optional effect journal so checkpoint/effect-capture overhead remains visible.
 
 The synthetic workload does not import biological, ecological, world, or concrete process packages. Reference-ecology profiles remain useful for end-to-end performance work, but they must not be used to identify kernel-only optimization targets because their stage times include modeled-domain execution.
 
@@ -38,7 +38,7 @@ After the kernel optimization series through PR #72, the fixed `5,000`-event syn
 - `kernel-core`: **47,604 function calls**
 - `kernel-journaled`: **67,804 function calls**
 
-These counts are more useful than cross-run hosted wall-clock comparisons because GitHub-hosted runner speed varies. The journaled scenario intentionally retains a fresh `mutation_count` read before every applied event and therefore measures the cost of the dynamic optional-journal contract rather than assuming journal capability is static.
+These counts are more useful than cross-run hosted wall-clock comparisons because GitHub-hosted runner speed varies. The journaled scenario intentionally retains a fresh `effect_count` read before every applied event and therefore measures the cost of the dynamic optional-journal contract rather than assuming journal capability is static.
 
 At this point the largest remaining generic per-event cost is committed `AppliedEvent` creation. The kernel has already removed redundant validation from its trusted internal construction path while retaining public validation and process-carried event-index validation. The remaining cost is predominantly the actual allocation and immutable field assignment needed to preserve committed causal telemetry.
 
@@ -48,7 +48,7 @@ At this point the largest remaining generic per-event cost is committed `Applied
 
 Do not force further kernel micro-optimizations when the speedup depends on making the implementation harder to read or weakening semantics. In particular, the current design intentionally rejects the following shortcuts:
 
-- **Do not cache absence of a mutation journal across a stage.** A domain state may expose journal capability dynamically; each event must continue to obtain the current checkpoint before application.
+- **Do not cache absence of an effect journal across a stage.** A domain state may expose journal capability dynamically; each event must continue to obtain the current checkpoint before application.
 - **Do not bypass process-carried event-step validation.** `AppliedEvent.event_step_index` originates on the materialized event rather than from kernel-owned metadata.
 - **Do not add a separate no-materializer stage algorithm merely to avoid small dispatch costs.** Stage simultaneity and one linear coordination flow are more valuable than a special-case fast path.
 - **Do not replace committed `AppliedEvent` objects with a less expressive representation solely to reduce allocation cost.** A representation redesign requires an independent architectural reason and full API/telemetry analysis.

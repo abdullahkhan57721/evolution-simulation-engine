@@ -26,7 +26,7 @@ def test_low_energy_exploratory_movement_is_suppressed_before_pattern() -> None:
 
     architecture = make_integer_architecture("max_speed")
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -50,7 +50,7 @@ def test_low_energy_energy_acquisition_movement_remains_allowed() -> None:
     """Test conservation permits movement motivated by energy acquisition."""
     architecture = make_integer_architecture("max_speed")
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -96,7 +96,7 @@ def test_dynamic_movement_intent_is_resolved_per_organism() -> None:
 
     architecture = make_integer_architecture("max_speed")
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,

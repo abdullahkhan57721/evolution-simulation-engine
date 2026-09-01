@@ -31,7 +31,7 @@ def test_reference_reproduction_uses_asymmetric_mating_type_investment() -> None
     config = ReferenceEcologyConfig(initial_population=2)
     simulation = build_reference_simulation(config)
     process = _reference_reproduction(config)
-    parents = tuple(simulation.state.world.organisms.values())
+    parents = tuple(simulation.state.domain_state.organisms.values())
 
     assert tuple(parent.mating_type for parent in parents) == ("type_a", "type_b")
     assert isinstance(process.parental_investment, MatingTypeScaledInvestment)
@@ -58,7 +58,7 @@ def test_reference_investment_scales_are_configurable() -> None:
     )
     simulation = build_reference_simulation(config)
     process = _reference_reproduction(config)
-    parents = tuple(simulation.state.world.organisms.values())
+    parents = tuple(simulation.state.domain_state.organisms.values())
 
     assert process.parental_investment.determine_investments(
         parents,

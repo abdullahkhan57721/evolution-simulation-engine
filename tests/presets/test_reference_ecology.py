@@ -184,9 +184,9 @@ def test_reference_bundle_uses_one_resolved_configuration() -> None:
     ecology = build_reference_ecology(config)
 
     assert ecology.config is config
-    assert ecology.simulation.state.world.width == 5
-    assert ecology.simulation.state.world.height == 5
-    assert len(ecology.simulation.state.world.organisms) == 4
+    assert ecology.simulation.state.domain_state.width == 5
+    assert ecology.simulation.state.domain_state.height == 5
+    assert len(ecology.simulation.state.domain_state.organisms) == 4
     assert isinstance(ecology.engine.stopping_condition, MaxSteps)
     assert ecology.engine.stopping_condition.max_steps == 3
     assert ecology.recorder in ecology.engine.observers
@@ -222,7 +222,7 @@ def test_reference_founder_values_are_customizable() -> None:
         traits=traits,
     )
     ecology = build_reference_ecology(config)
-    organism = next(iter(ecology.simulation.state.world.organisms.values()))
+    organism = next(iter(ecology.simulation.state.domain_state.organisms.values()))
 
     assert organism.genetic_phenotype.int_value(ADULT_BODY_MASS) == 12
     assert organism.genetic_phenotype.int_value(GROWTH_RATE) == 2

@@ -48,7 +48,7 @@ def test_developmental_conservation_threshold_varies_behavior_by_organism() -> N
         trait_name=ENERGY_CONSERVATION_THRESHOLD,
     )
     state = SimulationState(
-        world=WorldState(width=3, height=3),
+        domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=threshold,
@@ -153,7 +153,7 @@ def test_reproduction_layers_maturity_energy_and_reserve_requirements() -> None:
     process.apply_event(state, event)
 
     assert parent.energy == 18
-    assert len(state.world.organisms) == 2
+    assert len(state.domain_state.organisms) == 2
     assert process.required_traits == frozenset(
         {
             MATURITY_AGE,

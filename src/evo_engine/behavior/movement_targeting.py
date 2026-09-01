@@ -315,7 +315,7 @@ class NearestResourceTarget:
         best_key: tuple[int, int, int, int] | None = None
         best_target: MovementTarget | None = None
 
-        for (x, y), amount in simulation_state.world.resources.items():
+        for (x, y), amount in simulation_state.domain_state.resources.items():
             dx = x - organism.x
             dy = y - organism.y
             distance_squared = dx * dx + dy * dy
@@ -397,7 +397,7 @@ def determine_movement_target(
             "movement_target_model.choose_target must return MovementTarget or None."
         )
 
-    world = simulation_state.world
+    world = simulation_state.domain_state
     validators.validate_int_in_range(
         target.x,
         lower=0,

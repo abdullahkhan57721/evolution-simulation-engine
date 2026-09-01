@@ -40,7 +40,7 @@ class AddResourceProcess:
 
     def apply_event(self, simulation_state, event) -> None:
         """Apply one resource addition."""
-        simulation_state.world.add_resources(x=0, y=0, amount=event.amount)
+        simulation_state.domain_state.add_resources(x=0, y=0, amount=event.amount)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -64,14 +64,14 @@ class FailingProcess:
 
     def apply_event(self, simulation_state, event) -> None:
         """Mutate then fail so transaction rollback can be verified."""
-        simulation_state.world.add_resources(x=0, y=0, amount=100)
+        simulation_state.domain_state.add_resources(x=0, y=0, amount=100)
         raise RuntimeError("failed telemetry step")
 
 
 def _simulation() -> Simulation:
     architecture = make_empty_architecture()
     return Simulation(
-        initial_world_state=WorldState(width=1, height=1),
+        initial_domain_state=WorldState(width=1, height=1),
         genetic_architecture=architecture,
     )
 
@@ -102,7 +102,7 @@ def test_engine_records_applied_events_only_after_commit() -> None:
     assert first.stage_index == 0
     assert first.process_name == "AddResourceProcess"
     assert first.effects == (ResourcesChanged(x=0, y=0, before=0, after=1),)
-    assert simulation.state.world.resources[(0, 0)] == 2
+    assert simulation.state.domain_state.resources[(0, 0)] == 2
 
 
 def test_failed_transaction_produces_no_committed_telemetry() -> None:
@@ -131,4 +131,4 @@ def test_failed_transaction_produces_no_committed_telemetry() -> None:
 
     assert recorder.steps == ()
     assert simulation.state.step_index == 0
-    assert simulation.state.world.resources == {}
+    assert simulation.state.domain_state.resources == {}

@@ -40,7 +40,7 @@ class ProposalOrder:
         indices_by_coordinate = group_event_indices_by_coordinate(resource_events)
 
         for coordinate, indices in indices_by_coordinate.items():
-            available = simulation_state.world.resources.get(
+            available = simulation_state.domain_state.resources.get(
                 coordinate,
                 0,
             )

@@ -43,7 +43,7 @@ def create_simulation() -> Simulation:
     )
 
     return Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=genetic_architecture,
         seed=42,
     )
@@ -77,7 +77,8 @@ def main() -> None:
 
     engine.run(simulation)
 
-    organism = next(iter(simulation.state.world.organisms.values()))
+    world = simulation.state.domain_state
+    organism = next(iter(world.organisms.values()))
     print(f"Final age: {organism.age}")
 
 

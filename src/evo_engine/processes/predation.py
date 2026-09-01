@@ -176,7 +176,7 @@ class Predation:
         simulation_state: SimulationState,
     ) -> list[Predation.Event]:
         """Propose behaviorally selected, feasible predation events."""
-        world = simulation_state.world
+        world = simulation_state.domain_state
         organisms = self.access_model.entities(state=world)
         references: tuple[int, ...] | None = None
         events: list[Predation.Event] = []
@@ -263,7 +263,7 @@ class Predation:
         simulation_state: SimulationState,
     ) -> bool:
         """Return whether prey lies inside the configured predation neighborhood."""
-        world = simulation_state.world
+        world = simulation_state.domain_state
         return self.neighborhood.contains(
             center_x=predator.x,
             center_y=predator.y,
@@ -317,7 +317,7 @@ class Predation:
         resolved_event: Predation.Event,
     ) -> None:
         """Apply a resolved Predation event."""
-        world = simulation_state.world
+        world = simulation_state.domain_state
         predator = self.access_model.get(
             resolved_event.predator_id,
             state=world,

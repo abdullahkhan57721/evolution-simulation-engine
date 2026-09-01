@@ -27,8 +27,8 @@ MaterializedEventT_contra = TypeVar(
     bound=SimulationEvent,
     contravariant=True,
 )
-MaterializableEventT_contra = TypeVar(
-    "MaterializableEventT_contra",
+ResolvedEventT_contra = TypeVar(
+    "ResolvedEventT_contra",
     bound=SimulationEvent,
     contravariant=True,
 )
@@ -65,13 +65,13 @@ class Process(Protocol[ProposedEventT_co, MaterializedEventT_contra]):
 
 
 @runtime_checkable
-class EventMaterializer(Protocol[MaterializableEventT_contra, MaterializedEventT_co]):
+class EventMaterializer(Protocol[ResolvedEventT_contra, MaterializedEventT_co]):
     """Define optional post-resolution event materialization."""
 
     def materialize_event(
         self,
         simulation_state: SimulationState,
-        event: MaterializableEventT_contra,
+        event: ResolvedEventT_contra,
         /,
     ) -> MaterializedEventT_co:
         """Materialize a resolved event before stage application begins."""
@@ -102,7 +102,7 @@ class StepCoordinator(Protocol):
 
 
 class StoppingCondition(Protocol):
-    """Determine when an evolving simulation run terminates."""
+    """Determine when a simulation run terminates."""
 
     def should_stop(
         self,
@@ -118,7 +118,8 @@ class Observer(Protocol):
 
     def should_observe(
         self,
-        world_state: Any,
+        domain_state: Any,
+        /,
         *,
         step_index: int,
     ) -> bool:
@@ -127,7 +128,8 @@ class Observer(Protocol):
 
     def observe(
         self,
-        world_state: Any,
+        domain_state: Any,
+        /,
         *,
         step_index: int,
     ) -> None:

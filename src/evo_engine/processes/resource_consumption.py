@@ -162,7 +162,7 @@ class ResourceConsumption:
             allocation is resolved.
         """
         events: list[ResourceConsumption.Event] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         for organism in self.access_model.entities(state=world):
             if not behavior_is_allowed(
@@ -217,7 +217,7 @@ class ResourceConsumption:
         """
         organism = self.access_model.get(
             resolved_event.organism_id,
-            state=simulation_state.world,
+            state=simulation_state.domain_state,
         )
         energy_gain = determine_assimilated_energy(
             self.assimilation_model,
@@ -226,7 +226,7 @@ class ResourceConsumption:
             simulation_state=simulation_state,
         )
 
-        simulation_state.world.remove_resources(
+        simulation_state.domain_state.remove_resources(
             x=resolved_event.x,
             y=resolved_event.y,
             amount=resolved_event.amount,

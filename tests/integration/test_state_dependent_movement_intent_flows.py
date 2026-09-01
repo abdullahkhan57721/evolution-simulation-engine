@@ -27,7 +27,7 @@ def test_movement_switches_between_foraging_and_exploration_with_energy() -> Non
 
     architecture = make_integer_architecture(MAX_SPEED, SENSORY_RANGE)
     simulation = Simulation(
-        initial_world_state=WorldState(width=8, height=4),
+        initial_domain_state=WorldState(width=8, height=4),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -43,7 +43,7 @@ def test_movement_switches_between_foraging_and_exploration_with_energy() -> Non
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(x=4, y=1, amount=5)
+    simulation.state.domain_state.add_resources(x=4, y=1, amount=5)
     process = Movement(
         movement_pattern=ExploratoryPattern(),
         boundary_condition=Clamped(),

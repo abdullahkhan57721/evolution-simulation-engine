@@ -29,7 +29,7 @@ def test_conservation_suppresses_growth_even_when_affordable() -> None:
     """Test behavioral suppression is distinct from energetic affordability."""
     architecture = make_integer_architecture(ADULT_BODY_MASS)
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -55,7 +55,7 @@ def test_conservation_suppresses_reproduction_even_when_eligible_and_affordable(
     """Test low-energy behavior is checked before reproductive eligibility."""
     architecture = make_empty_architecture()
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -80,7 +80,7 @@ def test_conservation_preserves_resource_consumption_at_low_energy() -> None:
     """Test low-energy organisms may still attempt direct energy acquisition."""
     architecture = make_empty_architecture()
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -92,7 +92,7 @@ def test_conservation_preserves_resource_consumption_at_low_energy() -> None:
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(
+    simulation.state.domain_state.add_resources(
         x=1,
         y=1,
         amount=4,
@@ -116,7 +116,7 @@ def test_conservation_preserves_predation_at_low_energy() -> None:
     """Test depleted predators may still attempt energy-acquisition predation."""
     architecture = make_empty_architecture()
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -152,7 +152,7 @@ def test_energy_acquisition_can_leave_conservation_mode_within_same_step() -> No
     """Test later stages re-evaluate behavior from current organism energy."""
     architecture = make_integer_architecture(ADULT_BODY_MASS)
     simulation = Simulation(
-        initial_world_state=WorldState(width=3, height=3),
+        initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
         behavior_selection_model=EnergyConservationBehavior(
             energy_threshold=10,
@@ -166,7 +166,7 @@ def test_energy_acquisition_can_leave_conservation_mode_within_same_step() -> No
         x=1,
         y=1,
     )
-    simulation.state.world.add_resources(
+    simulation.state.domain_state.add_resources(
         x=1,
         y=1,
         amount=10,
@@ -193,6 +193,6 @@ def test_energy_acquisition_can_leave_conservation_mode_within_same_step() -> No
 
     simulation.state = coordinator.coordinate(simulation.state)
 
-    updated = simulation.state.world.organisms[organism.id]
+    updated = simulation.state.domain_state.organisms[organism.id]
     assert updated.body_mass == 12
     assert updated.energy == 13

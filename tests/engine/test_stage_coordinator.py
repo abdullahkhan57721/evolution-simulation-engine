@@ -13,15 +13,15 @@ from tests.engine.helpers import CounterState, IncrementProcess
 
 
 def test_coordinate_proposes_resolves_and_applies() -> None:
-    """Test the normal stage lifecycle for a simple process."""
-    state = SimulationState(world=CounterState(value=10))
+    """Test the normal stage flow for a simple process."""
+    state = SimulationState(domain_state=CounterState(value=10))
 
     StageCoordinator(
         processes=(IncrementProcess(),),
         resolver=AcceptAll(),
     ).coordinate(state)
 
-    assert state.world.value == 11
+    assert state.domain_state.value == 11
 
 
 def test_stage_rejects_duplicate_proposed_event_types() -> None:
@@ -38,7 +38,7 @@ def test_stage_rejects_duplicate_proposed_event_types() -> None:
 
 def test_resolved_unknown_event_type_raises() -> None:
     """Test resolvers cannot inject events with no owning process."""
-    state = SimulationState(world=CounterState())
+    state = SimulationState(domain_state=CounterState())
 
     @attrs.frozen(slots=True, kw_only=True)
     class ForeignEvent:
@@ -65,7 +65,7 @@ def test_resolved_unknown_event_type_raises() -> None:
 
 def test_all_events_materialize_before_any_apply() -> None:
     """Test materializers observe the same pre-application state."""
-    state = SimulationState(world=CounterState(value=10))
+    state = SimulationState(domain_state=CounterState(value=10))
     observations: list[int] = []
 
     @attrs.frozen(slots=True, kw_only=True)
@@ -100,11 +100,11 @@ def test_all_events_materialize_before_any_apply() -> None:
             event: Proposal,
             /,
         ) -> Materialized:
-            observations.append(simulation_state.world.value)
+            observations.append(simulation_state.domain_state.value)
             return Materialized(
                 step_index=event.step_index,
                 amount=event.amount,
-                observed_value=simulation_state.world.value,
+                observed_value=simulation_state.domain_state.value,
             )
 
         def apply_event(
@@ -114,7 +114,7 @@ def test_all_events_materialize_before_any_apply() -> None:
             /,
         ) -> None:
             assert event.observed_value == 10
-            simulation_state.world.value -= event.amount
+            simulation_state.domain_state.value -= event.amount
 
     process = MaterializingProcess()
     applied_events = StageCoordinator(
@@ -123,7 +123,7 @@ def test_all_events_materialize_before_any_apply() -> None:
     ).coordinate(state)
 
     assert observations == [10, 10]
-    assert state.world.value == 8
+    assert state.domain_state.value == 8
     assert tuple(event.process_type for event in applied_events) == (
         f"{type(process).__module__}.{type(process).__qualname__}",
         f"{type(process).__module__}.{type(process).__qualname__}",

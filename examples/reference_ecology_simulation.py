@@ -12,11 +12,12 @@ def main() -> None:
             seed=42,
         )
     )
-    initial_population = len(ecology.simulation.state.world.organisms)
+    world = ecology.simulation.state.domain_state
+    initial_population = len(world.organisms)
 
     ecology.engine.run(ecology.simulation)
 
-    world = ecology.simulation.state.world
+    world = ecology.simulation.state.domain_state
     latest = ecology.recorder.latest
 
     print(f"Completed steps: {ecology.simulation.state.step_index}")

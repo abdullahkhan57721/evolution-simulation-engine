@@ -107,7 +107,7 @@ def test_directed_pairwise_mating_preserves_configured_role_order() -> None:
     )
 
     groups = selection.propose_parent_groups(
-        tuple(state.world.organisms.values()),
+        tuple(state.domain_state.organisms.values()),
         simulation_state=state,
     )
 
@@ -135,7 +135,7 @@ def test_directed_pairwise_mating_skips_self_for_multi_role_organism() -> None:
     )
 
     groups = selection.propose_parent_groups(
-        tuple(state.world.organisms.values()),
+        tuple(state.domain_state.organisms.values()),
         simulation_state=state,
     )
 

@@ -42,13 +42,13 @@ def test_generic_spec_compiles_nonbiological_state() -> None:
     service = object()
     context = SimulationContext.from_mapping({"selection_policy": service})
     spec = SimulationSpec(
-        initial_world_state=_CounterState(value=2),
+        initial_domain_state=_CounterState(value=2),
         step_coordinator=_NoOpCoordinator(),
         stopping_condition=MaxSteps(max_steps=0),
         context=context,
     )
     compiled = spec.compile()
-    assert compiled.simulation.state.world.value == 2
+    assert compiled.simulation.state.domain_state.value == 2
     assert compiled.simulation.context.require("selection_policy") is service
     assert compiled.dependency_report.missing == frozenset()
 
@@ -56,7 +56,7 @@ def test_generic_spec_compiles_nonbiological_state() -> None:
 def test_generic_preflight_rejects_missing_dependency() -> None:
     dependency = Dependency(category="resource", name="compute")
     spec = SimulationSpec(
-        initial_world_state=_CounterState(),
+        initial_domain_state=_CounterState(),
         step_coordinator=_GenericRequirement(dependency=dependency),
         stopping_condition=MaxSteps(max_steps=0),
     )
@@ -67,7 +67,7 @@ def test_generic_preflight_rejects_missing_dependency() -> None:
 def test_generic_preflight_accepts_explicit_domain_capability() -> None:
     dependency = Dependency(category="resource", name="compute")
     compiled = SimulationSpec(
-        initial_world_state=_CounterState(),
+        initial_domain_state=_CounterState(),
         step_coordinator=_GenericRequirement(dependency=dependency),
         stopping_condition=MaxSteps(max_steps=0),
         provided_dependencies=frozenset({dependency}),

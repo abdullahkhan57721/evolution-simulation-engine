@@ -12,10 +12,10 @@ from evo_engine.telemetry import StepTelemetry
 from evo_engine.validation import attrs_validators
 
 
-def _validate_world(
+def _validate_domain_state(
     instance: object, attribute: attrs.Attribute, value: object
 ) -> None:
-    """Require transactional model state to provide a copy operation."""
+    """Require the domain-state payload to support transactional copying."""
     del instance
     if not callable(getattr(value, "copy", None)):
         raise TypeError(
@@ -27,9 +27,9 @@ def _validate_world(
 class SimulationState:
     """Represent one transactional snapshot of an arbitrary simulated system.
 
-    ``world`` is domain-neutral simulation terminology: it may hold any
-    domain-defined copyable model state, not necessarily a physical or biological
-    world. Domain packages define the concrete state and operations carried there.
+    ``domain_state`` contains the opaque domain-defined mutable payload. The
+    kernel requires that payload to be copyable for transactions but otherwise
+    assigns no spatial, biological, ecological, or other modeled meaning to it.
 
     ``context`` contains immutable configuration services shared by reference
     across copies. Configuration is consumed explicitly through
@@ -39,7 +39,7 @@ class SimulationState:
     into a ``SimulationContext`` and never become attributes on the state.
     """
 
-    world: Any = attrs.field(validator=_validate_world)
+    domain_state: Any = attrs.field(validator=_validate_domain_state)
     context: SimulationContext = attrs.field(
         validator=attrs.validators.instance_of(SimulationContext),
         on_setattr=attrs.setters.frozen,
@@ -63,7 +63,7 @@ class SimulationState:
     def __init__(
         self,
         *,
-        world: object,
+        domain_state: object,
         context: SimulationContext | None = None,
         step_index: int = 0,
         rng: random.Random | None = None,
@@ -73,7 +73,8 @@ class SimulationState:
         """Initialize mutable state and normalize optional named context values.
 
         Args:
-            world: Current domain-defined model state. Must provide ``copy``.
+            domain_state: Current domain-defined mutable state. Must provide
+                ``copy`` for transactional isolation.
             context: Optional complete immutable simulation context.
             step_index: Current simulation step index.
             rng: Simulation random-number generator. Defaults to a new generator.
@@ -88,7 +89,7 @@ class SimulationState:
         if rng is None:
             rng = random.Random()
 
-        object.__setattr__(self, "world", world)
+        object.__setattr__(self, "domain_state", domain_state)
         object.__setattr__(self, "context", context)
         object.__setattr__(self, "step_index", step_index)
         object.__setattr__(self, "rng", rng)
@@ -102,7 +103,7 @@ class SimulationState:
         copied_rng = random.Random.__new__(random.Random)
         copied_rng.setstate(self.rng.getstate())
         return SimulationState(
-            world=self.world.copy(),
+            domain_state=self.domain_state.copy(),
             context=self.context,
             step_index=self.step_index,
             rng=copied_rng,

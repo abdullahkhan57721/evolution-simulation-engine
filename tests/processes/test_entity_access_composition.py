@@ -79,4 +79,4 @@ def test_predation_resolves_predator_through_access_model() -> None:
 
     assert access.references == [predator.id]
     assert predator.energy == 14
-    assert prey.id not in state.world.organisms
+    assert prey.id not in state.domain_state.organisms
