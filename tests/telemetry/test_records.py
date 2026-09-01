@@ -56,8 +56,8 @@ def test_applied_event_public_constructor_still_validates_metadata() -> None:
         )
 
 
-def test_applied_event_trusted_construction_matches_validated_record() -> None:
-    """Test trusted construction preserves the immutable telemetry representation."""
+def test_applied_event_kernel_construction_matches_validated_record() -> None:
+    """Test kernel construction preserves the immutable telemetry representation."""
     event = ExampleEvent(step_index=2, amount=4)
     effect = ExampleEffect(resource="machine:lathe", before=0, after=1)
     validated = AppliedEvent(
@@ -68,7 +68,7 @@ def test_applied_event_trusted_construction_matches_validated_record() -> None:
         event=event,
         effects=(effect,),
     )
-    trusted = AppliedEvent._from_validated(
+    kernel_built = AppliedEvent._from_kernel_values(
         event_step_index=2,
         stage_index=3,
         process_type="example.module.ExampleProcess",
@@ -77,7 +77,20 @@ def test_applied_event_trusted_construction_matches_validated_record() -> None:
         effects=(effect,),
     )
 
-    assert trusted == validated
+    assert kernel_built == validated
+
+
+def test_applied_event_kernel_construction_validates_event_step_index() -> None:
+    """Test process-carried event indexes retain runtime validation."""
+    with pytest.raises(ValueError, match="AppliedEvent.event_step_index"):
+        AppliedEvent._from_kernel_values(
+            event_step_index=-1,
+            stage_index=0,
+            process_type="example.module.ExampleProcess",
+            event_type="example.module.ExampleEvent",
+            event=ExampleEvent(step_index=0, amount=1),
+            effects=(),
+        )
 
 
 def test_step_telemetry_filters_events_by_process_name() -> None:
