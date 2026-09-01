@@ -18,6 +18,7 @@ _MaterializerCallable = Callable[
     [SimulationState, SimulationEvent],
     SimulationEvent,
 ]
+_MutationsSinceCallable = Callable[[int], object]
 _EventDispatch = tuple[
     Process[Any, Any],
     _MaterializerCallable | None,
@@ -134,6 +135,7 @@ class StageCoordinator:
 
         applied_events: list[AppliedEvent] = []
         domain_state = simulation_state.world
+        mutations_since: _MutationsSinceCallable | None = None
         for (
             process,
             materialized_event,
@@ -142,6 +144,11 @@ class StageCoordinator:
         ) in materialized_events:
             checkpoint = _mutation_checkpoint(domain_state)
             process.apply_event(simulation_state, materialized_event)
+            effects, mutations_since = _capture_mutations(
+                domain_state,
+                checkpoint,
+                mutations_since,
+            )
             applied_events.append(
                 AppliedEvent(
                     event_step_index=materialized_event.step_index,
@@ -149,7 +156,7 @@ class StageCoordinator:
                     process_type=process_type_name,
                     event_type=event_type_name,
                     event=materialized_event,
-                    effects=_mutations_since(domain_state, checkpoint),
+                    effects=effects,
                 )
             )
         return tuple(applied_events)
@@ -164,21 +171,29 @@ def _mutation_checkpoint(domain_state: object) -> int | None:
     return mutation_count
 
 
-def _mutations_since(
+def _capture_mutations(
     domain_state: object,
     checkpoint: int | None,
-) -> tuple[Any, ...]:
+    mutations_since: _MutationsSinceCallable | None,
+) -> tuple[tuple[Any, ...], _MutationsSinceCallable | None]:
     if checkpoint is None:
-        return ()
+        return (), mutations_since
+    if mutations_since is None:
+        mutations_since = _resolve_mutations_since(domain_state)
+
+    mutations = mutations_since(checkpoint)
+    if type(mutations) is not tuple:
+        raise TypeError("domain-state mutations_since must return a tuple.")
+    return mutations, mutations_since
+
+
+def _resolve_mutations_since(domain_state: object) -> _MutationsSinceCallable:
     mutations_since = getattr(domain_state, "mutations_since", None)
     if not callable(mutations_since):
         raise TypeError(
             "domain state with mutation_count must provide callable mutations_since."
         )
-    mutations = mutations_since(checkpoint)
-    if type(mutations) is not tuple:
-        raise TypeError("domain-state mutations_since must return a tuple.")
-    return mutations
+    return cast(_MutationsSinceCallable, mutations_since)
 
 
 def _qualified_type_name(value_type: type[object]) -> str:
