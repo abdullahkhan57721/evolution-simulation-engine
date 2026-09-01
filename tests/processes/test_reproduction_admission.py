@@ -53,7 +53,7 @@ def test_reproduction_delegates_offspring_entry_to_admission_model() -> None:
         process.propose_events(state)[0],
     )
 
-    assert len(state.world.organisms) == 1
+    assert len(state.domain_state.organisms) == 1
 
     process.apply_event(
         state,
@@ -62,5 +62,5 @@ def test_reproduction_delegates_offspring_entry_to_admission_model() -> None:
 
     assert parent.energy == 15
     assert admission.admitted == [event.offspring]
-    assert admission.states == [state.world]
-    assert state.world.organisms[event.offspring.id] is event.offspring
+    assert admission.states == [state.domain_state]
+    assert state.domain_state.organisms[event.offspring.id] is event.offspring
