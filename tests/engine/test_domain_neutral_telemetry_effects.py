@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+from collections.abc import Callable
 
 import attrs
 
@@ -45,6 +46,23 @@ class SchedulingState:
         return copied
 
 
+@attrs.define(slots=True, kw_only=True)
+class CountingSchedulingState(SchedulingState):
+    """Count resolution of the stable mutation-journal reader capability."""
+
+    mutation_reader_accesses: int = 0
+
+    @property
+    def mutations_since(self) -> Callable[[int], tuple[object, ...]]:
+        """Return the journal reader while counting capability resolution."""
+        self.mutation_reader_accesses += 1
+        return self._read_mutations_since
+
+    def _read_mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+        """Return effects recorded after a journal checkpoint."""
+        return tuple(self._mutations[checkpoint:])
+
+
 @attrs.frozen(slots=True, kw_only=True)
 class CompleteJob:
     """Nonbiological process completing one scheduled job."""
@@ -56,14 +74,19 @@ class CompleteJob:
         step_index: int
         job_name: str
 
+    job_names: tuple[str, ...] = ("batch-7",)
+
     @property
     def event_type(self) -> type[Event]:
         """Return the process event type."""
         return self.Event
 
     def propose_events(self, simulation_state: SimulationState) -> list[Event]:
-        """Propose one job completion."""
-        return [self.Event(step_index=simulation_state.step_index, job_name="batch-7")]
+        """Propose configured job completions."""
+        return [
+            self.Event(step_index=simulation_state.step_index, job_name=job_name)
+            for job_name in self.job_names
+        ]
 
     def apply_event(
         self,
@@ -87,3 +110,20 @@ def test_stage_coordinator_records_arbitrary_domain_effects() -> None:
     assert state.world.completed_jobs == {"batch-7"}
     assert len(applied) == 1
     assert applied[0].effects == (JobCompleted(job_name="batch-7"),)
+
+
+def test_stage_coordinator_resolves_mutation_reader_once_per_stage() -> None:
+    """Test repeated event capture reuses one stable journal reader binding."""
+    state = SimulationState(world=CountingSchedulingState())
+    stage = StageCoordinator(
+        processes=(CompleteJob(job_names=("batch-7", "batch-8")),),
+        resolver=AcceptAll(),
+    )
+
+    applied = stage.coordinate(state)
+
+    assert state.world.mutation_reader_accesses == 1
+    assert tuple(event.effects for event in applied) == (
+        (JobCompleted(job_name="batch-7"),),
+        (JobCompleted(job_name="batch-8"),),
+    )
