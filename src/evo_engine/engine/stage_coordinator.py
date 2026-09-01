@@ -179,7 +179,7 @@ def _apply_prepared_applications(
 ) -> tuple[AppliedEvent, ...]:
     """Apply prepared events and capture optional domain-state effects."""
     applied_events: list[AppliedEvent] = []
-    domain_state = simulation_state.world
+    domain_state = simulation_state.domain_state
     effects_since: _EffectsSinceCallable | None = None
 
     for process, event, process_type_name, event_type_name in prepared_applications:
