@@ -163,7 +163,9 @@ def _apply_materialized_events(
     ) in materialized_events:
         checkpoint = getattr(domain_state, "mutation_count", None)
         if checkpoint is not None and (type(checkpoint) is not int or checkpoint < 0):
-            raise TypeError("domain-state mutation_count must be a nonnegative integer.")
+            raise TypeError(
+                "domain-state mutation_count must be a nonnegative integer."
+            )
 
         process.apply_event(simulation_state, materialized_event)
 
