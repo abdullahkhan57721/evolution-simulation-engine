@@ -7,6 +7,7 @@ from collections.abc import Sequence
 import attrs
 import pytest
 
+import evo_engine.engine.stage_coordinator as stage_coordinator_module
 from evo_engine.engine import SimulationEvent, SimulationState, StageCoordinator
 from evo_engine.resolvers import AcceptAll
 from tests.engine.helpers import CounterState, IncrementProcess
@@ -123,3 +124,75 @@ def test_all_events_materialize_before_any_apply() -> None:
 
     assert observations == [10, 10]
     assert state.world.value == 8
+
+
+def test_materializer_capability_is_detected_once_per_process(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test runtime structural materializer checks stay out of the event hot path."""
+    state = SimulationState(world=CounterState())
+
+    class CountingMaterializerMeta(type):
+        checks = 0
+
+        def __instancecheck__(cls, instance: object) -> bool:
+            cls.checks += 1
+            return callable(getattr(instance, "materialize_event", None))
+
+    class CountingMaterializer(metaclass=CountingMaterializerMeta):
+        pass
+
+    @attrs.frozen(slots=True, kw_only=True)
+    class Proposal:
+        step_index: int
+        amount: int = 1
+
+    @attrs.frozen(slots=True)
+    class MaterializingProcess:
+        @property
+        def event_type(self) -> type[Proposal]:
+            return Proposal
+
+        def propose_events(
+            self,
+            simulation_state: SimulationState,
+        ) -> list[Proposal]:
+            return [
+                Proposal(step_index=simulation_state.step_index),
+                Proposal(step_index=simulation_state.step_index),
+            ]
+
+        def materialize_event(
+            self,
+            simulation_state: SimulationState,
+            event: Proposal,
+            /,
+        ) -> Proposal:
+            del simulation_state
+            return event
+
+        def apply_event(
+            self,
+            simulation_state: SimulationState,
+            event: Proposal,
+            /,
+        ) -> None:
+            simulation_state.world.value += event.amount
+
+    monkeypatch.setattr(
+        stage_coordinator_module,
+        "EventMaterializer",
+        CountingMaterializer,
+    )
+    coordinator = StageCoordinator(
+        processes=(MaterializingProcess(),),
+        resolver=AcceptAll(),
+    )
+
+    assert CountingMaterializerMeta.checks == 1
+
+    coordinator.coordinate(state)
+    coordinator.coordinate(state)
+
+    assert state.world.value == 4
+    assert CountingMaterializerMeta.checks == 1
