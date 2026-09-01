@@ -125,9 +125,6 @@ def _measure_scenario(
     print(
         f"min / max seconds:       {benchmark.minimum_seconds:.6f} / {benchmark.maximum_seconds:.6f}"
     )
-    print(f"profile total calls:     {profile.total_calls}")
-    print(f"profile primitive calls: {profile.primitive_calls}")
-    print(f"profile CPU seconds:     {profile.total_seconds:.6f}")
     print(profile.report)
     print(f"benchmark JSON:          {benchmark_path}")
     print(f"profile text:            {profile_path}")
