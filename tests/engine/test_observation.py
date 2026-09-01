@@ -32,7 +32,7 @@ class RecordingObserver:
 
     def should_observe(
         self,
-        world_state: CounterState,
+        domain_state: CounterState,
         *,
         step_index: int,
     ) -> bool:
@@ -42,11 +42,11 @@ class RecordingObserver:
 
     def observe(
         self,
-        world_state: CounterState,
+        domain_state: CounterState,
         *,
         step_index: int,
     ) -> None:
-        self.records.append((step_index, world_state.value))
+        self.records.append((step_index, domain_state.value))
 
 
 def _incrementing_engine(
@@ -70,7 +70,7 @@ def _incrementing_engine(
 
 def test_engine_observes_step_zero_and_each_committed_step() -> None:
     """Test observers see the baseline and authoritative post-step states."""
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
     observer = RecordingObserver()
 
     _incrementing_engine(
@@ -87,14 +87,14 @@ def test_engine_observes_step_zero_and_each_committed_step() -> None:
 
 def test_engine_does_not_observe_failed_transactional_step() -> None:
     """Test observers never see a working state from a failed step."""
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
     observer = RecordingObserver()
 
     @attrs.frozen(slots=True)
     class FailingCoordinator:
         def coordinate(self, simulation_state: SimulationState) -> SimulationState:
             working_state = simulation_state.copy()
-            working_state.world.value = 99
+            working_state.domain_state.value = 99
             raise RuntimeError("failed step")
 
     engine = SimulationEngine(
@@ -108,7 +108,7 @@ def test_engine_does_not_observe_failed_transactional_step() -> None:
 
     assert observer.records == [(0, 0)]
     assert simulation.state.step_index == 0
-    assert simulation.state.world.value == 0
+    assert simulation.state.domain_state.value == 0
 
 
 def test_engine_rejects_non_observer_component() -> None:
@@ -122,7 +122,7 @@ def test_engine_rejects_non_observer_component() -> None:
 
 def test_engine_respects_observer_owned_schedule() -> None:
     """Test scheduling policy remains inside the observer."""
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
     observer = RecordingObserver(
         every_n_steps=2,
         include_step_zero=False,

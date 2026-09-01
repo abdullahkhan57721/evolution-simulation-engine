@@ -29,7 +29,7 @@ def _simulation_with_energy(
 ) -> tuple[Simulation, Organism]:
     architecture = make_empty_architecture()
     simulation = Simulation(
-        initial_world_state=WorldState(
+        initial_domain_state=WorldState(
             width=3,
             height=3,
         ),

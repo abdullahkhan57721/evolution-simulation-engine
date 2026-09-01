@@ -43,8 +43,8 @@ def test_nearest_resource_target_selects_nearest_detectable_resource() -> None:
         x=1,
         y=1,
     )
-    state.world.add_resources(x=3, y=1, amount=2)
-    state.world.add_resources(x=5, y=1, amount=20)
+    state.domain_state.add_resources(x=3, y=1, amount=2)
+    state.domain_state.add_resources(x=5, y=1, amount=20)
     model = NearestResourceTarget(
         sensory_range_model=FixedSensoryRange(radius=4),
     )
@@ -62,7 +62,7 @@ def test_nearest_resource_target_cannot_see_outside_sensory_range() -> None:
     """Test resource deposits beyond sensory radius are not targeted."""
     state = make_state(width=10, height=10)
     organism = add_organism(state, x=1, y=1)
-    state.world.add_resources(x=4, y=1, amount=5)
+    state.domain_state.add_resources(x=4, y=1, amount=5)
     model = NearestResourceTarget(
         sensory_range_model=FixedSensoryRange(radius=2),
     )
@@ -104,8 +104,8 @@ def test_nearest_resource_target_prefers_larger_equal_distance_deposit() -> None
     """Test resource amount deterministically breaks equal-distance ties."""
     state = make_state(width=5, height=5)
     organism = add_organism(state, x=2, y=2)
-    state.world.add_resources(x=1, y=2, amount=3)
-    state.world.add_resources(x=3, y=2, amount=7)
+    state.domain_state.add_resources(x=1, y=2, amount=3)
+    state.domain_state.add_resources(x=3, y=2, amount=7)
     model = NearestResourceTarget(
         sensory_range_model=FixedSensoryRange(radius=2),
     )
@@ -123,7 +123,7 @@ def test_zero_sensory_range_detects_resource_on_current_cell() -> None:
     """Test zero range still includes the organism's current coordinate."""
     state = make_state(width=3, height=3)
     organism = add_organism(state, x=1, y=1)
-    state.world.add_resources(x=1, y=1, amount=3)
+    state.domain_state.add_resources(x=1, y=1, amount=3)
     model = NearestResourceTarget(
         sensory_range_model=FixedSensoryRange(radius=0),
     )

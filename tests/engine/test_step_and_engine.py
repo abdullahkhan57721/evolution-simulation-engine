@@ -20,7 +20,7 @@ from tests.engine.helpers import CounterState, IncrementEvent, IncrementProcess
 
 def test_sequential_step_runs_stages_in_order_and_increments_index() -> None:
     """Test ordered stage execution and post-step index advancement."""
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
     coordinator = SequentialStepCoordinator(
         stages=(
             StageCoordinator(
@@ -37,14 +37,14 @@ def test_sequential_step_runs_stages_in_order_and_increments_index() -> None:
     next_state = coordinator.coordinate(simulation.state)
 
     assert next_state.step_index == 1
-    assert next_state.world.value == 3
+    assert next_state.domain_state.value == 3
     assert simulation.state.step_index == 0
-    assert simulation.state.world.value == 0
+    assert simulation.state.domain_state.value == 0
 
 
 def test_failed_step_leaves_authoritative_state_unchanged() -> None:
     """Test transactional rollback when a stage raises."""
-    simulation = Simulation(initial_world_state=CounterState(value=1))
+    simulation = Simulation(initial_domain_state=CounterState(value=1))
 
     @attrs.frozen(slots=True)
     class FailingStage:
@@ -55,7 +55,7 @@ def test_failed_step_leaves_authoritative_state_unchanged() -> None:
             stage_index: int = 0,
         ) -> None:
             del stage_index
-            simulation_state.world.value = 99
+            simulation_state.domain_state.value = 99
             raise RuntimeError("stage failed")
 
     coordinator = SequentialStepCoordinator(
@@ -66,7 +66,7 @@ def test_failed_step_leaves_authoritative_state_unchanged() -> None:
         coordinator.coordinate(simulation.state)
 
     assert simulation.state.step_index == 0
-    assert simulation.state.world.value == 1
+    assert simulation.state.domain_state.value == 1
 
 
 @pytest.mark.parametrize(
@@ -85,7 +85,7 @@ def test_max_steps(
 ) -> None:
     """Test the maximum-step stopping boundary."""
     state = SimulationState(
-        world=CounterState(),
+        domain_state=CounterState(),
         step_index=step_index,
     )
 
@@ -94,7 +94,7 @@ def test_max_steps(
 
 def test_simulation_engine_runs_until_stopping_condition() -> None:
     """Test end-to-end engine iteration."""
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
     engine = SimulationEngine(
         step_coordinator=SequentialStepCoordinator(
             stages=(
@@ -110,7 +110,7 @@ def test_simulation_engine_runs_until_stopping_condition() -> None:
     engine.run(simulation)
 
     assert simulation.state.step_index == 3
-    assert simulation.state.world.value == 3
+    assert simulation.state.domain_state.value == 3
 
 
 def test_runtime_engine_does_not_preflight_declared_dependencies() -> None:
@@ -144,9 +144,9 @@ def test_runtime_engine_does_not_preflight_declared_dependencies() -> None:
             event: IncrementEvent,
             /,
         ) -> None:
-            simulation_state.world.value += event.amount
+            simulation_state.domain_state.value += event.amount
 
-    simulation = Simulation(initial_world_state=CounterState())
+    simulation = Simulation(initial_domain_state=CounterState())
     engine = SimulationEngine(
         step_coordinator=SequentialStepCoordinator(
             stages=(

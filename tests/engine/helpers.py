@@ -59,4 +59,4 @@ class IncrementProcess:
         /,
     ) -> None:
         """Apply one increment."""
-        simulation_state.world.value += event.amount
+        simulation_state.domain_state.value += event.amount

@@ -88,7 +88,7 @@ _KERNEL_TEST_PATHS = (
 def test_kernel_runs_nonbiological_transactional_state() -> None:
     """Test core execution works with an arbitrary copyable state object."""
     simulation = Simulation(
-        initial_world_state=CounterState(),
+        initial_domain_state=CounterState(),
         seed=7,
         selection_policy="priority",
     )
@@ -106,7 +106,7 @@ def test_kernel_runs_nonbiological_transactional_state() -> None:
 
     engine.run(simulation)
 
-    assert simulation.state.world.value == 3
+    assert simulation.state.domain_state.value == 3
     assert simulation.state.step_index == 3
     assert simulation.context.require("selection_policy") == "priority"
 

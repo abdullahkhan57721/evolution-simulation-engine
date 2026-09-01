@@ -25,7 +25,7 @@ class CountingIntContextKey(ContextKey[int]):
 def test_transactional_copy_shares_simulation_context() -> None:
     """Test immutable configuration is shared across state snapshots."""
     service = object()
-    state = SimulationState(world=CounterState(), service=service)
+    state = SimulationState(domain_state=CounterState(), service=service)
     copied = state.copy()
     assert copied.context is state.context
     assert copied.context.require("service") is service
@@ -36,7 +36,7 @@ def test_simulation_state_accepts_explicit_context() -> None:
     """Test callers may construct state from a complete shared context."""
     service = object()
     context = SimulationContext.from_mapping({"service": service})
-    state = SimulationState(world=CounterState(), context=context)
+    state = SimulationState(domain_state=CounterState(), context=context)
     assert state.context is context
     assert state.context.require("service") is service
     assert not hasattr(state, "service")
@@ -47,7 +47,7 @@ def test_simulation_state_rejects_mixed_context_construction_styles() -> None:
     context = SimulationContext.from_mapping({"service": object()})
     with pytest.raises(TypeError, match="context cannot be combined"):
         SimulationState(
-            world=CounterState(),
+            domain_state=CounterState(),
             context=context,
             other_service=object(),
         )
