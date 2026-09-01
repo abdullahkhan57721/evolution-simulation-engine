@@ -116,10 +116,19 @@ def test_all_events_materialize_before_any_apply() -> None:
             assert event.observed_value == 10
             simulation_state.world.value -= event.amount
 
-    StageCoordinator(
-        processes=(MaterializingProcess(),),
+    process = MaterializingProcess()
+    applied_events = StageCoordinator(
+        processes=(process,),
         resolver=AcceptAll(),
     ).coordinate(state)
 
     assert observations == [10, 10]
     assert state.world.value == 8
+    assert tuple(event.process_type for event in applied_events) == (
+        f"{type(process).__module__}.{type(process).__qualname__}",
+        f"{type(process).__module__}.{type(process).__qualname__}",
+    )
+    assert tuple(event.event_type for event in applied_events) == (
+        f"{Materialized.__module__}.{Materialized.__qualname__}",
+        f"{Materialized.__module__}.{Materialized.__qualname__}",
+    )
