@@ -56,7 +56,9 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: pyproject.toml
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-performance.txt
 
       - name: Create virtual environment
         run: python -m venv venv
@@ -65,6 +67,7 @@ jobs:
         run: |
           venv/bin/python -m pip install --upgrade pip
           venv/bin/python -m pip install -e ".[dev,docs]"
+          venv/bin/python -m pip install -r requirements-performance.txt
 
       - name: Ruff
         id: ruff
@@ -105,13 +108,20 @@ jobs:
       - name: Reference performance profile
         id: performance
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
-        run: >-
-          venv/bin/python scripts/profile_reference.py
-          --scenario all
-          --repeats 2
-          --warmups 0
-          --top 15
-          --output-dir outputs/performance
+        run: |
+          venv/bin/python scripts/profile_reference.py \
+            --scenario all \
+            --repeats 2 \
+            --warmups 0 \
+            --top 15 \
+            --output-dir outputs/performance
+          venv/bin/python scripts/benchmark_state_copy.py \
+            --fast \
+            -o outputs/performance/state-copy-pyperf.json
+          venv/bin/python scripts/benchmark_state_copy.py \
+            --fast \
+            --tracemalloc \
+            -o outputs/performance/state-copy-tracemalloc.json
 
       - name: Upload reference performance artifacts
         if: ${{ steps.performance.outcome == 'success' }}
