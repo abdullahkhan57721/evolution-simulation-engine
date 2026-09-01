@@ -41,7 +41,9 @@ class RunMetadata:
         _validate_nonempty_string(self.config_json, name="config_json")
         validators.validate_tuple(self.trait_names, name="trait_names")
         validators.validate_tuple(self.locus_names, name="locus_names")
-        validators.validate_int_ge(self.completed_steps, bound=0, name="completed_steps")
+        validators.validate_int_ge(
+            self.completed_steps, bound=0, name="completed_steps"
+        )
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -58,9 +60,15 @@ class ReferenceReplicateResult:
     event_counts: tuple[tuple[str, int], ...]
 
     def __attrs_post_init__(self) -> None:
-        validators.validate_int_ge(self.final_population_size, bound=0, name="final_population_size")
-        validators.validate_int_ge(self.final_carcass_count, bound=0, name="final_carcass_count")
-        validators.validate_int_ge(self.final_total_resources, bound=0, name="final_total_resources")
+        validators.validate_int_ge(
+            self.final_population_size, bound=0, name="final_population_size"
+        )
+        validators.validate_int_ge(
+            self.final_carcass_count, bound=0, name="final_carcass_count"
+        )
+        validators.validate_int_ge(
+            self.final_total_resources, bound=0, name="final_total_resources"
+        )
         validators.validate_tuple(self.population_history, name="population_history")
         validators.validate_tuple(self.genetic_history, name="genetic_history")
         validators.validate_tuple(self.life_histories, name="life_histories")
@@ -127,12 +135,16 @@ def run_reference_replicates(
     )
 
 
-def _run_reference_replicate(config: ReferenceEcologyConfig) -> ReferenceReplicateResult:
+def _run_reference_replicate(
+    config: ReferenceEcologyConfig,
+) -> ReferenceReplicateResult:
     ecology = build_reference_ecology(config)
     ecology.engine.run(ecology.simulation)
     world = ecology.simulation.state.world
     architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
-    event_counts = Counter(event.process_name for event in ecology.event_recorder.events)
+    event_counts = Counter(
+        event.process_name for event in ecology.event_recorder.events
+    )
     return ReferenceReplicateResult(
         metadata=RunMetadata(
             seed=config.seed,
