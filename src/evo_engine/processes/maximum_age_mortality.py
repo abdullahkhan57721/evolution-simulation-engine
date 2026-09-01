@@ -132,7 +132,7 @@ class MaximumAgeMortality:
             Proposed maximum-age mortality events.
         """
         events: list[MaximumAgeMortality.Event] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         for organism in self.access_model.entities(state=world):
             maximum_age = determine_maximum_age(
@@ -173,7 +173,7 @@ class MaximumAgeMortality:
             simulation_state: Current simulation state.
             resolved_event: Resolved maximum-age mortality event to apply.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         self.departure_model.depart(
             resolved_event.organism_id,
             state=world,
