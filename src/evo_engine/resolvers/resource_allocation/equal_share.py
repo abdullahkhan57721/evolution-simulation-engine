@@ -41,7 +41,7 @@ class EqualShare:
         for coordinate, indices in group_event_indices_by_coordinate(
             resource_events
         ).items():
-            available = simulation_state.world.resources.get(
+            available = simulation_state.domain_state.resources.get(
                 coordinate,
                 0,
             )
