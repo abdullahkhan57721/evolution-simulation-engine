@@ -25,11 +25,20 @@ class Dependency:
 
 
 @attrs.frozen(slots=True, kw_only=True)
+class DependencyRequirement:
+    """Record which configured component declared one dependency requirement."""
+
+    dependency: Dependency
+    provider_type: str = attrs.field(validator=attrs_validators.validate_str)
+
+
+@attrs.frozen(slots=True, kw_only=True)
 class DependencyReport:
     """Summarize required, provided, and missing configuration capabilities."""
 
     required: frozenset[Dependency]
     provided: frozenset[Dependency]
+    requirements: tuple[DependencyRequirement, ...] = ()
 
     @property
     def missing(self) -> frozenset[Dependency]:
@@ -37,16 +46,26 @@ class DependencyReport:
         return self.required - self.provided
 
     def require_satisfied(self) -> None:
-        """Raise if one or more required capabilities are unavailable."""
+        """Raise with requirement provenance when capabilities are unavailable."""
         if not self.missing:
             return
-        formatted = ", ".join(
-            f"{dependency.category}:{dependency.name}"
-            for dependency in sorted(self.missing)
-        )
+        formatted = ", ".join(self._format_missing(dependency) for dependency in sorted(self.missing))
         raise ValueError(
             f"simulation configuration has missing dependencies: {formatted}"
         )
+
+    def _format_missing(self, dependency: Dependency) -> str:
+        providers = sorted(
+            {
+                requirement.provider_type
+                for requirement in self.requirements
+                if requirement.dependency == dependency
+            }
+        )
+        capability = f"{dependency.category}:{dependency.name}"
+        if not providers:
+            return capability
+        return f"{capability} (required by {', '.join(providers)})"
 
 
 @runtime_checkable
@@ -68,10 +87,20 @@ def iter_configuration_components(*components: object) -> Iterator[object]:
 
 def collect_component_dependencies(*components: object) -> frozenset[Dependency]:
     """Recursively collect generic dependency declarations from an object graph."""
-    dependencies: set[Dependency] = set()
+    return frozenset(
+        requirement.dependency
+        for requirement in collect_dependency_requirements(*components)
+    )
+
+
+def collect_dependency_requirements(
+    *components: object,
+) -> tuple[DependencyRequirement, ...]:
+    """Collect dependencies together with the component types that require them."""
+    requirements: set[DependencyRequirement] = set()
     for component in iter_configuration_components(*components):
-        _collect_declared_dependencies(component, dependencies=dependencies)
-    return frozenset(dependencies)
+        _collect_declared_requirements(component, requirements=requirements)
+    return tuple(sorted(requirements, key=lambda item: (item.dependency, item.provider_type)))
 
 
 def dependency_report(
@@ -81,16 +110,18 @@ def dependency_report(
     provided: frozenset[Dependency] = frozenset(),
 ) -> DependencyReport:
     """Build a generic dependency report for configured components."""
+    requirements = collect_dependency_requirements(*components)
     return DependencyReport(
-        required=collect_component_dependencies(*components) | required,
+        required=frozenset(requirement.dependency for requirement in requirements) | required,
         provided=provided,
+        requirements=requirements,
     )
 
 
-def _collect_declared_dependencies(
+def _collect_declared_requirements(
     value: object,
     *,
-    dependencies: set[Dependency],
+    requirements: set[DependencyRequirement],
 ) -> None:
     if not isinstance(value, DependencyRequirementProvider):
         return
@@ -99,10 +130,16 @@ def _collect_declared_dependencies(
         raise TypeError(
             f"{type(value).__name__}.required_dependencies must be a frozenset."
         )
+    provider_type = f"{type(value).__module__}.{type(value).__qualname__}"
     for dependency in declared:
         if not isinstance(dependency, Dependency):
             raise TypeError("required_dependencies entries must be Dependency objects.")
-    dependencies.update(declared)
+        requirements.add(
+            DependencyRequirement(
+                dependency=dependency,
+                provider_type=provider_type,
+            )
+        )
 
 
 def _iter_object_graph(
