@@ -12,10 +12,10 @@ from evo_engine.telemetry import StepTelemetry
 from evo_engine.validation import attrs_validators
 
 
-def _validate_world(
+def _validate_domain_state(
     instance: object, attribute: attrs.Attribute, value: object
 ) -> None:
-    """Require transactional model state to provide a copy operation."""
+    """Require the domain-state payload to support transactional copying."""
     del instance
     if not callable(getattr(value, "copy", None)):
         raise TypeError(
@@ -27,9 +27,9 @@ def _validate_world(
 class SimulationState:
     """Represent one transactional snapshot of an arbitrary simulated system.
 
-    ``world`` is domain-neutral simulation terminology: it may hold any
-    domain-defined copyable model state, not necessarily a physical or biological
-    world. Domain packages define the concrete state and operations carried there.
+    The ``world`` attribute contains the opaque domain-defined state payload. The
+    kernel requires that payload to be copyable for transactions but otherwise
+    assigns no spatial, biological, or ecological meaning to it.
 
     ``context`` contains immutable configuration services shared by reference
     across copies. Configuration is consumed explicitly through
@@ -39,7 +39,7 @@ class SimulationState:
     into a ``SimulationContext`` and never become attributes on the state.
     """
 
-    world: Any = attrs.field(validator=_validate_world)
+    world: Any = attrs.field(validator=_validate_domain_state)
     context: SimulationContext = attrs.field(
         validator=attrs.validators.instance_of(SimulationContext),
         on_setattr=attrs.setters.frozen,
