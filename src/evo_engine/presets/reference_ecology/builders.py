@@ -187,7 +187,7 @@ def build_reference_simulation(
         trait_name=ENERGY_CONSERVATION_THRESHOLD,
     )
     return Simulation(
-        initial_world_state=world,
+        initial_domain_state=world,
         genetic_architecture=genetic_architecture,
         seed=config.seed,
         behavior_selection_model=EnergyConservationBehavior(
