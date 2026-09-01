@@ -1,10 +1,11 @@
 # Architecture Guardrails
 
-The repository uses Import Linter contracts in `pyproject.toml` to protect a small set of dependency boundaries that are intended to remain stable as the simulation engine grows.
+The repository uses Import Linter contracts in `pyproject.toml` plus focused architecture tests to protect a small set of dependency boundaries that are intended to remain stable as the simulation engine grows.
 
 The current contracts enforce these principles:
 
 - `evo_engine.validation` is a dependency foundation and must not depend on evolutionary, simulation-domain, orchestration, or preset packages.
+- `evo_engine.context` is a self-contained dependency foundation for immutable shared simulation configuration. It must not import any other `evo_engine` module.
 - `evo_engine.evolution` is the domain-neutral evolutionary foundation. It may use validation utilities but must not depend on biological genetics, ecology, world state, concrete processes/resolvers, presets, or engine orchestration.
 - `evo_engine.genetics` is a biological specialization of the general evolution layer and remains upstream of behavior, development, energetics, engine orchestration, feeding, growth, life history, predation, presets, processes, reproduction, resolvers, spatial behavior, and world state.
 - Domain packages (`behavior`, `development`, `energetics`, `feeding`, `genetics`, `growth`, `life_history`, `predation`, `reproduction`, `spatial`, and `world`) must not depend on concrete process or resolver implementations or on high-level presets.
@@ -13,20 +14,52 @@ The current contracts enforce these principles:
 The intended foundational direction is:
 
 ```text
-validation
-    |
-    v
-evolution
-    |
-    v
+validation          context
+    |                 |
+    +--------+--------+
+             |
+             v
+     generic foundations
+             |
+             v
+          evolution
+             |
+             v
 biological/domain specializations
-    |
-    v
-process and engine composition
-    |
-    v
+             |
+             v
+ process and engine composition
+             |
+             v
 presets / experiments / interfaces
 ```
+
+## Simulation context boundary
+
+`ContextKey[T]` and `SimulationContext` live in `evo_engine.context`, not in engine orchestration or generic configuration. Domain packages own the typed keys for the services they define. For example, genetics owns `GENETIC_ARCHITECTURE` and behavior owns `BEHAVIOR_SELECTION_MODEL`.
+
+The kernel may construct, carry, and share a `SimulationContext`, but it does not assign modeled-domain meaning to its values. Named keyword values accepted by `Simulation` and `SimulationState` are construction convenience only; they are normalized into the immutable context. Context values do **not** become synthetic attributes on either object. Consumers read configuration explicitly through `context.require(...)` or `context.get(...)`, preferably with a typed `ContextKey[T]`.
+
+This gives configuration a visible, type-checkable dependency path:
+
+```text
+domain-owned ContextKey[T]
+          |
+          v
+   SimulationContext
+          |
+          v
+Simulation / SimulationState
+          |
+          v
+explicit context.require(key)
+```
+
+A focused AST architecture test protects `evo_engine.context` from acquiring dependencies on other engine packages, and public-API regression tests keep context contracts out of the `evo_engine.engine` namespace.
+
+## Kernel state vocabulary
+
+The generic runtime continues to call its mutable modeled state `world` / `initial_world_state`. This terminology was retained deliberately during stabilization. The complete nonbiological scheduling integration test uses the same API without importing biology, demonstrating that the name does not create a dependency on biological `WorldState` semantics. Renaming the field would therefore create broad mechanical churn without strengthening the actual package boundary.
 
 `evo_engine.evolution` should contain only abstractions that make sense for evolutionary systems without assuming DNA, genes, chromosomes, organisms, sex, energy, age, or a spatial ecology. Biological objects may expose adapter properties or methods that satisfy these general contracts while keeping their biology-oriented public APIs.
 
