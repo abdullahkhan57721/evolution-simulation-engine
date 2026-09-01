@@ -113,6 +113,15 @@ jobs:
           --top 15
           --output-dir outputs/performance
 
+      - name: Upload reference performance artifacts
+        if: ${{ steps.performance.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-performance-${{ github.run_id }}
+          path: outputs/performance/
+          retention-days: 14
+          if-no-files-found: error
+
       - name: MkDocs strict build
         id: docs
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
