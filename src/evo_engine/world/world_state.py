@@ -120,7 +120,7 @@ class WorldState:
         return MappingProxyType(self._organisms)
 
     @property
-    def carcasses(self) -> Mapping[int, Carcass]:
+    def carcasses(self) -> Mapping[int, Carass]:
         """Return the carcasses currently in the world."""
         return MappingProxyType(self._carcasses)
 
@@ -135,25 +135,26 @@ class WorldState:
         return tuple(field.name for field in self.environmental_fields)
 
     @property
-    def mutation_count(self) -> int:
-        """Return the number of mutations in the current transaction journal."""
+    def effect_count(self) -> int:
+        """Return the number of domain effects in the transaction journal."""
         return len(self._mutations)
 
-    def mutations_since(self, checkpoint: int) -> tuple[WorldMutation, ...]:
-        """Return transaction-local world mutations after a journal checkpoint.
+    def effects_since(self, checkpoint: int) -> tuple[WorldMutation, ...]:
+        """Return transaction-local world effects after a journal checkpoint.
 
         Args:
-            checkpoint: Previously observed ``mutation_count`` value.
+            checkpoint: Previously observed ``effect_count`` value.
 
         Returns:
-            Mutations recorded at or after the checkpoint in occurrence order.
+            World mutations exposed as domain effects at or after the checkpoint,
+            in occurrence order.
 
         Raises:
             ValueError: If checkpoint exceeds the current journal length.
         """
         validators.validate_int_ge(checkpoint, bound=0, name="checkpoint")
         if checkpoint > len(self._mutations):
-            raise ValueError("checkpoint cannot exceed current mutation_count.")
+            raise ValueError("checkpoint cannot exceed current effect_count.")
         return tuple(self._mutations[checkpoint:])
 
     def environmental_value(self, field_name: str, *, x: int, y: int) -> int | float:
