@@ -37,7 +37,7 @@ concurrency:
 
 jobs:
   quality:
-    name: Ruff, Pyright, Architecture, Kernel Contracts, Complexity, Tests, Docs
+    name: Ruff, Pyright, Architecture, Complexity, Tests, Docs
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
