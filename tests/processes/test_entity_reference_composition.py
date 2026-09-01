@@ -52,8 +52,8 @@ def test_maximum_age_derives_event_reference_through_reference_model() -> None:
     assert reference.entities == [deceased]
 
 
-def test_predation_derives_predator_and_prey_references_through_model() -> None:
-    """Test predation uses reference policy for pair identity and event IDs."""
+def test_predation_derives_snapshot_references_once_through_model() -> None:
+    """Test predation caches configured references for one proposal snapshot."""
     state = make_state()
     predator = add_organism(state, body_mass=8, x=0, y=0)
     prey = add_organism(state, body_mass=4, x=0, y=0)
@@ -71,5 +71,4 @@ def test_predation_derives_predator_and_prey_references_through_model() -> None:
         (predator.id, prey.id),
         (prey.id, predator.id),
     }
-    assert reference.entities.count(predator) == 4
-    assert reference.entities.count(prey) == 4
+    assert reference.entities == [predator, prey]

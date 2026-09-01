@@ -178,9 +178,10 @@ class Predation:
         """Propose behaviorally selected, feasible predation events."""
         world = simulation_state.world
         organisms = self.access_model.entities(state=world)
+        references: tuple[int, ...] | None = None
         events: list[Predation.Event] = []
 
-        for predator in organisms:
+        for predator_index, predator in enumerate(organisms):
             if not behavior_is_allowed(
                 predator,
                 behavioral_purpose=self.behavioral_purpose,
@@ -188,10 +189,19 @@ class Predation:
             ):
                 continue
 
-            for prey in organisms:
+            if references is None:
+                references = tuple(
+                    self.reference_model.reference(organism, state=world)
+                    for organism in organisms
+                )
+            predator_id = references[predator_index]
+
+            for prey, prey_id in zip(organisms, references, strict=True):
                 event = self._propose_pair(
                     predator,
                     prey,
+                    predator_id=predator_id,
+                    prey_id=prey_id,
                     simulation_state=simulation_state,
                 )
                 if event is not None:
@@ -204,19 +214,11 @@ class Predation:
         predator: Organism,
         prey: Organism,
         *,
+        predator_id: int,
+        prey_id: int,
         simulation_state: SimulationState,
     ) -> Predation.Event | None:
         """Return one feasible predator-prey event or None."""
-        world = simulation_state.world
-        predator_id = self.reference_model.reference(
-            predator,
-            state=world,
-        )
-        prey_id = self.reference_model.reference(
-            prey,
-            state=world,
-        )
-
         if predator_id == prey_id:
             return None
 
