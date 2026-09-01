@@ -110,7 +110,7 @@ class EnvironmentalChange:
         if not math.isfinite(validated_value):
             raise ValueError("forcing value must be finite.")
 
-        world = simulation_state.world
+        world = simulation_state.domain_state
         world.environmental_value(self.field_name, x=0, y=0)
         coordinates = self.coordinates
         if coordinates is None:
@@ -137,7 +137,7 @@ class EnvironmentalChange:
     ) -> None:
         """Apply a resolved environmental forcing update mechanically."""
         for x, y in resolved_event.coordinates:
-            simulation_state.world.set_environmental_value(
+            simulation_state.domain_state.set_environmental_value(
                 resolved_event.field_name,
                 x=x,
                 y=y,
