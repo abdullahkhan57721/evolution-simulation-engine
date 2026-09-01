@@ -121,6 +121,26 @@ class StepTelemetry:
                     f"events[{index}] must be an AppliedEvent; received {event!r}."
                 )
 
+    @classmethod
+    def _from_kernel_values(
+        cls,
+        *,
+        completed_step_index: object,
+        events: tuple[AppliedEvent, ...],
+    ) -> Self:
+        """Construct from kernel-owned events and validate the committed index."""
+        if type(completed_step_index) is not int or completed_step_index < 1:
+            completed_step_index = validators.validate_int_ge(
+                value=completed_step_index,
+                bound=1,
+                name="StepTelemetry.completed_step_index",
+            )
+
+        instance = object.__new__(cls)
+        object.__setattr__(instance, "completed_step_index", completed_step_index)
+        object.__setattr__(instance, "events", events)
+        return instance
+
     def events_for_process(self, process_name: str) -> tuple[AppliedEvent, ...]:
         """Return events produced by one process class name.
 
