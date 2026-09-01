@@ -54,6 +54,7 @@ _DOMAIN_IDENTIFIER_FRAGMENTS = (
     "energy",
     "aging",
     "mutation",
+    "world",
 )
 _KERNEL_SOURCE_PATHS = (
     Path("src/evo_engine/engine"),
@@ -82,6 +83,10 @@ _KERNEL_TEST_PATHS = (
     Path("tests/validation"),
     Path("tests/resolvers/test_generic_preference_order.py"),
     Path("tests/resolvers/test_preference_order_import_boundary.py"),
+)
+_KERNEL_TOOLING_PATHS = (
+    Path("scripts/profile_kernel.py"),
+    Path("scripts/benchmark_state_copy.py"),
 )
 
 
@@ -143,9 +148,21 @@ def test_kernel_tests_do_not_import_modeled_domains_or_domain_helpers() -> None:
 
 def test_kernel_tests_use_domain_neutral_identifiers() -> None:
     """Test kernel-facing fixtures avoid modeled-domain vocabulary."""
-    guard_path = Path(__file__)
+    guard_path = Path(__file__).resolve()
     violations = _identifier_violations(
-        path for path in _python_files(_KERNEL_TEST_PATHS) if path != guard_path
+        path
+        for path in _python_files(_KERNEL_TEST_PATHS)
+        if path.resolve() != guard_path
+    )
+
+    assert violations == []
+
+
+def test_kernel_tooling_does_not_use_removed_world_state_attribute() -> None:
+    """Test kernel-facing tooling uses the canonical domain_state envelope API."""
+    violations = _attribute_violations(
+        _python_files(_KERNEL_TOOLING_PATHS),
+        forbidden_attributes=("world",),
     )
 
     assert violations == []
@@ -190,6 +207,20 @@ def _identifier_violations(paths: Iterable[Path]) -> list[str]:
                     violations.append(f"{path}: identifier {identifier!r}")
                     break
 
+    return violations
+
+
+def _attribute_violations(
+    paths: Iterable[Path],
+    *,
+    forbidden_attributes: tuple[str, ...],
+) -> list[str]:
+    violations: list[str] = []
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and node.attr in forbidden_attributes:
+                violations.append(f"{path}: attribute {node.attr!r}")
     return violations
 
 

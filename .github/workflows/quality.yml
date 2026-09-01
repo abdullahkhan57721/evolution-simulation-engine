@@ -17,6 +17,7 @@ on:
           - "Ruff"
           - "Pyright"
           - "Import Linter"
+          - "Kernel Contracts"
           - "Complexipy"
           - "Tests + coverage"
           - "Reference performance"
@@ -92,6 +93,19 @@ jobs:
             exit 0
           fi
           exit "$status"
+
+      - name: Kernel Contracts
+        id: kernel_contracts
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Kernel Contracts' }}
+        run: |
+          venv/bin/python -m pytest -q \
+            tests/engine/test_domain_neutral_kernel.py \
+            tests/engine/test_kernel_determinism.py \
+            tests/engine/test_simulation_state_copy_semantics.py \
+            tests/engine/test_stage_coordinator.py \
+            tests/engine/test_domain_neutral_telemetry_effects.py \
+            tests/configuration/test_domain_neutral_spec.py \
+            tests/integration/test_nonbiological_kernel_vertical_slice.py
 
       - name: Complexipy
         id: complexipy
@@ -177,6 +191,7 @@ jobs:
           evaluate "Ruff" "Ruff" "${{ steps.ruff.outcome }}"
           evaluate "Pyright" "Pyright" "${{ steps.pyright.outcome }}"
           evaluate "Import Linter" "Import Linter" "${{ steps.architecture.outcome }}"
+          evaluate "Kernel Contracts" "Kernel Contracts" "${{ steps.kernel_contracts.outcome }}"
           evaluate "Complexipy" "Complexipy" "${{ steps.complexipy.outcome }}"
           evaluate "pytest + coverage" "Tests + coverage" "${{ steps.coverage.outcome }}"
           evaluate "Reference performance" "Reference performance" "${{ steps.performance.outcome }}"

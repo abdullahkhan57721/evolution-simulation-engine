@@ -53,15 +53,18 @@ def test_generic_spec_compiles_nonbiological_state() -> None:
     assert compiled.dependency_report.missing == frozenset()
 
 
-def test_generic_preflight_rejects_missing_dependency() -> None:
+def test_generic_preflight_rejects_missing_dependency_with_provenance() -> None:
     dependency = Dependency(category="resource", name="compute")
     spec = SimulationSpec(
         initial_domain_state=_CounterState(),
         step_coordinator=_GenericRequirement(dependency=dependency),
         stopping_condition=MaxSteps(max_steps=0),
     )
-    with pytest.raises(ValueError, match="resource:compute"):
+    with pytest.raises(ValueError) as exc_info:
         spec.compile()
+    message = str(exc_info.value)
+    assert "resource:compute" in message
+    assert "_GenericRequirement" in message
 
 
 def test_generic_preflight_accepts_explicit_domain_capability() -> None:
