@@ -49,7 +49,7 @@ class SequentialStepCoordinator:
             applied_events.extend(stage_events)
 
         working_state.step_index += 1
-        working_state.last_step_telemetry = StepTelemetry(
+        working_state.last_step_telemetry = StepTelemetry._from_kernel_values(
             completed_step_index=working_state.step_index,
             events=tuple(applied_events),
         )
