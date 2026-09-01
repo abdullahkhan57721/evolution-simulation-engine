@@ -149,7 +149,7 @@ class Growth:
                 validation contract.
         """
         events: list[Growth.Event] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         for organism in self.access_model.entities(state=world):
             if not behavior_is_allowed(
@@ -242,7 +242,7 @@ class Growth:
         """
         organism = self.access_model.get(
             resolved_event.organism_id,
-            state=simulation_state.world,
+            state=simulation_state.domain_state,
         )
 
         if not energy_expenditure_is_allowed(
