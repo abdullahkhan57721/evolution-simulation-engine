@@ -105,7 +105,7 @@ class Decomposition:
         Returns:
             Proposed Decomposition events.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         events: list[Decomposition.Event] = []
 
         for carcass in self.access_model.entities(state=world):
@@ -144,7 +144,7 @@ class Decomposition:
             simulation_state: Current simulation state.
             resolved_event: Resolved Decomposition event to apply.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         carcass = self.access_model.get(
             resolved_event.carcass_id,
             state=world,
