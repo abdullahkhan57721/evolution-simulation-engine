@@ -105,10 +105,16 @@ jobs:
           COVERAGE_FAIL_UNDER: "90"
         run: ./scripts/coverage
 
-      - name: Reference performance profile
+      - name: Reference + kernel performance profiles
         id: performance
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
         run: |
+          venv/bin/python scripts/profile_kernel.py \
+            --scenario all \
+            --repeats 3 \
+            --warmups 1 \
+            --top 25 \
+            --output-dir outputs/performance
           venv/bin/python scripts/profile_reference.py \
             --scenario all \
             --repeats 2 \
