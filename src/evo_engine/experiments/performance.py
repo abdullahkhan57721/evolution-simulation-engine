@@ -236,7 +236,7 @@ def _prepare_reference_run(
 
 def _reference_outcome(simulation: Simulation) -> ReferenceRunOutcome:
     state = simulation.state
-    world = state.world
+    world = state.domain_state
     return ReferenceRunOutcome(
         completed_steps=state.step_index,
         final_population_size=len(world.organisms),
