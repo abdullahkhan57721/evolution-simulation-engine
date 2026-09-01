@@ -8,13 +8,13 @@ the subsystem documents themselves.
 
 For a new contributor or agent, the recommended order is:
 
-1. [`AGENTS.md`](../../AGENTS.md) for durable working rules and source-of-truth
+1. [`AGENTS.md`](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/AGENTS.md) for durable working rules and source-of-truth
    conventions.
 2. [Simulation Kernel Contract](../kernel_contract.md) for the frozen generic
    execution semantics.
 3. [General Evolution Framework](../general_evolution_framework.md) for the
    domain-neutral evolutionary layer above the kernel.
-4. [Architecture Guardrails](../../.github/ARCHITECTURE_GUARDRAILS.md) for the
+4. [Architecture Guardrails](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/.github/ARCHITECTURE_GUARDRAILS.md) for the
    dependency directions that are mechanically enforced.
 5. [Architecture Decisions](../decisions/README.md) for the rationale behind
    major settled choices.
