@@ -84,6 +84,8 @@ Do not weaken tests, architecture checks, coverage, complexity, kernel contracts
 or performance guards merely to make CI pass.
 
 Record out-of-scope findings as follow-ups rather than silently fixing them.
+Before stopping, update the PR with the checks actually run, manual-verification
+result, documentation impact, risks/follow-ups, and current recovery checkpoint.
 Bring the PR to a clean, green, review-ready state; leave final architectural
 review and squash merge to the review workflow unless explicitly instructed
 otherwise.
