@@ -13,11 +13,13 @@ def main() -> None:
     simulation = build_reference_simulation(ReferenceEcologyConfig())
     state = simulation.state
 
-    runner = pyperf.Runner()
-    runner.metadata["scenario"] = "reference-ecology-initial-state"
-    runner.metadata["population_size"] = len(state.world.organisms)
-    runner.metadata["resource_cells"] = len(state.world.resources)
-
+    runner = pyperf.Runner(
+        metadata={
+            "scenario": "reference-ecology-initial-state",
+            "population_size": len(state.world.organisms),
+            "resource_cells": len(state.world.resources),
+        }
+    )
     runner.bench_func("simulation_state.copy", state.copy)
     runner.bench_func("world_state.copy", state.world.copy)
 
