@@ -5,6 +5,7 @@ theme:
 
 nav:
   - Home: index.md
+  - Simulation Kernel Contract: kernel_contract.md
   - General Evolution Framework: general_evolution_framework.md
   - Model Notes: model_notes.md
   - Energy Expenditure: energy_expenditure.md
