@@ -56,7 +56,7 @@ class SimulationEngine:
             self._observe(simulation.state)
 
     def _observe(self, simulation_state: SimulationState) -> None:
-        domain_state = simulation_state.world
+        domain_state = simulation_state.domain_state
         for observer in self.observers:
             if observer.should_observe(
                 domain_state,
