@@ -72,7 +72,7 @@ class WeightedShare:
         for coordinate, indices in group_event_indices_by_coordinate(
             resource_events
         ).items():
-            available = simulation_state.world.resources.get(
+            available = simulation_state.domain_state.resources.get(
                 coordinate,
                 0,
             )
@@ -98,7 +98,7 @@ class WeightedShare:
         weights: list[int] = []
 
         for event in resource_events:
-            organism = simulation_state.world.organisms[event.organism_id]
+            organism = simulation_state.domain_state.organisms[event.organism_id]
             weight = self.weight_function(
                 organism,
                 simulation_state,
