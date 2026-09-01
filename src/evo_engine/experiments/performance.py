@@ -99,9 +99,6 @@ class ReferenceProfileResult:
 
     scenario_name: str
     observed: bool
-    total_calls: int
-    primitive_calls: int
-    total_seconds: float
     report: str
     outcome: ReferenceRunOutcome
 
@@ -188,7 +185,7 @@ def profile_reference_scenario(
         stats_path: Optional destination for raw ``pstats`` data.
 
     Returns:
-        Profiler metadata, textual cumulative-time report, and final outcome.
+        Textual cumulative-time report and final deterministic outcome.
     """
     validators.validate_int_ge(top_functions, bound=1, name="top_functions")
     prepared = _prepare_reference_run(scenario)
@@ -210,9 +207,6 @@ def profile_reference_scenario(
     return ReferenceProfileResult(
         scenario_name=scenario.name,
         observed=scenario.observed,
-        total_calls=int(getattr(stats, "total_calls")),
-        primitive_calls=int(getattr(stats, "prim_calls")),
-        total_seconds=float(getattr(stats, "total_tt")),
         report=stream.getvalue(),
         outcome=_reference_outcome(prepared.simulation),
     )
