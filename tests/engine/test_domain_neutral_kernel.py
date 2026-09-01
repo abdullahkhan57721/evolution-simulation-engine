@@ -53,6 +53,7 @@ _DOMAIN_IDENTIFIER_FRAGMENTS = (
     "body_mass",
     "energy",
     "aging",
+    "mutation",
 )
 _KERNEL_SOURCE_PATHS = (
     Path("src/evo_engine/engine"),
@@ -120,6 +121,13 @@ def test_kernel_source_does_not_import_modeled_domains() -> None:
     assert violations == []
 
 
+def test_kernel_source_uses_domain_neutral_identifiers() -> None:
+    """Test production kernel identifiers avoid modeled-domain vocabulary."""
+    violations = _identifier_violations(_python_files(_KERNEL_SOURCE_PATHS))
+
+    assert violations == []
+
+
 def test_kernel_tests_do_not_import_modeled_domains_or_domain_helpers() -> None:
     """Test kernel tests cannot normalize domain coupling through fixtures."""
     violations = _import_violations(
@@ -136,18 +144,9 @@ def test_kernel_tests_do_not_import_modeled_domains_or_domain_helpers() -> None:
 def test_kernel_tests_use_domain_neutral_identifiers() -> None:
     """Test kernel-facing fixtures avoid modeled-domain vocabulary."""
     guard_path = Path(__file__)
-    violations: list[str] = []
-
-    for path in _python_files(_KERNEL_TEST_PATHS):
-        if path == guard_path:
-            continue
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for identifier in _declared_identifiers(tree):
-            lowered = identifier.lower()
-            for fragment in _DOMAIN_IDENTIFIER_FRAGMENTS:
-                if fragment in lowered:
-                    violations.append(f"{path}: identifier {identifier!r}")
-                    break
+    violations = _identifier_violations(
+        path for path in _python_files(_KERNEL_TEST_PATHS) if path != guard_path
+    )
 
     assert violations == []
 
@@ -175,6 +174,21 @@ def _import_violations(
             for module in _imported_modules(node):
                 if module.startswith(forbidden_prefixes):
                     violations.append(f"{path}: imports {module}")
+
+    return violations
+
+
+def _identifier_violations(paths: Iterable[Path]) -> list[str]:
+    violations: list[str] = []
+
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for identifier in _declared_identifiers(tree):
+            lowered = identifier.lower()
+            for fragment in _DOMAIN_IDENTIFIER_FRAGMENTS:
+                if fragment in lowered:
+                    violations.append(f"{path}: identifier {identifier!r}")
+                    break
 
     return violations
 
