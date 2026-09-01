@@ -52,6 +52,7 @@ from evo_engine.genetics import (
     DEFENSE,
     ENERGY_CONSERVATION_THRESHOLD,
     ENERGY_RESERVE,
+    GENETIC_ARCHITECTURE,
     LOCOMOTION_COST_COEFFICIENT,
     MAX_INTAKE_RATE,
     MAX_SPEED,
@@ -436,11 +437,12 @@ def build_reference_ecology(
     """
     config = resolve_reference_config(config)
     simulation = build_reference_simulation(config)
+    genetic_architecture = simulation.context.require(GENETIC_ARCHITECTURE)
     recorder = PopulationRecorder(trait_names=tuple(config.traits.as_mapping()))
     event_recorder = EventRecorder()
     pedigree_recorder = PedigreeRecorder()
     genetic_recorder = GeneticCompositionRecorder(
-        locus_names=tuple(locus.name for locus in simulation.genetic_architecture.loci)
+        locus_names=tuple(locus.name for locus in genetic_architecture.loci)
     )
     return ReferenceEcology(
         config=config,
