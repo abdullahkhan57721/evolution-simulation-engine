@@ -1,0 +1,54 @@
+name: Bug report
+description: Report reproducible incorrect behavior, a regression, or a broken development/CI contract.
+title: "Bug: "
+body:
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Provide the smallest reliable steps, test, command, or scenario that reproduces the problem.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / diagnostics
+      description: Include traceback, failing test, CI run, commit SHA, profile, or other useful evidence.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Suspected scope / constraints
+      description: Which layer appears affected, and which architectural contracts must not be weakened while fixing it?
+      placeholder: Write "Unknown" if the affected layer is not yet clear.
+    validations:
+      required: true
+
+  - type: textarea
+    id: regression
+    attributes:
+      label: Regression test
+      description: What focused test or executable guard should prevent this bug from returning?
+      placeholder: Describe the intended regression check even if it has not been implemented yet.
+    validations:
+      required: true

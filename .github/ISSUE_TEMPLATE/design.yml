@@ -1,0 +1,61 @@
+name: Architecture / design
+description: Resolve a consequential architecture, public-contract, or modeling decision before implementation.
+title: "Design: "
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Design question
+      description: What decision must be made?
+      placeholder: Phrase this as a specific architectural or modeling question.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and motivation
+      description: What current limitation, future capability, or conflict makes this decision necessary?
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and invariants
+      description: Which existing contracts, ADRs, scientific requirements, or architectural boundaries must remain true?
+      placeholder: Link to authoritative repository docs/tests where possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: options
+    attributes:
+      label: Credible options
+      description: List the main alternatives and their meaningful tradeoffs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision / recommendation
+      description: State the preferred direction if known, or leave the competing options clearly framed for discussion.
+    validations:
+      required: true
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+      description: What downstream APIs, tests, migrations, documentation, or future capabilities would this choice affect?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: adr
+    attributes:
+      label: ADR check
+      options:
+        - label: This decision is important enough that an ADR should be created or updated if accepted.
+          required: false

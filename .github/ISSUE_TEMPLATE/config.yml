@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Architecture map
+    url: https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/docs/architecture/index.md
+    about: Read the architecture map and current source-of-truth guidance before opening a design issue.
+  - name: Agent / contributor instructions
+    url: https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/AGENTS.md
+    about: Durable repository rules for development, validation, and recovery.

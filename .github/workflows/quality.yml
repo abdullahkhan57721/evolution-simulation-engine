@@ -97,15 +97,7 @@ jobs:
       - name: Kernel Contracts
         id: kernel_contracts
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Kernel Contracts' }}
-        run: |
-          venv/bin/python -m pytest -q \
-            tests/engine/test_domain_neutral_kernel.py \
-            tests/engine/test_kernel_determinism.py \
-            tests/engine/test_simulation_state_copy_semantics.py \
-            tests/engine/test_stage_coordinator.py \
-            tests/engine/test_domain_neutral_telemetry_effects.py \
-            tests/configuration/test_domain_neutral_spec.py \
-            tests/integration/test_nonbiological_kernel_vertical_slice.py
+        run: ./scripts/kernel_contracts
 
       - name: Complexipy
         id: complexipy

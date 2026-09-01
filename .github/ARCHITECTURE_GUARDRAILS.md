@@ -59,7 +59,17 @@ A focused AST architecture test protects `evo_engine.context` from acquiring dep
 
 ## Kernel state vocabulary
 
-The generic runtime continues to call its mutable modeled state `world` / `initial_world_state`. This terminology was retained deliberately during stabilization. The complete nonbiological scheduling integration test uses the same API without importing biology, demonstrating that the name does not create a dependency on biological `WorldState` semantics. Renaming the field would therefore create broad mechanical churn without strengthening the actual package boundary.
+The generic runtime calls its opaque mutable modeled payload `domain_state` and its corresponding construction input `initial_domain_state`. These names are part of the frozen domain-neutral kernel contract. Generic engine, configuration, telemetry, tests, and kernel-facing tooling must not regress to a generic `.world` state API.
+
+Biological code remains free to use its own domain-native vocabulary after the generic envelope is explicitly unwrapped. For example:
+
+```python
+world = simulation_state.domain_state
+```
+
+A biological `WorldState`, local `world` variable, and biological world mutation/effect terminology are therefore appropriate in domain code. The boundary guard protects generic identifiers and removed generic `.world` attribute access rather than attempting to erase biological vocabulary from the biological layer.
+
+See `docs/kernel_contract.md` for the complete execution, transaction, effects, telemetry, and maintenance contract.
 
 `evo_engine.evolution` should contain only abstractions that make sense for evolutionary systems without assuming DNA, genes, chromosomes, organisms, sex, energy, age, or a spatial ecology. Biological objects may expose adapter properties or methods that satisfy these general contracts while keeping their biology-oriented public APIs.
 
@@ -73,10 +83,11 @@ The generic runtime continues to call its mutable modeled state `world` / `initi
 
 These contracts deliberately do not attempt to encode the entire package graph. New contracts should be added only when a dependency direction is an intentional architectural invariant rather than an incidental property of the current implementation.
 
-Run the architecture check locally with:
+Run the architecture checks locally with:
 
 ```bash
 ./scripts/architecture
+./scripts/kernel_contracts
 ```
 
-The same check runs in GitHub Actions as part of the repository quality gate.
+The same checks run in GitHub Actions as part of the repository quality gate.

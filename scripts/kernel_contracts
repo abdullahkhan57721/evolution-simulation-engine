@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Run the focused semantic regression suite that protects the frozen simulation
+# kernel contracts. Keep this list aligned with the Kernel Contracts CI step by
+# calling this script from CI rather than duplicating the test paths there.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
+PYTHON="$REPO_ROOT/venv/bin/python"
+if [[ ! -x "$PYTHON" ]]; then
+    echo "Error: expected project Python at $PYTHON" >&2
+    echo "Create the project virtual environment at ./venv first." >&2
+    exit 2
+fi
+
+printf '\n%s\n' "======================================================================"
+printf '%s\n' "KERNEL CONTRACTS — SEMANTIC REGRESSION SUITE"
+printf '%s\n' "======================================================================"
+
+"$PYTHON" -m pytest -q \
+    tests/engine/test_domain_neutral_kernel.py \
+    tests/engine/test_kernel_determinism.py \
+    tests/engine/test_simulation_state_copy_semantics.py \
+    tests/engine/test_stage_coordinator.py \
+    tests/engine/test_domain_neutral_telemetry_effects.py \
+    tests/configuration/test_domain_neutral_spec.py \
+    tests/integration/test_nonbiological_kernel_vertical_slice.py
