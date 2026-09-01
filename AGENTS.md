@@ -133,6 +133,8 @@ Start with:
 - `docs/architecture/index.md` — architecture map and reading order.
 - `docs/kernel_contract.md` — frozen kernel semantics.
 - `docs/general_evolution_framework.md` — domain-neutral evolution layer.
+- `docs/development/codex_workflow.md` — ticket handoff, scope, and recovery flow.
+- `docs/development/manual_verification.md` — practical ticket-level verification.
 - `.github/ARCHITECTURE_GUARDRAILS.md` — enforced dependency direction.
 - `docs/decisions/` — major architectural decisions and rationale.
 - `src/evo_engine/` — implementation.
@@ -186,8 +188,9 @@ change; investigate whether a regression is real first.
 Substantial work should be recoverable without the originating chat.
 
 1. Create or identify a GitHub Issue before substantial implementation.
-2. The Issue should state goal, why, non-goals, architectural constraints,
-   acceptance criteria, validation, and dependencies.
+2. The Issue should state goal, why, dependencies, expected/allowed areas,
+   do-not-touch boundaries, requirements, non-goals, architectural constraints,
+   acceptance criteria, automated validation, and manual verification.
 3. Create a focused branch from current `main`.
 4. Make coherent commits and open a PR early rather than waiting until 90% of the
    work is complete.
@@ -201,6 +204,23 @@ Substantial work should be recoverable without the originating chat.
 The protected GitHub status-check name is intentionally stable. When refactoring
 CI, preserve branch-protection compatibility unless the repository rules are
 updated deliberately in the same operational change.
+
+## Ticket scope discipline
+
+Implement one Issue at a time. Do not implement future-ticket features, refactor
+unrelated systems, or add dependencies merely because doing so would be
+convenient.
+
+Treat the Issue's expected/allowed areas and do-not-touch list as explicit scope
+guardrails. They are not permission to produce an incorrect solution: if the
+correct implementation genuinely must cross a boundary, keep the expansion
+minimal and record why in the Issue or PR before or alongside the change.
+
+When work uncovers a real problem outside the ticket scope, do not silently fix
+it. Record it in the PR's **Risks / follow-ups** section and create or link a
+follow-up GitHub Issue when it merits future work.
+
+Detailed Codex handoff guidance lives in `docs/development/codex_workflow.md`.
 
 ## Recovery checkpoint protocol
 
@@ -218,6 +238,22 @@ Next action:
 
 A new agent should be able to continue from the Issue + PR + repository without
 asking the user to reconstruct prior chat history.
+
+## PR completion report
+
+Before calling a PR review-ready, make the PR itself the completion report. It
+should record:
+
+- what changed and any architecture/public-contract impact;
+- commands/checks actually run and their results;
+- ticket-specific manual verification and observed result, or why it is not
+  applicable;
+- documentation updated or why none is needed;
+- known risks and linked follow-up Issues; and
+- the current recovery checkpoint.
+
+Do not duplicate information Git already exposes reliably. The PR diff is the
+authoritative list of changed files.
 
 ## Architecture decisions
 
@@ -253,5 +289,6 @@ source instead.
 
 Do not call a milestone complete merely because code was written. Completion
 means the Issue's acceptance criteria are satisfied, relevant docs/tests are
-updated, the full protected quality gate is green, the PR is merged, and `main`
-is verified at the resulting merge SHA.
+updated, required manual verification is completed or explicitly not applicable,
+the full protected quality gate is green, the PR is merged, and `main` is
+verified at the resulting merge SHA.

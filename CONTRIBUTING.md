@@ -13,15 +13,36 @@ For substantial work, create or identify a GitHub Issue. Prefer the repository's
 Issue forms so the brief includes:
 
 - goal and motivation;
+- dependencies/blockers;
+- expected or allowed files/packages/systems;
+- explicit do-not-touch boundaries;
+- implementation requirements;
 - non-goals;
 - architectural constraints;
 - proposed public contracts when relevant;
 - acceptance criteria;
-- required tests/documentation;
-- performance considerations;
-- dependencies/blockers.
+- required automated tests/documentation/performance evidence; and
+- ticket-specific manual verification, or an explicit reason it is not
+  applicable.
 
 Resolve shared public contracts before parallelizing dependent implementation.
+
+For Codex-specific handoff guidance and the reusable kickoff prompt, see
+`docs/development/codex_workflow.md`.
+
+## Scope and follow-ups
+
+Implement one Issue at a time. Do not silently implement future-ticket features,
+perform unrelated refactors, or add unnecessary dependencies.
+
+If a correct implementation genuinely must leave the Issue's expected/allowed
+areas, keep the expansion minimal and explain it in the Issue or PR. If you find
+a worthwhile problem that is outside the current scope, record it in the PR's
+**Risks / follow-ups** section and create or link a follow-up GitHub Issue rather
+than folding the work into the current milestone.
+
+GitHub Issues are also the canonical known-issues/ticket system; do not maintain a
+parallel static backlog file that can drift from GitHub.
 
 ## Branch and pull request
 
@@ -42,6 +63,10 @@ Next action:
 
 If a session is interrupted, the next contributor should inspect the Issue, PR,
 latest commit, and latest CI run before asking for historical reconstruction.
+
+Before review, the PR should also record the commands/checks actually run,
+manual-verification result, documentation impact, and known risks/follow-ups.
+The Git diff remains the authoritative changed-file inventory.
 
 ## Local environment
 
@@ -86,6 +111,17 @@ artifacts.
 
 Use focused tests while developing; use the complete gate before merge.
 
+## Manual verification
+
+A green build is necessary but does not always demonstrate that the intended
+public workflow is usable. Each implementation Issue therefore includes a short
+manual-verification plan, or explicitly states why no meaningful manual check
+exists.
+
+The PR records what was actually observed. Keep manual checks small and
+reproducible; important deterministic behavior should still be protected by
+automated tests. See `docs/development/manual_verification.md`.
+
 ## Architecture changes
 
 Before changing a public contract or durable dependency direction:
@@ -113,6 +149,9 @@ A milestone is complete only when:
 
 - its acceptance criteria are satisfied;
 - relevant tests and docs are updated;
+- required manual verification is completed or explicitly not applicable;
+- known out-of-scope findings are recorded as follow-ups rather than hidden scope
+  expansion;
 - the protected GitHub Actions quality gate is green on the exact PR head;
 - the PR is squash-merged; and
 - `main` is verified at the resulting merge SHA.

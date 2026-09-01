@@ -7,6 +7,8 @@ body:
       value: |
         Use this form for implementation-ready work. If the public architecture is still unresolved, use the Architecture/design form first.
 
+        Keep the milestone narrow enough to review as one coherent change. Out-of-scope findings should become linked follow-up Issues instead of silently expanding this ticket.
+
   - type: textarea
     id: goal
     attributes:
@@ -21,6 +23,50 @@ body:
     attributes:
       label: Why
       description: Why is this work useful or necessary now?
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies / blockers
+      description: Which issues, PRs, decisions, or external facts must be resolved first?
+      placeholder: Write "None" if there are no known blockers.
+    validations:
+      required: true
+
+  - type: textarea
+    id: allowed_areas
+    attributes:
+      label: Expected / allowed areas
+      description: Which files, packages, subsystems, or public surfaces are expected to change?
+      placeholder: |
+        - src/evo_engine/<package>/
+        - tests/<area>/
+        - relevant subsystem documentation
+
+        If a correct implementation must cross this boundary, keep the expansion minimal and record why in the Issue or PR.
+    validations:
+      required: true
+
+  - type: textarea
+    id: do_not_touch
+    attributes:
+      label: Do not touch
+      description: Which nearby files, packages, contracts, or systems should remain unchanged unless this issue is explicitly amended?
+      placeholder: |
+        - frozen simulation-kernel contracts
+        - unrelated public APIs
+        - unrelated refactors/dependencies
+    validations:
+      required: true
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Implementation requirements
+      description: What behavior, integration, migration, or implementation obligations must the solution satisfy?
+      placeholder: List requirements that are more specific than the goal but are not themselves acceptance checks.
     validations:
       required: true
 
@@ -66,17 +112,22 @@ body:
   - type: textarea
     id: validation
     attributes:
-      label: Validation required
+      label: Automated validation required
       description: Identify targeted tests, documentation, architecture checks, and performance evidence required for this milestone.
       placeholder: Include the full protected quality gate unless there is a documented reason not to.
     validations:
       required: true
 
   - type: textarea
-    id: dependencies
+    id: manual_verification
     attributes:
-      label: Dependencies / blockers
-      description: Which issues, PRs, decisions, or external facts must be resolved first?
-      placeholder: Write "None" if there are no known blockers.
+      label: Manual verification
+      description: What short user/contributor-level scenario should be exercised in addition to automated checks?
+      placeholder: |
+        1. State the exact command/action.
+        2. State the expected observable result.
+        3. Record the observed result in the PR.
+
+        If no meaningful manual check exists, write "Not applicable" and explain why automated coverage is sufficient.
     validations:
       required: true
