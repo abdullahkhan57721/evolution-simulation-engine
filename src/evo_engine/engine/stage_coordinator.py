@@ -18,6 +18,12 @@ _MaterializerCallable = Callable[
     [SimulationState, SimulationEvent],
     SimulationEvent,
 ]
+_EventDispatch = tuple[
+    Process[Any, Any],
+    _MaterializerCallable | None,
+    str,
+    str,
+]
 
 
 class StageCoordinator:
@@ -31,28 +37,34 @@ class StageCoordinator:
         """Initialize an update stage."""
         self.processes = tuple(processes)
         self.resolver = resolver
-        self._processes_by_event_type: dict[
+        self._dispatch_by_event_type: dict[
             type[SimulationEvent],
-            Process[Any, Any],
+            _EventDispatch,
         ] = {}
-        self._materializers_by_event_type: dict[
-            type[SimulationEvent],
-            _MaterializerCallable,
-        ] = {}
+        self._event_type_names: dict[type[object], str] = {}
 
         for process in self.processes:
             event_type = process.event_type
-            if event_type in self._processes_by_event_type:
+            if event_type in self._dispatch_by_event_type:
                 raise ValueError(
                     "Processes within a stage must have unique event types."
                 )
 
-            self._processes_by_event_type[event_type] = process
+            materializer: _MaterializerCallable | None = None
             if isinstance(process, EventMaterializer):
-                self._materializers_by_event_type[event_type] = cast(
+                materializer = cast(
                     _MaterializerCallable,
                     process.materialize_event,
                 )
+
+            event_type_name = _qualified_type_name(event_type)
+            self._event_type_names[event_type] = event_type_name
+            self._dispatch_by_event_type[event_type] = (
+                process,
+                materializer,
+                _qualified_type_name(type(process)),
+                event_type_name,
+            )
 
     def coordinate(
         self,
@@ -85,17 +97,19 @@ class StageCoordinator:
             proposed_events=proposed_events,
         )
 
-        materialized_events: list[tuple[Process[Any, Any], SimulationEvent]] = []
+        materialized_events: list[
+            tuple[Process[Any, Any], SimulationEvent, str, str]
+        ] = []
         for resolved_event in resolved_events:
             event_type = type(resolved_event)
-            process = self._processes_by_event_type.get(event_type)
-            if process is None:
+            dispatch = self._dispatch_by_event_type.get(event_type)
+            if dispatch is None:
                 raise RuntimeError(
                     "No process is registered for resolved event type "
                     f"{event_type.__name__}."
                 )
 
-            materializer = self._materializers_by_event_type.get(event_type)
+            process, materializer, process_type_name, event_type_name = dispatch
             if materializer is None:
                 materialized_event = resolved_event
             else:
@@ -103,19 +117,37 @@ class StageCoordinator:
                     simulation_state,
                     resolved_event,
                 )
-            materialized_events.append((process, materialized_event))
+                materialized_type = type(materialized_event)
+                event_type_name = self._event_type_names.get(materialized_type)
+                if event_type_name is None:
+                    event_type_name = _qualified_type_name(materialized_type)
+                    self._event_type_names[materialized_type] = event_type_name
+
+            materialized_events.append(
+                (
+                    process,
+                    materialized_event,
+                    process_type_name,
+                    event_type_name,
+                )
+            )
 
         applied_events: list[AppliedEvent] = []
         domain_state = simulation_state.world
-        for process, materialized_event in materialized_events:
+        for (
+            process,
+            materialized_event,
+            process_type_name,
+            event_type_name,
+        ) in materialized_events:
             checkpoint = _mutation_checkpoint(domain_state)
             process.apply_event(simulation_state, materialized_event)
             applied_events.append(
                 AppliedEvent(
                     event_step_index=materialized_event.step_index,
                     stage_index=stage_index,
-                    process_type=_qualified_type_name(process),
-                    event_type=_qualified_type_name(materialized_event),
+                    process_type=process_type_name,
+                    event_type=event_type_name,
                     event=materialized_event,
                     effects=_mutations_since(domain_state, checkpoint),
                 )
@@ -149,6 +181,5 @@ def _mutations_since(
     return mutations
 
 
-def _qualified_type_name(value: object) -> str:
-    value_type = type(value)
+def _qualified_type_name(value_type: type[object]) -> str:
     return f"{value_type.__module__}.{value_type.__qualname__}"
