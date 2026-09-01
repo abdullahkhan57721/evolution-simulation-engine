@@ -39,7 +39,7 @@ def test_genetic_sensory_accuracy_changes_resource_detection() -> None:
         x=1,
         y=1,
     )
-    state.world.add_resources(x=2, y=1, amount=5)
+    state.domain_state.add_resources(x=2, y=1, amount=5)
     model = NearestResourceTarget(
         sensory_range_model=FixedSensoryRange(radius=2),
         sensory_accuracy_model=GeneticPhenotypeSensoryAccuracy(),
@@ -104,7 +104,7 @@ def test_attack_defense_advantage_controls_resolved_predation() -> None:
 
     stage.coordinate(state)
 
-    assert predator.id in state.world.organisms
-    assert vulnerable_prey.id not in state.world.organisms
-    assert defended_prey.id in state.world.organisms
+    assert predator.id in state.domain_state.organisms
+    assert vulnerable_prey.id not in state.domain_state.organisms
+    assert defended_prey.id in state.domain_state.organisms
     assert predator.energy == 105
