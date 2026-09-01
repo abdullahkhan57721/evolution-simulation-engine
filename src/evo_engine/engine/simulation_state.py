@@ -97,7 +97,7 @@ class SimulationState:
 
     def copy(self) -> SimulationState:
         """Return an independent transactional copy of the simulation state."""
-        copied_rng = random.Random()
+        copied_rng = random.Random.__new__(random.Random)
         copied_rng.setstate(self.rng.getstate())
         return SimulationState(
             world=self.world.copy(),
