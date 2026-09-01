@@ -54,22 +54,22 @@ class SchedulingState:
     pending_jobs: dict[str, Job] = attrs.field(factory=dict)
     completed_jobs: dict[str, str] = attrs.field(factory=dict)
     audited_jobs: set[str] = attrs.field(factory=set)
-    _mutations: list[object] = attrs.field(factory=list, repr=False)
+    _effects: list[object] = attrs.field(factory=list, repr=False)
 
     @property
-    def mutation_count(self) -> int:
+    def effect_count(self) -> int:
         """Return the current transaction-local effect count."""
-        return len(self._mutations)
+        return len(self._effects)
 
-    def mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+    def effects_since(self, checkpoint: int) -> tuple[object, ...]:
         """Return effects recorded after one journal checkpoint."""
-        return tuple(self._mutations[checkpoint:])
+        return tuple(self._effects[checkpoint:])
 
     def complete_job(self, job_name: str, *, ticket: str) -> None:
         """Complete one pending job and record its committed effect."""
         job = self.pending_jobs.pop(job_name)
         self.completed_jobs[job_name] = ticket
-        self._mutations.append(
+        self._effects.append(
             JobCompleted(
                 job_name=job.name,
                 machine=job.machine,
@@ -82,12 +82,12 @@ class SchedulingState:
         if job_name not in self.completed_jobs:
             raise ValueError(f"cannot audit incomplete job {job_name!r}.")
         self.audited_jobs.add(job_name)
-        self._mutations.append(JobAudited(job_name=job_name))
+        self._effects.append(JobAudited(job_name=job_name))
 
     def copy(self) -> SchedulingState:
         """Return an independent transaction with a fresh effect journal."""
         copied = copy.deepcopy(self)
-        copied._mutations.clear()
+        copied._effects.clear()
         return copied
 
 
@@ -236,9 +236,10 @@ class AllJobsAudited:
 
     def should_stop(self, simulation_state: SimulationState) -> bool:
         """Return whether all jobs are audited or the defensive limit is reached."""
-        world = simulation_state.world
+        domain_state = simulation_state.world
         all_done = (
-            not world.pending_jobs and set(world.completed_jobs) == world.audited_jobs
+            not domain_state.pending_jobs
+            and set(domain_state.completed_jobs) == domain_state.audited_jobs
         )
         return all_done or simulation_state.step_index >= self.max_steps
 
@@ -259,21 +260,21 @@ class SchedulingObserver:
 
     snapshots: list[StateSnapshot] = attrs.field(factory=list)
 
-    def should_observe(self, world_state: object, *, step_index: int) -> bool:
+    def should_observe(self, domain_state: object, *, step_index: int) -> bool:
         """Observe every committed state, including step zero."""
-        del world_state, step_index
+        del domain_state, step_index
         return True
 
-    def observe(self, world_state: object, *, step_index: int) -> None:
+    def observe(self, domain_state: object, *, step_index: int) -> None:
         """Record one immutable snapshot."""
-        if not isinstance(world_state, SchedulingState):
+        if not isinstance(domain_state, SchedulingState):
             raise TypeError("SchedulingObserver requires SchedulingState.")
         self.snapshots.append(
             StateSnapshot(
                 step_index=step_index,
-                pending=tuple(world_state.pending_jobs),
-                completed=tuple(world_state.completed_jobs),
-                audited=tuple(sorted(world_state.audited_jobs)),
+                pending=tuple(domain_state.pending_jobs),
+                completed=tuple(domain_state.completed_jobs),
+                audited=tuple(sorted(domain_state.audited_jobs)),
             )
         )
 
