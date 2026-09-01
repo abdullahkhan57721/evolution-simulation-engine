@@ -19,6 +19,7 @@ on:
           - "Import Linter"
           - "Complexipy"
           - "Tests + coverage"
+          - "Reference performance"
           - "MkDocs"
       target_ref:
         description: "Optional branch, tag, or commit SHA to analyze"
@@ -101,6 +102,26 @@ jobs:
           COVERAGE_FAIL_UNDER: "90"
         run: ./scripts/coverage
 
+      - name: Reference performance profile
+        id: performance
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
+        run: >-
+          venv/bin/python scripts/profile_reference.py
+          --scenario all
+          --repeats 2
+          --warmups 0
+          --top 15
+          --output-dir outputs/performance
+
+      - name: Upload reference performance artifacts
+        if: ${{ steps.performance.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-performance-${{ github.run_id }}
+          path: outputs/performance/
+          retention-days: 14
+          if-no-files-found: error
+
       - name: MkDocs strict build
         id: docs
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
@@ -126,11 +147,11 @@ jobs:
             local outcome="$3"
 
             if [[ "$selected" != "All" && "$selected" != "$key" ]]; then
-              printf '  %-19s SKIPPED (not selected)\n' "$label:"
+              printf '  %-22s SKIPPED (not selected)\n' "$label:"
               return
             fi
 
-            printf '  %-19s %s\n' "$label:" "$outcome"
+            printf '  %-22s %s\n' "$label:" "$outcome"
             if [[ "$outcome" != "success" ]]; then
               failed=1
             fi
@@ -142,6 +163,7 @@ jobs:
           evaluate "Import Linter" "Import Linter" "${{ steps.architecture.outcome }}"
           evaluate "Complexipy" "Complexipy" "${{ steps.complexipy.outcome }}"
           evaluate "pytest + coverage" "Tests + coverage" "${{ steps.coverage.outcome }}"
+          evaluate "Reference performance" "Reference performance" "${{ steps.performance.outcome }}"
           evaluate "MkDocs" "MkDocs" "${{ steps.docs.outcome }}"
 
           if [[ $failed -ne 0 ]]; then
