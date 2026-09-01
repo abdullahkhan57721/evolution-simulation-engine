@@ -461,7 +461,7 @@ class Reproduction:
             Candidate Reproduction proposals permitted by the configured
             expenditure policy.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         eligible_parents = self._eligible_parents(simulation_state)
         parent_groups = self.parent_selection.propose_parent_groups(
             eligible_parents,
@@ -496,8 +496,7 @@ class Reproduction:
     ) -> list[Organism]:
         """Return behaviorally selected, individually eligible parents."""
         eligible_parents: list[Organism] = []
-        world = simulation_state.world
-
+        world = simulation_state.domain_state
         for organism in self.access_model.entities(state=world):
             if not behavior_is_allowed(
                 organism,
@@ -630,7 +629,7 @@ class Reproduction:
             ValueError: If the resolved parent count conflicts with the
                 configured inheritance model.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         parents = tuple(
             self.access_model.get(
                 parent_id,
@@ -707,7 +706,7 @@ class Reproduction:
             RuntimeError: If a parent can no longer pay its recorded energy
                 contribution under the configured expenditure policy.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         resolved_parents: list[tuple[Organism, int]] = []
 
         for parent_id, amount in materialized_event.parent_energy_contributions:
