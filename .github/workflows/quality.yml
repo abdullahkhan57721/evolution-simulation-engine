@@ -122,6 +122,9 @@ jobs:
             --fast \
             --tracemalloc \
             -o outputs/performance/state-copy-tracemalloc.json
+          venv/bin/python scripts/benchmark_stage_coordination.py \
+            --fast \
+            -o outputs/performance/stage-coordination-pyperf.json
 
       - name: Upload reference performance artifacts
         if: ${{ steps.performance.outcome == 'success' }}
