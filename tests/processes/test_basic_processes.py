@@ -141,7 +141,7 @@ def test_resource_generation_apply_accumulates_resources() -> None:
         event,
     )
 
-    assert state.world.resources[(1, 2)] == 6
+    assert state.domain_state.resources[(1, 2)] == 6
 
 
 def test_resource_consumption_proposes_at_organism_location() -> None:
@@ -177,7 +177,7 @@ def test_resource_consumption_transfers_resources_to_energy() -> None:
         x=1,
         y=1,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=1,
         y=1,
         amount=4,
@@ -197,7 +197,7 @@ def test_resource_consumption_transfers_resources_to_energy() -> None:
     )
 
     assert organism.energy == 14
-    assert (1, 1) not in state.world.resources
+    assert (1, 1) not in state.domain_state.resources
 
 
 def test_decomposition_limits_event_to_remaining_carcass_resources() -> None:
@@ -208,7 +208,7 @@ def test_decomposition_limits_event_to_remaining_carcass_resources() -> None:
         y=1,
         resource_units=3,
     )
-    state.world.add_carcass(carcass)
+    state.domain_state.add_carcass(carcass)
 
     event = Decomposition(
         amount=10,
@@ -225,7 +225,7 @@ def test_decomposition_transfers_resources_and_removes_empty_carcass() -> None:
         y=1,
         resource_units=3,
     )
-    state.world.add_carcass(carcass)
+    state.domain_state.add_carcass(carcass)
     process = Decomposition(
         amount=3,
     )
@@ -236,8 +236,8 @@ def test_decomposition_transfers_resources_and_removes_empty_carcass() -> None:
         event,
     )
 
-    assert not state.world.carcasses
-    assert state.world.resources[(1, 1)] == 3
+    assert not state.domain_state.carcasses
+    assert state.domain_state.resources[(1, 1)] == 3
 
 
 def test_zero_resource_carcass_is_removed_by_decomposition() -> None:
@@ -248,7 +248,7 @@ def test_zero_resource_carcass_is_removed_by_decomposition() -> None:
         y=1,
         resource_units=0,
     )
-    state.world.add_carcass(carcass)
+    state.domain_state.add_carcass(carcass)
     process = Decomposition(
         amount=2,
     )
@@ -261,7 +261,7 @@ def test_zero_resource_carcass_is_removed_by_decomposition() -> None:
         event,
     )
 
-    assert not state.world.carcasses
+    assert not state.domain_state.carcasses
 
 
 def test_starvation_only_proposes_for_zero_energy_organisms() -> None:
@@ -314,8 +314,8 @@ def test_starvation_removes_organism_and_creates_carcass() -> None:
         event,
     )
 
-    assert organism.id not in state.world.organisms
-    carcass = next(iter(state.world.carcasses.values()))
+    assert organism.id not in state.domain_state.organisms
+    carcass = next(iter(state.domain_state.carcasses.values()))
     assert (carcass.x, carcass.y) == (2, 3)
     assert carcass.resource_units == 7
 
