@@ -109,7 +109,7 @@ class BiologicalSimulationSpec:
             }
         )
         generic_spec = SimulationSpec(
-            initial_world_state=self.initial_world_state,
+            initial_domain_state=self.initial_world_state,
             step_coordinator=self.step_coordinator,
             stopping_condition=self.stopping_condition,
             seed=self.seed,
