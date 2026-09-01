@@ -12,7 +12,7 @@ from evo_engine.presets import (
 
 
 def _world_snapshot(ecology: ReferenceEcology) -> tuple[object, ...]:
-    world = ecology.simulation.state.world
+    world = ecology.simulation.state.domain_state
     organisms = tuple(
         (
             organism_id,
@@ -107,7 +107,7 @@ def test_reference_ecology_performs_sexual_reproduction_at_boundary() -> None:
 
     ecology.engine.run(ecology.simulation)
 
-    organisms = tuple(ecology.simulation.state.world.organisms.values())
+    organisms = tuple(ecology.simulation.state.domain_state.organisms.values())
     newborns = tuple(organism for organism in organisms if organism.age == 0)
     parents = tuple(organism for organism in organisms if organism.age == 1)
 
@@ -154,7 +154,7 @@ def test_reference_ecology_mutation_creates_bounded_offspring_variation() -> Non
 
     newborn = next(
         organism
-        for organism in ecology.simulation.state.world.organisms.values()
+        for organism in ecology.simulation.state.domain_state.organisms.values()
         if organism.age == 0
     )
     mutated_alleles = tuple(
