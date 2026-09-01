@@ -25,6 +25,12 @@ _EventDispatch = tuple[
     str,
     str,
 ]
+_MaterializedEvent = tuple[
+    Process[Any, Any],
+    SimulationEvent,
+    str,
+    str,
+]
 
 
 class StageCoordinator:
@@ -98,9 +104,7 @@ class StageCoordinator:
             proposed_events=proposed_events,
         )
 
-        materialized_events: list[
-            tuple[Process[Any, Any], SimulationEvent, str, str]
-        ] = []
+        materialized_events: list[_MaterializedEvent] = []
         for resolved_event in resolved_events:
             event_type = type(resolved_event)
             dispatch = self._dispatch_by_event_type.get(event_type)
@@ -133,58 +137,59 @@ class StageCoordinator:
                 )
             )
 
-        applied_events: list[AppliedEvent] = []
-        domain_state = simulation_state.world
-        mutations_since: _MutationsSinceCallable | None = None
-        for (
-            process,
-            materialized_event,
-            process_type_name,
-            event_type_name,
-        ) in materialized_events:
-            checkpoint = _mutation_checkpoint(domain_state)
-            process.apply_event(simulation_state, materialized_event)
-            effects, mutations_since = _capture_mutations(
-                domain_state,
-                checkpoint,
-                mutations_since,
+        return _apply_materialized_events(
+            simulation_state=simulation_state,
+            materialized_events=materialized_events,
+            stage_index=stage_index,
+        )
+
+
+def _apply_materialized_events(
+    *,
+    simulation_state: SimulationState,
+    materialized_events: Sequence[_MaterializedEvent],
+    stage_index: int,
+) -> tuple[AppliedEvent, ...]:
+    """Apply materialized events and capture optional domain-state effects."""
+    applied_events: list[AppliedEvent] = []
+    domain_state = simulation_state.world
+    mutations_since: _MutationsSinceCallable | None = None
+
+    for (
+        process,
+        materialized_event,
+        process_type_name,
+        event_type_name,
+    ) in materialized_events:
+        checkpoint = getattr(domain_state, "mutation_count", None)
+        if checkpoint is not None and (type(checkpoint) is not int or checkpoint < 0):
+            raise TypeError(
+                "domain-state mutation_count must be a nonnegative integer."
             )
-            applied_events.append(
-                AppliedEvent._from_kernel_values(
-                    event_step_index=materialized_event.step_index,
-                    stage_index=stage_index,
-                    process_type=process_type_name,
-                    event_type=event_type_name,
-                    event=materialized_event,
-                    effects=effects,
-                )
+
+        process.apply_event(simulation_state, materialized_event)
+
+        effects: tuple[Any, ...] = ()
+        if checkpoint is not None:
+            if mutations_since is None:
+                mutations_since = _resolve_mutations_since(domain_state)
+            mutations = mutations_since(checkpoint)
+            if type(mutations) is not tuple:
+                raise TypeError("domain-state mutations_since must return a tuple.")
+            effects = mutations
+
+        applied_events.append(
+            AppliedEvent._from_kernel_values(
+                event_step_index=materialized_event.step_index,
+                stage_index=stage_index,
+                process_type=process_type_name,
+                event_type=event_type_name,
+                event=materialized_event,
+                effects=effects,
             )
-        return tuple(applied_events)
+        )
 
-
-def _mutation_checkpoint(domain_state: object) -> int | None:
-    mutation_count = getattr(domain_state, "mutation_count", None)
-    if mutation_count is None:
-        return None
-    if type(mutation_count) is not int or mutation_count < 0:
-        raise TypeError("domain-state mutation_count must be a nonnegative integer.")
-    return mutation_count
-
-
-def _capture_mutations(
-    domain_state: object,
-    checkpoint: int | None,
-    mutations_since: _MutationsSinceCallable | None,
-) -> tuple[tuple[Any, ...], _MutationsSinceCallable | None]:
-    if checkpoint is None:
-        return (), mutations_since
-    if mutations_since is None:
-        mutations_since = _resolve_mutations_since(domain_state)
-
-    mutations = mutations_since(checkpoint)
-    if type(mutations) is not tuple:
-        raise TypeError("domain-state mutations_since must return a tuple.")
-    return mutations, mutations_since
+    return tuple(applied_events)
 
 
 def _resolve_mutations_since(domain_state: object) -> _MutationsSinceCallable:
