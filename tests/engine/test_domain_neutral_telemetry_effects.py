@@ -81,6 +81,38 @@ class CountingSchedulingState:
         return copied
 
 
+@attrs.define(slots=True, kw_only=True)
+class DelayedJournalSchedulingState:
+    """Scheduling state whose mutation checkpoint becomes available mid-stage."""
+
+    completed_jobs: set[str] = attrs.field(factory=set)
+    _mutations: list[object] = attrs.field(factory=list, repr=False)
+    journal_enabled: bool = False
+
+    @property
+    def mutation_count(self) -> int | None:
+        """Return the journal length only after the first completed job."""
+        if not self.journal_enabled:
+            return None
+        return len(self._mutations)
+
+    def mutations_since(self, checkpoint: int) -> tuple[object, ...]:
+        """Return effects recorded after a journal checkpoint."""
+        return tuple(self._mutations[checkpoint:])
+
+    def complete(self, job_name: str) -> None:
+        """Complete a job, record its effect, and expose the journal."""
+        self.completed_jobs.add(job_name)
+        self._mutations.append(JobCompleted(job_name=job_name))
+        self.journal_enabled = True
+
+    def copy(self) -> DelayedJournalSchedulingState:
+        """Return a transactional copy with a fresh effect journal."""
+        copied = copy.deepcopy(self)
+        copied._mutations.clear()
+        return copied
+
+
 @attrs.frozen(slots=True, kw_only=True)
 class CompleteJob:
     """Nonbiological process completing configured scheduled jobs."""
@@ -143,5 +175,22 @@ def test_stage_coordinator_resolves_mutation_reader_once_per_stage() -> None:
     assert state.world.mutation_reader_accesses == 1
     assert tuple(event.effects for event in applied) == (
         (JobCompleted(job_name="batch-7"),),
+        (JobCompleted(job_name="batch-8"),),
+    )
+
+
+def test_stage_coordinator_rechecks_dynamic_mutation_checkpoint_each_event() -> None:
+    """Test a journal becoming available mid-stage is detected on the next event."""
+    state = SimulationState(world=DelayedJournalSchedulingState())
+    stage = StageCoordinator(
+        processes=(CompleteJob(job_names=("batch-7", "batch-8")),),
+        resolver=AcceptAll(),
+    )
+
+    applied = stage.coordinate(state)
+
+    assert state.world.completed_jobs == {"batch-7", "batch-8"}
+    assert tuple(event.effects for event in applied) == (
+        (),
         (JobCompleted(job_name="batch-8"),),
     )
