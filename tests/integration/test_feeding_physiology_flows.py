@@ -42,7 +42,7 @@ def test_intake_capacity_and_assimilation_shape_resource_competition_outcomes() 
         x=1,
         y=1,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=1,
         y=1,
         amount=6,
@@ -62,4 +62,4 @@ def test_intake_capacity_and_assimilation_shape_resource_competition_outcomes() 
 
     assert low_capacity_parent.energy == 11
     assert high_capacity_parent.energy == 14
-    assert (1, 1) not in state.world.resources
+    assert (1, 1) not in state.domain_state.resources
