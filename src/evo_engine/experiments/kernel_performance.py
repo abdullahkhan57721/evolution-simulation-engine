@@ -15,7 +15,6 @@ from evo_engine.engine import (
     SequentialStepCoordinator,
     Simulation,
     SimulationEngine,
-    SimulationEvent,
     SimulationState,
     StageCoordinator,
 )
@@ -154,7 +153,9 @@ def benchmark_kernel_scenario(
         if expected_outcome is None:
             expected_outcome = outcome
         elif outcome != expected_outcome:
-            raise RuntimeError("deterministic kernel performance scenario changed outcome.")
+            raise RuntimeError(
+                "deterministic kernel performance scenario changed outcome."
+            )
 
     if expected_outcome is None:
         raise RuntimeError("benchmark produced no measured outcome.")
