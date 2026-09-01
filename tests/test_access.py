@@ -41,7 +41,7 @@ def test_entity_access_supports_nonbiological_state_and_references() -> None:
     assert read_first(InventoryAccess(), inventory) is product
 
 
-def test_entity_access_snapshot_is_stable_after_state_mutation() -> None:
+def test_entity_access_snapshot_is_stable_after_state_change() -> None:
     """Test enumeration returns a stable snapshot rather than a live view."""
     first = Product(sku="first")
     second = Product(sku="second")
