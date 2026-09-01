@@ -417,7 +417,13 @@ def validate_int_in_range(
         attribute: attrs.Attribute,
         value: object,
     ) -> None:
-        if lower <= upper and type(value) is int and lower <= value <= upper:
+        if (
+            type(lower) is int
+            and type(upper) is int
+            and lower <= upper
+            and type(value) is int
+            and lower <= value <= upper
+        ):
             return
 
         validators.validate_int_in_range(
@@ -449,7 +455,10 @@ def validate_number_in_range(
         attribute: attrs.Attribute,
         value: object,
     ) -> None:
-        if lower <= upper:
+        bounds_are_numbers = (type(lower) is int or type(lower) is float) and (
+            type(upper) is int or type(upper) is float
+        )
+        if bounds_are_numbers and lower <= upper:
             if type(value) is int and lower <= value <= upper:
                 return
             if type(value) is float and lower <= value <= upper:
@@ -484,7 +493,13 @@ def validate_float_in_range(
         attribute: attrs.Attribute,
         value: object,
     ) -> None:
-        if lower <= upper and type(value) is float and lower <= value <= upper:
+        if (
+            type(lower) is float
+            and type(upper) is float
+            and lower <= upper
+            and type(value) is float
+            and lower <= value <= upper
+        ):
             return
 
         validators.validate_float_in_range(
