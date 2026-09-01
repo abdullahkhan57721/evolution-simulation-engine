@@ -98,6 +98,9 @@ def test_sexual_selection_changes_which_compatible_pair_reproduces() -> None:
     assert strongest.energy == 9
     assert middle.energy == 9
     assert weakest.energy == 10
-    assert len(state.world.organisms) == 4
-    newborn = max(state.world.organisms.values(), key=lambda organism: organism.id)
+    assert len(state.domain_state.organisms) == 4
+    newborn = max(
+        state.domain_state.organisms.values(),
+        key=lambda organism: organism.id,
+    )
     assert newborn.energy == 2
