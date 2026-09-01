@@ -275,7 +275,7 @@ class Movement:
                 negative cost.
         """
         events: list[Movement.Event] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         for organism in self.access_model.entities(state=world):
             behavioral_purpose = determine_movement_purpose(
@@ -438,7 +438,7 @@ class Movement:
             RuntimeError: If the organism can no longer pay the recorded cost
                 under the configured expenditure policy.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         organism = self.access_model.get(
             resolved_event.organism_id,
             state=world,
