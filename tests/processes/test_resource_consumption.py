@@ -24,7 +24,7 @@ def test_resource_consumption_preserves_uncapped_full_assimilation_defaults() ->
         x=2,
         y=3,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=2,
         y=3,
         amount=5,
@@ -38,7 +38,7 @@ def test_resource_consumption_preserves_uncapped_full_assimilation_defaults() ->
 
     assert event.amount == 5
     assert organism.energy == 15
-    assert (2, 3) not in state.world.resources
+    assert (2, 3) not in state.domain_state.resources
 
 
 def test_resource_consumption_caps_behavioral_request_by_intake_capacity() -> None:
@@ -67,7 +67,7 @@ def test_resource_consumption_assimilates_only_fraction_of_allocated_food() -> N
         x=1,
         y=1,
     )
-    state.world.add_resources(
+    state.domain_state.add_resources(
         x=1,
         y=1,
         amount=3,
@@ -91,7 +91,7 @@ def test_resource_consumption_assimilates_only_fraction_of_allocated_food() -> N
     )
 
     assert organism.energy == 12
-    assert (1, 1) not in state.world.resources
+    assert (1, 1) not in state.domain_state.resources
 
 
 def test_resource_consumption_aggregates_feeding_trait_requirements() -> None:
