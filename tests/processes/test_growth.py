@@ -47,7 +47,7 @@ def _add_developmentally_varied_organism(
         genetic_phenotype=genetic_phenotype,
         developmental_profile=developmental_profile,
     )
-    state.world.add_organism(organism)
+    state.domain_state.add_organism(organism)
     return state, organism
 
 
