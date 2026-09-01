@@ -54,6 +54,7 @@ _DOMAIN_IDENTIFIER_FRAGMENTS = (
     "energy",
     "aging",
     "mutation",
+    "world",
 )
 _KERNEL_SOURCE_PATHS = (
     Path("src/evo_engine/engine"),
@@ -82,6 +83,10 @@ _KERNEL_TEST_PATHS = (
     Path("tests/validation"),
     Path("tests/resolvers/test_generic_preference_order.py"),
     Path("tests/resolvers/test_preference_order_import_boundary.py"),
+)
+_KERNEL_TOOLING_PATHS = (
+    Path("scripts/profile_kernel.py"),
+    Path("scripts/benchmark_state_copy.py"),
 )
 
 
@@ -147,6 +152,13 @@ def test_kernel_tests_use_domain_neutral_identifiers() -> None:
     violations = _identifier_violations(
         path for path in _python_files(_KERNEL_TEST_PATHS) if path != guard_path
     )
+
+    assert violations == []
+
+
+def test_kernel_tooling_uses_domain_neutral_state_vocabulary() -> None:
+    """Test kernel-facing tooling does not regress to modeled-state names."""
+    violations = _identifier_violations(_python_files(_KERNEL_TOOLING_PATHS))
 
     assert violations == []
 
