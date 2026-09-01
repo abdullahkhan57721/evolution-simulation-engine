@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import attrs
 import pytest
 
@@ -116,3 +118,44 @@ def test_step_telemetry_filters_events_by_process_name() -> None:
 
     assert telemetry.events_for_process("Dispatch") == (first,)
     assert telemetry.events_for_process("pkg.Archive") == (second,)
+
+
+def test_step_telemetry_public_constructor_still_validates_events() -> None:
+    """Test trusted kernel construction does not weaken public event validation."""
+    invalid_events = cast(tuple[AppliedEvent, ...], (object(),))
+
+    with pytest.raises(TypeError, match=r"events\[0\] must be an AppliedEvent"):
+        StepTelemetry(
+            completed_step_index=1,
+            events=invalid_events,
+        )
+
+
+def test_step_telemetry_kernel_construction_matches_validated_record() -> None:
+    """Test kernel construction preserves the immutable step telemetry record."""
+    applied = AppliedEvent(
+        event_step_index=2,
+        stage_index=3,
+        process_type="example.module.ExampleProcess",
+        event_type="example.module.ExampleEvent",
+        event=ExampleEvent(step_index=2, amount=4),
+    )
+    validated = StepTelemetry(
+        completed_step_index=3,
+        events=(applied,),
+    )
+    kernel_built = StepTelemetry._from_kernel_values(
+        completed_step_index=3,
+        events=(applied,),
+    )
+
+    assert kernel_built == validated
+
+
+def test_step_telemetry_kernel_construction_validates_completed_index() -> None:
+    """Test kernel construction retains runtime validation of the step index."""
+    with pytest.raises(ValueError, match="StepTelemetry.completed_step_index"):
+        StepTelemetry._from_kernel_values(
+            completed_step_index=0,
+            events=(),
+        )
