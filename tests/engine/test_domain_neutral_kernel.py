@@ -156,9 +156,12 @@ def test_kernel_tests_use_domain_neutral_identifiers() -> None:
     assert violations == []
 
 
-def test_kernel_tooling_uses_domain_neutral_state_vocabulary() -> None:
-    """Test kernel-facing tooling does not regress to modeled-state names."""
-    violations = _identifier_violations(_python_files(_KERNEL_TOOLING_PATHS))
+def test_kernel_tooling_does_not_use_removed_world_state_attribute() -> None:
+    """Test kernel-facing tooling uses the canonical domain_state envelope API."""
+    violations = _attribute_violations(
+        _python_files(_KERNEL_TOOLING_PATHS),
+        forbidden_attributes=("world",),
+    )
 
     assert violations == []
 
@@ -202,6 +205,20 @@ def _identifier_violations(paths: Iterable[Path]) -> list[str]:
                     violations.append(f"{path}: identifier {identifier!r}")
                     break
 
+    return violations
+
+
+def _attribute_violations(
+    paths: Iterable[Path],
+    *,
+    forbidden_attributes: tuple[str, ...],
+) -> list[str]:
+    violations: list[str] = []
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and node.attr in forbidden_attributes:
+                violations.append(f"{path}: attribute {node.attr!r}")
     return violations
 
 
