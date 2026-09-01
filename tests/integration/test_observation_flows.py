@@ -67,7 +67,9 @@ def test_reference_observations_are_historical_values_not_live_world_views() -> 
 
     baseline = ecology.recorder.observations[0]
     baseline_energy = baseline.energy
-    first_organism = next(iter(ecology.simulation.state.world.organisms.values()))
+    first_organism = next(
+        iter(ecology.simulation.state.domain_state.organisms.values())
+    )
     first_organism.change_energy(100)
 
     assert ecology.recorder.observations[0].energy == baseline_energy
