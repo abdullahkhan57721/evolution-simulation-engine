@@ -36,53 +36,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Ruff, Pyright, Architecture, Complexity, Tests, Docs
+  ruff:
+    name: Ruff
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
+    timeout-minutes: 10
     steps:
       - name: Check out requested ref
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
         uses: actions/checkout@v7
         with:
           ref: ${{ inputs.target_ref }}
-
       - name: Check out event ref
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
         uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - run: ./scripts/lint
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v7
+  pyright:
+    name: Pyright
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Pyright' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
         with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: |
-            pyproject.toml
-            requirements-performance.txt
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - run: ./scripts/typecheck
 
-      - name: Create virtual environment
-        run: python -m venv venv
-
-      - name: Install project and quality tools
-        run: |
-          venv/bin/python -m pip install --upgrade pip
-          venv/bin/python -m pip install -e ".[dev,docs]"
-          venv/bin/python -m pip install -r requirements-performance.txt
-
-      - name: Ruff
-        id: ruff
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff' }}
-        run: ./scripts/lint
-
-      - name: Pyright
-        id: pyright
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Pyright' }}
-        run: ./scripts/typecheck
-
+  architecture:
+    name: Import Linter
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Import Linter' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
       - name: Import Linter
-        id: architecture
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Import Linter' }}
         shell: bash
         run: |
           set +e
@@ -94,26 +97,78 @@ jobs:
           fi
           exit "$status"
 
-      - name: Kernel Contracts
-        id: kernel_contracts
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Kernel Contracts' }}
-        run: ./scripts/kernel_contracts
+  kernel_contracts:
+    name: Kernel Contracts
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Kernel Contracts' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - run: ./scripts/kernel_contracts
 
-      - name: Complexipy
-        id: complexipy
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Complexipy' }}
-        run: ./scripts/complexity
+  complexipy:
+    name: Complexipy
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Complexipy' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - run: ./scripts/complexity
 
+  coverage:
+    name: pytest + coverage
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
       - name: pytest + coverage
-        id: coverage
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage' }}
         env:
           COVERAGE_FAIL_UNDER: "90"
         run: ./scripts/coverage
 
+  performance:
+    name: Reference performance
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+        with:
+          performance: "true"
       - name: Reference + kernel performance profiles
-        id: performance
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
         run: |
           venv/bin/python scripts/profile_kernel.py \
             --scenario all \
@@ -134,9 +189,7 @@ jobs:
             --fast \
             --tracemalloc \
             -o outputs/performance/state-copy-tracemalloc.json
-
       - name: Upload reference performance artifacts
-        if: ${{ steps.performance.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: reference-performance-${{ github.run_id }}
@@ -144,13 +197,41 @@ jobs:
           retention-days: 14
           if-no-files-found: error
 
-      - name: MkDocs strict build
-        id: docs
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
-        run: ./scripts/docs
+  docs:
+    name: MkDocs
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out requested ref
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref != '' }}
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target_ref }}
+      - name: Check out event ref
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
+        uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+        with:
+          docs: "true"
+      - run: ./scripts/docs
 
+  quality:
+    name: Ruff, Pyright, Architecture, Complexity, Tests, Docs
+    if: ${{ always() }}
+    needs:
+      - ruff
+      - pyright
+      - architecture
+      - kernel_contracts
+      - complexipy
+      - coverage
+      - performance
+      - docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
       - name: Quality gate summary
-        if: always()
         shell: bash
         run: |
           selected="${{ github.event_name == 'workflow_dispatch' && inputs.check || 'All' }}"
@@ -180,14 +261,14 @@ jobs:
           }
 
           echo "Quality check outcomes:"
-          evaluate "Ruff" "Ruff" "${{ steps.ruff.outcome }}"
-          evaluate "Pyright" "Pyright" "${{ steps.pyright.outcome }}"
-          evaluate "Import Linter" "Import Linter" "${{ steps.architecture.outcome }}"
-          evaluate "Kernel Contracts" "Kernel Contracts" "${{ steps.kernel_contracts.outcome }}"
-          evaluate "Complexipy" "Complexipy" "${{ steps.complexipy.outcome }}"
-          evaluate "pytest + coverage" "Tests + coverage" "${{ steps.coverage.outcome }}"
-          evaluate "Reference performance" "Reference performance" "${{ steps.performance.outcome }}"
-          evaluate "MkDocs" "MkDocs" "${{ steps.docs.outcome }}"
+          evaluate "Ruff" "Ruff" "${{ needs.ruff.result }}"
+          evaluate "Pyright" "Pyright" "${{ needs.pyright.result }}"
+          evaluate "Import Linter" "Import Linter" "${{ needs.architecture.result }}"
+          evaluate "Kernel Contracts" "Kernel Contracts" "${{ needs.kernel_contracts.result }}"
+          evaluate "Complexipy" "Complexipy" "${{ needs.complexipy.result }}"
+          evaluate "pytest + coverage" "Tests + coverage" "${{ needs.coverage.result }}"
+          evaluate "Reference performance" "Reference performance" "${{ needs.performance.result }}"
+          evaluate "MkDocs" "MkDocs" "${{ needs.docs.result }}"
 
           if [[ $failed -ne 0 ]]; then
             echo "One or more selected quality checks failed."
