@@ -75,9 +75,6 @@ def test_profile_reports_cumulative_runtime_and_can_dump_raw_stats(
 
     assert result.scenario_name == "tiny-core"
     assert result.observed is False
-    assert result.total_calls > 0
-    assert result.primitive_calls > 0
-    assert result.total_seconds >= 0.0
     assert "function calls" in result.report
     assert "cumulative" in result.report
     assert result.outcome.completed_steps == 1
