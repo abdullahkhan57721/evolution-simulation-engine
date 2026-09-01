@@ -67,7 +67,7 @@ class ResourceGeneration:
         Returns:
             Proposed Resource Generation events.
         """
-        world = simulation_state.world
+        world = simulation_state.domain_state
         events: list[ResourceGeneration.Event] = []
 
         # Each deposit receives its own coordinate draw. Multiple deposits may
@@ -95,7 +95,7 @@ class ResourceGeneration:
             simulation_state: Current simulation state.
             resolved_event: Resolved Resource Generation event to apply.
         """
-        simulation_state.world.add_resources(
+        simulation_state.domain_state.add_resources(
             x=resolved_event.x,
             y=resolved_event.y,
             amount=resolved_event.amount,
