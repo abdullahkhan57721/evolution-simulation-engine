@@ -201,6 +201,6 @@ def test_mate_seeking_closes_distance_and_enables_reproduction() -> None:
 
     reproduction_stage.coordinate(state)
 
-    assert len(state.world.organisms) == 3
+    assert len(state.domain_state.organisms) == 3
     assert first.energy == 19
     assert second.energy == 19
