@@ -221,21 +221,21 @@ class _JournaledKernelState:
     """Minimal copyable model state with an effect journal."""
 
     applied_events: int = 0
-    _mutations: list[int] = attrs.field(factory=list, repr=False)
+    _effects: list[int] = attrs.field(factory=list, repr=False)
 
     @property
-    def mutation_count(self) -> int:
-        """Return transaction-local journal length."""
-        return len(self._mutations)
+    def effect_count(self) -> int:
+        """Return transaction-local effect journal length."""
+        return len(self._effects)
 
-    def mutations_since(self, checkpoint: int) -> tuple[int, ...]:
+    def effects_since(self, checkpoint: int) -> tuple[int, ...]:
         """Return effects recorded after a journal checkpoint."""
-        return tuple(self._mutations[checkpoint:])
+        return tuple(self._effects[checkpoint:])
 
     def apply(self, effect: int) -> None:
         """Apply one trivial transition and record its opaque effect."""
         self.applied_events += effect
-        self._mutations.append(effect)
+        self._effects.append(effect)
 
     def copy(self) -> _JournaledKernelState:
         """Return an isolated copy with a fresh transaction journal."""
@@ -293,11 +293,11 @@ def _prepare_kernel_run(
     if not isinstance(scenario, KernelPerformanceScenario):
         raise TypeError("scenario must be a KernelPerformanceScenario.")
 
-    world: _KernelState | _JournaledKernelState
+    domain_state: _KernelState | _JournaledKernelState
     if scenario.journaled:
-        world = _JournaledKernelState()
+        domain_state = _JournaledKernelState()
     else:
-        world = _KernelState()
+        domain_state = _KernelState()
 
     process = _KernelProcess(events_per_step=scenario.events_per_step)
     stage = StageCoordinator(processes=(process,), resolver=AcceptAll())
@@ -307,7 +307,7 @@ def _prepare_kernel_run(
         stopping_condition=MaxSteps(max_steps=scenario.steps),
     )
     return _PreparedKernelRun(
-        simulation=Simulation(initial_world_state=world, seed=0),
+        simulation=Simulation(initial_world_state=domain_state, seed=0),
         engine=engine,
     )
 
