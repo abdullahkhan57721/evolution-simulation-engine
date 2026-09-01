@@ -9,15 +9,17 @@ from collections.abc import Sequence
 import attrs
 
 from evo_engine.configuration import Dependency, SimulationSpec
+from evo_engine.context import ContextKey, SimulationContext
 from evo_engine.engine import (
     SequentialStepCoordinator,
-    SimulationContext,
     SimulationEvent,
     SimulationState,
     StageCoordinator,
 )
 from evo_engine.resolvers import AcceptAll, resolve_capacity_preference_order
 from evo_engine.telemetry import StepTelemetry
+
+TICKET_PREFIX = ContextKey[str](name="ticket_prefix", value_type=str)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -139,9 +141,7 @@ class DispatchProcess:
         /,
     ) -> DispatchEvent:
         """Assign a deterministic-random ticket only after resolution."""
-        prefix = simulation_state.context.require("ticket_prefix")
-        if not isinstance(prefix, str):
-            raise TypeError("ticket_prefix must be a string.")
+        prefix = simulation_state.context.require(TICKET_PREFIX)
         return DispatchEvent(
             step_index=event.step_index,
             job_name=event.job_name,
@@ -328,7 +328,7 @@ def test_complete_nonbiological_simulation_uses_public_kernel_contracts() -> Non
         step_coordinator=coordinator,
         stopping_condition=AllJobsAudited(),
         seed=17,
-        context=SimulationContext.from_mapping({"ticket_prefix": "JOB"}),
+        context=SimulationContext.from_mapping({TICKET_PREFIX.name: "JOB"}),
         observers=(state_observer,),
         telemetry_observers=(telemetry_observer,),
         required_dependencies=machine_dependencies,
