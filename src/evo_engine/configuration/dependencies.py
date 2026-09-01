@@ -49,7 +49,9 @@ class DependencyReport:
         """Raise with requirement provenance when capabilities are unavailable."""
         if not self.missing:
             return
-        formatted = ", ".join(self._format_missing(dependency) for dependency in sorted(self.missing))
+        formatted = ", ".join(
+            self._format_missing(dependency) for dependency in sorted(self.missing)
+        )
         raise ValueError(
             f"simulation configuration has missing dependencies: {formatted}"
         )
@@ -100,7 +102,9 @@ def collect_dependency_requirements(
     requirements: set[DependencyRequirement] = set()
     for component in iter_configuration_components(*components):
         _collect_declared_requirements(component, requirements=requirements)
-    return tuple(sorted(requirements, key=lambda item: (item.dependency, item.provider_type)))
+    return tuple(
+        sorted(requirements, key=lambda item: (item.dependency, item.provider_type))
+    )
 
 
 def dependency_report(
@@ -112,7 +116,8 @@ def dependency_report(
     """Build a generic dependency report for configured components."""
     requirements = collect_dependency_requirements(*components)
     return DependencyReport(
-        required=frozenset(requirement.dependency for requirement in requirements) | required,
+        required=frozenset(requirement.dependency for requirement in requirements)
+        | required,
         provided=provided,
         requirements=requirements,
     )
