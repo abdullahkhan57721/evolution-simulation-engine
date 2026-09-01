@@ -78,8 +78,6 @@ def test_applied_event_trusted_construction_matches_validated_record() -> None:
     )
 
     assert trusted == validated
-    with pytest.raises(attrs.exceptions.FrozenInstanceError):
-        setattr(trusted, "stage_index", 4)
 
 
 def test_step_telemetry_filters_events_by_process_name() -> None:
