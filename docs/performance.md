@@ -37,6 +37,8 @@ By default artifacts are written under `outputs/performance/`:
 
 The console also prints the benchmark summary and top cumulative-time profile rows.
 
+The GitHub Actions quality workflow runs both fixed scenarios as an informational performance check and uploads the same `outputs/performance/` files as a retained workflow artifact. This preserves the exact JSON, text profile, and raw `pstats` inputs used for later comparisons instead of relying only on console logs.
+
 ## What to compare
 
 For wall-clock comparisons, prefer the median across several repeats. The fastest sample is useful for spotting scheduler/noise effects, while the median is a more stable default comparison statistic.
