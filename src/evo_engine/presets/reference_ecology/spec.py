@@ -37,7 +37,7 @@ def build_reference_spec(
     )
 
     return BiologicalSimulationSpec(
-        initial_world_state=simulation.state.world,
+        initial_world_state=simulation.state.domain_state,
         genetic_architecture=simulation.context.require(GENETIC_ARCHITECTURE),
         step_coordinator=engine.step_coordinator,
         stopping_condition=engine.stopping_condition,
