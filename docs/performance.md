@@ -39,6 +39,48 @@ The console also prints the benchmark summary and top cumulative-time profile ro
 
 The GitHub Actions quality workflow runs both fixed scenarios as an informational performance check and uploads the same `outputs/performance/` files as a retained workflow artifact. This preserves the exact JSON, text profile, and raw `pstats` inputs used for later comparisons instead of relying only on console logs.
 
+## Focused pyperf microbenchmarks
+
+Use `pyperf` when a profile identifies a small operation that needs statistically stronger before/after measurement. Performance-only tooling is kept separate from the runtime package and normal development dependencies:
+
+```bash
+venv/bin/python -m pip install -r requirements-performance.txt
+```
+
+The state-copy benchmark exercises the fixed initial reference ecology:
+
+```bash
+venv/bin/python scripts/benchmark_state_copy.py -o outputs/performance/state-copy.json
+```
+
+For faster exploratory runs:
+
+```bash
+venv/bin/python scripts/benchmark_state_copy.py --fast
+```
+
+For two result files captured on comparable machines/environments, use pyperf's comparison tools rather than comparing a single timing sample:
+
+```bash
+venv/bin/python -m pyperf compare_to before.json after.json --table
+```
+
+`pyperf` calibrates benchmark loops, can use multiple worker processes, records environment metadata, and warns when results appear unstable. The CI performance job runs a fast pyperf copy benchmark as directional evidence; serious optimization decisions should still use repeated local measurements on a controlled machine.
+
+## Allocation measurement
+
+For Python-level copy/allocation hotspots, use `tracemalloc` before lower-level allocator instrumentation. The same pyperf benchmark can report traced peak memory rather than elapsed time:
+
+```bash
+venv/bin/python scripts/benchmark_state_copy.py \
+  --tracemalloc \
+  -o outputs/performance/state-copy-tracemalloc.json
+```
+
+This identifies the memory footprint of Python allocations made by the benchmarked copy operation and is appropriate when the suspected cost is object-graph construction, containers, tuples, or other Python-managed objects.
+
+`PYTHONMALLOC=malloc` is a different diagnostic: it replaces CPython's object/memory allocator with the platform C `malloc()` allocator. That can be useful later for testing whether allocator behavior itself contributes materially to a confirmed hotspot, but it does not attribute allocations to engine code and is not the first-line tool for semantic copy optimization.
+
 ## What to compare
 
 For wall-clock comparisons, prefer the median across several repeats. The fastest sample is useful for spotting scheduler/noise effects, while the median is a more stable default comparison statistic.

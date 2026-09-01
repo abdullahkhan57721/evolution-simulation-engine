@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import random
 from typing import Any
 
@@ -98,10 +97,12 @@ class SimulationState:
 
     def copy(self) -> SimulationState:
         """Return an independent transactional copy of the simulation state."""
+        copied_rng = random.Random()
+        copied_rng.setstate(self.rng.getstate())
         return SimulationState(
             world=self.world.copy(),
             context=self.context,
             step_index=self.step_index,
-            rng=copy.deepcopy(self.rng),
+            rng=copied_rng,
             last_step_telemetry=None,
         )
