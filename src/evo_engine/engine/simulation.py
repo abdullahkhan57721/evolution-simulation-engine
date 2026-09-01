@@ -40,9 +40,7 @@ class Simulation:
         """
         copy_domain_state = getattr(initial_domain_state, "copy", None)
         if not callable(copy_domain_state):
-            raise TypeError(
-                "initial_domain_state must provide a callable copy method."
-            )
+            raise TypeError("initial_domain_state must provide a callable copy method.")
         if type(seed) is bool or (seed is not None and type(seed) is not int):
             raise TypeError("seed must be an integer or None, not a Boolean.")
         if context is not None and context_values:
