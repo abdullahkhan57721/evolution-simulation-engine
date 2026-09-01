@@ -20,7 +20,7 @@ class AppliedEvent:
 
     Attributes:
         event_step_index: Simulation step index carried by the applied event.
-        stage_index: Zero-based lifecycle stage index in which the event occurred.
+        stage_index: Zero-based update-stage index in which the event occurred.
         process_type: Fully qualified process class name.
         event_type: Fully qualified materialized event class name.
         event: Materialized event supplied to the process application method.
@@ -99,7 +99,7 @@ class StepTelemetry:
 
     Attributes:
         completed_step_index: Authoritative state index after the step commits.
-        events: Applied events in lifecycle and resolver application order.
+        events: Applied events in stage and resolver application order.
     """
 
     completed_step_index: int = attrs.field(
