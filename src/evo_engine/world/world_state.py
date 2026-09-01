@@ -120,7 +120,7 @@ class WorldState:
         return MappingProxyType(self._organisms)
 
     @property
-    def carcasses(self) -> Mapping[int, Carass]:
+    def carcasses(self) -> Mapping[int, Carcass]:
         """Return the carcasses currently in the world."""
         return MappingProxyType(self._carcasses)
 
