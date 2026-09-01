@@ -16,7 +16,7 @@ from tests.helpers import make_empty_architecture
 
 def _state() -> SimulationState:
     return SimulationState(
-        world=WorldState(
+        domain_state=WorldState(
             width=2,
             height=2,
             environmental_fields=(
@@ -41,14 +41,14 @@ def test_environmental_change_applies_global_forcing() -> None:
 
     assert event.value == 25
     assert all(
-        state.world.environmental_value("temperature", x=x, y=y) == 25
+        state.domain_state.environmental_value("temperature", x=x, y=y) == 25
         for y in range(2)
         for x in range(2)
     )
-    assert len(state.world.mutations_since(0)) == 4
+    assert len(state.domain_state.effects_since(0)) == 4
     assert all(
         isinstance(mutation, EnvironmentalValueChanged)
-        for mutation in state.world.mutations_since(0)
+        for mutation in state.domain_state.effects_since(0)
     )
 
 
@@ -63,9 +63,9 @@ def test_environmental_change_can_target_spatial_patch() -> None:
 
     process.apply_event(state, process.propose_events(state)[0])
 
-    assert state.world.environmental_value("temperature", x=0, y=0) == 20
-    assert state.world.environmental_value("temperature", x=1, y=0) == 30
-    assert state.world.environmental_value("temperature", x=1, y=1) == 30
+    assert state.domain_state.environmental_value("temperature", x=0, y=0) == 20
+    assert state.domain_state.environmental_value("temperature", x=1, y=0) == 30
+    assert state.domain_state.environmental_value("temperature", x=1, y=1) == 30
 
 
 def test_scheduled_environmental_change_emits_no_event_on_unscheduled_step() -> None:
