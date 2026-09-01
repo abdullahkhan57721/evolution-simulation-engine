@@ -47,10 +47,17 @@ class SchedulingState:
 
 
 @attrs.define(slots=True, kw_only=True)
-class CountingSchedulingState(SchedulingState):
-    """Count resolution of the stable mutation-journal reader capability."""
+class CountingSchedulingState:
+    """Scheduling state exposing a counted stable journal-reader capability."""
 
+    completed_jobs: set[str] = attrs.field(factory=set)
+    _mutations: list[object] = attrs.field(factory=list, repr=False)
     mutation_reader_accesses: int = 0
+
+    @property
+    def mutation_count(self) -> int:
+        """Return current transaction-local journal length."""
+        return len(self._mutations)
 
     @property
     def mutations_since(self) -> Callable[[int], tuple[object, ...]]:
@@ -62,10 +69,21 @@ class CountingSchedulingState(SchedulingState):
         """Return effects recorded after a journal checkpoint."""
         return tuple(self._mutations[checkpoint:])
 
+    def complete(self, job_name: str) -> None:
+        """Complete a job and record its domain effect."""
+        self.completed_jobs.add(job_name)
+        self._mutations.append(JobCompleted(job_name=job_name))
+
+    def copy(self) -> CountingSchedulingState:
+        """Return a transactional copy with a fresh effect journal."""
+        copied = copy.deepcopy(self)
+        copied._mutations.clear()
+        return copied
+
 
 @attrs.frozen(slots=True, kw_only=True)
 class CompleteJob:
-    """Nonbiological process completing one scheduled job."""
+    """Nonbiological process completing configured scheduled jobs."""
 
     @attrs.frozen(slots=True, kw_only=True)
     class Event:
