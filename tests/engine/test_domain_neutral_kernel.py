@@ -148,9 +148,11 @@ def test_kernel_tests_do_not_import_modeled_domains_or_domain_helpers() -> None:
 
 def test_kernel_tests_use_domain_neutral_identifiers() -> None:
     """Test kernel-facing fixtures avoid modeled-domain vocabulary."""
-    guard_path = Path(__file__)
+    guard_path = Path(__file__).resolve()
     violations = _identifier_violations(
-        path for path in _python_files(_KERNEL_TEST_PATHS) if path != guard_path
+        path
+        for path in _python_files(_KERNEL_TEST_PATHS)
+        if path.resolve() != guard_path
     )
 
     assert violations == []
