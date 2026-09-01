@@ -144,7 +144,7 @@ class PreferredMateTarget:
         ):
             return None
 
-        world = simulation_state.world
+        world = simulation_state.domain_state
         best_key: tuple[int, int, int] | None = None
         best_target: MovementTarget | None = None
 
