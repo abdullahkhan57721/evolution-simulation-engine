@@ -278,7 +278,7 @@ class _KernelProcess:
         /,
     ) -> None:
         """Apply one trivial event to the synthetic model state."""
-        simulation_state.world.apply(event.effect)
+        simulation_state.domain_state.apply(event.effect)
 
 
 @attrs.frozen(slots=True)
@@ -307,7 +307,7 @@ def _prepare_kernel_run(
         stopping_condition=MaxSteps(max_steps=scenario.steps),
     )
     return _PreparedKernelRun(
-        simulation=Simulation(initial_world_state=domain_state, seed=0),
+        simulation=Simulation(initial_domain_state=domain_state, seed=0),
         engine=engine,
     )
 
@@ -318,7 +318,7 @@ def _kernel_outcome(simulation: Simulation) -> KernelRunOutcome:
     final_event_count = 0 if telemetry is None else len(telemetry.events)
     return KernelRunOutcome(
         completed_steps=state.step_index,
-        applied_events=state.world.applied_events,
+        applied_events=state.domain_state.applied_events,
         final_step_event_count=final_event_count,
     )
 
