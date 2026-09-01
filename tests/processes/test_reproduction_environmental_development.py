@@ -34,12 +34,12 @@ def test_offspring_development_samples_selected_birth_location() -> None:
         ),
     )
     state = SimulationState(
-        world=world,
+        domain_state=world,
         genetic_architecture=architecture,
         behavior_selection_model=UnrestrictedBehavior(),
         rng=random.Random(1),
     )
-    state.world.set_environmental_value("temperature", x=1, y=1, value=30)
+    state.domain_state.set_environmental_value("temperature", x=1, y=1, value=30)
     parent = add_organism(
         state,
         trait_values={"size": 10},
