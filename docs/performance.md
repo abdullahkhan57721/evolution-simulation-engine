@@ -53,10 +53,20 @@ The state-copy benchmark exercises the fixed initial reference ecology:
 venv/bin/python scripts/benchmark_state_copy.py -o outputs/performance/state-copy.json
 ```
 
+The stage-coordination benchmark exercises a domain-neutral stage with 1,000 accepted events, both with and without post-resolution materialization:
+
+```bash
+venv/bin/python scripts/benchmark_stage_coordination.py \
+  -o outputs/performance/stage-coordination.json
+```
+
+This benchmark is intentionally synthetic. It isolates orchestration work such as event-type dispatch and materializer selection from biological/ecological process costs. `StageCoordinator` determines whether each configured process supports materialization when the stage is constructed, so structural runtime protocol checks do not belong in the per-event hot path.
+
 For faster exploratory runs:
 
 ```bash
 venv/bin/python scripts/benchmark_state_copy.py --fast
+venv/bin/python scripts/benchmark_stage_coordination.py --fast
 ```
 
 For two result files captured on comparable machines/environments, use pyperf's comparison tools rather than comparing a single timing sample:
@@ -65,7 +75,7 @@ For two result files captured on comparable machines/environments, use pyperf's 
 venv/bin/python -m pyperf compare_to before.json after.json --table
 ```
 
-`pyperf` calibrates benchmark loops, can use multiple worker processes, records environment metadata, and warns when results appear unstable. The CI performance job runs a fast pyperf copy benchmark as directional evidence; serious optimization decisions should still use repeated local measurements on a controlled machine.
+`pyperf` calibrates benchmark loops, can use multiple worker processes, records environment metadata, and warns when results appear unstable. The CI performance job runs fast focused benchmarks as directional evidence; serious optimization decisions should still use repeated local measurements on a controlled machine.
 
 ## Allocation measurement
 
