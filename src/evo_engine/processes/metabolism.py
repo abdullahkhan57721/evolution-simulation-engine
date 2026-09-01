@@ -98,7 +98,7 @@ class Metabolism:
             ValueError: If the cost model returns a negative cost.
         """
         events: list[Metabolism.Event] = []
-        world = simulation_state.world
+        world = simulation_state.domain_state
 
         for organism in self.access_model.entities(state=world):
             energy_cost = self.cost_model.calculate_cost(
@@ -140,7 +140,7 @@ class Metabolism:
         """
         organism = self.access_model.get(
             resolved_event.organism_id,
-            state=simulation_state.world,
+            state=simulation_state.domain_state,
         )
 
         organism.energy = max(
