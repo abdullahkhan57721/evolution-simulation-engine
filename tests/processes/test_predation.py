@@ -125,10 +125,10 @@ def test_predation_apply_removes_prey_and_adds_energy_and_carcass() -> None:
         event,
     )
 
-    assert prey.id not in state.world.organisms
+    assert prey.id not in state.domain_state.organisms
     assert predator.energy == 23
 
-    carcass = next(iter(state.world.carcasses.values()))
+    carcass = next(iter(state.domain_state.carcasses.values()))
     assert carcass.resource_units == 3
     assert (carcass.x, carcass.y) == (1, 1)
 
@@ -147,8 +147,8 @@ def test_full_consumption_creates_no_zero_resource_carcass() -> None:
         event,
     )
 
-    assert prey.id not in state.world.organisms
-    assert not state.world.carcasses
+    assert prey.id not in state.domain_state.organisms
+    assert not state.domain_state.carcasses
 
 
 def test_default_predation_uses_current_body_mass_not_adult_target() -> None:
