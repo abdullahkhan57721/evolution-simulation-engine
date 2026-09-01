@@ -70,8 +70,8 @@ def test_maximum_age_mortality_removes_organism_and_creates_carcass() -> None:
 
     process.apply_event(state, event)
 
-    assert organism.id not in state.world.organisms
-    carcass = next(iter(state.world.carcasses.values()))
+    assert organism.id not in state.domain_state.organisms
+    carcass = next(iter(state.domain_state.carcasses.values()))
     assert (carcass.x, carcass.y) == (2, 3)
     assert carcass.resource_units == 7
 
