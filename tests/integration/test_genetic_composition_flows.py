@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evo_engine.genetics import GROWTH_RATE
+from evo_engine.genetics import GENETIC_ARCHITECTURE, GROWTH_RATE
 from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
 
 
@@ -20,9 +20,8 @@ def test_reference_ecology_records_all_loci_each_committed_state() -> None:
 
     observations = ecology.genetic_recorder.observations
     assert tuple(observation.step_index for observation in observations) == (0, 1, 2)
-    expected_loci = {
-        locus.name for locus in ecology.simulation.genetic_architecture.loci
-    }
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
+    expected_loci = {locus.name for locus in architecture.loci}
     assert {locus.locus_name for locus in observations[0].loci} == expected_loci
 
     growth = observations[0].locus(GROWTH_RATE)

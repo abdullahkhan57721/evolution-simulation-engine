@@ -8,7 +8,7 @@ from typing import Any
 
 import attrs
 
-from evo_engine.engine.simulation_context import SimulationContext
+from evo_engine.context import SimulationContext
 from evo_engine.telemetry import StepTelemetry
 from evo_engine.validation import attrs_validators
 
@@ -17,6 +17,7 @@ def _validate_world(
     instance: object, attribute: attrs.Attribute, value: object
 ) -> None:
     """Require transactional model state to provide a copy operation."""
+    del instance
     if not callable(getattr(value, "copy", None)):
         raise TypeError(
             f"{attribute.name} must provide a callable copy method for transactions."
@@ -27,20 +28,16 @@ def _validate_world(
 class SimulationState:
     """Represent one transactional snapshot of an arbitrary simulated system.
 
-    ``world`` is intentionally domain-neutral. The kernel requires only that it
-    can be copied transactionally. Domain packages define the concrete state
-    carried there and the operations that processes may perform on it.
+    ``world`` is domain-neutral simulation terminology: it may hold any
+    domain-defined copyable model state, not necessarily a physical or biological
+    world. Domain packages define the concrete state and operations carried there.
 
     ``context`` contains immutable configuration services shared by reference
-    across copies. The kernel assigns no biological or other domain semantics to
-    those values.
+    across copies. Configuration is consumed explicitly through
+    ``state.context.require(...)`` rather than dynamic state attributes.
 
-    Attributes:
-        world: Current domain-defined model state.
-        context: Immutable configuration shared across transactional copies.
-        step_index: Index of the current committed simulation state.
-        rng: Random number generator owned by the simulation.
-        last_step_telemetry: Telemetry for the most recently committed step.
+    Named ``context_values`` are construction sugar only: they are normalized
+    into a ``SimulationContext`` and never become attributes on the state.
     """
 
     world: Any = attrs.field(validator=_validate_world)
@@ -74,12 +71,7 @@ class SimulationState:
         last_step_telemetry: StepTelemetry | None = None,
         **context_values: object,
     ) -> None:
-        """Initialize mutable state and domain-neutral shared configuration.
-
-        Arbitrary keyword arguments are normalized into context services when a
-        prebuilt context is not supplied. This keeps the kernel agnostic to the
-        meaning of domain configuration while allowing domain packages to use
-        explicit, stable service names.
+        """Initialize mutable state and normalize optional named context values.
 
         Args:
             world: Current domain-defined model state. Must provide ``copy``.
@@ -87,11 +79,8 @@ class SimulationState:
             step_index: Current simulation step index.
             rng: Simulation random-number generator. Defaults to a new generator.
             last_step_telemetry: Most recently committed step telemetry.
-            **context_values: Named domain configuration services used only when
-                ``context`` is omitted.
-
-        Raises:
-            TypeError: If a context and separate context values are both given.
+            **context_values: Optional named configuration services. These may be
+                supplied only when ``context`` is omitted.
         """
         if context is not None and context_values:
             raise TypeError("context cannot be combined with separate context values.")
@@ -107,33 +96,8 @@ class SimulationState:
         object.__setattr__(self, "last_step_telemetry", last_step_telemetry)
         attrs.validate(self)
 
-    def __getattr__(self, name: str) -> Any:
-        """Resolve domain configuration through the generic context service map.
-
-        This compatibility surface lets existing domain code access a configured
-        service as ``state.<service_name>`` without teaching the kernel what the
-        service means. New domain code should prefer ``state.context.require``
-        with stable namespaced service identifiers.
-        """
-        try:
-            context = object.__getattribute__(self, "context")
-        except AttributeError:
-            raise AttributeError(name) from None
-        try:
-            return context.require(name)
-        except KeyError as error:
-            raise AttributeError(name) from error
-
     def copy(self) -> SimulationState:
-        """Return an independent transactional copy of the simulation state.
-
-        Domain state and RNG state are copied. Immutable ``context`` is shared by
-        reference. Previous committed telemetry is intentionally excluded from
-        the new working transaction.
-
-        Returns:
-            Independent working simulation state.
-        """
+        """Return an independent transactional copy of the simulation state."""
         return SimulationState(
             world=self.world.copy(),
             context=self.context,

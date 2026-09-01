@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
+from evo_engine.behavior import BEHAVIOR_SELECTION_MODEL
 from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.engine import Observer
+from evo_engine.genetics import GENETIC_ARCHITECTURE
 from evo_engine.presets.reference_ecology.builders import (
     build_reference_engine,
     build_reference_simulation,
@@ -36,11 +38,11 @@ def build_reference_spec(
 
     return BiologicalSimulationSpec(
         initial_world_state=simulation.state.world,
-        genetic_architecture=simulation.genetic_architecture,
+        genetic_architecture=simulation.context.require(GENETIC_ARCHITECTURE),
         step_coordinator=engine.step_coordinator,
         stopping_condition=engine.stopping_condition,
         seed=resolved_config.seed,
-        behavior_selection_model=simulation.context.require("behavior_selection_model"),
+        behavior_selection_model=simulation.context.require(BEHAVIOR_SELECTION_MODEL),
         observers=observer_tuple,
         telemetry_observers=telemetry_observer_tuple,
     )

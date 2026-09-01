@@ -48,7 +48,13 @@ def test_failed_step_leaves_authoritative_state_unchanged() -> None:
 
     @attrs.frozen(slots=True)
     class FailingStage:
-        def coordinate(self, simulation_state: SimulationState) -> None:
+        def coordinate(
+            self,
+            simulation_state: SimulationState,
+            *,
+            stage_index: int = 0,
+        ) -> None:
+            del stage_index
             simulation_state.world.value = 99
             raise RuntimeError("stage failed")
 

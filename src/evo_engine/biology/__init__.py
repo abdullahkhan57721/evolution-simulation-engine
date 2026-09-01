@@ -3,7 +3,6 @@
 from evo_engine.biology.configuration import (
     CHARACTERISTIC,
     ENVIRONMENTAL_FIELD,
-    GENETIC_ARCHITECTURE,
     TRAIT,
     BiologicalSimulationSpec,
     collect_biological_dependencies,
@@ -15,7 +14,6 @@ from evo_engine.biology.lifecycle import build_standard_lifecycle
 __all__ = [
     "CHARACTERISTIC",
     "ENVIRONMENTAL_FIELD",
-    "GENETIC_ARCHITECTURE",
     "TRAIT",
     "BiologicalSimulationSpec",
     "MortalityEvent",

@@ -1,4 +1,4 @@
-"""Represent immutable domain-neutral simulation configuration."""
+"""Typed immutable configuration shared across simulation state snapshots."""
 
 from __future__ import annotations
 
@@ -13,12 +13,18 @@ D = TypeVar("D")
 
 @attrs.frozen(slots=True, kw_only=True)
 class ContextKey(Generic[T]):
-    """Define a typed key for one immutable simulation-context service."""
+    """Define a typed key for one immutable simulation-context service.
+
+    ``T`` describes the statically returned service type. ``value_type`` is the
+    runtime ``isinstance`` validator and intentionally accepts structural,
+    runtime-checkable protocol classes as well as concrete classes.
+    """
 
     name: str
-    value_type: type[T]
+    value_type: type[Any]
 
     def __attrs_post_init__(self) -> None:
+        """Validate key identity and runtime value type."""
         if type(self.name) is not str:
             raise TypeError("ContextKey.name must be a string.")
         if not self.name.strip():
@@ -36,49 +42,49 @@ class ContextKey(Generic[T]):
 
 
 @attrs.frozen(slots=True, kw_only=True)
-class ContextValue:
-    """Bind one named immutable configuration service to a simulation context."""
+class _ContextValue:
+    """Bind one internal service name to its configured value."""
 
     name: str
     value: object = attrs.field(repr=False)
 
     def __attrs_post_init__(self) -> None:
+        """Validate the internal service identifier."""
         if type(self.name) is not str:
-            raise TypeError("ContextValue.name must be a string.")
+            raise TypeError("context service names must be strings.")
         if not self.name.strip():
-            raise ValueError("ContextValue.name must not be blank.")
+            raise ValueError("context service names must not be blank.")
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class SimulationContext:
-    """Hold immutable domain configuration shared by all state snapshots."""
+    """Hold immutable domain configuration shared by all state snapshots.
 
-    values: tuple[ContextValue, ...] = ()
+    Construct an empty context directly or use :meth:`from_mapping` to bind
+    named services. The storage representation is intentionally private so it
+    may change without expanding the public kernel API.
+    """
 
-    def __attrs_post_init__(self) -> None:
-        if type(self.values) is not tuple:
-            raise TypeError("SimulationContext.values must be a tuple.")
-        seen: set[str] = set()
-        for index, item in enumerate(self.values):
-            if not isinstance(item, ContextValue):
-                raise TypeError(
-                    f"SimulationContext.values[{index}] must be a ContextValue."
-                )
-            if item.name in seen:
-                raise ValueError(
-                    "SimulationContext values must have unique names; "
-                    f"duplicate {item.name!r}."
-                )
-            seen.add(item.name)
+    _values: tuple[_ContextValue, ...] = attrs.field(
+        factory=tuple,
+        init=False,
+        repr=False,
+        validator=attrs.validators.instance_of(tuple),
+    )
 
     @classmethod
     def from_mapping(cls, values: Mapping[str, object]) -> SimulationContext:
         """Build a context from named domain configuration values."""
-        return cls(
-            values=tuple(
-                ContextValue(name=name, value=value) for name, value in values.items()
-            )
+        context = cls()
+        object.__setattr__(
+            context,
+            "_values",
+            tuple(
+                _ContextValue(name=name, value=value) for name, value in values.items()
+            ),
         )
+        attrs.validate(context)
+        return context
 
     @overload
     def require(self, key: ContextKey[T]) -> T: ...
@@ -93,7 +99,7 @@ class SimulationContext:
             raise TypeError("context service name must be a string.")
         if not name.strip():
             raise ValueError("context service name must not be blank.")
-        for item in self.values:
+        for item in self._values:
             if item.name == name:
                 if isinstance(key, ContextKey):
                     return key.validate(item.value)
@@ -119,3 +125,9 @@ class SimulationContext:
             return self.require(key)
         except KeyError:
             return default
+
+
+__all__ = [
+    "ContextKey",
+    "SimulationContext",
+]

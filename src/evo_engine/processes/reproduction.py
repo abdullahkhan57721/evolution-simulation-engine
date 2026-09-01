@@ -18,6 +18,7 @@ from evo_engine.energetics.expenditure import (
     energy_expenditure_is_allowed,
 )
 from evo_engine.engine.simulation_state import SimulationState
+from evo_engine.genetics import GENETIC_ARCHITECTURE
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
 from evo_engine.genetics.inheritance import InheritanceModel
@@ -661,7 +662,7 @@ class Reproduction:
                     "policy."
                 )
 
-        architecture = simulation_state.genetic_architecture
+        architecture = simulation_state.context.require(GENETIC_ARCHITECTURE)
 
         # All stochastic offspring state is deferred until after resolution so
         # rejected mating candidates do not consume RNG or generate throwaway

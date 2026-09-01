@@ -23,22 +23,13 @@ class StageCoordinator:
         processes: Sequence[Process[Any, Any]],
         resolver: Resolver,
     ) -> None:
-        """Initialize an update stage.
-
-        Args:
-            processes: State-transition processes participating in the stage.
-            resolver: Resolver for competing proposed transitions.
-
-        Raises:
-            ValueError: If multiple processes use the same proposed event type.
-        """
+        """Initialize an update stage."""
         self.processes = tuple(processes)
         self.resolver = resolver
         self._processes_by_event_type: dict[
             type[SimulationEvent],
             Process[Any, Any],
         ] = {}
-
         for process in self.processes:
             if process.event_type in self._processes_by_event_type:
                 raise ValueError(
@@ -49,6 +40,8 @@ class StageCoordinator:
     def coordinate(
         self,
         simulation_state: SimulationState,
+        *,
+        stage_index: int = 0,
     ) -> tuple[AppliedEvent, ...]:
         """Coordinate one stage and return telemetry for applied transitions.
 
@@ -59,21 +52,14 @@ class StageCoordinator:
 
         The domain state may optionally expose ``mutation_count`` and
         ``mutations_since``. Mutations captured through that journal are attached
-        to committed telemetry as opaque domain effects. States without a journal
-        simply produce empty effect telemetry; the kernel does not prescribe
-        domain effect types or meanings.
-
-        Args:
-            simulation_state: Working transactional state.
-
-        Returns:
-            Applied event telemetry in resolver application order.
-
-        Raises:
-            RuntimeError: If a resolved event has no registered process.
+        to committed telemetry as opaque domain effects.
         """
-        proposed_events: list[SimulationEvent] = []
+        if type(stage_index) is not int:
+            raise TypeError("stage_index must be an integer.")
+        if stage_index < 0:
+            raise ValueError("stage_index must be nonnegative.")
 
+        proposed_events: list[SimulationEvent] = []
         for process in self.processes:
             proposed_events.extend(process.propose_events(simulation_state))
 
@@ -90,7 +76,6 @@ class StageCoordinator:
                     "No process is registered for resolved event type "
                     f"{type(resolved_event).__name__}."
                 )
-
             if isinstance(process, EventMaterializer):
                 materialized_event = process.materialize_event(
                     simulation_state,
@@ -102,21 +87,19 @@ class StageCoordinator:
 
         applied_events: list[AppliedEvent] = []
         domain_state = simulation_state.world
-
         for process, materialized_event in materialized_events:
             checkpoint = _mutation_checkpoint(domain_state)
             process.apply_event(simulation_state, materialized_event)
             applied_events.append(
                 AppliedEvent(
                     event_step_index=materialized_event.step_index,
-                    stage_index=0,
+                    stage_index=stage_index,
                     process_type=_qualified_type_name(process),
                     event_type=_qualified_type_name(materialized_event),
                     event=materialized_event,
                     effects=_mutations_since(domain_state, checkpoint),
                 )
             )
-
         return tuple(applied_events)
 
 

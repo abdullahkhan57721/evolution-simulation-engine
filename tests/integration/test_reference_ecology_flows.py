@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evo_engine.genetics import MAXIMUM_AGE
+from evo_engine.genetics import GENETIC_ARCHITECTURE, MAXIMUM_AGE
 from evo_engine.presets import (
     ReferenceEcology,
     ReferenceEcologyConfig,
@@ -54,8 +54,9 @@ def test_reference_ecology_runs_multiple_complete_timesteps() -> None:
 
     ecology.engine.run(ecology.simulation)
 
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
     assert ecology.simulation.state.step_index == 8
-    assert ecology.simulation.genetic_architecture.trait(MAXIMUM_AGE)
+    assert architecture.trait(MAXIMUM_AGE)
 
 
 def test_reference_ecology_is_reproducible_for_same_seed_and_configuration() -> None:
@@ -165,5 +166,6 @@ def test_reference_ecology_mutation_creates_bounded_offspring_variation() -> Non
 
     assert mutated_alleles
 
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
     for trait_name, value in newborn.genetic_phenotype.trait_values:
-        ecology.simulation.genetic_architecture.locus(trait_name).domain.validate(value)
+        architecture.locus(trait_name).domain.validate(value)

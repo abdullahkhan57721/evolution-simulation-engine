@@ -11,6 +11,7 @@ from evo_engine.behavior.purposes import (
     SURVIVAL,
     validate_behavioral_purpose,
 )
+from evo_engine.context import ContextKey
 from evo_engine.genetics.requirements import collect_required_traits
 from evo_engine.life_history import (
     EnergyThresholdSource,
@@ -49,6 +50,12 @@ class BehaviorSelectionModel(Protocol):
             Whether the behavior should be attempted.
         """
         ...
+
+
+BEHAVIOR_SELECTION_MODEL = ContextKey[BehaviorSelectionModel](
+    name="behavior_selection_model",
+    value_type=BehaviorSelectionModel,
+)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -174,7 +181,8 @@ def behavior_is_allowed(
         ValueError: If the purpose is blank.
     """
     validated_purpose = validate_behavioral_purpose(behavioral_purpose)
-    decision = simulation_state.behavior_selection_model.allows_behavior(
+    model = simulation_state.context.require(BEHAVIOR_SELECTION_MODEL)
+    decision = model.allows_behavior(
         organism,
         behavioral_purpose=validated_purpose,
         simulation_state=simulation_state,

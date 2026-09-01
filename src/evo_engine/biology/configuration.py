@@ -6,18 +6,17 @@ from collections.abc import Iterable
 
 import attrs
 
-from evo_engine.behavior import BehaviorSelectionModel, UnrestrictedBehavior
+from evo_engine.behavior import (
+    BEHAVIOR_SELECTION_MODEL,
+    BehaviorSelectionModel,
+    UnrestrictedBehavior,
+)
 from evo_engine.configuration import CompiledSimulation, Dependency, SimulationSpec
 from evo_engine.configuration.dependencies import iter_configuration_components
-from evo_engine.engine import (
-    ContextKey,
-    Observer,
-    SimulationContext,
-    StepCoordinator,
-    StoppingCondition,
-)
+from evo_engine.context import SimulationContext
+from evo_engine.engine import Observer, StepCoordinator, StoppingCondition
 from evo_engine.evolution import CharacteristicRequirementProvider
-from evo_engine.genetics import GeneticArchitecture
+from evo_engine.genetics import GENETIC_ARCHITECTURE, GeneticArchitecture
 from evo_engine.genetics.requirements import TraitRequirementProvider
 from evo_engine.telemetry import TelemetryObserver
 from evo_engine.world import WorldState
@@ -25,11 +24,6 @@ from evo_engine.world import WorldState
 TRAIT = "trait"
 CHARACTERISTIC = "characteristic"
 ENVIRONMENTAL_FIELD = "environmental_field"
-
-GENETIC_ARCHITECTURE = ContextKey[GeneticArchitecture](
-    name="genetic_architecture",
-    value_type=GeneticArchitecture,
-)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -111,7 +105,7 @@ class BiologicalSimulationSpec:
         context = SimulationContext.from_mapping(
             {
                 GENETIC_ARCHITECTURE.name: self.genetic_architecture,
-                "behavior_selection_model": self.behavior_selection_model,
+                BEHAVIOR_SELECTION_MODEL.name: self.behavior_selection_model,
             }
         )
         generic_spec = SimulationSpec(

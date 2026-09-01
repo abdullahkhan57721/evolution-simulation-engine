@@ -7,10 +7,10 @@ from collections.abc import Iterable
 import attrs
 
 from evo_engine.configuration.dependencies import Dependency, DependencyReport
+from evo_engine.context import SimulationContext
 from evo_engine.engine import (
     Observer,
     Simulation,
-    SimulationContext,
     SimulationEngine,
     StepCoordinator,
     StoppingCondition,
