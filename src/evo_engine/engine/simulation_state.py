@@ -97,6 +97,8 @@ class SimulationState:
 
     def copy(self) -> SimulationState:
         """Return an independent transactional copy of the simulation state."""
+        # setstate() replaces the complete generator state, so skip the seed work
+        # performed by Random.__init__ before that state would be discarded.
         copied_rng = random.Random.__new__(random.Random)
         copied_rng.setstate(self.rng.getstate())
         return SimulationState(
