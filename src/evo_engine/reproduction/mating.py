@@ -109,7 +109,7 @@ class MutualMateSearchRange:
             context=simulation_state,
             minimum=0,
         )
-        world = simulation_state.world
+        world = simulation_state.domain_state
         distance = self.distance_metric.distance(
             x1=first_parent.x,
             y1=first_parent.y,
