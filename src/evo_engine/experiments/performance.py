@@ -210,9 +210,9 @@ def profile_reference_scenario(
     return ReferenceProfileResult(
         scenario_name=scenario.name,
         observed=scenario.observed,
-        total_calls=stats.total_calls,
-        primitive_calls=stats.prim_calls,
-        total_seconds=stats.total_tt,
+        total_calls=int(getattr(stats, "total_calls")),
+        primitive_calls=int(getattr(stats, "prim_calls")),
+        total_seconds=float(getattr(stats, "total_tt")),
         report=stream.getvalue(),
         outcome=_reference_outcome(prepared.simulation),
     )
