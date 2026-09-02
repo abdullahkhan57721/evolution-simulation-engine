@@ -13,8 +13,8 @@ from examples.nonbiological_evolution import (
     BROADCAST_WEIGHT,
     DEFAULT_SEED,
     DEFAULT_STEPS,
-    INFORMATION_MODEL,
     InformationNetwork,
+    StrategyCharacteristics,
     build_nonbiological_evolution,
 )
 
@@ -45,15 +45,15 @@ def _run_example(seed: int = DEFAULT_SEED):
 def test_nonbiological_evolution_changes_transmissible_composition() -> None:
     """Test expression, differential propagation, and variation end to end."""
     example, initial_ids, initial_composition, final_state = _run_example()
-    snapshots = example.composition_recorder.snapshots
-    events = example.propagation_recorder.events
+    snapshots = example.recorder.snapshots
+    events = example.recorder.events
     source_counts = Counter(event.source_state for event in events)
 
     assert example.compiled.simulation.state.step_index == DEFAULT_STEPS
     assert tuple(final_state.nodes) == initial_ids
     assert initial_composition == {"amplify": 3, "retain": 9}
     assert final_state.composition() != initial_composition
-    assert final_state.composition()[AMPLIFY.name] > initial_composition[AMPLIFY.name]
+    assert final_state.composition()[AMPLIFY] > initial_composition[AMPLIFY]
     assert [snapshot.step_index for snapshot in snapshots] == list(
         range(DEFAULT_STEPS + 1)
     )
@@ -66,17 +66,16 @@ def test_nonbiological_evolution_changes_transmissible_composition() -> None:
 def test_transmissible_tokens_express_differential_operational_weight() -> None:
     """Test propagated variants expose distinct operative characteristics."""
     example = build_nonbiological_evolution()
-    simulation = example.compiled.simulation
-    network = simulation.state.domain_state
+    network = example.compiled.simulation.state.domain_state
     assert isinstance(network, InformationNetwork)
-    model = simulation.context.require(INFORMATION_MODEL)
+    characteristics = StrategyCharacteristics()
 
-    amplify_weight = model.characteristics.value_for(
+    amplify_weight = characteristics.value_for(
         network.nodes[0],
         BROADCAST_WEIGHT,
         context=network,
     )
-    retain_weight = model.characteristics.value_for(
+    retain_weight = characteristics.value_for(
         network.nodes[3],
         BROADCAST_WEIGHT,
         context=network,
@@ -91,8 +90,8 @@ def test_same_seed_reproduces_the_same_evolutionary_history() -> None:
     first, _, _, first_state = _run_example()
     second, _, _, second_state = _run_example()
 
-    assert first.composition_recorder.snapshots == second.composition_recorder.snapshots
-    assert first.propagation_recorder.events == second.propagation_recorder.events
+    assert first.recorder.snapshots == second.recorder.snapshots
+    assert first.recorder.events == second.recorder.events
     assert first_state.composition() == second_state.composition()
 
 

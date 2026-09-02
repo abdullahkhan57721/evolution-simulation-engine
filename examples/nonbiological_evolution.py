@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import random
 from collections import Counter
-from typing import Any
+from typing import Any, Literal
 
 import attrs
 
 from evo_engine.configuration import CompiledSimulation, SimulationSpec
-from evo_engine.context import ContextKey, SimulationContext
 from evo_engine.engine import (
     MaxSteps,
     SequentialStepCoordinator,
@@ -35,16 +34,9 @@ DEFAULT_SEED = 84
 DEFAULT_STEPS = 6
 BROADCAST_WEIGHT = "broadcast_weight"
 
-
-@attrs.frozen(slots=True)
-class StrategyToken:
-    """Represent one independently transmissible information strategy."""
-
-    name: str
-
-
-AMPLIFY = StrategyToken(name="amplify")
-RETAIN = StrategyToken(name="retain")
+type StrategyToken = Literal["amplify", "retain"]
+AMPLIFY: StrategyToken = "amplify"
+RETAIN: StrategyToken = "retain"
 
 
 @attrs.define(slots=True, kw_only=True)
@@ -77,39 +69,29 @@ class InformationNetwork:
         )
 
     def composition(self) -> dict[str, int]:
-        """Return token counts ordered by the example's public token names."""
-        counts = Counter(
-            _transmissible_token(node).name for node in self.nodes.values()
-        )
+        """Return counts ordered by the example's public token names."""
+        counts = Counter(_transmissible_token(node) for node in self.nodes.values())
         return {
-            AMPLIFY.name: counts[AMPLIFY.name],
-            RETAIN.name: counts[RETAIN.name],
+            AMPLIFY: counts[AMPLIFY],
+            RETAIN: counts[RETAIN],
         }
-
-
-@attrs.frozen(slots=True, kw_only=True)
-class OperativeCharacteristics:
-    """Describe characteristics expressed by one strategy token."""
-
-    broadcast_weight: int
 
 
 @attrs.frozen(slots=True)
 class StrategyExpression:
     """Express a token as the influence used during source selection."""
 
-    def express(self, heritable_state: StrategyToken) -> OperativeCharacteristics:
+    def express(self, heritable_state: StrategyToken) -> int:
         """Return the operative broadcast weight for a strategy token."""
-        weight = 3 if heritable_state == AMPLIFY else 1
-        return OperativeCharacteristics(broadcast_weight=weight)
+        return 3 if heritable_state == AMPLIFY else 1
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class StrategyCharacteristics:
     """Expose expressed token characteristics to transition processes."""
 
-    expression: HeritableStateExpression[StrategyToken, OperativeCharacteristics] = (
-        attrs.field(factory=StrategyExpression)
+    expression: HeritableStateExpression[StrategyToken, int] = attrs.field(
+        factory=StrategyExpression
     )
 
     def value_for(
@@ -120,11 +102,10 @@ class StrategyCharacteristics:
         context: InformationNetwork,
     ) -> int:
         """Return one named operative characteristic for a network node."""
+        del context
         if characteristic_name != BROADCAST_WEIGHT:
             raise KeyError(f"unknown characteristic {characteristic_name!r}.")
-        if context.nodes[entity.node_id] is not entity:
-            raise ValueError("characteristics require a node from the current network.")
-        return self.expression.express(_transmissible_token(entity)).broadcast_weight
+        return self.expression.express(_transmissible_token(entity))
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -165,29 +146,10 @@ class TokenPropagation:
         rng: random.Random,
     ) -> StrategyToken:
         """Return a varied copy of exactly one source token."""
+        del recipient, context
         if len(source_states) != 1:
             raise ValueError("token propagation requires exactly one source state.")
-        if context.nodes[recipient.node_id] is not recipient:
-            raise ValueError("propagation requires a recipient from the network.")
         return self.variation.vary(source_states[0], rng=rng)
-
-
-@attrs.frozen(slots=True, kw_only=True)
-class InformationModel:
-    """Compose the generic expression and propagation contracts."""
-
-    characteristics: CharacteristicSource[InformationNode, InformationNetwork, int] = (
-        attrs.field(factory=StrategyCharacteristics)
-    )
-    propagation: PropagationModel[
-        StrategyToken, InformationNode, InformationNetwork
-    ] = attrs.field(factory=TokenPropagation)
-
-
-INFORMATION_MODEL = ContextKey[InformationModel](
-    name="information_model",
-    value_type=InformationModel,
-)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -209,9 +171,16 @@ class PropagationEvent:
     propagated_state: StrategyToken
 
 
-@attrs.frozen(slots=True)
+@attrs.frozen(slots=True, kw_only=True)
 class TokenPropagationProcess:
     """Propose, materialize, and apply horizontal token propagation."""
+
+    characteristics: CharacteristicSource[InformationNode, InformationNetwork, int] = (
+        attrs.field(factory=StrategyCharacteristics)
+    )
+    propagation: PropagationModel[
+        StrategyToken, InformationNode, InformationNetwork
+    ] = attrs.field(factory=TokenPropagation)
 
     @property
     def event_type(self) -> type[PropagationProposal]:
@@ -240,10 +209,9 @@ class TokenPropagationProcess:
     ) -> PropagationEvent:
         """Select a weighted source and vary its token using simulation RNG."""
         network = _network_from(simulation_state.domain_state)
-        model = simulation_state.context.require(INFORMATION_MODEL)
         source_nodes = tuple(network.nodes.values())
         weights = tuple(
-            model.characteristics.value_for(
+            self.characteristics.value_for(
                 node,
                 BROADCAST_WEIGHT,
                 context=network,
@@ -251,10 +219,9 @@ class TokenPropagationProcess:
             for node in source_nodes
         )
         source = simulation_state.rng.choices(source_nodes, weights=weights, k=1)[0]
-        recipient = network.nodes[event.recipient_id]
-        propagated_state = model.propagation.propagate(
+        propagated_state = self.propagation.propagate(
             (_transmissible_token(source),),
-            recipient=recipient,
+            recipient=network.nodes[event.recipient_id],
             context=network,
             rng=simulation_state.rng,
         )
@@ -286,10 +253,11 @@ class CompositionSnapshot:
 
 
 @attrs.define(slots=True)
-class CompositionRecorder:
-    """Record token composition at step zero and after every commit."""
+class EvolutionRecorder:
+    """Record committed composition snapshots and propagation events."""
 
     snapshots: list[CompositionSnapshot] = attrs.field(factory=list)
+    events: list[PropagationEvent] = attrs.field(factory=list)
 
     def should_observe(self, domain_state: Any, /, *, step_index: int) -> bool:
         """Observe every committed network state."""
@@ -298,26 +266,18 @@ class CompositionRecorder:
 
     def observe(self, domain_state: Any, /, *, step_index: int) -> None:
         """Record one immutable composition snapshot."""
-        network = _network_from(domain_state)
+        composition = _network_from(domain_state).composition()
         self.snapshots.append(
             CompositionSnapshot(
                 step_index=step_index,
-                composition=tuple(network.composition().items()),
+                composition=tuple(composition.items()),
             )
         )
 
-
-@attrs.define(slots=True)
-class PropagationRecorder:
-    """Record materialized propagation events from committed telemetry."""
-
-    events: list[PropagationEvent] = attrs.field(factory=list)
-
     def should_observe_telemetry(self, telemetry: StepTelemetry) -> bool:
-        """Observe every committed step containing propagation events."""
-        return any(
-            isinstance(applied.event, PropagationEvent) for applied in telemetry.events
-        )
+        """Observe every committed simulation step."""
+        del telemetry
+        return True
 
     def observe_telemetry(self, telemetry: StepTelemetry) -> None:
         """Record propagation events from one committed step."""
@@ -330,11 +290,10 @@ class PropagationRecorder:
 
 @attrs.frozen(slots=True, kw_only=True)
 class NonbiologicalEvolution:
-    """Bundle the compiled example and its evidence recorders."""
+    """Bundle the compiled example and its evidence recorder."""
 
     compiled: CompiledSimulation
-    composition_recorder: CompositionRecorder
-    propagation_recorder: PropagationRecorder
+    recorder: EvolutionRecorder
 
 
 def build_nonbiological_evolution(
@@ -352,8 +311,7 @@ def build_nonbiological_evolution(
             for node_id in range(12)
         }
     )
-    composition_recorder = CompositionRecorder()
-    propagation_recorder = PropagationRecorder()
+    recorder = EvolutionRecorder()
     coordinator = SequentialStepCoordinator(
         stages=(
             StageCoordinator(
@@ -367,17 +325,10 @@ def build_nonbiological_evolution(
         step_coordinator=coordinator,
         stopping_condition=MaxSteps(max_steps=max_steps),
         seed=seed,
-        context=SimulationContext.from_mapping(
-            {INFORMATION_MODEL.name: InformationModel()}
-        ),
-        observers=(composition_recorder,),
-        telemetry_observers=(propagation_recorder,),
+        observers=(recorder,),
+        telemetry_observers=(recorder,),
     ).compile()
-    return NonbiologicalEvolution(
-        compiled=compiled,
-        composition_recorder=composition_recorder,
-        propagation_recorder=propagation_recorder,
-    )
+    return NonbiologicalEvolution(compiled=compiled, recorder=recorder)
 
 
 def _network_from(domain_state: object) -> InformationNetwork:
