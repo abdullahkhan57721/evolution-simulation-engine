@@ -15,8 +15,10 @@ def _proposal(
     *,
     preference_score: int,
 ) -> Reproduction.Proposal:
+    participant_ids = (first_id, second_id)
     return Reproduction.Proposal(
         step_index=0,
+        participant_ids=participant_ids,
         investor_energy_contributions=((first_id, 1), (second_id, 1)),
         preference_score=preference_score,
     )
