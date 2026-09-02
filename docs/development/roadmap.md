@@ -42,24 +42,32 @@ nonbiological evolutionary vertical slice
 transmissible-state contract normalization
         |
         v
-biological specialization hardening
+#92
+reproduction arity neutrality
         |
         v
-richer genetics and reproduction
+participant / contributor separation
         |
-        +-------------------------+
-        |                         |
-        v                         v
-richer development / GxE    richer mating / inheritance
-        |                         |
-        +------------+------------+
-                     |
-                     v
-           richer evolutionary ecology
+        v
+investment / production / placement hardening
+        |
+        +-----------------------------+
+        |                             |
+        v                             v
+ploidy / segregation          richer mating systems
+        |                             |
+        v                             |
+ richer recombination                 |
+        |                             |
+        +-------------+---------------+
+                      |
+                      v
+            richer evolutionary ecology
 ```
 
-The exact Issue numbers after #86 should be assigned only when those milestones
-are scoped against current `main`.
+Richer genetic-expression and development/G×E models can advance alongside these
+fronts once their own public responsibilities are clear; they do not all need to
+block ecological work.
 
 ## Milestone 1 — General-evolution contract normalization
 
@@ -83,105 +91,178 @@ inheritance and genome terminology remain domain-native specializations. See ADR
 - production/lifecycle/genetics behavior and package boundaries;
 - one coherent pre-1.0 migration without compatibility aliases.
 
-## Milestone 2 — Harden biology as a specialization of the settled model
+## Milestone 2 — Harden biological reproduction boundaries
 
-**Status:** current architectural planning front; scope a dedicated Issue against
-current `main` before implementation.
+**Status:** active biological-specialization front. The first slice, Issue #92,
+removes universal one/two-parent assumptions from shared grouping and inheritance
+orchestration.
 
-**Goal:** audit the biological genetics/reproduction path against the settled
-general-evolution contracts and remove any remaining accidental mismatch without
-rewriting working biology.
+**Goal:** make biological reproduction a clean specialization of general
+propagation and entity production without treating the simplest current mating
+systems as universal architecture.
 
 The desired conceptual path is:
 
 ```text
-organism
-    |
-    v
-transmissible biological state / genome
-    |
-    v
-gamete or source-state formation
-    |
-    v
-recombination + variation
-    |
-    v
-recipient/offspring transmissible state
-    |
-    v
+eligible organisms
+        |
+        v
+reproductive participants
+        |
+        +-------------------------+
+        |                         |
+        v                         v
+genetic contributors       reproductive investment
+        |
+        v
+source genomes
+        |
+        v
+inheritance / propagation
+        |
+        v
+offspring genome
+        |
+        v
 expression + development
-    |
-    v
-new or updated biological entity
+        |
+        v
+biological offspring production
+        |
+        v
+world admission
 ```
 
-**Why before richer genetics:** richer dominance, ploidy, mating, and
-recombination behavior should specialize a coherent generic model rather than
-forcing another foundational cleanup later.
+The first hardening slice establishes that shared parent groups may contain any
+nonempty set of unique participants and that source-count requirements belong to
+concrete inheritance models. Clonal inheritance remains a one-source policy and
+the current Mendelian sexual model remains a two-source policy.
 
-**Implementation mode:** architecture and representative changes in ChatGPT;
-Codex can be useful if the settled design requires a broad mechanical migration
-across many biological files/tests.
+The next slice should separate **reproductive participation** from **genetic
+contribution**. Existing simple configurations may use an all-participants-
+contribute policy, but the process should not require that equivalence. After
+that, reproductive investment, offspring-production sources, placement sources,
+and pedigree semantics can be separated where concrete biology requires it.
+
+**Constraints:**
+
+- no kernel change unless a genuine generic deficiency is demonstrated;
+- no redesign of `Genome` merely to support variable contributor count;
+- preserve materialize-before-apply and simulation-owned RNG semantics;
+- preserve simple clonal and biparental configurations as concrete policies.
+
+**Implementation mode:** ChatGPT for public contracts and representative
+implementation; Codex only for broad mechanical migration after contracts settle.
 
 ## Milestone 3 — Richer genetic expression
 
-**Goal:** extend biological expression beyond the simplest current assumptions so
-architecture can naturally support dominance and other non-additive effects,
-context-sensitive expression, and future ploidy variation.
+**Goal:** extend the existing ploidy-aware, multi-locus expression framework with
+additional biological expression policies rather than redesigning general
+evolution.
 
-**Design questions to settle before implementation include:**
+The current architecture already supports multi-locus expression and complete
+dominance. Future models can add, as evidence and use cases require:
 
-- where genotype-to-expressed-state rules live;
-- how allele interactions are represented without baking one dominance model into
-  the generic layer;
-- how ploidy affects locus/genotype representation;
-- how development/GxE consumes expressed genetic state versus transmissible
-  state.
+- incomplete dominance;
+- codominance;
+- epistasis and other locus interactions;
+- dosage-sensitive expression;
+- richer quantitative architectures.
 
-**Implementation mode:** ChatGPT for public-model design; Codex selectively for
-settled migrations and exhaustive test matrices.
+The important boundary remains:
 
-## Milestone 4 — Richer transmission and sexual reproduction
+```text
+genome
+  |
+  v
+genetic expression
+  |
+  v
+genetic phenotype
+  |
+  v
+development / environment-dependent realization
+```
 
-**Goal:** deepen the biological specialization toward richer sexual reproduction
-without narrowing general propagation.
+Expression extensions should not collapse genetic phenotype, developmental
+realization, and current mutable physiological state into one catch-all object.
 
-Likely fronts include:
+**Implementation mode:** ChatGPT for new public-model semantics; settled,
+independent expression policies and test matrices are good Codex candidates.
 
-- chromosome-specific recombination behavior;
-- configurable mutation/recombination models;
-- variable contributor counts and reproductive roles;
-- richer gamete formation;
-- mating-system composition that remains separate from low-level inheritance;
-- clear separation of state propagation from entity production/placement.
+## Milestone 4 — Explicit ploidy, pairing, segregation, and recombination
 
-**Implementation mode:** mixed. Architecture stays in ChatGPT; repetitive adapter,
-test, and migration work is a strong Codex candidate once contracts are settled.
+**Goal:** deepen biological transmission without narrowing general propagation.
 
-## Milestone 5 — Richer development and phenotype realization
+`Genome` already represents arbitrary chromosome-copy collections. Future ploidy
+work should therefore make the biological rules around those copies explicit,
+including as needed:
 
-**Goal:** expand the path from transmitted genetic state to realized operative
-characteristics while preserving a clean separation between inheritance,
-expression, development, environment, and behavior/physiology.
+- chromosome-specific expected copy counts;
+- homolog pairing;
+- gamete copy counts and segregation;
+- role- or mating-type-specific gamete formation;
+- chromosome-specific and multiple-crossover recombination;
+- richer polyploid transmission policies.
 
-Potential fronts include stronger G×E/plasticity models, developmental stochasticity,
-and richer composition between genetic expression and environment-dependent
-realization.
+The current `SexualInheritance` and meiotic gamete-formation policies remain useful
+simple Mendelian configurations; they should not be stretched into universal
+models.
 
-This milestone may overlap with richer genetics only after the responsibility
-boundary is explicit.
+**Implementation mode:** ChatGPT for pairing/segregation contracts and algorithmic
+semantics; Codex selectively for repetitive matrices and settled implementations.
 
-## Milestone 6 — Richer evolutionary ecology
+## Milestone 5 — Richer mating systems
 
-**Goal:** use the stable genetics/reproduction/development foundations to model
-more consequential ecological selection pressures and interactions without
-pushing ecological meaning into general evolution or the kernel.
+**Goal:** extend the existing mating-type and reproductive-role infrastructure
+beyond primarily pairwise group formation.
+
+The project already supports arbitrary mating-type labels, compatibility networks,
+and multiple reproductive roles per mating type. Future work should build on those
+capabilities toward:
+
+- asymmetric and ordered roles;
+- multi-participant reproductive groups;
+- hermaphroditic systems;
+- role-sensitive mate choice;
+- variable genetic-contributor subsets once participant/contributor separation is
+  established.
+
+Mating-system composition should remain separate from low-level inheritance.
+
+## Milestone 6 — Richer development and phenotype realization
+
+**Goal:** extend the existing environmental and G×E developmental realization
+path while preserving clear distinctions among inheritance, genetic expression,
+development, environment, and current physiological/behavioral state.
+
+Potential fronts include:
+
+- nonlinear reaction norms;
+- developmental timing and stages;
+- environmental history;
+- richer developmental stochasticity;
+- explicit reversible adult plasticity distinct from lifetime developmental
+  targets.
+
+The existing frozen `DevelopmentalProfile` should not become a catch-all mutable
+phenotype merely to accommodate dynamic plasticity.
+
+## Milestone 7 — Richer evolutionary ecology
+
+**Goal:** use the stable biological boundaries to model more consequential
+selection pressures and interactions without pushing ecological meaning into
+general evolution or the kernel.
 
 Possible fronts include richer resource competition, movement/behavior,
-predation, life-history tradeoffs, and environment-dependent reproductive
-outcomes. Selection should continue to emerge from differential persistence and
-propagation rather than becoming an intrinsic generic scalar field.
+predation, life-history tradeoffs, environment-dependent reproductive outcomes,
+and biogeographic structure. Selection should continue to emerge from
+differential persistence and propagation rather than becoming an intrinsic
+generic scalar field.
+
+Critical reproduction-boundary hardening should precede major new reproduction-
+driven ecology, but every future expression, ploidy, recombination, mating, and
+development feature does **not** need to be completed before ecology can advance.
 
 ## Cross-cutting fronts
 
