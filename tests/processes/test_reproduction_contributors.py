@@ -13,9 +13,8 @@ from evo_engine.reproduction import (
     FixedBodyMassAtBirth,
     FixedEnergyInvestment,
     PairwiseMating,
-    RandomParentLocation,
 )
-from evo_engine.spatial.neighborhoods import SameCell
+from evo_engine.spatial.neighborhoods import Moore
 from evo_engine.world.organism import Organism
 from tests.helpers import add_organism, make_integer_architecture, make_state
 
@@ -71,14 +70,28 @@ class FixedContributorSelection:
         return self.contributors
 
 
+class SecondParticipantLocation:
+    """Place offspring at the second production source participant."""
+
+    def choose_location(
+        self,
+        parents: tuple[Organism, ...],
+        *,
+        simulation_state,
+        rng: random.Random,
+    ) -> tuple[int, int]:
+        """Return the second participant's location, proving both sources arrive."""
+        return parents[1].x, parents[1].y
+
+
 def _pair_process(*, contributor_selection) -> Reproduction:
     return Reproduction(
         eligibility=AlwaysEligible(),
-        reproductive_group_selection=PairwiseMating(neighborhood=SameCell()),
+        reproductive_group_selection=PairwiseMating(neighborhood=Moore(radius=10)),
         inheritance_model=ClonalInheritance(),
         genetic_contributor_selection=contributor_selection,
         parental_investment=FixedEnergyInvestment(amount=2),
-        offspring_placement=RandomParentLocation(),
+        offspring_placement=SecondParticipantLocation(),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
