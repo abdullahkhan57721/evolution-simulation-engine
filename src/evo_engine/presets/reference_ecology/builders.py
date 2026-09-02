@@ -90,7 +90,7 @@ from evo_engine.presets.reference_ecology.mating_types import (
     build_reference_offspring_mating_type_model,
 )
 from evo_engine.presets.reference_ecology.reproductive_investment import (
-    build_reference_parental_investment,
+    build_reference_reproductive_investment,
 )
 from evo_engine.processes import (
     Aging,
@@ -388,7 +388,7 @@ def build_reference_engine(
                         )
                     )
                 ),
-                reproductive_energy_investment=build_reference_parental_investment(
+                reproductive_energy_investment=build_reference_reproductive_investment(
                     config.mating_type_investment_scales
                 ),
                 energy_expenditure_policy=reserve,
