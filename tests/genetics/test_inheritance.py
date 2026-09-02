@@ -119,7 +119,7 @@ def test_clonal_inheritance_applies_locus_mutation() -> None:
 def test_clonal_inheritance_requires_one_parent(
     parent_genomes: tuple[Genome, ...],
 ) -> None:
-    """Test clonal parent-count contract."""
+    """Test clonal inheritance owns its one-parent constraint."""
     architecture, _ = make_architecture()
 
     with pytest.raises(ValueError):
@@ -175,7 +175,7 @@ def test_sexual_inheritance_combines_one_gamete_from_each_parent() -> None:
 def test_sexual_inheritance_requires_two_parents(
     parent_genomes: tuple[Genome, ...],
 ) -> None:
-    """Test sexual parent-count contract."""
+    """Test sexual inheritance owns its two-parent constraint."""
     architecture = GeneticArchitecture(
         loci=(),
         traits=(),
@@ -187,9 +187,3 @@ def test_sexual_inheritance_requires_two_parents(
             genetic_architecture=architecture,
             rng=random.Random(1),
         )
-
-
-def test_inheritance_parent_count_properties() -> None:
-    """Test one- versus two-parent model declarations."""
-    assert ClonalInheritance().parent_count == 1
-    assert SexualInheritance().parent_count == 2
