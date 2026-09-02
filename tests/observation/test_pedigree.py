@@ -19,6 +19,15 @@ class BirthEvent:
 
 
 @attrs.frozen(slots=True, kw_only=True)
+class ParticipantBirthEvent:
+    """Minimal birth exposing participation separately from genetic parentage."""
+
+    step_index: int
+    participant_ids: tuple[int, ...]
+    parent_ids: tuple[int, ...]
+
+
+@attrs.frozen(slots=True, kw_only=True)
 class DeathEvent:
     """Minimal structural mortality event for recorder tests."""
 
@@ -105,6 +114,45 @@ def test_pedigree_recorder_tracks_birth_parentage_death_and_fitness() -> None:
     assert dead_child.death_cause == "Starvation"
     assert dead_child.lifespan_steps == 1
     assert dead_child.lifetime_reproductive_success == 0
+
+
+def test_pedigree_credits_genetic_parents_not_all_reproductive_participants() -> None:
+    """Test participation alone does not create genetic ancestry or fitness credit."""
+    state = make_state()
+    genetic_parent = add_organism(state)
+    noncontributing_participant = add_organism(state)
+    recorder = PedigreeRecorder()
+    recorder.observe(state.domain_state, step_index=0)
+    child_id = 100
+
+    recorder.observe_telemetry(
+        StepTelemetry(
+            completed_step_index=1,
+            events=(
+                _applied_event(
+                    ParticipantBirthEvent(
+                        step_index=0,
+                        participant_ids=(
+                            genetic_parent.id,
+                            noncontributing_participant.id,
+                        ),
+                        parent_ids=(genetic_parent.id,),
+                    ),
+                    process_type="evo_engine.processes.reproduction.Reproduction",
+                    effects=(OrganismAdded(organism_id=child_id),),
+                ),
+            ),
+        )
+    )
+
+    assert recorder.record(child_id).parent_ids == (genetic_parent.id,)
+    assert recorder.offspring_of(genetic_parent.id) == (child_id,)
+    assert recorder.offspring_of(noncontributing_participant.id) == ()
+    assert recorder.record(genetic_parent.id).realized_reproductive_success == 1
+    assert (
+        recorder.record(noncontributing_participant.id).realized_reproductive_success
+        == 0
+    )
 
 
 def test_non_mortality_removal_does_not_become_a_death() -> None:
