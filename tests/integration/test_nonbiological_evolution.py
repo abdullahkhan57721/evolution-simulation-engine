@@ -19,12 +19,13 @@ from examples.nonbiological_evolution import (
 )
 
 EXAMPLE_PATH = Path(__file__).parents[2] / "examples/nonbiological_evolution.py"
-FORBIDDEN_DOMAIN_IMPORTS = (
-    "evo_engine.biology",
-    "evo_engine.genetics",
-    "evo_engine.processes",
-    "evo_engine.reproduction",
-    "evo_engine.world",
+ALLOWED_EVO_ENGINE_IMPORTS = (
+    "evo_engine.configuration",
+    "evo_engine.engine",
+    "evo_engine.evolution",
+    "evo_engine.propagation",
+    "evo_engine.resolvers",
+    "evo_engine.telemetry",
 )
 
 
@@ -95,19 +96,27 @@ def test_same_seed_reproduces_the_same_evolutionary_history() -> None:
     assert first_state.composition() == second_state.composition()
 
 
-def test_example_uses_no_biological_simulation_packages() -> None:
-    """Test the runnable slice stays independent of biological implementations."""
+def test_example_uses_only_generic_evo_engine_packages() -> None:
+    """Test the runnable slice stays independent of domain specializations."""
     tree = ast.parse(EXAMPLE_PATH.read_text())
-    imported_modules = {
-        node.module
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module is not None
+    imported_modules: set[str] = set()
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported_modules.add(node.module)
+        elif isinstance(node, ast.Import):
+            imported_modules.update(alias.name for alias in node.names)
+
+    evo_engine_imports = {
+        module for module in imported_modules if module.startswith("evo_engine")
     }
 
-    assert not any(
-        module == forbidden or module.startswith(f"{forbidden}.")
-        for module in imported_modules
-        for forbidden in FORBIDDEN_DOMAIN_IMPORTS
+    assert all(
+        any(
+            module == allowed or module.startswith(f"{allowed}.")
+            for allowed in ALLOWED_EVO_ENGINE_IMPORTS
+        )
+        for module in evo_engine_imports
     )
 
 
