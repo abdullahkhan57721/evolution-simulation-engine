@@ -589,7 +589,9 @@ class Reproduction:
     ) -> tuple[Organism, ...]:
         """Return validated eligible participants for one proposed group."""
         try:
-            return tuple(participants_by_id[participant_id] for participant_id in participant_ids)
+            return tuple(
+                participants_by_id[participant_id] for participant_id in participant_ids
+            )
         except KeyError as error:
             raise ValueError(
                 "reproductive_group_selection proposed an organism that was not "
