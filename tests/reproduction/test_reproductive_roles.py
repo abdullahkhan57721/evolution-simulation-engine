@@ -13,6 +13,7 @@ from evo_engine.reproduction import (
     MatingTypeRoles,
 )
 from evo_engine.spatial.neighborhoods import Moore
+from evo_engine.world.reference import WorldOrganismReference
 from tests.helpers import add_organism, make_integer_architecture, make_state
 
 
@@ -109,6 +110,7 @@ def test_directed_pairwise_mating_preserves_configured_role_order() -> None:
     groups = selection.propose_parent_groups(
         tuple(state.domain_state.organisms.values()),
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert [group.parent_ids for group in groups] == [
@@ -137,6 +139,7 @@ def test_directed_pairwise_mating_skips_self_for_multi_role_organism() -> None:
     groups = selection.propose_parent_groups(
         tuple(state.domain_state.organisms.values()),
         simulation_state=state,
+        reference_model=WorldOrganismReference(),
     )
 
     assert {group.parent_ids for group in groups} == {
