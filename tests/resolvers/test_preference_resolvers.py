@@ -37,6 +37,7 @@ def reproduction_proposal(
     """Return a minimal reproduction proposal."""
     return Reproduction.Proposal(
         step_index=0,
+        participant_ids=participant_ids,
         investor_energy_contributions=tuple(
             (participant_id, 1) for participant_id in participant_ids
         ),
