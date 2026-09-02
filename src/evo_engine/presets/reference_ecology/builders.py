@@ -388,7 +388,7 @@ def build_reference_engine(
                         )
                     )
                 ),
-                parental_investment=build_reference_parental_investment(
+                reproductive_energy_investment=build_reference_parental_investment(
                     config.mating_type_investment_scales
                 ),
                 energy_expenditure_policy=reserve,

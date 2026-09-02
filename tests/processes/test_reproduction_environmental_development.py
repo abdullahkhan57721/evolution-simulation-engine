@@ -16,7 +16,7 @@ from evo_engine.reproduction import (
     AlwaysEligible,
     FixedBodyMassAtBirth,
     FixedEnergyInvestment,
-    RandomParentLocation,
+    RandomProductionSourceLocation,
     SingleParent,
 )
 from evo_engine.world import EnvironmentalField, WorldState
@@ -51,8 +51,8 @@ def test_offspring_development_samples_selected_birth_location() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=1),
-        offspring_placement=RandomParentLocation(),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=1),
+        offspring_placement=RandomProductionSourceLocation(),
         development_model=IndependentDevelopment(
             trait_models=(
                 (

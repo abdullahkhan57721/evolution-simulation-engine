@@ -34,13 +34,13 @@ def test_reference_reproduction_uses_asymmetric_mating_type_investment() -> None
     parents = tuple(simulation.state.domain_state.organisms.values())
 
     assert tuple(parent.mating_type for parent in parents) == ("type_a", "type_b")
-    assert isinstance(process.parental_investment, MatingTypeScaledInvestment)
-    assert process.parental_investment.required_traits == frozenset({OFFSPRING_ENERGY})
-    assert process.parental_investment.determine_investments(
+    assert isinstance(process.reproductive_energy_investment, MatingTypeScaledInvestment)
+    assert process.reproductive_energy_investment.required_traits == frozenset({OFFSPRING_ENERGY})
+    assert process.reproductive_energy_investment.determine_investments(
         parents,
         simulation_state=simulation.state,
     ) == (6, 2)
-    assert process.parental_investment.determine_investments(
+    assert process.reproductive_energy_investment.determine_investments(
         tuple(reversed(parents)),
         simulation_state=simulation.state,
     ) == (2, 6)
@@ -60,7 +60,7 @@ def test_reference_investment_scales_are_configurable() -> None:
     process = _reference_reproduction(config)
     parents = tuple(simulation.state.domain_state.organisms.values())
 
-    assert process.parental_investment.determine_investments(
+    assert process.reproductive_energy_investment.determine_investments(
         parents,
         simulation_state=simulation.state,
     ) == (4, 4)

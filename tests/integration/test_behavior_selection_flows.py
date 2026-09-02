@@ -62,7 +62,7 @@ def test_conservation_suppresses_reproduction_even_when_eligible_and_affordable(
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=1),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=1),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 

@@ -384,7 +384,9 @@ class Reproduction:
                 total_investment += amount
 
             if total_investment < 1:
-                raise ValueError("total investor energy contribution must be at least 1.")
+                raise ValueError(
+                    "total investor energy contribution must be at least 1."
+                )
 
         @property
         def investor_ids(self) -> tuple[int, ...]:

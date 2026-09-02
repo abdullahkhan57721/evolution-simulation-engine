@@ -12,7 +12,7 @@ from evo_engine.reproduction import (
     GeneticPhenotypeEnergyInvestment,
     MinimumEnergyEligibility,
     PairwiseMating,
-    RandomParentLocation,
+    RandomProductionSourceLocation,
     ReproductiveGroup,
     SingleParent,
 )
@@ -288,7 +288,7 @@ def test_random_parent_location_one_parent_is_deterministic() -> None:
         y=4,
     )
 
-    assert RandomParentLocation().choose_location(
+    assert RandomProductionSourceLocation().choose_location(
         (parent,),
         simulation_state=state,
         rng=random.Random(1),
@@ -309,7 +309,7 @@ def test_random_parent_location_two_parents_uses_parent_coordinate() -> None:
         y=4,
     )
 
-    result = RandomParentLocation().choose_location(
+    result = RandomProductionSourceLocation().choose_location(
         (
             first,
             second,

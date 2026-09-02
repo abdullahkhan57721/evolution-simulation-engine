@@ -125,7 +125,7 @@ def test_reproduction_layers_maturity_energy_and_reserve_requirements() -> None:
         ),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         energy_expenditure_policy=KeepEnergyReserve(
             minimum_energy=DevelopmentalEnergyThreshold(
                 trait_name=ENERGY_RESERVE,

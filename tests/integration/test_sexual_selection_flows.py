@@ -86,7 +86,7 @@ def test_sexual_selection_changes_which_compatible_pair_reproduces() -> None:
                     preference_function=MutualSignalMarginPreference(),
                 ),
                 inheritance_model=SexualInheritance(),
-                parental_investment=FixedEnergyInvestment(amount=1),
+                reproductive_energy_investment=FixedEnergyInvestment(amount=1),
                 offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
             ),
         ),

@@ -66,7 +66,7 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
         access_model=access,
         reference_model=reference,
@@ -77,7 +77,7 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
     process.apply_event(state, event)
 
     expected_reference = selected.id + 100
-    assert proposal.participant_energy_contributions == ((expected_reference, 5),)
+    assert proposal.investor_energy_contributions == ((expected_reference, 5),)
     assert event.participant_ids == (expected_reference,)
     assert event.parent_ids == (expected_reference,)
     assert reference.entities == [selected] * 5

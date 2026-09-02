@@ -31,7 +31,7 @@ def _reserve_reproduction(*, minimum_energy: int) -> Reproduction:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         energy_expenditure_policy=KeepFixedReserve(minimum_energy=minimum_energy),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
@@ -181,7 +181,7 @@ def test_reproduction_collects_expenditure_policy_trait_requirements() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         energy_expenditure_policy=TraitDrivenReserve(),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )

@@ -90,7 +90,7 @@ def _pair_process(*, contributor_selection) -> Reproduction:
         reproductive_group_selection=PairwiseMating(neighborhood=Moore(radius=10)),
         inheritance_model=ClonalInheritance(),
         genetic_contributor_selection=contributor_selection,
-        parental_investment=FixedEnergyInvestment(amount=2),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=2),
         offspring_placement=SecondParticipantLocation(),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )

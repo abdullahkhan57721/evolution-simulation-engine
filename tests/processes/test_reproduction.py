@@ -21,7 +21,7 @@ from evo_engine.reproduction import (
     FixedBodyMassAtBirth,
     FixedEnergyInvestment,
     PairwiseMating,
-    RandomParentLocation,
+    RandomProductionSourceLocation,
     ReproductiveGroup,
     SingleParent,
 )
@@ -108,7 +108,7 @@ def test_reproduction_materializes_three_participant_group() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=ThreeParticipantSelection(),
         inheritance_model=ThreeSourceInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=2),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=2),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
@@ -136,7 +136,7 @@ def test_one_participant_proposal_records_energy_contribution() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=6),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=6),
     )
 
     proposals = process.propose_events(state)
@@ -144,7 +144,7 @@ def test_one_participant_proposal_records_energy_contribution() -> None:
     assert proposals == [
         Reproduction.Proposal(
             step_index=0,
-            participant_energy_contributions=((parent.id, 6),),
+            investor_energy_contributions=((parent.id, 6),),
         )
     ]
 
@@ -157,7 +157,7 @@ def test_proposal_omits_group_that_cannot_afford_investment() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
@@ -172,7 +172,7 @@ def test_proposal_rejects_zero_total_parental_investment() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=0),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=0),
     )
 
     with pytest.raises(ValueError):
@@ -194,8 +194,8 @@ def test_materialize_clonal_event_produces_genome_phenotype_and_location() -> No
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
-        offspring_placement=RandomParentLocation(),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
+        offspring_placement=RandomProductionSourceLocation(),
     )
     proposal = process.propose_events(state)[0]
 
@@ -221,7 +221,7 @@ def test_apply_event_is_mechanical_and_does_not_advance_rng() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
     event = process.materialize_event(state, process.propose_events(state)[0])
@@ -243,7 +243,7 @@ def test_materialize_rechecks_recorded_participant_affordability() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=8),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=8),
     )
     proposal = process.propose_events(state)[0]
     parent.energy = 3
@@ -270,7 +270,7 @@ def test_apply_rechecks_participant_affordability_atomically() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=PairwiseMating(neighborhood=SameCell()),
         inheritance_model=SexualInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
     event = process.materialize_event(state, process.propose_events(state)[0])
@@ -302,7 +302,7 @@ def test_two_parent_materialization_uses_sexual_inheritance() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=PairwiseMating(neighborhood=SameCell()),
         inheritance_model=SexualInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
@@ -352,13 +352,13 @@ def test_reproduction_declares_only_configured_policy_trait_dependencies() -> No
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=GeneticPhenotypeEnergyInvestment(),
+        reproductive_energy_investment=GeneticPhenotypeEnergyInvestment(),
     )
     fixed_process = Reproduction(
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
