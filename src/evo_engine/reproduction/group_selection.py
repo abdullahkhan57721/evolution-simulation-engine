@@ -48,7 +48,9 @@ class ReproductiveGroup:
         )
 
         if not self.participant_ids:
-            raise ValueError("participant_ids must contain at least one participant ID.")
+            raise ValueError(
+                "participant_ids must contain at least one participant ID."
+            )
 
         seen_ids: set[int] = set()
 
