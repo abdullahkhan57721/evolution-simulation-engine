@@ -24,7 +24,7 @@ class OffspringPlacement(Protocol):
         """Choose the offspring's birth coordinate.
 
         Args:
-            parents: One or two resolved reproductive parents.
+            parents: One or more resolved reproductive parents.
             simulation_state: Current simulation state.
             rng: Simulation random-number generator.
 
@@ -48,7 +48,7 @@ class RandomParentLocation:
         """Choose one parent's current coordinate as the birth location.
 
         Args:
-            parents: One or two resolved reproductive parents.
+            parents: One or more resolved reproductive parents.
             simulation_state: Current simulation state.
             rng: Simulation random-number generator.
 
@@ -56,10 +56,10 @@ class RandomParentLocation:
             Selected parent's horizontal and vertical coordinates.
 
         Raises:
-            ValueError: If parents does not contain one or two organisms.
+            ValueError: If parents is empty.
         """
-        if len(parents) not in (1, 2):
-            raise ValueError("parents must contain exactly one or two organisms.")
+        if not parents:
+            raise ValueError("parents must contain at least one organism.")
 
         parent = parents[0] if len(parents) == 1 else rng.choice(parents)
 
