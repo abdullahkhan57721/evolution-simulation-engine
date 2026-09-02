@@ -23,7 +23,7 @@ from evo_engine.engine import (
 )
 from evo_engine.evolution import (
     CharacteristicSource,
-    HeritableStateExpression,
+    TransmissibleStateExpression,
     VariationOperator,
 )
 from evo_engine.propagation import PropagationModel, TransmissibleStateCarrier
@@ -81,16 +81,16 @@ class InformationNetwork:
 class StrategyExpression:
     """Express a token as the influence used during source selection."""
 
-    def express(self, heritable_state: StrategyToken) -> int:
+    def express(self, transmissible_state: StrategyToken, /) -> int:
         """Return the operative broadcast weight for a strategy token."""
-        return 3 if heritable_state == AMPLIFY else 1
+        return 3 if transmissible_state == AMPLIFY else 1
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class StrategyCharacteristics:
     """Expose expressed token characteristics to transition processes."""
 
-    expression: HeritableStateExpression[StrategyToken, int] = attrs.field(
+    expression: TransmissibleStateExpression[StrategyToken, int] = attrs.field(
         factory=StrategyExpression
     )
 

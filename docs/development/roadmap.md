@@ -39,7 +39,7 @@ nonbiological evolutionary vertical slice
         |
         v
 #86
-normalize general-evolution transmissible-state contracts
+transmissible-state contract normalization
         |
         v
 biological specialization hardening
@@ -63,33 +63,34 @@ are scoped against current `main`.
 
 ## Milestone 1 — General-evolution contract normalization
 
-**Current ticket:** Issue #86.
+**Status:** completed by Issue #86.
 
 **Goal:** reconcile the biology-shaped `EvolutionaryEntity` /
 `HeritableStateExpression` / `heritable_state` vocabulary with the broader
 `TransmissibleStateCarrier` / `transmissible_state` model demonstrated by the
 nonbiological vertical slice.
 
-**Why now:** #85 supplied concrete nonbiological evidence. Normalizing before
-additional biological growth prevents new code from depending on an awkward
-split that is already known.
+The settled contract uses `transmissible state` as the canonical generic term,
+renames expression to `TransmissibleStateExpression`, and removes the redundant
+`EvolutionaryEntity` carrier Protocol without compatibility aliases. Biological
+inheritance and genome terminology remain domain-native specializations. See ADR
+0007 for the rationale.
 
-**Constraints:**
+**Constraints preserved:**
 
-- preserve source/recipient propagation semantics;
-- preserve the frozen kernel;
-- avoid redesigning production/lifecycle/genetics merely for naming consistency;
-- prefer one coherent pre-1.0 migration over compatibility aliases if a public
-  rename is chosen.
-
-**Implementation mode:** primarily ChatGPT Chat because the difficult work is a
-small, consequential public-contract decision. Codex is not the default here.
+- source/recipient propagation semantics;
+- the frozen kernel;
+- production/lifecycle/genetics behavior and package boundaries;
+- one coherent pre-1.0 migration without compatibility aliases.
 
 ## Milestone 2 — Harden biology as a specialization of the settled model
 
-**Goal:** after #86, audit the biological genetics/reproduction path against the
-settled general-evolution contracts and remove any remaining accidental mismatch
-without rewriting working biology.
+**Status:** current architectural planning front; scope a dedicated Issue against
+current `main` before implementation.
+
+**Goal:** audit the biological genetics/reproduction path against the settled
+general-evolution contracts and remove any remaining accidental mismatch without
+rewriting working biology.
 
 The desired conceptual path is:
 
