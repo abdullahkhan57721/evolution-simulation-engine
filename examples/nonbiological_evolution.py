@@ -142,7 +142,7 @@ class TokenPropagation:
         source_states: tuple[StrategyToken, ...],
         *,
         recipient: InformationNode,
-        context: InformationNetwork,
+        context: None,
         rng: random.Random,
     ) -> StrategyToken:
         """Return a varied copy of exactly one source token."""
@@ -178,9 +178,9 @@ class TokenPropagationProcess:
     characteristics: CharacteristicSource[InformationNode, InformationNetwork, int] = (
         attrs.field(factory=StrategyCharacteristics)
     )
-    propagation: PropagationModel[
-        StrategyToken, InformationNode, InformationNetwork
-    ] = attrs.field(factory=TokenPropagation)
+    propagation: PropagationModel[StrategyToken, InformationNode, None] = attrs.field(
+        factory=TokenPropagation
+    )
 
     @property
     def event_type(self) -> type[PropagationProposal]:
@@ -222,7 +222,7 @@ class TokenPropagationProcess:
         propagated_state = self.propagation.propagate(
             (_transmissible_token(source),),
             recipient=network.nodes[event.recipient_id],
-            context=network,
+            context=None,
             rng=simulation_state.rng,
         )
         return PropagationEvent(
