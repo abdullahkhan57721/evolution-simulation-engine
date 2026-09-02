@@ -113,6 +113,7 @@ def test_example_uses_only_generic_evo_engine_packages() -> None:
         if module == "evo_engine" or module.startswith("evo_engine.")
     }
 
+    assert evo_engine_imports
     assert all(
         any(
             module == allowed or module.startswith(f"{allowed}.")
