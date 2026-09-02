@@ -48,3 +48,4 @@ benchmarks rather than duplicating them.
 - [0004 — Prefer readability before micro-optimization](0004-readability-before-micro-optimization.md)
 - [0005 — Use the repository as durable collaboration memory](0005-repository-collaboration-memory.md)
 - [0006 — Add concise orientation and rolling roadmap documents](0006-concise-orientation-and-roadmap.md)
+- [0007 — Use transmissible state as the canonical general-evolution term](0007-transmissible-state-terminology.md)
