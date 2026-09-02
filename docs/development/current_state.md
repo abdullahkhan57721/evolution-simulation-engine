@@ -106,8 +106,8 @@ carrier capability, while inheritance remains the biological specialization of
 general propagation.
 
 Shared reproduction orchestration is arity-neutral: reproductive parent groups
-may contain any nonempty set of unique organism references, and the common
-inheritance contract does not prescribe a universal parent count. Concrete
+may contain any nonempty ordered group of unique organism references, and the
+common inheritance contract does not prescribe a universal parent count. Concrete
 policies retain their biological constraints, so clonal inheritance remains a
 one-source model and the current Mendelian sexual-inheritance policy remains a
 two-source model. This creates room for future variable-contributor biology
