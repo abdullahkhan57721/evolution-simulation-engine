@@ -17,23 +17,23 @@ def _proposal(
 ) -> Reproduction.Proposal:
     return Reproduction.Proposal(
         step_index=0,
-        parent_energy_contributions=((first_id, 1), (second_id, 1)),
+        participant_energy_contributions=((first_id, 1), (second_id, 1)),
         preference_score=preference_score,
     )
 
 
-def test_capacity_one_preserves_exclusive_parent_resolution() -> None:
-    """Test capacity one accepts only the highest-preference use of a parent."""
-    resolver = CapacityPreferenceOrder(max_events_per_parent=1)
+def test_capacity_one_preserves_exclusive_participant_resolution() -> None:
+    """Test capacity one accepts only the highest-preference participant use."""
+    resolver = CapacityPreferenceOrder(max_events_per_participant=1)
     lower = _proposal(0, 1, preference_score=2)
     higher = _proposal(0, 2, preference_score=5)
 
     assert resolver.resolve_events(make_state(), (lower, higher)) == [higher]
 
 
-def test_capacity_two_allows_parent_in_two_successful_matings() -> None:
-    """Test larger capacity permits multiple stage matings for one parent."""
-    resolver = CapacityPreferenceOrder(max_events_per_parent=2)
+def test_capacity_two_allows_participant_in_two_successful_matings() -> None:
+    """Test larger capacity permits multiple stage matings for one participant."""
+    resolver = CapacityPreferenceOrder(max_events_per_participant=2)
     first = _proposal(0, 1, preference_score=5)
     second = _proposal(0, 2, preference_score=4)
     third = _proposal(0, 3, preference_score=3)
@@ -45,8 +45,8 @@ def test_capacity_two_allows_parent_in_two_successful_matings() -> None:
 
 
 def test_capacity_is_enforced_for_every_participant() -> None:
-    """Test a proposal fails when either parent has exhausted capacity."""
-    resolver = CapacityPreferenceOrder(max_events_per_parent=1)
+    """Test a proposal fails when either participant has exhausted capacity."""
+    resolver = CapacityPreferenceOrder(max_events_per_participant=1)
     first = _proposal(0, 1, preference_score=5)
     second = _proposal(2, 1, preference_score=4)
     independent = _proposal(2, 3, preference_score=3)
@@ -59,7 +59,7 @@ def test_capacity_is_enforced_for_every_participant() -> None:
 
 def test_capacity_resolver_rejects_non_reproduction_events() -> None:
     """Test the specialized resolver rejects unrelated event types."""
-    resolver = CapacityPreferenceOrder(max_events_per_parent=1)
+    resolver = CapacityPreferenceOrder(max_events_per_participant=1)
 
     with pytest.raises(TypeError, match="Reproduction.Proposal"):
         resolver.resolve_events(make_state(), (object(),))  # type: ignore[arg-type]
