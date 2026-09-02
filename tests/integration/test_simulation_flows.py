@@ -146,9 +146,7 @@ def test_growth_then_starvation_uses_grown_body_mass_for_carcass() -> None:
                 processes=(
                     Growth(
                         growth_model=FixedGrowthRate(amount_per_timestep=2),
-                        growth_cost_model=LinearGrowthCost(
-                            energy_per_body_mass_unit=1
-                        ),
+                        growth_cost_model=LinearGrowthCost(energy_per_body_mass_unit=1),
                     ),
                 ),
                 resolver=AcceptAll(),
@@ -187,9 +185,7 @@ def test_same_stage_growth_energy_oversubscription_rolls_back_step() -> None:
                     Metabolism(cost_model=FixedMetabolicCost(amount=3)),
                     Growth(
                         growth_model=FixedGrowthRate(amount_per_timestep=2),
-                        growth_cost_model=LinearGrowthCost(
-                            energy_per_body_mass_unit=2
-                        ),
+                        growth_cost_model=LinearGrowthCost(energy_per_body_mass_unit=2),
                     ),
                 ),
                 resolver=AcceptAll(),
