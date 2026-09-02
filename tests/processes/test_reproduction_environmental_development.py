@@ -5,7 +5,10 @@ from __future__ import annotations
 import random
 
 from evo_engine.behavior import UnrestrictedBehavior
-from evo_engine.development import IndependentDevelopment, LinearEnvironmentalDevelopment
+from evo_engine.development import (
+    IndependentDevelopment,
+    LinearEnvironmentalDevelopment,
+)
 from evo_engine.engine import SimulationState
 from evo_engine.genetics import ClonalInheritance
 from evo_engine.processes import Reproduction
