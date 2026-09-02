@@ -158,7 +158,9 @@ def _pair_process(
         reproductive_energy_investment=FixedEnergyInvestment(amount=3),
         offspring_production_source_selection=production_source_selection,
         offspring_placement=(
-            FirstSourceLocation() if offspring_placement is None else offspring_placement
+            FirstSourceLocation()
+            if offspring_placement is None
+            else offspring_placement
         ),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
@@ -265,7 +267,9 @@ def test_production_source_selection_rejects_invalid_results(mode: str) -> None:
         process.materialize_event(state, proposal)
 
 
-def test_empty_production_source_selection_supports_source_independent_production() -> None:
+def test_empty_production_source_selection_supports_source_independent_production() -> (
+    None
+):
     """Test the shared production-source boundary permits zero source entities."""
     architecture = make_integer_architecture("offspring_energy")
     state = make_state(genetic_architecture=architecture)
