@@ -24,11 +24,6 @@ class InheritanceModel(
 ):
     """Define biological inheritance as a generic state-propagation adapter."""
 
-    @property
-    def parent_count(self) -> int:
-        """Return the required number of biological parents."""
-        ...
-
     def inherit(
         self,
         parent_genomes: tuple[Genome, ...],
@@ -39,7 +34,9 @@ class InheritanceModel(
         """Produce an offspring genome from parent genomes.
 
         Args:
-            parent_genomes: Genomes contributing to the offspring.
+            parent_genomes: Genomes contributing to the offspring. Concrete
+                inheritance models validate the source count and structure they
+                require.
             genetic_architecture: Shared genetic architecture.
             rng: Simulation random-number generator.
 
@@ -127,11 +124,6 @@ class ClonalInheritance:
     locus. Chromosome structure and phase are otherwise preserved.
     """
 
-    @property
-    def parent_count(self) -> int:
-        """Return one required biological parent."""
-        return 1
-
     def inherit(
         self,
         parent_genomes: tuple[Genome, ...],
@@ -210,11 +202,6 @@ class SexualInheritance:
     gamete_formation: GameteFormation = attrs.field(
         factory=MeioticGameteFormation,
     )
-
-    @property
-    def parent_count(self) -> int:
-        """Return two required biological parents."""
-        return 2
 
     def __attrs_post_init__(self) -> None:
         """Validate sexual-inheritance configuration."""
