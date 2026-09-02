@@ -252,18 +252,37 @@ kernel itself.
 
 The `evo_engine.evolution` package already provides upstream contracts for:
 
-- evolving entities carrying heritable/transmissible state;
+- `EvolutionaryEntity`, whose current public state property is `heritable_state`;
 - heritable-state expression;
 - variation operators;
-- transmission models;
 - characteristic sources and requirements;
 - linkage components, linkage groups, linkage positions, and linkage maps.
 
-Some terminology still reflects the biological route by which these contracts
-were first introduced, especially ``parent`` and ``descendant`` language in the
-transmission API. The intended next abstraction step is to generalize this to
-source/recipient propagation semantics while keeping biology-oriented adapters
-such as ``InheritanceModel``.
+Domain-neutral participant and transition foundations are intentionally kept in
+small neighboring modules rather than being forced into one package:
+
+- `evo_engine.propagation` provides `TransmissibleStateCarrier`, whose public
+  property is `transmissible_state`, and the source-state/recipient-oriented
+  `PropagationModel`;
+- `evo_engine.production` turns already-determined state into an entity;
+- `evo_engine.access` and `evo_engine.reference` read entities and derive stable
+  domain references; and
+- `evo_engine.admission` and `evo_engine.departure` change domain membership.
+
+Propagation is therefore no longer limited to parent/descendant transmission.
+`PropagationModel` accepts zero or more source states, a separately modeled
+recipient, immutable domain-specific propagation configuration/context, and the
+simulation-owned RNG. Mutable evolving domain state remains outside that
+propagation-context slot and is inspected by the surrounding process when
+runtime state is needed. Biological inheritance adapts to that contract, but
+horizontal or replacement propagation does not need a biological adapter.
+
+Some older `evo_engine.evolution` names, especially `EvolutionaryEntity`,
+`HeritableStateExpression`, and their `heritable_state` vocabulary, still
+reflect the biological route by which the general contracts were introduced.
+They remain the current expression contracts; broader terminology normalization
+is intentionally deferred until evidence from real uses supports a focused API
+change.
 
 ## 5. Biological linkage as a special case
 
@@ -319,3 +338,47 @@ bind its concrete models into an immutable simulation context/specification.
 The practical test for this boundary is simple: a nonbiological evolving system
 must be runnable without constructing an ``Organism``, ``Genome``, ``WorldState``
 with organisms, biological behavior policy, or ``GeneticArchitecture``.
+
+## 7. Demonstrated nonbiological vertical slice
+
+`examples/nonbiological_evolution.py` is the executable proof of that boundary.
+It models persistent information-network nodes whose strategy tokens spread
+horizontally:
+
+```text
+strategy token
+    |
+    v
+expressed broadcast weight
+    |
+    v
+weighted source contribution
+    |
+    v
+source/recipient propagation + simulation-RNG variation
+    |
+    v
+committed recipient token replacement
+    |
+    v
+changed token composition
+```
+
+The example compiles through `SimulationSpec` and runs through the frozen
+transactional kernel. It composes `TransmissibleStateCarrier`,
+`HeritableStateExpression`, `CharacteristicSource`, `PropagationModel`, and
+`VariationOperator` without importing the biological world, organism, genetics,
+or reproduction implementations. Persistent node identities remain fixed, so
+the evolving quantity is the transmissible information rather than a renamed
+organism lifecycle.
+
+Run the fixed-seed demonstration from the repository root:
+
+```bash
+venv/bin/python examples/nonbiological_evolution.py
+```
+
+The summary reports the seed, completed steps, and initial and final token
+composition. Repeating the command with the same environment produces the same
+summary because both weighted propagation and variation consume only the
+simulation-owned RNG.
