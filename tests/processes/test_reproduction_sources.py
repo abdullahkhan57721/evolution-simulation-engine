@@ -190,9 +190,11 @@ def test_participant_investor_parent_and_production_source_are_independent() -> 
         investor_selection=investors,
         production_source_selection=production_sources,
     )
+    rng_state_before_proposal = state.rng.getstate()
 
     proposal = process.propose_events(state)[0]
 
+    assert state.rng.getstate() == rng_state_before_proposal
     assert proposal.participant_ids == (first.id, second.id)
     assert proposal.investor_ids == (first.id,)
     assert proposal.investor_energy_contributions == ((first.id, 3),)
