@@ -53,9 +53,7 @@ def _mate_seeking_process():
     process = Movement(
         movement_pattern=MooreRandom(),
         boundary_condition=Clamped(),
-        locomotion_cost_model=FixedLocomotionCost(
-            amount=0,
-        ),
+        locomotion_cost_model=FixedLocomotionCost(amount=0),
         movement_intent_model=PrioritizedMovementIntent(
             rules=(
                 MovementIntentRule(
@@ -96,9 +94,7 @@ def test_low_energy_priority_overrides_mate_seeking() -> None:
         CHOOSINESS,
         MATING_SIGNAL,
     )
-    state = make_state(
-        genetic_architecture=architecture,
-    )
+    state = make_state(genetic_architecture=architecture)
     focal = add_organism(
         state,
         trait_values={
@@ -141,11 +137,7 @@ def test_mate_seeking_closes_distance_and_enables_reproduction() -> None:
         CHOOSINESS,
         MATING_SIGNAL,
     )
-    state = make_state(
-        width=6,
-        height=3,
-        genetic_architecture=architecture,
-    )
+    state = make_state(width=6, height=3, genetic_architecture=architecture)
     trait_values = {
         MAX_SPEED: 1,
         MATE_SEARCH_RANGE: 3,
@@ -167,10 +159,7 @@ def test_mate_seeking_closes_distance_and_enables_reproduction() -> None:
         y=1,
     )
     movement, eligibility, compatibility, preference = _mate_seeking_process()
-    movement_stage = StageCoordinator(
-        processes=(movement,),
-        resolver=AcceptAll(),
-    )
+    movement_stage = StageCoordinator(processes=(movement,), resolver=AcceptAll())
 
     movement_stage.coordinate(state)
 
@@ -179,20 +168,14 @@ def test_mate_seeking_closes_distance_and_enables_reproduction() -> None:
 
     reproduction = Reproduction(
         eligibility=eligibility,
-        parent_selection=PairwiseMating(
-            neighborhood=Moore(
-                radius=1,
-            ),
+        reproductive_group_selection=PairwiseMating(
+            neighborhood=Moore(radius=1),
             can_mate=compatibility,
             preference_function=preference,
         ),
         inheritance_model=SexualInheritance(),
-        parental_investment=FixedEnergyInvestment(
-            amount=1,
-        ),
-        offspring_body_mass_model=FixedBodyMassAtBirth(
-            body_mass=1,
-        ),
+        parental_investment=FixedEnergyInvestment(amount=1),
+        offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
     reproduction_stage = StageCoordinator(
         processes=(reproduction,),
