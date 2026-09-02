@@ -50,7 +50,8 @@ reproduction arity neutrality
 participant / contributor separation
         |
         v
-investment / production / placement hardening
+#98
+investment / production-source separation
         |
         +-----------------------------+
         |                             |
@@ -94,16 +95,13 @@ inheritance and genome terminology remain domain-native specializations. See ADR
 
 ## Milestone 2 — Harden biological reproduction boundaries
 
-**Status:** active biological-specialization front. Issue #92 established
-arity-neutral grouping/inheritance orchestration, and Issue #95 separates
-reproductive participants from genetic contributors. The next slice is independent
-investment and offspring-production/placement source semantics.
+**Status:** completed through Issues #92, #95, and #98.
 
 **Goal:** make biological reproduction a clean specialization of general
 propagation and entity production without treating the simplest current mating
 systems as universal architecture.
 
-The desired conceptual path is:
+The resulting conceptual path is:
 
 ```text
 eligible organisms
@@ -111,28 +109,30 @@ eligible organisms
         v
 reproductive participants
         |
-        +-------------------------+
-        |                         |
-        v                         v
-genetic contributors       reproductive investment
-        |
-        v
-source genomes
-        |
-        v
-inheritance / propagation
-        |
-        v
-offspring genome
-        |
-        v
-expression + development
-        |
-        v
-biological offspring production
-        |
-        v
-world admission
+        +----------------------+----------------------+
+        |                      |                      |
+        v                      v                      v
+reproductive investors  genetic contributors  production-source context
+        |                      |                      |
+        v                      v                      |
+committed energy          source genomes             |
+                               |                      |
+                               v                      |
+                      inheritance / propagation       |
+                               |                      |
+                               v                      |
+                        offspring genome              |
+                               |                      |
+                               +----------+-----------+
+                                          |
+                                          v
+                              expression + development
+                                          |
+                                          v
+                              biological offspring production
+                                          |
+                                          v
+                                   world admission
 ```
 
 Issue #92 established that shared reproductive groups may contain any nonempty
@@ -140,20 +140,31 @@ ordered tuple of unique participants and that source-count requirements belong t
 concrete inheritance models. Clonal inheritance remains a one-source policy and
 the current Mendelian sexual model remains a two-source policy.
 
-Issue #95 then established **reproductive participation** and **genetic
-contribution** as separate responsibilities. Resolver-facing groups contain
-participants; `GeneticContributorSelection` chooses the ordered contributor subset
-only during materialization, preserving transaction/RNG semantics. Existing simple
-configurations use `AllParticipantsContribute`, while pedigree `parent_ids` now
+Issue #95 established **reproductive participation** and **genetic contribution**
+as separate responsibilities. Resolver-facing groups contain participants;
+`GeneticContributorSelection` chooses the ordered contributor subset only during
+materialization, preserving transaction/RNG semantics. Existing simple
+configurations use `AllParticipantsContribute`, while pedigree `parent_ids`
 unambiguously mean genetic/transmissible-state contributors.
 
-The next slice should separate **reproductive investment targets** and the
-**offspring-production/placement source context** from the full participant tuple.
-Current presets should retain all-participants defaults, but future gestational,
-energetic, placement, or other production-relevant relationships must not be forced
-to equal either the participant set or the genetic-contributor set.
+Issue #98 completed the critical source-role hardening by separating
+**reproductive investors** and **offspring-production sources** from both the
+participant and genetic-contributor sets. `ReproductiveInvestorSelection` runs
+while proposals are formed because affordability determines proposal existence;
+its default `AllParticipantsInvest` preserves current behavior and its contract
+intentionally exposes no RNG argument. `OffspringProductionSourceSelection` runs
+only during materialization and may use the simulation-owned RNG; its default
+`AllParticipantsAsProductionSources` preserves current production/placement
+behavior. Resolver conflicts continue to use all participants, while materialized
+events retain genetic parentage separately from production-source identity.
 
-**Constraints:**
+These shared selectors currently choose subsets of the resolved reproductive
+participants. Future biology involving external gestational hosts, caregivers, or
+energy/resource contributors should broaden that boundary only with explicit
+lifecycle and conflict semantics rather than by silently reaching into arbitrary
+world entities.
+
+**Constraints preserved:**
 
 - no kernel change unless a genuine generic deficiency is demonstrated;
 - no redesign of `Genome` merely to support variable contributor count;
@@ -201,6 +212,8 @@ independent expression policies and test matrices are good Codex candidates.
 
 ## Milestone 4 — Explicit ploidy, pairing, segregation, and recombination
 
+**Status:** next genetics architecture front after reproduction-source hardening.
+
 **Goal:** deepen biological transmission without narrowing general propagation.
 
 `Genome` already represents arbitrary chromosome-copy collections. Future ploidy
@@ -218,24 +231,33 @@ The current `SexualInheritance` and meiotic gamete-formation policies remain use
 simple Mendelian configurations; they should not be stretched into universal
 models.
 
+Pairing and segregation semantics should be established before richer
+polyploid/chromosome-specific recombination is layered on top. This remains a
+biological specialization; the general `PropagationModel` and frozen kernel do not
+need ploidy concepts.
+
 **Implementation mode:** ChatGPT for pairing/segregation contracts and algorithmic
 semantics; Codex selectively for repetitive matrices and settled implementations.
 
 ## Milestone 5 — Richer mating systems
+
+**Status:** architecturally unblocked and may advance alongside the genetics front.
 
 **Goal:** extend the existing mating-type and reproductive-role infrastructure
 beyond primarily pairwise group formation.
 
 The project already supports arbitrary mating-type labels, compatibility networks,
 multiple reproductive roles per mating type, arity-neutral reproductive groups,
-and contributor subsets distinct from participants. Future work should build on
-those capabilities toward:
+contributor subsets distinct from participants, independent investor subsets, and
+independent offspring-production source subsets. Future work should build on those
+capabilities toward:
 
 - asymmetric and ordered roles;
 - multi-participant reproductive groups;
 - hermaphroditic systems;
 - role-sensitive mate choice;
-- richer policies determining which participants contribute genetic state.
+- richer policies determining which participants contribute genetic state or
+  reproductive investment.
 
 Mating-system composition should remain separate from low-level inheritance.
 
@@ -269,9 +291,10 @@ and biogeographic structure. Selection should continue to emerge from
 differential persistence and propagation rather than becoming an intrinsic
 generic scalar field.
 
-Critical reproduction-boundary hardening should precede major new reproduction-
-driven ecology, but every future expression, ploidy, recombination, mating, and
-development feature does **not** need to be completed before ecology can advance.
+Critical reproduction-boundary hardening is now complete. Major ecology work no
+longer needs to wait for every future expression, ploidy, recombination, mating,
+or development feature; add those capabilities when concrete ecological or
+biological use cases require them.
 
 ## Cross-cutting fronts
 
