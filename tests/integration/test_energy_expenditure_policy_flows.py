@@ -81,7 +81,7 @@ def test_growth_application_rechecks_fixed_reserve() -> None:
 
 
 def test_reproduction_reserve_policy_blocks_then_allows_exact_reserve() -> None:
-    """Test Reproduction preserves each participant's configured energy reserve."""
+    """Test Reproduction preserves each investor's configured energy reserve."""
     state = make_state()
     parent = add_organism(state, energy=10)
     process = _reserve_reproduction(minimum_energy=6)
@@ -98,7 +98,7 @@ def test_reproduction_reserve_policy_blocks_then_allows_exact_reserve() -> None:
 
 
 def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
-    """Test stale reserve violations are rejected before offspring RNG work."""
+    """Test stale investor reserve violations are rejected before offspring RNG."""
     state = make_state(seed=23)
     parent = add_organism(state, energy=10)
     process = _reserve_reproduction(minimum_energy=5)
@@ -106,7 +106,7 @@ def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
     rng_state = state.rng.getstate()
     parent.energy = 9
 
-    with pytest.raises(RuntimeError, match="energy expenditure policy"):
+    with pytest.raises(RuntimeError, match="expenditure policy"):
         process.materialize_event(state, proposal)
 
     assert state.rng.getstate() == rng_state
@@ -114,7 +114,7 @@ def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
 
 
 def test_reproduction_application_rechecks_reserve_atomically() -> None:
-    """Test a materialized birth cannot later violate the participant reserve."""
+    """Test a materialized birth cannot later violate the investor reserve."""
     state = make_state()
     parent = add_organism(state, energy=10)
     process = _reserve_reproduction(minimum_energy=5)
