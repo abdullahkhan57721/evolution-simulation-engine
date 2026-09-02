@@ -15,19 +15,19 @@ from evo_engine.validation import attrs_validators
 
 @attrs.frozen(slots=True, kw_only=True)
 class ReferenceMatingTypeInvestmentScales:
-    """Configure asymmetric parental-investment scaling in the reference ecology.
+    """Configure asymmetric reproductive-investor scaling in the reference ecology.
 
-    The reference mating types remain neutral labels, but they can carry
-    different reproductive energetic burdens. Both scales multiply each
-    parent's realized ``offspring_energy`` characteristic. The defaults preserve
+    The reference mating types remain neutral labels, but selected investors can
+    carry different reproductive energetic burdens. Both scales multiply each
+    investor's realized ``offspring_energy`` characteristic. The defaults preserve
     the founder pair's historical total investment when development leaves that
     characteristic unchanged: a base value of four becomes six energy units for
     ``type_a`` and two for ``type_b``, totaling eight.
 
     Attributes:
         denominator: Positive denominator shared by both rational scales.
-        type_a_numerator: Nonnegative numerator applied to ``type_a`` parents.
-        type_b_numerator: Nonnegative numerator applied to ``type_b`` parents.
+        type_a_numerator: Nonnegative numerator applied to ``type_a`` investors.
+        type_b_numerator: Nonnegative numerator applied to ``type_b`` investors.
     """
 
     denominator: int = attrs.field(
@@ -44,17 +44,18 @@ class ReferenceMatingTypeInvestmentScales:
     )
 
 
-def build_reference_parental_investment(
+def build_reference_reproductive_investment(
     scales: ReferenceMatingTypeInvestmentScales,
 ) -> MatingTypeScaledInvestment:
-    """Build the reference mating-type-scaled realized investment policy.
+    """Build the reference mating-type-scaled reproductive investment policy.
 
     Args:
         scales: Reference rational scale configuration.
 
     Returns:
-        Parental-investment policy that scales the realized ``offspring_energy``
-        characteristic according to each parent's mating type.
+        Reproductive-investment policy that scales the realized
+        ``offspring_energy`` characteristic according to each selected investor's
+        mating type.
     """
     type_a, type_b = REFERENCE_MATING_TYPES
     return MatingTypeScaledInvestment(
