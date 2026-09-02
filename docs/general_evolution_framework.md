@@ -252,7 +252,7 @@ kernel itself.
 
 The `evo_engine.evolution` package already provides upstream contracts for:
 
-- evolving entities carrying heritable/transmissible state;
+- `EvolutionaryEntity`, whose current public state property is `heritable_state`;
 - heritable-state expression;
 - variation operators;
 - characteristic sources and requirements;
@@ -261,18 +261,21 @@ The `evo_engine.evolution` package already provides upstream contracts for:
 Domain-neutral participant and transition foundations are intentionally kept in
 small neighboring modules rather than being forced into one package:
 
-- `evo_engine.propagation` provides `TransmissibleStateCarrier` and the
-  source-state/recipient-oriented `PropagationModel`;
+- `evo_engine.propagation` provides `TransmissibleStateCarrier`, whose public
+  property is `transmissible_state`, and the source-state/recipient-oriented
+  `PropagationModel`;
 - `evo_engine.production` turns already-determined state into an entity;
 - `evo_engine.access` and `evo_engine.reference` read entities and derive stable
   domain references; and
 - `evo_engine.admission` and `evo_engine.departure` change domain membership.
 
 Propagation is therefore no longer limited to parent/descendant transmission.
-It accepts zero or more source states, a separately modeled recipient,
-domain-specific context, and the simulation-owned RNG. Biological inheritance
-adapts to that contract, but horizontal or replacement propagation does not need
-a biological adapter.
+`PropagationModel` accepts zero or more source states, a separately modeled
+recipient, immutable domain-specific propagation configuration/context, and the
+simulation-owned RNG. Mutable evolving domain state remains outside that
+propagation-context slot and is inspected by the surrounding process when
+runtime state is needed. Biological inheritance adapts to that contract, but
+horizontal or replacement propagation does not need a biological adapter.
 
 Some older `evo_engine.evolution` names, especially `EvolutionaryEntity`,
 `HeritableStateExpression`, and their `heritable_state` vocabulary, still
