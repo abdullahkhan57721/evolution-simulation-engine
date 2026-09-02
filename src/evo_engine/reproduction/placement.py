@@ -16,7 +16,7 @@ class OffspringPlacement(Protocol):
 
     def choose_location(
         self,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
         rng: random.Random,
@@ -24,7 +24,7 @@ class OffspringPlacement(Protocol):
         """Choose the offspring's birth coordinate.
 
         Args:
-            parents: One or more resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             simulation_state: Current simulation state.
             rng: Simulation random-number generator.
 
@@ -35,32 +35,36 @@ class OffspringPlacement(Protocol):
 
 
 @attrs.frozen(slots=True, kw_only=True)
-class RandomParentLocation:
-    """Place offspring at the location of a randomly selected parent."""
+class RandomProductionSourceLocation:
+    """Place offspring at the location of a randomly selected production source."""
 
     def choose_location(
         self,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
         rng: random.Random,
     ) -> tuple[int, int]:
-        """Choose one parent's current coordinate as the birth location.
+        """Choose one production source's current coordinate as the birth location.
 
         Args:
-            parents: One or more resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             simulation_state: Current simulation state.
             rng: Simulation random-number generator.
 
         Returns:
-            Selected parent's horizontal and vertical coordinates.
+            Selected source organism's horizontal and vertical coordinates.
 
         Raises:
-            ValueError: If parents is empty.
+            ValueError: If ``source_entities`` is empty.
         """
-        if not parents:
-            raise ValueError("parents must contain at least one organism.")
+        if not source_entities:
+            raise ValueError("source_entities must contain at least one organism.")
 
-        parent = parents[0] if len(parents) == 1 else rng.choice(parents)
+        source = (
+            source_entities[0]
+            if len(source_entities) == 1
+            else rng.choice(source_entities)
+        )
 
-        return parent.x, parent.y
+        return source.x, source.y
