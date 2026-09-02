@@ -62,7 +62,7 @@ def test_mating_type_compatibility_matrix_rejects_duplicate_unordered_pair() -> 
 
 
 def test_directed_pairwise_mating_preserves_configured_role_order() -> None:
-    """Test parent tuple order follows explicit reproductive roles."""
+    """Test participant tuple order follows explicit reproductive roles."""
     architecture = make_integer_architecture(CHOOSINESS, MATING_SIGNAL)
     state = make_state(width=5, height=5, genetic_architecture=architecture)
     chooser = add_organism(
@@ -107,13 +107,13 @@ def test_directed_pairwise_mating_preserves_configured_role_order() -> None:
         ),
     )
 
-    groups = selection.propose_parent_groups(
+    groups = selection.propose_reproductive_groups(
         tuple(state.domain_state.organisms.values()),
         simulation_state=state,
         reference_model=WorldOrganismReference(),
     )
 
-    assert [group.parent_ids for group in groups] == [
+    assert [group.participant_ids for group in groups] == [
         (chooser.id, weak.id),
         (chooser.id, strong.id),
     ]
@@ -136,13 +136,13 @@ def test_directed_pairwise_mating_skips_self_for_multi_role_organism() -> None:
         neighborhood=Moore(radius=0),
     )
 
-    groups = selection.propose_parent_groups(
+    groups = selection.propose_reproductive_groups(
         tuple(state.domain_state.organisms.values()),
         simulation_state=state,
         reference_model=WorldOrganismReference(),
     )
 
-    assert {group.parent_ids for group in groups} == {
+    assert {group.participant_ids for group in groups} == {
         (first.id, second.id),
         (second.id, first.id),
     }

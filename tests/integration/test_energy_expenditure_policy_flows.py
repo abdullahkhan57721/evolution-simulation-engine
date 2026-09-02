@@ -20,32 +20,20 @@ from tests.helpers import add_organism, make_integer_architecture, make_state
 
 def _reserve_growth(*, minimum_energy: int) -> Growth:
     return Growth(
-        growth_model=FixedGrowthRate(
-            amount_per_timestep=3,
-        ),
-        growth_cost_model=LinearGrowthCost(
-            energy_per_body_mass_unit=1,
-        ),
-        energy_expenditure_policy=KeepFixedReserve(
-            minimum_energy=minimum_energy,
-        ),
+        growth_model=FixedGrowthRate(amount_per_timestep=3),
+        growth_cost_model=LinearGrowthCost(energy_per_body_mass_unit=1),
+        energy_expenditure_policy=KeepFixedReserve(minimum_energy=minimum_energy),
     )
 
 
 def _reserve_reproduction(*, minimum_energy: int) -> Reproduction:
     return Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(
-            amount=5,
-        ),
-        energy_expenditure_policy=KeepFixedReserve(
-            minimum_energy=minimum_energy,
-        ),
-        offspring_body_mass_model=FixedBodyMassAtBirth(
-            body_mass=1,
-        ),
+        parental_investment=FixedEnergyInvestment(amount=5),
+        energy_expenditure_policy=KeepFixedReserve(minimum_energy=minimum_energy),
+        offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
 
@@ -93,7 +81,7 @@ def test_growth_application_rechecks_fixed_reserve() -> None:
 
 
 def test_reproduction_reserve_policy_blocks_then_allows_exact_reserve() -> None:
-    """Test Reproduction preserves each parent's configured energy reserve."""
+    """Test Reproduction preserves each participant's configured energy reserve."""
     state = make_state()
     parent = add_organism(state, energy=10)
     process = _reserve_reproduction(minimum_energy=6)
@@ -126,7 +114,7 @@ def test_reproduction_materialization_rechecks_reserve_before_rng() -> None:
 
 
 def test_reproduction_application_rechecks_reserve_atomically() -> None:
-    """Test a materialized birth cannot later violate the parent's reserve."""
+    """Test a materialized birth cannot later violate the participant reserve."""
     state = make_state()
     parent = add_organism(state, energy=10)
     process = _reserve_reproduction(minimum_energy=5)
@@ -191,7 +179,7 @@ def test_reproduction_collects_expenditure_policy_trait_requirements() -> None:
 
     process = Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         energy_expenditure_policy=TraitDrivenReserve(),

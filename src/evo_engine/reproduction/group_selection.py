@@ -1,4 +1,4 @@
-"""Parent-selection policies for reproduction."""
+"""Reproductive-group selection policies."""
 
 from __future__ import annotations
 
@@ -21,105 +21,110 @@ from evo_engine.world.world_state import WorldState
 
 
 @attrs.frozen(slots=True, kw_only=True)
-class ParentGroup:
-    """Represent one candidate group of reproductive parents.
+class ReproductiveGroup:
+    """Represent one candidate group of reproductive participants.
 
     Shared reproduction orchestration permits any nonempty group size. Concrete
-    parent-selection and inheritance policies remain responsible for enforcing
-    any biological arity they require.
+    group-selection policies decide which organisms participate, while a separate
+    genetic-contributor policy decides which participants supply transmissible
+    state during materialization.
 
     Attributes:
-        parent_ids: IDs of contributing reproductive parents.
+        participant_ids: Ordered state-local references of reproductive participants.
         preference_score: Group preference used during conflict resolution.
     """
 
-    parent_ids: tuple[int, ...]
+    participant_ids: tuple[int, ...]
     preference_score: int = attrs.field(
         default=0,
         validator=attrs_validators.validate_int,
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate parent IDs."""
+        """Validate participant references."""
         validators.validate_tuple(
-            self.parent_ids,
-            name="parent_ids",
+            self.participant_ids,
+            name="participant_ids",
         )
 
-        if not self.parent_ids:
-            raise ValueError("parent_ids must contain at least one parent ID.")
+        if not self.participant_ids:
+            raise ValueError(
+                "participant_ids must contain at least one participant ID."
+            )
 
         seen_ids: set[int] = set()
 
-        for index, parent_id in enumerate(self.parent_ids):
+        for index, participant_id in enumerate(self.participant_ids):
             validators.validate_int_ge(
-                parent_id,
+                participant_id,
                 bound=0,
-                name=f"parent_ids[{index}]",
+                name=f"participant_ids[{index}]",
             )
 
-            if parent_id in seen_ids:
-                raise ValueError("parent_ids must not contain duplicate parent IDs.")
+            if participant_id in seen_ids:
+                raise ValueError(
+                    "participant_ids must not contain duplicate participant IDs."
+                )
 
-            seen_ids.add(parent_id)
+            seen_ids.add(participant_id)
 
 
-class ParentSelection(Protocol):
-    """Define how eligible organisms form candidate parent groups."""
+class ReproductiveGroupSelection(Protocol):
+    """Define how eligible organisms form candidate reproductive groups."""
 
-    def propose_parent_groups(
+    def propose_reproductive_groups(
         self,
-        eligible_parents: Sequence[Organism],
+        eligible_participants: Sequence[Organism],
         *,
         simulation_state: SimulationState,
         reference_model: EntityReferenceModel[Organism, WorldState, int],
-    ) -> Sequence[ParentGroup]:
-        """Propose candidate parent groups.
+    ) -> Sequence[ReproductiveGroup]:
+        """Propose candidate reproductive groups.
 
         Args:
-            eligible_parents: Organisms individually eligible to reproduce.
+            eligible_participants: Organisms individually eligible to reproduce.
             simulation_state: Current simulation state.
             reference_model: Policy deriving state-local organism references for
-                resolver-facing parent groups.
+                resolver-facing reproductive groups.
 
         Returns:
-            Candidate nonempty parent groups.
+            Candidate nonempty reproductive groups.
         """
         ...
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class SingleParent:
-    """Propose each eligible organism as a one-parent reproductive group."""
+    """Propose each eligible organism as a one-participant reproductive group."""
 
-    def propose_parent_groups(
+    def propose_reproductive_groups(
         self,
-        eligible_parents: Sequence[Organism],
+        eligible_participants: Sequence[Organism],
         *,
         simulation_state: SimulationState,
         reference_model: EntityReferenceModel[Organism, WorldState, int],
-    ) -> list[ParentGroup]:
+    ) -> list[ReproductiveGroup]:
         """Propose one reproductive group per eligible organism.
 
         Args:
-            eligible_parents: Organisms individually eligible to reproduce.
+            eligible_participants: Organisms individually eligible to reproduce.
             simulation_state: Current simulation state.
             reference_model: Policy deriving state-local organism references.
 
         Returns:
-            Candidate one-parent groups.
+            Candidate one-participant groups.
         """
         world = simulation_state.domain_state
         return [
-            ParentGroup(
-                parent_ids=(
+            ReproductiveGroup(
+                participant_ids=(
                     reference_model.reference(
-                        parent,
+                        participant,
                         state=world,
                     ),
                 ),
             )
-            for parent in eligible_parents
+            for participant in eligible_participants
         ]
 
 
@@ -128,17 +133,17 @@ PairPreferenceFunction = Callable[[Organism, Organism, SimulationState], int]
 
 
 def _always_can_mate(
-    first_parent: Organism,
-    second_parent: Organism,
+    first_participant: Organism,
+    second_participant: Organism,
     simulation_state: SimulationState,
 ) -> bool:
-    """Return whether a parent pair is biologically compatible."""
+    """Return whether a reproductive pair is biologically compatible."""
     return True
 
 
 def _neutral_pair_preference(
-    first_parent: Organism,
-    second_parent: Organism,
+    first_participant: Organism,
+    second_participant: Organism,
     simulation_state: SimulationState,
 ) -> int:
     """Return a neutral mating preference score."""
@@ -147,7 +152,7 @@ def _neutral_pair_preference(
 
 @attrs.frozen(slots=True, kw_only=True)
 class PairwiseMating:
-    """Propose every eligible two-parent mating pair.
+    """Propose every eligible two-participant mating pair.
 
     Callable mating collaborators may optionally expose ``required_traits``.
     Those nested requirements are aggregated automatically with explicitly
@@ -156,11 +161,10 @@ class PairwiseMating:
 
     Attributes:
         neighborhood: Hard spatial neighborhood within which mating is possible.
-        can_mate: Callable determining biological pair compatibility. This can
-            include organism-specific mate-search or sexual-selection rules.
-        preference_function: Callable returning an integer preference score
-            for a candidate pair. If parent roles are interchangeable, this
-            function should be symmetric in its two parent arguments.
+        can_mate: Callable determining biological pair compatibility.
+        preference_function: Callable returning an integer preference score for a
+            candidate pair. If participant roles are interchangeable, this
+            function should be symmetric in its two organism arguments.
         required_traits: Additional genetic phenotype traits read by opaque
             custom mating callbacks. Structured policies contribute their own
             requirements automatically.
@@ -175,9 +179,7 @@ class PairwiseMating:
         default=_neutral_pair_preference,
         validator=attrs.validators.is_callable(),
     )
-    required_traits: frozenset[str] = attrs.field(
-        factory=frozenset,
-    )
+    required_traits: frozenset[str] = attrs.field(factory=frozenset)
 
     def __attrs_post_init__(self) -> None:
         """Validate mating-policy collaborators and aggregate dependencies."""
@@ -205,50 +207,50 @@ class PairwiseMating:
             declared_requirements | nested_requirements,
         )
 
-    def propose_parent_groups(
+    def propose_reproductive_groups(
         self,
-        eligible_parents: Sequence[Organism],
+        eligible_participants: Sequence[Organism],
         *,
         simulation_state: SimulationState,
         reference_model: EntityReferenceModel[Organism, WorldState, int],
-    ) -> list[ParentGroup]:
-        """Propose every spatially and biologically valid parent pair.
+    ) -> list[ReproductiveGroup]:
+        """Propose every spatially and biologically valid participant pair.
 
         Args:
-            eligible_parents: Organisms individually eligible to reproduce.
+            eligible_participants: Organisms individually eligible to reproduce.
             simulation_state: Current simulation state.
             reference_model: Policy deriving state-local organism references.
 
         Returns:
-            Candidate two-parent groups.
+            Candidate two-participant reproductive groups.
 
         Raises:
-            TypeError: If can_mate does not return a Boolean or the
-                preference function does not return an integer.
+            TypeError: If can_mate does not return a Boolean or the preference
+                function does not return an integer.
         """
-        events: list[ParentGroup] = []
+        groups: list[ReproductiveGroup] = []
         world = simulation_state.domain_state
 
-        # combinations() treats parent roles as interchangeable and avoids
-        # emitting both (A, B) and (B, A). Role-specific reproduction can use
-        # a different ParentSelection implementation later.
-        for first_parent, second_parent in combinations(
-            eligible_parents,
+        # combinations() treats participant roles as interchangeable and avoids
+        # emitting both (A, B) and (B, A). Role-specific reproduction uses a
+        # different ReproductiveGroupSelection implementation.
+        for first_participant, second_participant in combinations(
+            eligible_participants,
             2,
         ):
             if not self.neighborhood.contains(
-                center_x=first_parent.x,
-                center_y=first_parent.y,
-                other_x=second_parent.x,
-                other_y=second_parent.y,
+                center_x=first_participant.x,
+                center_y=first_participant.y,
+                other_x=second_participant.x,
+                other_y=second_participant.y,
                 width=world.width,
                 height=world.height,
             ):
                 continue
 
             can_mate = self.can_mate(
-                first_parent,
-                second_parent,
+                first_participant,
+                second_participant,
                 simulation_state,
             )
 
@@ -259,23 +261,23 @@ class PairwiseMating:
                 continue
 
             preference_score = self.preference_function(
-                first_parent,
-                second_parent,
+                first_participant,
+                second_participant,
                 simulation_state,
             )
 
             if type(preference_score) is not int:
                 raise TypeError("preference_function must return an integer.")
 
-            events.append(
-                ParentGroup(
-                    parent_ids=(
+            groups.append(
+                ReproductiveGroup(
+                    participant_ids=(
                         reference_model.reference(
-                            first_parent,
+                            first_participant,
                             state=world,
                         ),
                         reference_model.reference(
-                            second_parent,
+                            second_participant,
                             state=world,
                         ),
                     ),
@@ -283,4 +285,4 @@ class PairwiseMating:
                 )
             )
 
-        return events
+        return groups

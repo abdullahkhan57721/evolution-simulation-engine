@@ -75,7 +75,7 @@ def test_sexual_selection_changes_which_compatible_pair_reproduces() -> None:
         processes=(
             Reproduction(
                 eligibility=AlwaysEligible(),
-                parent_selection=PairwiseMating(
+                reproductive_group_selection=PairwiseMating(
                     neighborhood=Moore(radius=5),
                     can_mate=AllOfMatingCompatibility(
                         compatibilities=(

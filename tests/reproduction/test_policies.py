@@ -12,8 +12,8 @@ from evo_engine.reproduction import (
     GeneticPhenotypeEnergyInvestment,
     MinimumEnergyEligibility,
     PairwiseMating,
-    ParentGroup,
     RandomParentLocation,
+    ReproductiveGroup,
     SingleParent,
 )
 from evo_engine.spatial.neighborhoods import SameCell
@@ -68,29 +68,29 @@ def test_always_eligible_returns_true() -> None:
 
 
 @pytest.mark.parametrize(
-    "parent_ids",
+    "participant_ids",
     [
         (),
         (1, 1),
     ],
 )
-def test_parent_group_rejects_invalid_parent_membership(
-    parent_ids: tuple[int, ...],
+def test_reproductive_group_rejects_invalid_membership(
+    participant_ids: tuple[int, ...],
 ) -> None:
-    """Test nonempty unique parent-group invariants."""
+    """Test nonempty unique reproductive-group invariants."""
     with pytest.raises(ValueError):
-        ParentGroup(
-            parent_ids=parent_ids,
+        ReproductiveGroup(
+            participant_ids=participant_ids,
         )
 
 
-def test_single_parent_proposes_one_group_per_parent() -> None:
-    """Test one-parent candidate formation."""
+def test_single_parent_proposes_one_group_per_participant() -> None:
+    """Test one-participant candidate formation."""
     state = make_state()
     first = add_organism(state)
     second = add_organism(state)
 
-    groups = SingleParent().propose_parent_groups(
+    groups = SingleParent().propose_reproductive_groups(
         (
             first,
             second,
@@ -99,7 +99,7 @@ def test_single_parent_proposes_one_group_per_parent() -> None:
         reference_model=WorldOrganismReference(),
     )
 
-    assert [group.parent_ids for group in groups] == [
+    assert [group.participant_ids for group in groups] == [
         (first.id,),
         (second.id,),
     ]
@@ -108,7 +108,7 @@ def test_single_parent_proposes_one_group_per_parent() -> None:
 def test_pairwise_mating_proposes_each_unique_pair_once() -> None:
     """Test unique unordered mating-pair enumeration."""
     state = make_state()
-    parents = tuple(
+    participants = tuple(
         add_organism(
             state,
             x=0,
@@ -119,13 +119,13 @@ def test_pairwise_mating_proposes_each_unique_pair_once() -> None:
 
     groups = PairwiseMating(
         neighborhood=SameCell(),
-    ).propose_parent_groups(
-        parents,
+    ).propose_reproductive_groups(
+        participants,
         simulation_state=state,
         reference_model=WorldOrganismReference(),
     )
 
-    assert [group.parent_ids for group in groups] == [
+    assert [group.participant_ids for group in groups] == [
         (0, 1),
         (0, 2),
         (1, 2),
@@ -148,7 +148,7 @@ def test_pairwise_mating_filters_by_neighborhood() -> None:
 
     groups = PairwiseMating(
         neighborhood=SameCell(),
-    ).propose_parent_groups(
+    ).propose_reproductive_groups(
         (
             first,
             second,
@@ -163,7 +163,7 @@ def test_pairwise_mating_filters_by_neighborhood() -> None:
 def test_pairwise_mating_filters_by_biological_compatibility() -> None:
     """Test custom pair compatibility."""
     state = make_state()
-    parents = (
+    participants = (
         add_organism(state),
         add_organism(state),
     )
@@ -171,8 +171,8 @@ def test_pairwise_mating_filters_by_biological_compatibility() -> None:
     groups = PairwiseMating(
         neighborhood=SameCell(),
         can_mate=lambda first, second, state: False,
-    ).propose_parent_groups(
-        parents,
+    ).propose_reproductive_groups(
+        participants,
         simulation_state=state,
         reference_model=WorldOrganismReference(),
     )
@@ -183,7 +183,7 @@ def test_pairwise_mating_filters_by_biological_compatibility() -> None:
 def test_pairwise_mating_records_preference_score() -> None:
     """Test resolver-facing mating preference."""
     state = make_state()
-    parents = (
+    participants = (
         add_organism(state),
         add_organism(state),
     )
@@ -191,8 +191,8 @@ def test_pairwise_mating_records_preference_score() -> None:
     groups = PairwiseMating(
         neighborhood=SameCell(),
         preference_function=lambda first, second, state: 7,
-    ).propose_parent_groups(
-        parents,
+    ).propose_reproductive_groups(
+        participants,
         simulation_state=state,
         reference_model=WorldOrganismReference(),
     )
@@ -213,7 +213,7 @@ def test_pairwise_mating_requires_exact_callback_return_types(
 ) -> None:
     """Test strict pair-policy callback contracts."""
     state = make_state()
-    parents = (
+    participants = (
         add_organism(state),
         add_organism(state),
     )
@@ -230,8 +230,8 @@ def test_pairwise_mating_requires_exact_callback_return_types(
         )
 
     with pytest.raises(TypeError):
-        policy.propose_parent_groups(
-            parents,
+        policy.propose_reproductive_groups(
+            participants,
             simulation_state=state,
             reference_model=WorldOrganismReference(),
         )

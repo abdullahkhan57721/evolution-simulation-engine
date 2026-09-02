@@ -49,7 +49,7 @@ def test_offspring_development_samples_selected_birth_location() -> None:
     )
     process = Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=1),
         offspring_placement=RandomParentLocation(),
@@ -70,6 +70,7 @@ def test_offspring_development_samples_selected_birth_location() -> None:
 
     event = process.materialize_event(state, process.propose_events(state)[0])
 
+    assert event.participant_ids == (parent.id,)
     assert event.parent_ids == (parent.id,)
     assert (event.x, event.y) == (1, 1)
     assert event.offspring_developmental_profile["size"] == 20

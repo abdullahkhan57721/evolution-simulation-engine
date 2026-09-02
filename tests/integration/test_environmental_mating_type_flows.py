@@ -97,7 +97,7 @@ def test_environment_can_determine_offspring_mating_type_through_development() -
     )
     process = Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         development_model=development,

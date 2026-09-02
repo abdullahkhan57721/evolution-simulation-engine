@@ -40,13 +40,13 @@ def test_reference_founders_have_balanced_mating_types() -> None:
 
 
 def test_reference_pairing_requires_different_mating_types() -> None:
-    """Test the wired parent-selection policy excludes same-type pairs."""
+    """Test the wired group-selection policy excludes same-type pairs."""
     config = ReferenceEcologyConfig(initial_population=6)
     simulation = build_reference_simulation(config)
     process = _reference_reproduction(config)
     organisms = tuple(simulation.state.domain_state.organisms.values())
 
-    groups = process.parent_selection.propose_parent_groups(
+    groups = process.reproductive_group_selection.propose_reproductive_groups(
         organisms,
         simulation_state=simulation.state,
         reference_model=process.reference_model,
@@ -54,7 +54,7 @@ def test_reference_pairing_requires_different_mating_types() -> None:
 
     assert groups
     for group in groups:
-        first_id, second_id = group.parent_ids
+        first_id, second_id = group.participant_ids
         assert (
             simulation.state.domain_state.organisms[first_id].mating_type
             != simulation.state.domain_state.organisms[second_id].mating_type

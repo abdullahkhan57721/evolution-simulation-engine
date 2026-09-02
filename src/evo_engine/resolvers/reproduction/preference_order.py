@@ -13,7 +13,7 @@ from evo_engine.resolvers._preference_order import (
 
 
 class PreferenceOrder:
-    """Resolve Reproduction proposals by preference with exclusive parents."""
+    """Resolve Reproduction proposals by preference with exclusive participants."""
 
     def resolve_events(
         self,
@@ -23,8 +23,9 @@ class PreferenceOrder:
         """Resolve competing Reproduction proposals.
 
         Higher preference scores are considered first. An organism may
-        contribute to at most one resolved reproductive proposal in the stage.
-        Proposal order breaks preference ties.
+        participate in at most one resolved reproductive proposal in the stage,
+        regardless of whether it later contributes genetic state. Proposal order
+        breaks preference ties.
 
         Args:
             simulation_state: Current simulation state.
@@ -37,6 +38,6 @@ class PreferenceOrder:
             proposed_events,
             event_type=Reproduction.Proposal,
             preference_score=lambda proposal: proposal.preference_score,
-            participant_keys=lambda proposal: proposal.parent_ids,
+            participant_keys=lambda proposal: proposal.participant_ids,
             resolver_name=type(self).__name__,
         )

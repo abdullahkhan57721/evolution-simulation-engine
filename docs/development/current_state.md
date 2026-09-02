@@ -105,18 +105,25 @@ Biology keeps its domain-native terms where they carry stronger semantics:
 carrier capability, while inheritance remains the biological specialization of
 general propagation.
 
-Shared reproduction orchestration is arity-neutral: reproductive parent groups
-may contain any nonempty ordered group of unique organism references, and the
-common inheritance contract does not prescribe a universal parent count. Concrete
-policies retain their biological constraints, so clonal inheritance remains a
-one-source model and the current Mendelian sexual-inheritance policy remains a
-two-source model. This creates room for future variable-contributor biology
-without weakening today's concrete semantics.
+Shared reproduction orchestration is arity-neutral and now separates reproductive
+participation from genetic contribution. `ReproductiveGroup` records an ordered,
+nonempty set of unique reproductive participants used for mating and conflict
+resolution. During materialization, `GeneticContributorSelection` chooses the
+ordered participant subset whose genomes feed biological inheritance. The default
+`AllParticipantsContribute` preserves existing clonal and biparental behavior.
 
-The genome representation already permits arbitrary chromosome-copy
-collections. Future ploidy work should therefore focus on explicit biological
-copy-count validation, pairing, segregation, gamete formation, and recombination
-policies rather than replacing `Genome` or generalizing the kernel.
+Contributor selection occurs only after resolution, so rejected reproductive
+candidates cannot consume stochastic contributor-selection RNG. Materialized
+reproduction events expose all `participant_ids` separately from `parent_ids`;
+biological parentage and pedigree semantics use only the genetic contributors.
+Concrete inheritance policies still own their source-count constraints, so clonal
+inheritance remains a one-source model and the current Mendelian sexual-inheritance
+policy remains a two-source model.
+
+The genome representation already permits arbitrary chromosome-copy collections.
+Future ploidy work should therefore focus on explicit biological copy-count
+validation, pairing, segregation, gamete formation, and recombination policies
+rather than replacing `Genome` or generalizing the kernel.
 
 The design should remain extensible toward richer genetics, dominance and other
 non-additive expression, ploidy variation, chromosome-specific recombination,
@@ -178,35 +185,36 @@ framework, as the main remaining boundary to harden.
 
 ## Current development front
 
-The current architectural front is **reproductive-role separation within the
-biological specialization**.
+The current architectural front is **reproductive investment and offspring-source
+separation within the biological specialization**.
 
-Shared reproduction and inheritance no longer impose one/two-parent arity. The
-next milestone should distinguish organisms that participate in a reproductive
-episode from the subset that contributes transmissible genetic state. Existing
-simple configurations may continue using the same organisms for both roles, but
-the orchestration should not require that equivalence.
+Reproductive participation and genetic contribution are now distinct. The next
+milestone should stop assuming that every reproductive participant is also an
+energy investor and that the full participant tuple is always the appropriate
+source context for offspring production and placement.
 
-After that separation is explicit, reproductive investment, offspring-production
-sources, placement sources, and pedigree semantics can be hardened without
-forcing them to remain identical to the genetic-contributor set.
+Existing simple configurations should preserve today's behavior through defaults
+in which all participants invest and the full participant group supplies production
+context. The architecture should nevertheless permit gestational, energetic,
+placement, or other production-relevant participants to differ from the genetic
+contributors without overloading pedigree parentage.
 
 See `docs/development/roadmap.md` for the milestone-level direction.
 
 ## Known architectural friction
 
-### Reproductive participation versus genetic contribution
+### Investment and production sources still follow all participants
 
-Current reproduction orchestration still uses one parent tuple for several
-biological responsibilities. Arity is no longer restricted, but participation,
-genetic contribution, energy investment, offspring-production context, placement,
-and pedigree parentage remain coupled by the orchestration path. The next
-hardening milestone should first separate reproductive participants from genetic
-contributors, preserving existing behavior through a default all-participants-
-contribute policy.
+Reproduction now distinguishes resolver-facing participants from genetic
+contributors, and pedigree parentage follows only the latter. The remaining
+coupling is that parental investment and `BiologicalOffspringProduction`
+source-entity context still receive the full participant tuple. That is correct for
+current presets but is not a universal biological rule.
 
-This is a biological-domain responsibility. No kernel or general-evolution
-change is currently justified.
+The next hardening milestone should give investment and production/placement source
+selection explicit responsibilities while retaining all-participants defaults.
+These remain biological-domain concerns; no kernel or general-evolution change is
+currently justified.
 
 ## Current collaboration model
 
@@ -230,6 +238,10 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#95 — participant/contributor separation:** made reproductive groups about
+  participants, introduced materialization-time genetic-contributor selection, and
+  defined pedigree parentage as genetic/transmissible-state contribution while
+  preserving all-participants contribution as the default.
 - **#92 — reproduction arity neutrality:** removed universal one/two-parent
   assumptions from shared biological grouping and inheritance orchestration while
   preserving clonal and current biparental sexual models as concrete policies.

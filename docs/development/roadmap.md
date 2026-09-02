@@ -46,6 +46,7 @@ transmissible-state contract normalization
 reproduction arity neutrality
         |
         v
+#95
 participant / contributor separation
         |
         v
@@ -93,9 +94,10 @@ inheritance and genome terminology remain domain-native specializations. See ADR
 
 ## Milestone 2 — Harden biological reproduction boundaries
 
-**Status:** active biological-specialization front. The first slice, Issue #92,
-removes universal one/two-parent assumptions from shared grouping and inheritance
-orchestration.
+**Status:** active biological-specialization front. Issue #92 established
+arity-neutral grouping/inheritance orchestration, and Issue #95 separates
+reproductive participants from genetic contributors. The next slice is independent
+investment and offspring-production/placement source semantics.
 
 **Goal:** make biological reproduction a clean specialization of general
 propagation and entity production without treating the simplest current mating
@@ -133,16 +135,23 @@ biological offspring production
 world admission
 ```
 
-The first hardening slice establishes that shared parent groups may contain any
-nonempty set of unique participants and that source-count requirements belong to
+Issue #92 established that shared reproductive groups may contain any nonempty
+ordered tuple of unique participants and that source-count requirements belong to
 concrete inheritance models. Clonal inheritance remains a one-source policy and
 the current Mendelian sexual model remains a two-source policy.
 
-The next slice should separate **reproductive participation** from **genetic
-contribution**. Existing simple configurations may use an all-participants-
-contribute policy, but the process should not require that equivalence. After
-that, reproductive investment, offspring-production sources, placement sources,
-and pedigree semantics can be separated where concrete biology requires it.
+Issue #95 then established **reproductive participation** and **genetic
+contribution** as separate responsibilities. Resolver-facing groups contain
+participants; `GeneticContributorSelection` chooses the ordered contributor subset
+only during materialization, preserving transaction/RNG semantics. Existing simple
+configurations use `AllParticipantsContribute`, while pedigree `parent_ids` now
+unambiguously mean genetic/transmissible-state contributors.
+
+The next slice should separate **reproductive investment targets** and the
+**offspring-production/placement source context** from the full participant tuple.
+Current presets should retain all-participants defaults, but future gestational,
+energetic, placement, or other production-relevant relationships must not be forced
+to equal either the participant set or the genetic-contributor set.
 
 **Constraints:**
 
@@ -218,15 +227,15 @@ semantics; Codex selectively for repetitive matrices and settled implementations
 beyond primarily pairwise group formation.
 
 The project already supports arbitrary mating-type labels, compatibility networks,
-and multiple reproductive roles per mating type. Future work should build on those
-capabilities toward:
+multiple reproductive roles per mating type, arity-neutral reproductive groups,
+and contributor subsets distinct from participants. Future work should build on
+those capabilities toward:
 
 - asymmetric and ordered roles;
 - multi-participant reproductive groups;
 - hermaphroditic systems;
 - role-sensitive mate choice;
-- variable genetic-contributor subsets once participant/contributor separation is
-  established.
+- richer policies determining which participants contribute genetic state.
 
 Mating-system composition should remain separate from low-level inheritance.
 

@@ -7,11 +7,17 @@ from typing import Protocol, runtime_checkable
 
 @runtime_checkable
 class ParentageEvent(Protocol):
-    """Expose reproductive parents for an event that creates offspring."""
+    """Expose genetic parentage for an event that creates offspring.
+
+    Reproductive participation is broader than parentage: an organism may
+    participate in a reproductive episode without contributing transmissible
+    genetic state. This protocol intentionally records only the contributors used
+    for pedigree and genetic ancestry.
+    """
 
     @property
     def parent_ids(self) -> tuple[int, ...]:
-        """Return reproductive parent IDs in biological parent order."""
+        """Return genetic contributor IDs in biological inheritance order."""
         ...
 
 

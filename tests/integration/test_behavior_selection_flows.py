@@ -31,9 +31,7 @@ def test_conservation_suppresses_growth_even_when_affordable() -> None:
     simulation = Simulation(
         initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
-        behavior_selection_model=EnergyConservationBehavior(
-            energy_threshold=10,
-        ),
+        behavior_selection_model=EnergyConservationBehavior(energy_threshold=10),
     )
     add_organism(
         simulation.state,
@@ -57,17 +55,12 @@ def test_conservation_suppresses_reproduction_even_when_eligible_and_affordable(
     simulation = Simulation(
         initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
-        behavior_selection_model=EnergyConservationBehavior(
-            energy_threshold=10,
-        ),
+        behavior_selection_model=EnergyConservationBehavior(energy_threshold=10),
     )
-    add_organism(
-        simulation.state,
-        energy=9,
-    )
+    add_organism(simulation.state, energy=9)
     process = Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=1),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
@@ -82,21 +75,10 @@ def test_conservation_preserves_resource_consumption_at_low_energy() -> None:
     simulation = Simulation(
         initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
-        behavior_selection_model=EnergyConservationBehavior(
-            energy_threshold=10,
-        ),
+        behavior_selection_model=EnergyConservationBehavior(energy_threshold=10),
     )
-    organism = add_organism(
-        simulation.state,
-        energy=1,
-        x=1,
-        y=1,
-    )
-    simulation.state.domain_state.add_resources(
-        x=1,
-        y=1,
-        amount=4,
-    )
+    organism = add_organism(simulation.state, energy=1, x=1, y=1)
+    simulation.state.domain_state.add_resources(x=1, y=1, amount=4)
     process = ResourceConsumption(requested_amount=4)
 
     events = process.propose_events(simulation.state)
@@ -118,9 +100,7 @@ def test_conservation_preserves_predation_at_low_energy() -> None:
     simulation = Simulation(
         initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
-        behavior_selection_model=EnergyConservationBehavior(
-            energy_threshold=10,
-        ),
+        behavior_selection_model=EnergyConservationBehavior(energy_threshold=10),
     )
     predator = add_organism(
         simulation.state,
@@ -136,10 +116,7 @@ def test_conservation_preserves_predation_at_low_energy() -> None:
         x=1,
         y=1,
     )
-    process = Predation(
-        neighborhood=SameCell(),
-        consumption_percent=100,
-    )
+    process = Predation(neighborhood=SameCell(), consumption_percent=100)
 
     events = process.propose_events(simulation.state)
 
@@ -154,9 +131,7 @@ def test_energy_acquisition_can_leave_conservation_mode_within_same_step() -> No
     simulation = Simulation(
         initial_domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
-        behavior_selection_model=EnergyConservationBehavior(
-            energy_threshold=10,
-        ),
+        behavior_selection_model=EnergyConservationBehavior(energy_threshold=10),
     )
     organism = add_organism(
         simulation.state,
@@ -166,11 +141,7 @@ def test_energy_acquisition_can_leave_conservation_mode_within_same_step() -> No
         x=1,
         y=1,
     )
-    simulation.state.domain_state.add_resources(
-        x=1,
-        y=1,
-        amount=10,
-    )
+    simulation.state.domain_state.add_resources(x=1, y=1, amount=10)
     coordinator = SequentialStepCoordinator(
         stages=(
             StageCoordinator(

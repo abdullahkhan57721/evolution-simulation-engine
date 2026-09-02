@@ -33,7 +33,7 @@ from tests.helpers import add_organism, make_state
 def _process(*, mating_type_model: OffspringMatingTypeModel) -> Reproduction:
     return Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),

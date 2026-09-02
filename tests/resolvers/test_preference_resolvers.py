@@ -31,13 +31,15 @@ def predation_event(
 
 
 def reproduction_proposal(
-    parent_ids: tuple[int, ...],
+    participant_ids: tuple[int, ...],
     preference_score: int,
 ) -> Reproduction.Proposal:
     """Return a minimal reproduction proposal."""
     return Reproduction.Proposal(
         step_index=0,
-        parent_energy_contributions=tuple((parent_id, 1) for parent_id in parent_ids),
+        participant_energy_contributions=tuple(
+            (participant_id, 1) for participant_id in participant_ids
+        ),
         preference_score=preference_score,
     )
 
@@ -48,13 +50,7 @@ def test_predation_resolver_prefers_highest_score() -> None:
     low = predation_event(0, 1, 1)
     high = predation_event(0, 2, 5)
 
-    resolved = PredationPreferenceOrder().resolve_events(
-        state,
-        [
-            low,
-            high,
-        ],
-    )
+    resolved = PredationPreferenceOrder().resolve_events(state, [low, high])
 
     assert resolved == [high]
 
@@ -65,13 +61,7 @@ def test_predation_resolver_blocks_chain_participation() -> None:
     first = predation_event(0, 1, 10)
     second = predation_event(1, 2, 9)
 
-    resolved = PredationPreferenceOrder().resolve_events(
-        state,
-        [
-            first,
-            second,
-        ],
-    )
+    resolved = PredationPreferenceOrder().resolve_events(state, [first, second])
 
     assert resolved == [first]
 
@@ -79,50 +69,23 @@ def test_predation_resolver_blocks_chain_participation() -> None:
 def test_preference_ties_preserve_proposal_order() -> None:
     """Test deterministic greedy tie-breaking."""
     state = make_state()
-    first = reproduction_proposal(
-        (0, 1),
-        5,
-    )
-    second = reproduction_proposal(
-        (0, 2),
-        5,
-    )
+    first = reproduction_proposal((0, 1), 5)
+    second = reproduction_proposal((0, 2), 5)
 
-    resolved = ReproductionPreferenceOrder().resolve_events(
-        state,
-        [
-            first,
-            second,
-        ],
-    )
+    resolved = ReproductionPreferenceOrder().resolve_events(state, [first, second])
 
     assert resolved == [first]
 
 
 def test_reproduction_resolver_allows_disjoint_pairs() -> None:
-    """Test compatible parent pairs may both reproduce."""
+    """Test compatible participant pairs may both reproduce."""
     state = make_state()
-    first = reproduction_proposal(
-        (0, 1),
-        5,
-    )
-    second = reproduction_proposal(
-        (2, 3),
-        4,
-    )
+    first = reproduction_proposal((0, 1), 5)
+    second = reproduction_proposal((2, 3), 4)
 
-    resolved = ReproductionPreferenceOrder().resolve_events(
-        state,
-        [
-            first,
-            second,
-        ],
-    )
+    resolved = ReproductionPreferenceOrder().resolve_events(state, [first, second])
 
-    assert resolved == [
-        first,
-        second,
-    ]
+    assert resolved == [first, second]
 
 
 def test_specialized_resolver_rejects_wrong_event_type() -> None:
@@ -132,10 +95,5 @@ def test_specialized_resolver_rejects_wrong_event_type() -> None:
     with pytest.raises(TypeError):
         PredationPreferenceOrder().resolve_events(
             state,
-            [
-                reproduction_proposal(
-                    (0,),
-                    0,
-                )
-            ],
+            [reproduction_proposal((0,), 0)],
         )

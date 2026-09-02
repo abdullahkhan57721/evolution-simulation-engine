@@ -241,13 +241,26 @@ Biological evolution maps naturally onto the abstract semantics:
 | context-dependent realization | development / GxE / plasticity |
 | operative characteristics | realized phenotype / physiology / behavior |
 | propagation | biological inheritance |
-| source entities | reproductive parents/contributors |
+| propagation source states | genomes of selected genetic contributors |
+| entity-production source entities | domain-defined reproductive production context |
 | variation | mutation and recombination |
 | entity production | reproduction / birth |
 | persistence/removal | survival, starvation, predation, age mortality |
 | interactions | feeding, movement, predation, mating, competition |
 | selection | differential survival and reproductive contribution |
-| lineage | pedigree / ancestry |
+| lineage | pedigree / genetic ancestry |
+
+Biological reproduction deliberately distinguishes several relationships that
+coincide in simple systems but are not universally identical. A reproductive
+episode first has **participants**, which are the organisms involved in mating and
+resolver competition. During materialization, biology may choose an ordered subset
+of those participants as **genetic contributors**; only their genomes become
+source states for inheritance, and pedigree parentage follows that genetic
+contribution. Entity production has a separate `source_entities` context whose
+meaning is defined by the biological production policy. The current biological
+implementation passes the full participant group to offspring production while
+that production/placement boundary is being hardened; the generic production
+contract does not require those source entities to equal propagation contributors.
 
 Biological semantics therefore belong in a biological layer that configures the
 general evolution and simulation machinery rather than inside the simulation
