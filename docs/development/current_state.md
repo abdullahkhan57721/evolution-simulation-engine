@@ -72,14 +72,21 @@ kernel deficiency is demonstrated.
 
 The project has domain-neutral foundations for:
 
-- evolving entities and operative characteristics;
-- transmissible/heritable state expression;
+- evolving entities as an architectural concept and small capability contracts;
+- transmissible-state expression;
 - variation;
 - linkage and co-transmission structure;
 - source-state/recipient propagation;
 - entity production;
 - entity access/reference;
 - admission/departure and generic conflict/effect foundations.
+
+`transmissible state` is the canonical general-evolution term for information
+that may be expressed, varied, or propagated. `TransmissibleStateExpression`
+models expression, while `TransmissibleStateCarrier` and `PropagationModel`
+model the independent carrier/propagation capabilities. The former redundant
+`EvolutionaryEntity.heritable_state` contract is intentionally removed; see ADR
+0007.
 
 Propagation is broader than biological inheritance: it accepts zero or more
 source states, a separately modeled recipient, immutable propagation
@@ -92,6 +99,11 @@ vocabulary. Existing capabilities include genomes and genetic architecture,
 inheritance, mutation/recombination, sexual inheritance, development, organism
 production, lifecycle behavior, energetics, feeding, movement, predation,
 reproduction, spatial ecology, and biological world state.
+
+Biology keeps its domain-native terms where they carry stronger semantics:
+`Organism.genome` is also exposed through the generic `transmissible_state`
+carrier capability, while inheritance remains the biological specialization of
+general propagation.
 
 The design should remain extensible toward richer genetics, dominance and other
 non-additive expression, ploidy variation, chromosome-specific recombination,
@@ -145,38 +157,32 @@ The example uses no biological `Organism`, `Genome`, biological world, genetics,
 or reproduction implementation. This is executable evidence that the general
 evolution architecture is genuinely usable outside biology.
 
+Issue #86 / PR #90 then used that evidence to normalize the remaining generic
+expression vocabulary around transmissible state without changing the example's
+behavior or the propagation/kernel semantics.
+
 ## Current development front
 
-The current architecture front is GitHub Issue #86:
+The next architectural front is **biological specialization hardening**.
 
-**Normalize general-evolution transmissible-state terminology.**
+With the generic transmissible-state vocabulary settled, the next milestone
+should audit the biological genetics/reproduction path against those contracts
+before substantially richer genetics or reproduction behavior is added. The goal
+is to remove accidental specialization mismatches, not to rewrite working
+biology.
 
-The nonbiological vertical slice exposed a concrete mismatch between the older
-`EvolutionaryEntity` / `HeritableStateExpression` / `heritable_state` vocabulary
-and the newer, broader `TransmissibleStateCarrier` / `transmissible_state`
-propagation vocabulary.
-
-This mismatch works today but is awkward in a nonbiological consumer. The next
-step is to decide the smallest coherent pre-1.0 public contract rather than
-silently normalizing terminology piecemeal.
-
-For exact scope and status, read Issue #86 directly.
+A dedicated implementation Issue should be scoped against current `main` before
+that milestone begins. See `docs/development/roadmap.md` for the milestone-level
+direction.
 
 ## Known architectural friction
 
-### `heritable_state` versus `transmissible_state`
-
-Status: intentionally unresolved; tracked in Issue #86.
-
-Do not independently rename, alias, or restructure these public contracts outside
-the scoped architecture milestone.
-
 ### General evolution versus biological specialization
 
-The generic layer is now proven outside biology, but biology should be rechecked
-against the settled general-evolution contracts before adding substantially richer
-genetics/reproduction behavior. This is a specialization-hardening step, not a
-rewrite of the mature biological model.
+The generic layer is now proven outside biology and its transmissible-state
+terminology is settled. Biology should be rechecked against those contracts
+before adding substantially richer genetics/reproduction behavior. This is a
+specialization-hardening step, not a rewrite of the mature biological model.
 
 ## Current collaboration model
 
@@ -200,9 +206,13 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#86 / #90 — transmissible-state terminology normalization:** made
+  `transmissible state` the single generic expression/variation/propagation
+  vocabulary, removed the redundant evolving-entity carrier Protocol, and kept
+  biological inheritance terminology as a specialization.
 - **#84 / #85 — nonbiological evolution proof:** demonstrated genuine evolution
-  through generic contracts without biological simulation objects and exposed the
-  terminology friction now tracked in #86.
+  through generic contracts without biological simulation objects and supplied
+  the evidence used by #86.
 - **#81 / #83 — collaboration workflow hardening:** made Issues, PR recovery
   checkpoints, manual verification, and repository-native agent handoff more
   explicit.
