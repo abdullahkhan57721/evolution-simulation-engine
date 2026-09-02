@@ -157,9 +157,9 @@ The example uses no biological `Organism`, `Genome`, biological world, genetics,
 or reproduction implementation. This is executable evidence that the general
 evolution architecture is genuinely usable outside biology.
 
-Issue #86 / PR #90 then used that evidence to normalize the remaining generic
-expression vocabulary around transmissible state without changing the example's
-behavior or the propagation/kernel semantics.
+Issue #86 then used that evidence to normalize the remaining generic expression
+vocabulary around transmissible state without changing the example's behavior or
+the propagation/kernel semantics.
 
 ## Current development front
 
@@ -206,10 +206,10 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
-- **#86 / #90 — transmissible-state terminology normalization:** made
-  `transmissible state` the single generic expression/variation/propagation
-  vocabulary, removed the redundant evolving-entity carrier Protocol, and kept
-  biological inheritance terminology as a specialization.
+- **#86 — transmissible-state terminology normalization:** made `transmissible
+  state` the single generic expression/variation/propagation vocabulary, removed
+  the redundant evolving-entity carrier Protocol, and kept biological inheritance
+  terminology as a specialization.
 - **#84 / #85 — nonbiological evolution proof:** demonstrated genuine evolution
   through generic contracts without biological simulation objects and supplied
   the evidence used by #86.
