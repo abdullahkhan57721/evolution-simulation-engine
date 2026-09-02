@@ -16,7 +16,10 @@ nav:
           - "0003 — Transactional state and RNG": decisions/0003-transactional-state-and-rng.md
           - "0004 — Readability before micro-optimization": decisions/0004-readability-before-micro-optimization.md
           - "0005 — Repository collaboration memory": decisions/0005-repository-collaboration-memory.md
+          - "0006 — Concise orientation and roadmap": decisions/0006-concise-orientation-and-roadmap.md
   - Development Workflow:
+      - Current Project State: development/current_state.md
+      - Architectural Roadmap: development/roadmap.md
       - Codex Ticket Workflow: development/codex_workflow.md
       - Manual Verification: development/manual_verification.md
   - General Evolution Framework: general_evolution_framework.md

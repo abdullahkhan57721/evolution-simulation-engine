@@ -47,3 +47,4 @@ benchmarks rather than duplicating them.
 - [0003 — Own transactional state and randomness in SimulationState](0003-transactional-state-and-rng.md)
 - [0004 — Prefer readability before micro-optimization](0004-readability-before-micro-optimization.md)
 - [0005 — Use the repository as durable collaboration memory](0005-repository-collaboration-memory.md)
+- [0006 — Add concise orientation and rolling roadmap documents](0006-concise-orientation-and-roadmap.md)

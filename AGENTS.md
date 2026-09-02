@@ -27,10 +27,30 @@ repository.
 4. Use `docs/decisions/` for the rationale behind settled major decisions.
 5. Use the active GitHub Issue and PR for dynamic milestone status, scope, and
    recovery state.
-6. Treat conversation summaries and old PR descriptions as secondary context.
+6. Use `docs/development/current_state.md` and
+   `docs/development/roadmap.md` as concise orientation/planning aids subordinate
+   to the sources above.
+7. Treat conversation summaries and old PR descriptions as secondary context.
 
 If documentation appears stale relative to code, fix the documentation in the
 same change rather than silently working around it.
+
+## Fresh-session orientation
+
+A fresh ChatGPT/Codex session should normally orient in this order:
+
+1. read this `AGENTS.md`;
+2. read `docs/development/current_state.md` for a concise snapshot of where the
+   project is now;
+3. read `docs/development/roadmap.md` for milestone-level direction;
+4. read the relevant architecture/subsystem docs and ADRs;
+5. read the active GitHub Issue and PR/recovery checkpoint;
+6. verify any live fact that matters against current `main`, tests, CI, Issues,
+   and PRs rather than trusting the snapshots blindly.
+
+The orientation documents deliberately avoid volatile SHAs, CI state, detailed
+ticket progress, and full history. They are navigation aids, not a replacement
+for live repository truth.
 
 ## Architectural layers
 
@@ -130,10 +150,13 @@ convenience alone is not sufficient.
 Start with:
 
 - `README.md` — user-facing overview.
+- `docs/development/current_state.md` — concise current orientation.
+- `docs/development/roadmap.md` — rolling milestone-level architectural direction.
 - `docs/architecture/index.md` — architecture map and reading order.
 - `docs/kernel_contract.md` — frozen kernel semantics.
 - `docs/general_evolution_framework.md` — domain-neutral evolution layer.
-- `docs/development/codex_workflow.md` — ticket handoff, scope, and recovery flow.
+- `docs/development/codex_workflow.md` — selective Codex handoff, scope, and
+  recovery flow.
 - `docs/development/manual_verification.md` — practical ticket-level verification.
 - `.github/ARCHITECTURE_GUARDRAILS.md` — enforced dependency direction.
 - `docs/decisions/` — major architectural decisions and rationale.
@@ -200,6 +223,11 @@ Substantial work should be recoverable without the originating chat.
 8. Require the complete protected GitHub Actions quality gate to be green.
 9. Squash-merge the exact reviewed/green head SHA.
 10. Re-fetch and verify `main` after merge.
+11. If the merged milestone materially changed architectural capability, the
+    current development front, known friction, collaboration policy, or roadmap
+    direction, update `docs/development/current_state.md` and/or
+    `docs/development/roadmap.md` in that milestone rather than leaving them
+    stale.
 
 The protected GitHub status-check name is intentionally stable. When refactoring
 CI, preserve branch-protection compatibility unless the repository rules are
@@ -221,6 +249,23 @@ it. Record it in the PR's **Risks / follow-ups** section and create or link a
 follow-up GitHub Issue when it merits future work.
 
 Detailed Codex handoff guidance lives in `docs/development/codex_workflow.md`.
+
+## ChatGPT and Codex allocation
+
+ChatGPT Chat is the default place for consequential design and for implementation
+when the hard part is architecture, the change is tightly scoped/sequential, or
+the design conversation itself provides important context. Chat may implement
+and carry such milestones through PR, CI, squash merge, and `main` verification.
+
+Use Codex selectively when the work is primarily execution-heavy behind settled
+interfaces: broad or repetitive migrations, large test matrices, validation and
+debug cycles, independent parallel tasks, or work that benefits from unattended
+repository iteration.
+
+Do not delegate to Codex merely because a ticket is substantial. Optimize for
+total cycle time, user attention, architectural correctness, and recoverability.
+Shared public-contract decisions should be settled before handing mechanical
+implementation to Codex.
 
 ## Recovery checkpoint protocol
 
@@ -284,6 +329,10 @@ Whenever a public contract, architectural boundary, development command, or
 workflow changes, update its authoritative documentation in the same PR. Avoid
 copying the same detailed rule into multiple files; link to the authoritative
 source instead.
+
+When a milestone materially changes current orientation or roadmap direction,
+update the corresponding development snapshot in the same PR. Do not churn those
+files for trivial maintenance or copy volatile GitHub state into them.
 
 ## Completion rule
 
