@@ -105,6 +105,19 @@ Biology keeps its domain-native terms where they carry stronger semantics:
 carrier capability, while inheritance remains the biological specialization of
 general propagation.
 
+Shared reproduction orchestration is arity-neutral: reproductive parent groups
+may contain any nonempty ordered group of unique organism references, and the
+common inheritance contract does not prescribe a universal parent count. Concrete
+policies retain their biological constraints, so clonal inheritance remains a
+one-source model and the current Mendelian sexual-inheritance policy remains a
+two-source model. This creates room for future variable-contributor biology
+without weakening today's concrete semantics.
+
+The genome representation already permits arbitrary chromosome-copy
+collections. Future ploidy work should therefore focus on explicit biological
+copy-count validation, pairing, segregation, gamete formation, and recombination
+policies rather than replacing `Genome` or generalizing the kernel.
+
 The design should remain extensible toward richer genetics, dominance and other
 non-additive expression, ploidy variation, chromosome-specific recombination,
 richer mating systems, and variable reproductive contributors.
@@ -159,30 +172,41 @@ evolution architecture is genuinely usable outside biology.
 
 Issue #86 then used that evidence to normalize the remaining generic expression
 vocabulary around transmissible state without changing the example's behavior or
-the propagation/kernel semantics.
+the propagation/kernel semantics. The subsequent biological-specialization audit
+identified reproduction orchestration, rather than the kernel or general
+framework, as the main remaining boundary to harden.
 
 ## Current development front
 
-The next architectural front is **biological specialization hardening**.
+The current architectural front is **reproductive-role separation within the
+biological specialization**.
 
-With the generic transmissible-state vocabulary settled, the next milestone
-should audit the biological genetics/reproduction path against those contracts
-before substantially richer genetics or reproduction behavior is added. The goal
-is to remove accidental specialization mismatches, not to rewrite working
-biology.
+Shared reproduction and inheritance no longer impose one/two-parent arity. The
+next milestone should distinguish organisms that participate in a reproductive
+episode from the subset that contributes transmissible genetic state. Existing
+simple configurations may continue using the same organisms for both roles, but
+the orchestration should not require that equivalence.
 
-A dedicated implementation Issue should be scoped against current `main` before
-that milestone begins. See `docs/development/roadmap.md` for the milestone-level
-direction.
+After that separation is explicit, reproductive investment, offspring-production
+sources, placement sources, and pedigree semantics can be hardened without
+forcing them to remain identical to the genetic-contributor set.
+
+See `docs/development/roadmap.md` for the milestone-level direction.
 
 ## Known architectural friction
 
-### General evolution versus biological specialization
+### Reproductive participation versus genetic contribution
 
-The generic layer is now proven outside biology and its transmissible-state
-terminology is settled. Biology should be rechecked against those contracts
-before adding substantially richer genetics/reproduction behavior. This is a
-specialization-hardening step, not a rewrite of the mature biological model.
+Current reproduction orchestration still uses one parent tuple for several
+biological responsibilities. Arity is no longer restricted, but participation,
+genetic contribution, energy investment, offspring-production context, placement,
+and pedigree parentage remain coupled by the orchestration path. The next
+hardening milestone should first separate reproductive participants from genetic
+contributors, preserving existing behavior through a default all-participants-
+contribute policy.
+
+This is a biological-domain responsibility. No kernel or general-evolution
+change is currently justified.
 
 ## Current collaboration model
 
@@ -206,6 +230,9 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#92 — reproduction arity neutrality:** removed universal one/two-parent
+  assumptions from shared biological grouping and inheritance orchestration while
+  preserving clonal and current biparental sexual models as concrete policies.
 - **#86 — transmissible-state terminology normalization:** made `transmissible
   state` the single generic expression/variation/propagation vocabulary, removed
   the redundant evolving-entity carrier Protocol, and kept biological inheritance

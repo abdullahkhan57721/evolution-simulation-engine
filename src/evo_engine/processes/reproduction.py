@@ -68,10 +68,10 @@ def _validate_reproduction_proposal(
 
 @attrs.frozen(slots=True, kw_only=True)
 class Reproduction:
-    """Represent a one- or two-parent reproduction simulation process.
+    """Represent a biological reproduction simulation process.
 
     Eligibility determines which organisms may individually reproduce. Parent
-    selection forms candidate one- or two-parent groups. Parental investment
+    selection forms nonempty candidate parent groups. Parental investment
     determines each parent's proposed energy cost. The configured energy
     expenditure policy then determines whether each parent may pay that cost,
     and stage resolution chooses which competing proposals may occur.
@@ -83,6 +83,10 @@ class Reproduction:
     energy investments and delegates entry of the already-produced offspring to
     a separate entity-admission model.
 
+    Shared orchestration does not prescribe parent-group or inheritance arity.
+    Concrete parent-selection and inheritance policies own any source-count
+    constraints they require.
+
     Parent enumeration, resolver-facing reference derivation, and later parent
     resolution are delegated to generic entity lifecycle policies. Biological
     eligibility, mating, inheritance, investment, and offspring construction
@@ -90,7 +94,7 @@ class Reproduction:
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
-        parent_selection: Policy proposing one- or two-parent groups.
+        parent_selection: Policy proposing nonempty parent groups.
         inheritance_model: Biological adapter that propagates an offspring genome
             from resolved parent transmissible states.
         parental_investment: Policy determining each parent's energy cost.
@@ -150,21 +154,6 @@ class Reproduction:
 
     def __attrs_post_init__(self) -> None:
         """Validate reproduction configuration and compose offspring production."""
-        parent_selection_count = self._validate_parent_count(
-            self.parent_selection,
-            name="parent_selection",
-        )
-        inheritance_count = self._validate_parent_count(
-            self.inheritance_model,
-            name="inheritance_model",
-        )
-
-        if parent_selection_count != inheritance_count:
-            raise ValueError(
-                "parent_selection and inheritance_model must require the "
-                "same number of parents."
-            )
-
         required_methods = (
             (self.eligibility, "is_eligible", "eligibility"),
             (
@@ -223,27 +212,6 @@ class Reproduction:
         )
 
     @staticmethod
-    def _validate_parent_count(
-        policy: ParentSelection | InheritanceModel,
-        *,
-        name: str,
-    ) -> int:
-        """Return and validate a policy's required parent count."""
-        try:
-            parent_count = policy.parent_count
-        except AttributeError as error:
-            raise TypeError(f"{name} must provide a parent_count property.") from error
-
-        validators.validate_int_in_range(
-            parent_count,
-            lower=1,
-            upper=2,
-            name=f"{name}.parent_count",
-        )
-
-        return parent_count
-
-    @staticmethod
     def _validate_investments(
         investments: object,
         *,
@@ -283,9 +251,8 @@ class Reproduction:
         Attributes:
             step_index: Simulation step associated with the proposal.
             parent_energy_contributions: ``(organism_id, energy)`` pairs for
-                exactly one or two reproductive parents. A parent may
-                contribute zero energy, but total offspring investment must be
-                positive.
+                one or more reproductive parents. A parent may contribute zero
+                energy, but total offspring investment must be positive.
             preference_score: Reproductive preference used by resolvers.
         """
 
@@ -305,10 +272,9 @@ class Reproduction:
                 name="parent_energy_contributions",
             )
 
-            if len(self.parent_energy_contributions) not in (1, 2):
+            if not self.parent_energy_contributions:
                 raise ValueError(
-                    "parent_energy_contributions must contain exactly one "
-                    "or two parents."
+                    "parent_energy_contributions must contain at least one parent."
                 )
 
             parent_ids: set[int] = set()
@@ -452,7 +418,7 @@ class Reproduction:
         self,
         simulation_state: SimulationState,
     ) -> list[Reproduction.Proposal]:
-        """Propose energetically permitted one- or two-parent reproductive events.
+        """Propose energetically permitted reproductive events.
 
         Args:
             simulation_state: Current simulation state.
@@ -536,7 +502,7 @@ class Reproduction:
                 parents,
                 simulation_state=simulation_state,
             ),
-            parent_count=self.inheritance_model.parent_count,
+            parent_count=len(parents),
         )
 
         if not self._can_spend_investments(
@@ -566,14 +532,6 @@ class Reproduction:
         parents_by_id: dict[int, Organism],
     ) -> tuple[Organism, ...]:
         """Return validated eligible parents for one proposed group."""
-        required_parent_count = self.inheritance_model.parent_count
-
-        if len(parent_ids) != required_parent_count:
-            raise ValueError(
-                "parent_selection proposed a group with a parent count "
-                "that does not match inheritance_model.parent_count."
-            )
-
         try:
             return tuple(parents_by_id[parent_id] for parent_id in parent_ids)
         except KeyError as error:
@@ -626,8 +584,6 @@ class Reproduction:
         Raises:
             RuntimeError: If a resolved parent can no longer pay its recorded
                 investment under the configured expenditure policy.
-            ValueError: If the resolved parent count conflicts with the
-                configured inheritance model.
         """
         world = simulation_state.domain_state
         parents = tuple(
@@ -637,12 +593,6 @@ class Reproduction:
             )
             for parent_id in resolved_event.parent_ids
         )
-
-        if len(parents) != self.inheritance_model.parent_count:
-            raise ValueError(
-                "resolved proposal parent count does not match "
-                "inheritance_model.parent_count."
-            )
 
         for parent_id, amount in resolved_event.parent_energy_contributions:
             parent = self.access_model.get(

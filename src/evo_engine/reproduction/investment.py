@@ -29,7 +29,7 @@ class ParentalInvestment(Protocol):
         """Return one energy investment for each parent.
 
         Args:
-            parents: One or two reproductive parents.
+            parents: One or more reproductive parents.
             simulation_state: Current simulation state.
 
         Returns:
@@ -79,7 +79,7 @@ class CharacteristicEnergyInvestment:
         """Return each parent's nonnegative operative investment value.
 
         Args:
-            parents: One or two reproductive parents.
+            parents: One or more reproductive parents.
             simulation_state: Current simulation state.
 
         Returns:
@@ -132,7 +132,7 @@ class GeneticPhenotypeEnergyInvestment:
         """Return each parent's genetically expressed trait value as its investment.
 
         Args:
-            parents: One or two reproductive parents.
+            parents: One or more reproductive parents.
             simulation_state: Current simulation state.
 
         Returns:
@@ -176,7 +176,7 @@ class FixedEnergyInvestment:
         """Return the configured fixed investment for each parent.
 
         Args:
-            parents: One or two reproductive parents.
+            parents: One or more reproductive parents.
             simulation_state: Current simulation state.
 
         Returns:
@@ -288,7 +288,7 @@ class MatingTypeScaledInvestment:
         """Return mating-type-scaled investments aligned with the parent tuple.
 
         Args:
-            parents: One or two reproductive parents.
+            parents: One or more reproductive parents.
             simulation_state: Current simulation state.
 
         Returns:

@@ -68,4 +68,3 @@ def test_clonal_inheritance_adapts_to_general_propagation() -> None:
     )
 
     assert result == genome
-    assert inheritance.parent_count == 1

@@ -71,14 +71,13 @@ def test_always_eligible_returns_true() -> None:
     "parent_ids",
     [
         (),
-        (1, 2, 3),
         (1, 1),
     ],
 )
 def test_parent_group_rejects_invalid_parent_membership(
     parent_ids: tuple[int, ...],
 ) -> None:
-    """Test one- or two-parent group invariants."""
+    """Test nonempty unique parent-group invariants."""
     with pytest.raises(ValueError):
         ParentGroup(
             parent_ids=parent_ids,

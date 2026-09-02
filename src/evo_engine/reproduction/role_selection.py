@@ -11,11 +11,13 @@ from evo_engine.genetics.requirements import (
     collect_required_traits,
     validate_required_traits,
 )
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.reproduction.parent_selection import ParentGroup
 from evo_engine.reproduction.roles import ReproductiveRoleModel
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import validators
 from evo_engine.world.organism import Organism
+from evo_engine.world.world_state import WorldState
 
 CanMate = Callable[[Organism, Organism, SimulationState], bool]
 PairPreferenceFunction = Callable[[Organism, Organism, SimulationState], int]
@@ -97,16 +99,12 @@ class DirectedPairwiseMating:
         )
         object.__setattr__(self, "required_traits", declared | nested)
 
-    @property
-    def parent_count(self) -> int:
-        """Return two required parents."""
-        return 2
-
     def propose_parent_groups(
         self,
         eligible_parents: Sequence[Organism],
         *,
         simulation_state: SimulationState,
+        reference_model: EntityReferenceModel[Organism, WorldState, int],
     ) -> list[ParentGroup]:
         """Return every valid ordered first-role/second-role candidate pair."""
         first_candidates = tuple(
@@ -126,6 +124,7 @@ class DirectedPairwiseMating:
                     first_parent,
                     second_parent,
                     simulation_state=simulation_state,
+                    reference_model=reference_model,
                 )
                 if group is not None:
                     groups.append(group)
@@ -137,9 +136,13 @@ class DirectedPairwiseMating:
         second_parent: Organism,
         *,
         simulation_state: SimulationState,
+        reference_model: EntityReferenceModel[Organism, WorldState, int],
     ) -> ParentGroup | None:
         """Return one valid directed parent group or ``None``."""
-        if first_parent.id == second_parent.id:
+        world = simulation_state.domain_state
+        first_reference = reference_model.reference(first_parent, state=world)
+        second_reference = reference_model.reference(second_parent, state=world)
+        if first_reference == second_reference:
             return None
         if not self._within_neighborhood(
             first_parent,
@@ -167,7 +170,7 @@ class DirectedPairwiseMating:
             raise TypeError("preference_function must return an integer.")
 
         return ParentGroup(
-            parent_ids=(first_parent.id, second_parent.id),
+            parent_ids=(first_reference, second_reference),
             preference_score=score,
         )
 
