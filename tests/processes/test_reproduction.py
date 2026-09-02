@@ -3,23 +3,31 @@
 from __future__ import annotations
 
 import random
+from collections.abc import Sequence
 
 import pytest
 
+from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics import (
     ClonalInheritance,
+    GeneticArchitecture,
+    Genome,
     SexualInheritance,
 )
 from evo_engine.processes import Reproduction
+from evo_engine.reference import EntityReferenceModel
 from evo_engine.reproduction import (
     AlwaysEligible,
     FixedBodyMassAtBirth,
     FixedEnergyInvestment,
     PairwiseMating,
+    ParentGroup,
     RandomParentLocation,
     SingleParent,
 )
 from evo_engine.spatial.neighborhoods import SameCell
+from evo_engine.world.organism import Organism
+from evo_engine.world.world_state import WorldState
 from tests.helpers import (
     add_organism,
     make_integer_architecture,
@@ -27,17 +35,90 @@ from tests.helpers import (
 )
 
 
-def test_reproduction_rejects_parent_count_mismatch() -> None:
-    """Test parent selection and inheritance must agree on arity."""
-    with pytest.raises(ValueError):
-        Reproduction(
-            eligibility=AlwaysEligible(),
-            parent_selection=SingleParent(),
-            inheritance_model=SexualInheritance(),
-            parental_investment=FixedEnergyInvestment(
-                amount=5,
-            ),
+class ThreeParentSelection:
+    """Propose the first three eligible organisms as one parent group."""
+
+    def propose_parent_groups(
+        self,
+        eligible_parents: Sequence[Organism],
+        *,
+        simulation_state: SimulationState,
+        reference_model: EntityReferenceModel[Organism, WorldState, int],
+    ) -> list[ParentGroup]:
+        """Return one three-parent group when enough parents are eligible."""
+        if len(eligible_parents) < 3:
+            return []
+        world = simulation_state.domain_state
+        return [
+            ParentGroup(
+                parent_ids=tuple(
+                    reference_model.reference(parent, state=world)
+                    for parent in eligible_parents[:3]
+                )
+            )
+        ]
+
+
+class ThreeSourceInheritance:
+    """Test-only inheritance policy requiring exactly three source genomes."""
+
+    def inherit(
+        self,
+        parent_genomes: tuple[Genome, ...],
+        *,
+        genetic_architecture: GeneticArchitecture,
+        rng: random.Random,
+    ) -> Genome:
+        """Return the first source after validating three-source arity."""
+        if len(parent_genomes) != 3:
+            raise ValueError("ThreeSourceInheritance requires exactly three genomes.")
+        for genome in parent_genomes:
+            genetic_architecture.validate_genome(genome)
+        return parent_genomes[0]
+
+    def propagate(
+        self,
+        source_states: tuple[Genome, ...],
+        *,
+        recipient: object,
+        context: GeneticArchitecture,
+        rng: random.Random,
+    ) -> Genome:
+        """Adapt the test inheritance policy to generic propagation."""
+        return self.inherit(
+            source_states,
+            genetic_architecture=context,
+            rng=rng,
         )
+
+
+def test_reproduction_materializes_three_parent_group() -> None:
+    """Test shared reproduction orchestration imposes no one/two-parent ceiling."""
+    architecture = make_integer_architecture("offspring_energy")
+    state = make_state(genetic_architecture=architecture, seed=4)
+    parents = tuple(
+        add_organism(
+            state,
+            trait_values={"offspring_energy": 5},
+            energy=20,
+        )
+        for _ in range(3)
+    )
+    process = Reproduction(
+        eligibility=AlwaysEligible(),
+        parent_selection=ThreeParentSelection(),
+        inheritance_model=ThreeSourceInheritance(),
+        parental_investment=FixedEnergyInvestment(amount=2),
+        offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
+    )
+
+    proposals = process.propose_events(state)
+    event = process.materialize_event(state, proposals[0])
+
+    assert proposals[0].parent_ids == tuple(parent.id for parent in parents)
+    assert proposals[0].initial_energy == 6
+    assert event.parent_ids == tuple(parent.id for parent in parents)
+    assert event.offspring_genome == parents[0].genome
 
 
 def test_one_parent_proposal_records_energy_contribution() -> None:
