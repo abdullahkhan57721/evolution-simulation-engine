@@ -10,15 +10,23 @@ For a new contributor or agent, the recommended order is:
 
 1. [`AGENTS.md`](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/AGENTS.md) for durable working rules and source-of-truth
    conventions.
-2. [Simulation Kernel Contract](../kernel_contract.md) for the frozen generic
+2. [Current Project State](../development/current_state.md) for a concise
+   orientation snapshot.
+3. [Architectural Roadmap](../development/roadmap.md) for milestone-level
+   direction and dependency ordering.
+4. [Simulation Kernel Contract](../kernel_contract.md) for the frozen generic
    execution semantics.
-3. [General Evolution Framework](../general_evolution_framework.md) for the
+5. [General Evolution Framework](../general_evolution_framework.md) for the
    domain-neutral evolutionary layer above the kernel.
-4. [Architecture Guardrails](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/.github/ARCHITECTURE_GUARDRAILS.md) for the
+6. [Architecture Guardrails](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/.github/ARCHITECTURE_GUARDRAILS.md) for the
    dependency directions that are mechanically enforced.
-5. [Architecture Decisions](../decisions/README.md) for the rationale behind
+7. [Architecture Decisions](../decisions/README.md) for the rationale behind
    major settled choices.
-6. The subsystem document relevant to the current Issue.
+8. The subsystem document and active GitHub Issue relevant to the current work.
+
+The current-state and roadmap pages are navigation aids. Current `main`, tests,
+CI, authoritative subsystem docs/ADRs, and active Issues/PRs remain higher-trust
+sources when anything disagrees.
 
 ## Architectural layers
 
@@ -163,9 +171,13 @@ rather than hand-editing generated content.
 
 Before changing a public contract or dependency direction:
 
-1. inspect the relevant existing ADRs;
-2. identify which executable guardrails/tests express the current contract;
-3. decide whether a new ADR is warranted;
-4. update architecture documentation and tests in the same PR;
-5. run `./scripts/architecture` and `./scripts/kernel_contracts` in addition to
+1. inspect current `main`, `docs/development/current_state.md`, and the relevant
+   roadmap milestone;
+2. inspect the relevant existing ADRs;
+3. identify which executable guardrails/tests express the current contract;
+4. decide whether a new ADR is warranted;
+5. update architecture documentation and tests in the same PR;
+6. update `current_state.md` or `roadmap.md` if the milestone materially changes
+   the orientation/direction they summarize;
+7. run `./scripts/architecture` and `./scripts/kernel_contracts` in addition to
    the broader quality gate.
