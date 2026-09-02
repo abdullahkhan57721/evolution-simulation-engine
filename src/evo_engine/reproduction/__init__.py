@@ -6,6 +6,10 @@ from evo_engine.reproduction.birth_mass import (
     FractionOfAdultBodyMassAtBirth,
     OffspringBodyMassModel,
 )
+from evo_engine.reproduction.contributor_selection import (
+    AllParticipantsContribute,
+    GeneticContributorSelection,
+)
 from evo_engine.reproduction.directed_mating import (
     ChooserSignalCompatibility,
     ChooserSignalMarginPreference,
@@ -17,6 +21,12 @@ from evo_engine.reproduction.eligibility import (
     MinimumAgeEligibility,
     MinimumEnergyEligibility,
     ReproductiveEligibility,
+)
+from evo_engine.reproduction.group_selection import (
+    PairwiseMating,
+    ReproductiveGroup,
+    ReproductiveGroupSelection,
+    SingleParent,
 )
 from evo_engine.reproduction.investment import (
     CharacteristicEnergyInvestment,
@@ -51,12 +61,6 @@ from evo_engine.reproduction.offspring_production import (
     BiologicalOffspringProduction,
     OffspringProductionContext,
 )
-from evo_engine.reproduction.parent_selection import (
-    PairwiseMating,
-    ParentGroup,
-    ParentSelection,
-    SingleParent,
-)
 from evo_engine.reproduction.placement import (
     OffspringPlacement,
     RandomParentLocation,
@@ -69,6 +73,7 @@ __all__ = [
     "AdultBodyMassAtBirth",
     "AllOfEligibility",
     "AllOfMatingCompatibility",
+    "AllParticipantsContribute",
     "AlwaysEligible",
     "BiologicalOffspringProduction",
     "CharacteristicEnergyInvestment",
@@ -82,6 +87,7 @@ __all__ = [
     "FixedEnergyInvestment",
     "FixedMatingType",
     "FractionOfAdultBodyMassAtBirth",
+    "GeneticContributorSelection",
     "GeneticPhenotypeEnergyInvestment",
     "GeneticPhenotypeMatingType",
     "MatingCompatibility",
@@ -101,13 +107,13 @@ __all__ = [
     "OffspringProductionContext",
     "PairwiseMating",
     "ParentalInvestment",
-    "ParentGroup",
-    "ParentSelection",
     "PreferredMateTarget",
     "RandomMatingType",
     "RandomParentLocation",
     "ReproductiveEligibility",
     "ReproductiveEligibilityMovementCondition",
+    "ReproductiveGroup",
+    "ReproductiveGroupSelection",
     "ReproductiveRoleModel",
     "SingleParent",
     "determine_offspring_mating_type",
