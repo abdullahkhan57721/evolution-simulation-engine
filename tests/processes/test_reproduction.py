@@ -370,7 +370,10 @@ def test_reproduction_declares_only_configured_policy_trait_dependencies() -> No
 
 def test_reproduction_materializes_development_after_genetic_expression() -> None:
     """Test offspring development varies around the inherited genetic value."""
-    from evo_engine.development import GaussianIntegerDevelopment, IndependentDevelopment
+    from evo_engine.development import (
+        GaussianIntegerDevelopment,
+        IndependentDevelopment,
+    )
     from evo_engine.genetics import ADULT_BODY_MASS
     from evo_engine.reproduction import FractionOfAdultBodyMassAtBirth
 
