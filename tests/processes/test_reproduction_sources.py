@@ -13,7 +13,10 @@ from evo_engine.reproduction import (
     AlwaysEligible,
     FixedBodyMassAtBirth,
     FixedEnergyInvestment,
+    OffspringPlacement,
+    OffspringProductionSourceSelection,
     PairwiseMating,
+    ReproductiveInvestorSelection,
 )
 from evo_engine.spatial.neighborhoods import Moore
 from evo_engine.world.organism import Organism
@@ -142,9 +145,9 @@ class SourceIndependentLocation:
 
 def _pair_process(
     *,
-    investor_selection: object,
-    production_source_selection: object,
-    offspring_placement: object | None = None,
+    investor_selection: ReproductiveInvestorSelection,
+    production_source_selection: OffspringProductionSourceSelection,
+    offspring_placement: OffspringPlacement | None = None,
 ) -> Reproduction:
     return Reproduction(
         eligibility=AlwaysEligible(),
@@ -219,7 +222,7 @@ def test_investor_selection_rejects_invalid_results(mode: str) -> None:
     architecture = make_integer_architecture("offspring_energy")
     state = make_state(genetic_architecture=architecture)
     first = add_organism(state, trait_values={"offspring_energy": 5}, energy=20)
-    second = add_organism(state, trait_values={"offspring_energy": 5}, energy=20)
+    add_organism(state, trait_values={"offspring_energy": 5}, energy=20)
     outsider = add_organism(state, trait_values={"offspring_energy": 5}, energy=20)
 
     if mode == "empty":
