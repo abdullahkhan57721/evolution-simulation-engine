@@ -64,7 +64,7 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
     reference = OffsetOrganismReference()
     process = Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
@@ -77,8 +77,10 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
     process.apply_event(state, event)
 
     expected_reference = selected.id + 100
-    assert proposal.parent_energy_contributions == ((expected_reference, 5),)
-    assert reference.entities == [selected, selected]
+    assert proposal.participant_energy_contributions == ((expected_reference, 5),)
+    assert event.participant_ids == (expected_reference,)
+    assert event.parent_ids == (expected_reference,)
+    assert reference.entities == [selected] * 5
     assert access.references == [
         expected_reference,
         expected_reference,
@@ -90,7 +92,7 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
 
 
 def test_pairwise_mating_derives_group_ids_through_reference_policy() -> None:
-    """Test sexual parent groups do not manufacture references from ``.id``."""
+    """Test reproductive groups do not manufacture references from ``.id``."""
     state = make_state()
     first = add_organism(state, x=0, y=0)
     second = add_organism(state, x=0, y=0)
@@ -98,11 +100,11 @@ def test_pairwise_mating_derives_group_ids_through_reference_policy() -> None:
 
     groups = PairwiseMating(
         neighborhood=SameCell(),
-    ).propose_parent_groups(
+    ).propose_reproductive_groups(
         (first, second),
         simulation_state=state,
         reference_model=reference,
     )
 
-    assert groups[0].parent_ids == (first.id + 50, second.id + 50)
+    assert groups[0].participant_ids == (first.id + 50, second.id + 50)
     assert reference.entities == [first, second]
