@@ -24,10 +24,6 @@ class PropagationOnlyInheritance:
 
     required_traits = frozenset()
 
-    @property
-    def parent_count(self) -> int:
-        return 1
-
     def inherit(
         self,
         parent_genomes: tuple[Genome, ...],
@@ -96,16 +92,13 @@ def test_reproduction_uses_generic_propagation_before_entity_production() -> Non
     )
     process = Reproduction(
         eligibility=AlwaysEligible(),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=PropagationOnlyInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
-    event = process.materialize_event(
-        state,
-        process.propose_events(state)[0],
-    )
+    event = process.materialize_event(state, process.propose_events(state)[0])
 
     assert event.offspring.genome == parent.genome
     assert event.offspring.energy == 5
