@@ -44,9 +44,7 @@ from tests.helpers import add_organism, make_integer_architecture, make_state
 def test_developmental_conservation_threshold_varies_behavior_by_organism() -> None:
     """Test heritable/developmental conservation thresholds alter behavior."""
     architecture = make_integer_architecture(ENERGY_CONSERVATION_THRESHOLD)
-    threshold = DevelopmentalEnergyThreshold(
-        trait_name=ENERGY_CONSERVATION_THRESHOLD,
-    )
+    threshold = DevelopmentalEnergyThreshold(trait_name=ENERGY_CONSERVATION_THRESHOLD)
     state = SimulationState(
         domain_state=WorldState(width=3, height=3),
         genetic_architecture=architecture,
@@ -76,9 +74,7 @@ def test_developmental_conservation_threshold_varies_behavior_by_organism() -> N
         simulation_state=state,
     )
 
-    intent = EnergyThresholdMovementIntent(
-        energy_threshold=threshold,
-    )
+    intent = EnergyThresholdMovementIntent(energy_threshold=threshold)
 
     assert (
         determine_movement_purpose(
@@ -127,7 +123,7 @@ def test_reproduction_layers_maturity_energy_and_reserve_requirements() -> None:
                 ),
             ),
         ),
-        parent_selection=SingleParent(),
+        reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
         parental_investment=FixedEnergyInvestment(amount=5),
         energy_expenditure_policy=KeepEnergyReserve(
@@ -171,11 +167,7 @@ def test_movement_reserve_policy_blocks_then_allows_exact_reserve() -> None:
             return (1, 0)
 
     architecture = make_integer_architecture(MAX_SPEED, ENERGY_RESERVE)
-    state = make_state(
-        width=5,
-        height=5,
-        genetic_architecture=architecture,
-    )
+    state = make_state(width=5, height=5, genetic_architecture=architecture)
     organism = add_organism(
         state,
         trait_values={MAX_SPEED: 1, ENERGY_RESERVE: 3},
@@ -188,9 +180,7 @@ def test_movement_reserve_policy_blocks_then_allows_exact_reserve() -> None:
         boundary_condition=Clamped(),
         locomotion_cost_model=FixedLocomotionCost(amount=4),
         energy_expenditure_policy=KeepEnergyReserve(
-            minimum_energy=DevelopmentalEnergyThreshold(
-                trait_name=ENERGY_RESERVE,
-            ),
+            minimum_energy=DevelopmentalEnergyThreshold(trait_name=ENERGY_RESERVE),
         ),
     )
 
@@ -213,11 +203,7 @@ def test_movement_application_rechecks_reserve_before_mutating_position() -> Non
             return (1, 0)
 
     architecture = make_integer_architecture(MAX_SPEED, ENERGY_RESERVE)
-    state = make_state(
-        width=5,
-        height=5,
-        genetic_architecture=architecture,
-    )
+    state = make_state(width=5, height=5, genetic_architecture=architecture)
     organism = add_organism(
         state,
         trait_values={MAX_SPEED: 1, ENERGY_RESERVE: 3},
@@ -230,9 +216,7 @@ def test_movement_application_rechecks_reserve_before_mutating_position() -> Non
         boundary_condition=Clamped(),
         locomotion_cost_model=FixedLocomotionCost(amount=4),
         energy_expenditure_policy=KeepEnergyReserve(
-            minimum_energy=DevelopmentalEnergyThreshold(
-                trait_name=ENERGY_RESERVE,
-            ),
+            minimum_energy=DevelopmentalEnergyThreshold(trait_name=ENERGY_RESERVE),
         ),
     )
     event = process.propose_events(state)[0]
@@ -253,11 +237,7 @@ def test_default_movement_policy_can_spend_exactly_to_zero_but_not_overdraw() ->
             return (1, 0)
 
     architecture = make_integer_architecture(MAX_SPEED)
-    state = make_state(
-        width=5,
-        height=5,
-        genetic_architecture=architecture,
-    )
+    state = make_state(width=5, height=5, genetic_architecture=architecture)
     organism = add_organism(
         state,
         trait_values={MAX_SPEED: 1},
