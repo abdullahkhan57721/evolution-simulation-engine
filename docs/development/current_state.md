@@ -105,20 +105,32 @@ Biology keeps its domain-native terms where they carry stronger semantics:
 carrier capability, while inheritance remains the biological specialization of
 general propagation.
 
-Shared reproduction orchestration is arity-neutral and now separates reproductive
-participation from genetic contribution. `ReproductiveGroup` records an ordered,
-nonempty set of unique reproductive participants used for mating and conflict
-resolution. During materialization, `GeneticContributorSelection` chooses the
-ordered participant subset whose genomes feed biological inheritance. The default
-`AllParticipantsContribute` preserves existing clonal and biparental behavior.
+Shared reproduction orchestration is arity-neutral and distinguishes four
+biological relationships that simple systems often collapse:
 
-Contributor selection occurs only after resolution, so rejected reproductive
-candidates cannot consume stochastic contributor-selection RNG. Materialized
-reproduction events expose all `participant_ids` separately from `parent_ids`;
-biological parentage and pedigree semantics use only the genetic contributors.
-Concrete inheritance policies still own their source-count constraints, so clonal
-inheritance remains a one-source model and the current Mendelian sexual-inheritance
-policy remains a two-source model.
+- `ReproductiveGroup` records ordered reproductive **participants** used for
+  mating and resolver conflicts;
+- `ReproductiveInvestorSelection` chooses the participant subset whose committed
+  energy investment determines proposal affordability, with
+  `AllParticipantsInvest` preserving current simple behavior;
+- `GeneticContributorSelection` chooses the ordered participant subset whose
+  genomes feed inheritance, with `AllParticipantsContribute` as the default; and
+- `OffspringProductionSourceSelection` chooses the participant subset supplied as
+  biological entity-production context, with
+  `AllParticipantsAsProductionSources` as the default.
+
+Investor selection occurs during proposal generation and intentionally receives no
+RNG argument because rejected candidates must not consume investor-selection
+randomness. Genetic-contributor and production-source selection occur only during
+materialization and may use the simulation-owned RNG. Resolver capacity remains
+participant-based regardless of the later investor, contributor, or production-
+source subsets.
+
+`Reproduction.Proposal` records `participant_ids` separately from investor energy
+contributions. Materialized reproduction events keep genetic `parent_ids` distinct
+from `production_source_ids`; pedigree parentage and direct genetic reproductive
+success continue to follow only transmissible-state contributors. Concrete
+inheritance and production policies retain their own stronger requirements.
 
 The genome representation already permits arbitrary chromosome-copy collections.
 Future ploidy work should therefore focus on explicit biological copy-count
@@ -181,40 +193,42 @@ Issue #86 then used that evidence to normalize the remaining generic expression
 vocabulary around transmissible state without changing the example's behavior or
 the propagation/kernel semantics. The subsequent biological-specialization audit
 identified reproduction orchestration, rather than the kernel or general
-framework, as the main remaining boundary to harden.
+framework, as the main remaining boundary to harden. Issues #92, #95, and #98
+incrementally removed the universal arity and reproductive-source conflations
+found by that audit without changing the frozen kernel or general-evolution layer.
 
 ## Current development front
 
-The current architectural front is **reproductive investment and offspring-source
-separation within the biological specialization**.
+The current architectural front is **explicit biological ploidy, pairing, and
+segregation semantics**.
 
-Reproductive participation and genetic contribution are now distinct. The next
-milestone should stop assuming that every reproductive participant is also an
-energy investor and that the full participant tuple is always the appropriate
-source context for offspring production and placement.
+`Genome` already stores arbitrary chromosome-copy collections, so the next genetics
+milestone should model what those copies biologically mean: expected copy counts,
+homolog pairing, transmitted gamete copy counts, and segregation rules. Existing
+Mendelian sexual inheritance should remain a concrete simple policy rather than
+becoming the universal model.
 
-Existing simple configurations should preserve today's behavior through defaults
-in which all participants invest and the full participant group supplies production
-context. The architecture should nevertheless permit gestational, energetic,
-placement, or other production-relevant participants to differ from the genetic
-contributors without overloading pedigree parentage.
+Richer mating systems are also now architecturally unblocked by arity-neutral
+reproductive groups and independent participant/investor/contributor/production-
+source semantics. They may advance as a parallel biological front when a concrete
+use case justifies them; they do not require a kernel or general-evolution change.
 
 See `docs/development/roadmap.md` for the milestone-level direction.
 
 ## Known architectural friction
 
-### Investment and production sources still follow all participants
+### Ploidy is representable but not yet an explicit biological policy
 
-Reproduction now distinguishes resolver-facing participants from genetic
-contributors, and pedigree parentage follows only the latter. The remaining
-coupling is that parental investment and `BiologicalOffspringProduction`
-source-entity context still receive the full participant tuple. That is correct for
-current presets but is not a universal biological rule.
+The `Genome` container can represent arbitrary chromosome-copy counts, and
+expression already supports multiple allele copies. Current meiotic gamete
+formation, however, is still a simple Mendelian policy that groups homologous
+chromosomes and transmits one copy per group. The architecture does not yet expose
+explicit chromosome-copy expectations, pairing behavior, transmitted gamete copy
+counts, or richer segregation rules.
 
-The next hardening milestone should give investment and production/placement source
-selection explicit responsibilities while retaining all-participants defaults.
-These remain biological-domain concerns; no kernel or general-evolution change is
-currently justified.
+The next hardening work should add those responsibilities above the frozen kernel
+and without replacing the existing `Genome` data model. Recombination should be
+deepened only after the pairing/segregation semantics it depends on are explicit.
 
 ## Current collaboration model
 
@@ -238,6 +252,10 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#98 — investor/production-source separation:** separated proposal-time
+  reproductive investors and materialization-time offspring-production sources from
+  resolver-facing participants and genetic contributors while preserving current
+  behavior through all-participants defaults.
 - **#95 — participant/contributor separation:** made reproductive groups about
   participants, introduced materialization-time genetic-contributor selection, and
   defined pedigree parentage as genetic/transmissible-state contribution while
