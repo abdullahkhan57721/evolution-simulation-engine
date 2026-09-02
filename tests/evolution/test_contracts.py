@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import assert_type
 
 import evo_engine.evolution as evolution_api
-
 from evo_engine.evolution import TransmissibleStateExpression
 from evo_engine.genetics import GeneticPhenotype, Genome
 from tests.helpers import make_empty_architecture, make_empty_genome
