@@ -1,4 +1,4 @@
-"""Role-aware parent-selection policies."""
+"""Role-aware reproductive-group selection policies."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from evo_engine.genetics.requirements import (
     validate_required_traits,
 )
 from evo_engine.reference import EntityReferenceModel
-from evo_engine.reproduction.parent_selection import ParentGroup
+from evo_engine.reproduction.group_selection import ReproductiveGroup
 from evo_engine.reproduction.roles import ReproductiveRoleModel
 from evo_engine.spatial.neighborhoods import Neighborhood
 from evo_engine.validation import validators
@@ -24,16 +24,16 @@ PairPreferenceFunction = Callable[[Organism, Organism, SimulationState], int]
 
 
 def _always_can_mate(
-    first_parent: Organism,
-    second_parent: Organism,
+    first_participant: Organism,
+    second_participant: Organism,
     simulation_state: SimulationState,
 ) -> bool:
     return True
 
 
 def _neutral_preference(
-    first_parent: Organism,
-    second_parent: Organism,
+    first_participant: Organism,
+    second_participant: Organism,
     simulation_state: SimulationState,
 ) -> int:
     return 0
@@ -48,16 +48,16 @@ def _nonblank(value: object, *, name: str) -> str:
 
 @attrs.frozen(slots=True, kw_only=True)
 class DirectedPairwiseMating:
-    """Propose ordered two-parent groups selected through explicit roles.
+    """Propose ordered two-participant groups selected through explicit roles.
 
-    Parent tuple order has a documented meaning for this selector: index zero
-    occupies ``first_role`` and index one occupies ``second_role``. The roles
-    are contextual capabilities supplied by ``role_model`` rather than fields
-    stored directly on organisms.
+    Participant tuple order has a documented meaning for this selector: index zero
+    occupies ``first_role`` and index one occupies ``second_role``. The roles are
+    contextual capabilities supplied by ``role_model`` rather than fields stored
+    directly on organisms.
 
     Attributes:
-        first_role: Required role for the first parent in each ordered group.
-        second_role: Required role for the second parent.
+        first_role: Required role for the first participant in each ordered group.
+        second_role: Required role for the second participant.
         role_model: Policy assigning available roles to each organism.
         neighborhood: Hard spatial neighborhood within which mating is possible.
         can_mate: Directed biological compatibility policy.
@@ -99,30 +99,32 @@ class DirectedPairwiseMating:
         )
         object.__setattr__(self, "required_traits", declared | nested)
 
-    def propose_parent_groups(
+    def propose_reproductive_groups(
         self,
-        eligible_parents: Sequence[Organism],
+        eligible_participants: Sequence[Organism],
         *,
         simulation_state: SimulationState,
         reference_model: EntityReferenceModel[Organism, WorldState, int],
-    ) -> list[ParentGroup]:
+    ) -> list[ReproductiveGroup]:
         """Return every valid ordered first-role/second-role candidate pair."""
         first_candidates = tuple(
-            parent
-            for parent in eligible_parents
-            if self.first_role in self.role_model.roles_for(parent, simulation_state)
+            participant
+            for participant in eligible_participants
+            if self.first_role
+            in self.role_model.roles_for(participant, simulation_state)
         )
         second_candidates = tuple(
-            parent
-            for parent in eligible_parents
-            if self.second_role in self.role_model.roles_for(parent, simulation_state)
+            participant
+            for participant in eligible_participants
+            if self.second_role
+            in self.role_model.roles_for(participant, simulation_state)
         )
-        groups: list[ParentGroup] = []
-        for first_parent in first_candidates:
-            for second_parent in second_candidates:
+        groups: list[ReproductiveGroup] = []
+        for first_participant in first_candidates:
+            for second_participant in second_candidates:
                 group = self._propose_pair(
-                    first_parent,
-                    second_parent,
+                    first_participant,
+                    second_participant,
                     simulation_state=simulation_state,
                     reference_model=reference_model,
                 )
@@ -132,28 +134,28 @@ class DirectedPairwiseMating:
 
     def _propose_pair(
         self,
-        first_parent: Organism,
-        second_parent: Organism,
+        first_participant: Organism,
+        second_participant: Organism,
         *,
         simulation_state: SimulationState,
         reference_model: EntityReferenceModel[Organism, WorldState, int],
-    ) -> ParentGroup | None:
-        """Return one valid directed parent group or ``None``."""
+    ) -> ReproductiveGroup | None:
+        """Return one valid directed reproductive group or ``None``."""
         world = simulation_state.domain_state
-        first_reference = reference_model.reference(first_parent, state=world)
-        second_reference = reference_model.reference(second_parent, state=world)
+        first_reference = reference_model.reference(first_participant, state=world)
+        second_reference = reference_model.reference(second_participant, state=world)
         if first_reference == second_reference:
             return None
         if not self._within_neighborhood(
-            first_parent,
-            second_parent,
+            first_participant,
+            second_participant,
             simulation_state=simulation_state,
         ):
             return None
 
         can_mate = self.can_mate(
-            first_parent,
-            second_parent,
+            first_participant,
+            second_participant,
             simulation_state,
         )
         if type(can_mate) is not bool:
@@ -162,31 +164,31 @@ class DirectedPairwiseMating:
             return None
 
         score = self.preference_function(
-            first_parent,
-            second_parent,
+            first_participant,
+            second_participant,
             simulation_state,
         )
         if type(score) is not int:
             raise TypeError("preference_function must return an integer.")
 
-        return ParentGroup(
-            parent_ids=(first_reference, second_reference),
+        return ReproductiveGroup(
+            participant_ids=(first_reference, second_reference),
             preference_score=score,
         )
 
     def _within_neighborhood(
         self,
-        first_parent: Organism,
-        second_parent: Organism,
+        first_participant: Organism,
+        second_participant: Organism,
         *,
         simulation_state: SimulationState,
     ) -> bool:
         world = simulation_state.domain_state
         return self.neighborhood.contains(
-            center_x=first_parent.x,
-            center_y=first_parent.y,
-            other_x=second_parent.x,
-            other_y=second_parent.y,
+            center_x=first_participant.x,
+            center_y=first_participant.y,
+            other_x=second_participant.x,
+            other_y=second_participant.y,
             width=world.width,
             height=world.height,
         )
