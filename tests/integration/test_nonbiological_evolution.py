@@ -108,7 +108,9 @@ def test_example_uses_only_generic_evo_engine_packages() -> None:
             imported_modules.update(alias.name for alias in node.names)
 
     evo_engine_imports = {
-        module for module in imported_modules if module.startswith("evo_engine")
+        module
+        for module in imported_modules
+        if module == "evo_engine" or module.startswith("evo_engine.")
     }
 
     assert all(
