@@ -68,7 +68,6 @@ expressed, varied, or propagated in an evolutionary system.
 ## References
 
 - GitHub Issue #86
-- PR #90
 - `docs/general_evolution_framework.md`
 - `src/evo_engine/evolution/contracts.py`
 - `src/evo_engine/propagation.py`
