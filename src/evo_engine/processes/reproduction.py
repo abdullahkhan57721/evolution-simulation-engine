@@ -294,9 +294,7 @@ class Reproduction:
             participant_ids: set[int] = set()
             total_investment = 0
 
-            for index, contribution in enumerate(
-                self.participant_energy_contributions
-            ):
+            for index, contribution in enumerate(self.participant_energy_contributions):
                 if type(contribution) is not tuple:
                     raise TypeError(
                         f"participant_energy_contributions[{index}] must be a tuple."
@@ -346,9 +344,7 @@ class Reproduction:
         @property
         def initial_energy(self) -> int:
             """Return total reproductive energy invested in the offspring."""
-            return sum(
-                amount for _, amount in self.participant_energy_contributions
-            )
+            return sum(amount for _, amount in self.participant_energy_contributions)
 
     @attrs.frozen(slots=True, kw_only=True)
     class Event:
@@ -593,10 +589,7 @@ class Reproduction:
     ) -> tuple[Organism, ...]:
         """Return validated eligible participants for one proposed group."""
         try:
-            return tuple(
-                participants_by_id[participant_id]
-                for participant_id in participant_ids
-            )
+            return tuple(participants_by_id[participant_id] for participant_id in participant_ids)
         except KeyError as error:
             raise ValueError(
                 "reproductive_group_selection proposed an organism that was not "
@@ -653,9 +646,7 @@ class Reproduction:
 
         for index, contributor in enumerate(selected):
             if not isinstance(contributor, Organism):
-                raise TypeError(
-                    f"genetic contributors[{index}] must be an Organism."
-                )
+                raise TypeError(f"genetic contributors[{index}] must be an Organism.")
             reference = self.reference_model.reference(contributor, state=world)
             try:
                 canonical = canonical_by_reference[reference]
@@ -781,9 +772,10 @@ class Reproduction:
         world = simulation_state.domain_state
         resolved_participants: list[tuple[Organism, int]] = []
 
-        for participant_id, amount in (
-            materialized_event.participant_energy_contributions
-        ):
+        for (
+            participant_id,
+            amount,
+        ) in materialized_event.participant_energy_contributions:
             participant = self.access_model.get(
                 participant_id,
                 state=world,
