@@ -79,6 +79,11 @@ An entity need not be an organism. It could be a cultural agent, software
 instance, strategy, design, molecule-like replicator, or another persistent
 unit chosen by the modeled domain.
 
+"Evolving entity" is an architectural concept rather than a marker interface.
+The engine exposes small capability contracts where code needs them instead of
+requiring every evolving entity to inherit or structurally satisfy a nominal
+entity type.
+
 ### Transmissible state
 
 An entity may carry **transmissible state**: information that can be copied,
@@ -248,12 +253,12 @@ Biological semantics therefore belong in a biological layer that configures the
 general evolution and simulation machinery rather than inside the simulation
 kernel itself.
 
-## 4. Current general contracts
+## 4. General contracts
 
-The `evo_engine.evolution` package already provides upstream contracts for:
+The `evo_engine.evolution` package provides upstream contracts for:
 
-- `EvolutionaryEntity`, whose current public state property is `heritable_state`;
-- heritable-state expression;
+- `TransmissibleStateExpression`, which maps transmissible information to
+  expressed operative characteristics;
 - variation operators;
 - characteristic sources and requirements;
 - linkage components, linkage groups, linkage positions, and linkage maps.
@@ -269,20 +274,28 @@ small neighboring modules rather than being forced into one package:
   domain references; and
 - `evo_engine.admission` and `evo_engine.departure` change domain membership.
 
-Propagation is therefore no longer limited to parent/descendant transmission.
-`PropagationModel` accepts zero or more source states, a separately modeled
-recipient, immutable domain-specific propagation configuration/context, and the
-simulation-owned RNG. Mutable evolving domain state remains outside that
-propagation-context slot and is inspected by the surrounding process when
-runtime state is needed. Biological inheritance adapts to that contract, but
-horizontal or replacement propagation does not need a biological adapter.
+`transmissible state` is the canonical generic vocabulary shared by expression,
+variation, and propagation. The engine does not maintain a second generic
+`heritable_state` category because current general contracts do not encode a
+lineage-restricted transmission relationship. Domains remain free to use
+inheritance and heritability terminology when those stronger semantics are real.
 
-Some older `evo_engine.evolution` names, especially `EvolutionaryEntity`,
-`HeritableStateExpression`, and their `heritable_state` vocabulary, still
-reflect the biological route by which the general contracts were introduced.
-They remain the current expression contracts; broader terminology normalization
-is intentionally deferred until evidence from real uses supports a focused API
-change.
+`TransmissibleStateExpression.express(...)` treats its state argument as
+positional-only at the generic contract boundary. This lets a specialization use
+its own public parameter name, such as `GeneticArchitecture.express(genome)`,
+while still satisfying the structural generic expression contract.
+
+Propagation is broader than biological inheritance. `PropagationModel` accepts
+zero or more source states, a separately modeled recipient, immutable
+domain-specific propagation configuration/context, and the simulation-owned RNG.
+Mutable evolving domain state remains outside that propagation-context slot and
+is inspected by the surrounding process when runtime state is needed. Biological
+inheritance adapts to that contract, but horizontal or replacement propagation
+does not need a biological adapter.
+
+See ADR 0007 for the rationale behind the canonical transmissible-state
+terminology and removal of the former redundant evolving-entity carrier
+Protocol.
 
 ## 5. Biological linkage as a special case
 
@@ -366,7 +379,7 @@ changed token composition
 
 The example compiles through `SimulationSpec` and runs through the frozen
 transactional kernel. It composes `TransmissibleStateCarrier`,
-`HeritableStateExpression`, `CharacteristicSource`, `PropagationModel`, and
+`TransmissibleStateExpression`, `CharacteristicSource`, `PropagationModel`, and
 `VariationOperator` without importing the biological world, organism, genetics,
 or reproduction implementations. Persistent node identities remain fixed, so
 the evolving quantity is the transmissible information rather than a renamed
