@@ -38,7 +38,7 @@ belongs above it unless a genuine generic deficiency is demonstrated.
 nonbiological evolutionary vertical slice
         |
         v
-#86 / #90
+#86
 transmissible-state contract normalization
         |
         v
@@ -63,7 +63,7 @@ are scoped against current `main`.
 
 ## Milestone 1 — General-evolution contract normalization
 
-**Status:** completed by Issue #86 / PR #90.
+**Status:** completed by Issue #86.
 
 **Goal:** reconcile the biology-shaped `EvolutionaryEntity` /
 `HeritableStateExpression` / `heritable_state` vocabulary with the broader
