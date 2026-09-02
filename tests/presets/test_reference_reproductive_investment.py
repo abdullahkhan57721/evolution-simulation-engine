@@ -34,8 +34,12 @@ def test_reference_reproduction_uses_asymmetric_mating_type_investment() -> None
     investors = tuple(simulation.state.domain_state.organisms.values())
 
     assert tuple(investor.mating_type for investor in investors) == ("type_a", "type_b")
-    assert isinstance(process.reproductive_energy_investment, MatingTypeScaledInvestment)
-    assert process.reproductive_energy_investment.required_traits == frozenset({OFFSPRING_ENERGY})
+    assert isinstance(
+        process.reproductive_energy_investment, MatingTypeScaledInvestment
+    )
+    assert process.reproductive_energy_investment.required_traits == frozenset(
+        {OFFSPRING_ENERGY}
+    )
     assert process.reproductive_energy_investment.determine_investments(
         investors,
         simulation_state=simulation.state,
