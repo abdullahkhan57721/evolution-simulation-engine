@@ -7,8 +7,7 @@ from evo_engine.evolution.characteristics import (
     validate_required_characteristics,
 )
 from evo_engine.evolution.contracts import (
-    EvolutionaryEntity,
-    HeritableStateExpression,
+    TransmissibleStateExpression,
     VariationOperator,
 )
 from evo_engine.evolution.linkage import (
@@ -23,12 +22,11 @@ from evo_engine.evolution.linkage import (
 __all__ = [
     "CharacteristicRequirementProvider",
     "CharacteristicSource",
-    "EvolutionaryEntity",
-    "HeritableStateExpression",
     "LinkageComponent",
     "LinkageMap",
     "PiecewiseLinkageMap",
     "RecombinationInterval",
+    "TransmissibleStateExpression",
     "UniformLinkageMap",
     "VariationOperator",
     "collect_required_characteristics",
