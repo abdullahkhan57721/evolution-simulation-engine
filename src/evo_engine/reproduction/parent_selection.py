@@ -24,9 +24,13 @@ from evo_engine.world.world_state import WorldState
 class ParentGroup:
     """Represent one candidate group of reproductive parents.
 
+    Shared reproduction orchestration permits any nonempty group size. Concrete
+    parent-selection and inheritance policies remain responsible for enforcing
+    any biological arity they require.
+
     Attributes:
-        parent_ids: IDs of one or two contributing parents.
-        preference_score: Pairing preference used during conflict resolution.
+        parent_ids: IDs of contributing reproductive parents.
+        preference_score: Group preference used during conflict resolution.
     """
 
     parent_ids: tuple[int, ...]
@@ -42,8 +46,8 @@ class ParentGroup:
             name="parent_ids",
         )
 
-        if len(self.parent_ids) not in (1, 2):
-            raise ValueError("parent_ids must contain exactly one or two parent IDs.")
+        if not self.parent_ids:
+            raise ValueError("parent_ids must contain at least one parent ID.")
 
         seen_ids: set[int] = set()
 
@@ -63,11 +67,6 @@ class ParentGroup:
 class ParentSelection(Protocol):
     """Define how eligible organisms form candidate parent groups."""
 
-    @property
-    def parent_count(self) -> int:
-        """Return the required number of parents per candidate group."""
-        ...
-
     def propose_parent_groups(
         self,
         eligible_parents: Sequence[Organism],
@@ -84,7 +83,7 @@ class ParentSelection(Protocol):
                 resolver-facing parent groups.
 
         Returns:
-            Candidate one- or two-parent groups.
+            Candidate nonempty parent groups.
         """
         ...
 
@@ -92,11 +91,6 @@ class ParentSelection(Protocol):
 @attrs.frozen(slots=True, kw_only=True)
 class SingleParent:
     """Propose each eligible organism as a one-parent reproductive group."""
-
-    @property
-    def parent_count(self) -> int:
-        """Return one required parent."""
-        return 1
 
     def propose_parent_groups(
         self,
@@ -210,11 +204,6 @@ class PairwiseMating:
             "required_traits",
             declared_requirements | nested_requirements,
         )
-
-    @property
-    def parent_count(self) -> int:
-        """Return two required parents."""
-        return 2
 
     def propose_parent_groups(
         self,
