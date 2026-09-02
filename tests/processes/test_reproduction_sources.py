@@ -166,7 +166,7 @@ def _pair_process(
     )
 
 
-def test_participant_investor_parent_and_production_source_are_independent() -> None:
+def test_participant_investor_contributor_and_production_source_are_independent() -> None:
     """Test one reproductive episode can use four distinct biological roles."""
     architecture = make_integer_architecture("offspring_energy")
     state = make_state(genetic_architecture=architecture, seed=9)
