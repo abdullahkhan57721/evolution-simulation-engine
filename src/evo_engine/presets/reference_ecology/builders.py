@@ -376,7 +376,7 @@ def build_reference_engine(
         processes=(
             Reproduction(
                 eligibility=reproductive_eligibility,
-                parent_selection=PairwiseMating(
+                reproductive_group_selection=PairwiseMating(
                     neighborhood=Moore(radius=config.mating_radius),
                     can_mate=mating_compatibility,
                     preference_function=mating_preference,
