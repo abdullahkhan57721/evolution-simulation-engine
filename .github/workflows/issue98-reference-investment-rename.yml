@@ -1,0 +1,41 @@
+name: Issue 98 Reference Investment Rename
+
+on:
+  push:
+    branches:
+      - issue-98-investment-production-sources
+
+permissions:
+  contents: write
+
+jobs:
+  rename:
+    if: github.event.head_commit.message != 'Rename reference reproductive investment builder'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: issue-98-investment-production-sources
+      - name: Apply exact reference investment rename
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          for root_name in ('src', 'tests'):
+              root = Path(root_name)
+              for path in root.rglob('*.py'):
+                  text = path.read_text()
+                  updated = text.replace(
+                      'build_reference_parental_investment',
+                      'build_reference_reproductive_investment',
+                  )
+                  if updated != text:
+                      path.write_text(updated)
+          PY
+          rm .github/workflows/issue98-reference-investment-rename.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Rename reference reproductive investment builder'
+          git push origin HEAD:issue-98-investment-production-sources
