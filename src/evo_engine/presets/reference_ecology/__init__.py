@@ -18,7 +18,7 @@ from evo_engine.presets.reference_ecology.genetics import (
 )
 from evo_engine.presets.reference_ecology.reproductive_investment import (
     ReferenceMatingTypeInvestmentScales,
-    build_reference_parental_investment,
+    build_reference_reproductive_investment,
 )
 from evo_engine.presets.reference_ecology.spec import build_reference_spec
 
@@ -32,7 +32,7 @@ __all__ = [
     "build_reference_engine",
     "build_reference_founder_genome",
     "build_reference_genetic_architecture",
-    "build_reference_parental_investment",
+    "build_reference_reproductive_investment",
     "build_reference_simulation",
     "build_reference_spec",
     "build_reference_world",

@@ -174,7 +174,7 @@ def test_mate_seeking_closes_distance_and_enables_reproduction() -> None:
             preference_function=preference,
         ),
         inheritance_model=SexualInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=1),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=1),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
     reproduction_stage = StageCoordinator(

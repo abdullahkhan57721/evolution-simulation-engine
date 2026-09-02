@@ -35,7 +35,7 @@ def _process(*, mating_type_model: OffspringMatingTypeModel) -> Reproduction:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
         offspring_mating_type_model=mating_type_model,
     )

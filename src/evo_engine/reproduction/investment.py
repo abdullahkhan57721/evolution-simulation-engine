@@ -1,4 +1,4 @@
-"""Parental energy-investment policies for reproduction."""
+"""Reproductive energy-investment policies."""
 
 from __future__ import annotations
 
@@ -17,33 +17,33 @@ from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
 
 
-class ParentalInvestment(Protocol):
-    """Define how much energy each reproductive parent invests."""
+class ReproductiveEnergyInvestment(Protocol):
+    """Define how much energy each selected reproductive investor contributes."""
 
     def determine_investments(
         self,
-        parents: tuple[Organism, ...],
+        investors: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> tuple[int, ...]:
-        """Return one energy investment for each parent.
+        """Return one energy investment for each selected investor.
 
         Args:
-            parents: One or more reproductive parents.
+            investors: One or more selected reproductive investors.
             simulation_state: Current simulation state.
 
         Returns:
-            Energy investments aligned with the parent tuple.
+            Energy investments aligned with the investor tuple.
         """
         ...
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class CharacteristicEnergyInvestment:
-    """Use an operative characteristic as each parent's energy investment.
+    """Use an operative characteristic as each investor's energy investment.
 
     Attributes:
-        characteristic_name: Characteristic specifying parental energy
+        characteristic_name: Characteristic specifying reproductive energy
             investment.
         source: Object providing ``value_for``. Defaults to realized
             developmental characteristics.
@@ -62,7 +62,7 @@ class CharacteristicEnergyInvestment:
 
     @property
     def required_characteristics(self) -> frozenset[str]:
-        """Return the operative characteristic used for parental investment."""
+        """Return the operative characteristic used for reproductive investment."""
         return frozenset({self.characteristic_name})
 
     @property
@@ -72,37 +72,37 @@ class CharacteristicEnergyInvestment:
 
     def determine_investments(
         self,
-        parents: tuple[Organism, ...],
+        investors: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> tuple[int, ...]:
-        """Return each parent's nonnegative operative investment value.
+        """Return each investor's nonnegative operative investment value.
 
         Args:
-            parents: One or more reproductive parents.
+            investors: One or more selected reproductive investors.
             simulation_state: Current simulation state.
 
         Returns:
-            Energy investments aligned with the parent tuple.
+            Energy investments aligned with the investor tuple.
         """
         return tuple(
             integer_characteristic(
                 self.source,
-                parent,
+                investor,
                 self.characteristic_name,
                 context=simulation_state,
                 minimum=0,
             )
-            for parent in parents
+            for investor in investors
         )
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class GeneticPhenotypeEnergyInvestment:
-    """Use an integer genetic phenotype trait as each parent's energy investment.
+    """Use a genetic phenotype trait as each investor's energy investment.
 
     Attributes:
-        trait_name: Name of the genetic phenotype trait specifying parental energy
+        trait_name: Genetic phenotype trait specifying reproductive energy
             investment.
     """
 
@@ -120,36 +120,37 @@ class GeneticPhenotypeEnergyInvestment:
 
     @property
     def required_traits(self) -> frozenset[str]:
-        """Return the genetic phenotype trait used for parental investment."""
+        """Return the genetic phenotype trait used for reproductive investment."""
         return frozenset({self.trait_name})
 
     def determine_investments(
         self,
-        parents: tuple[Organism, ...],
+        investors: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> tuple[int, ...]:
-        """Return each parent's genetically expressed trait value as its investment.
+        """Return each investor's genetically expressed investment value.
 
         Args:
-            parents: One or more reproductive parents.
+            investors: One or more selected reproductive investors.
             simulation_state: Current simulation state.
 
         Returns:
-            Energy investments aligned with the parent tuple.
+            Energy investments aligned with the investor tuple.
 
         Raises:
             ValueError: If a configured genetic phenotype value is negative.
         """
         investments = tuple(
-            parent.genetic_phenotype.int_value(self.trait_name) for parent in parents
+            investor.genetic_phenotype.int_value(self.trait_name)
+            for investor in investors
         )
 
         for investment in investments:
             if investment < 0:
                 raise ValueError(
                     f"genetic phenotype trait {self.trait_name!r} must be "
-                    "non-negative for parental investment."
+                    "non-negative for reproductive investment."
                 )
 
         return investments
@@ -157,10 +158,10 @@ class GeneticPhenotypeEnergyInvestment:
 
 @attrs.frozen(slots=True, kw_only=True)
 class FixedEnergyInvestment:
-    """Make every parent invest the same fixed amount of energy.
+    """Make every selected investor contribute the same fixed energy amount.
 
     Attributes:
-        amount: Energy invested by each parent.
+        amount: Energy contributed by each investor.
     """
 
     amount: int = attrs.field(
@@ -169,25 +170,25 @@ class FixedEnergyInvestment:
 
     def determine_investments(
         self,
-        parents: tuple[Organism, ...],
+        investors: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> tuple[int, ...]:
-        """Return the configured fixed investment for each parent.
+        """Return the configured fixed investment for each investor.
 
         Args:
-            parents: One or more reproductive parents.
+            investors: One or more selected reproductive investors.
             simulation_state: Current simulation state.
 
         Returns:
-            Energy investments aligned with the parent tuple.
+            Energy investments aligned with the investor tuple.
         """
-        return tuple(self.amount for _ in parents)
+        return tuple(self.amount for _ in investors)
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class MatingTypeInvestmentScale:
-    """Define a rational parental-investment scale for one mating type.
+    """Define a rational reproductive-investment scale for one mating type.
 
     Attributes:
         mating_type: Nonempty mating-type label receiving the scale.
@@ -232,23 +233,23 @@ class MatingTypeInvestmentScale:
 
 @attrs.frozen(slots=True, kw_only=True)
 class MatingTypeScaledInvestment:
-    """Scale a base parental-investment policy by each parent's mating type.
+    """Scale a base investment policy by each investor's mating type.
 
-    The wrapped policy first determines one base investment for each parent.
-    Each amount is then multiplied by the scale associated with that parent's
-    immutable ``mating_type``. Parent tuple order therefore does not define a
-    reproductive role: asymmetry follows individual reproductive identity.
+    The wrapped policy first determines one base investment for each selected
+    investor. Each amount is then multiplied by the scale associated with that
+    investor's immutable ``mating_type``. Investor tuple order therefore does not
+    define a reproductive role: asymmetry follows individual reproductive identity.
 
     Unlisted mating types retain their base investment through an implicit 1:1
     scale. This lets simulations introduce additional types without silently
     assigning them one of the configured asymmetric roles.
 
     Attributes:
-        base_investment: Underlying policy producing aligned parent investments.
+        base_investment: Underlying policy producing aligned investor investments.
         scales: Unique mating-type-specific rational scale factors.
     """
 
-    base_investment: ParentalInvestment
+    base_investment: ReproductiveEnergyInvestment
     scales: tuple[MatingTypeInvestmentScale, ...] = attrs.field(
         validator=attrs_validators.validate_tuple,
     )
@@ -281,14 +282,14 @@ class MatingTypeScaledInvestment:
 
     def determine_investments(
         self,
-        parents: tuple[Organism, ...],
+        investors: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> tuple[int, ...]:
-        """Return mating-type-scaled investments aligned with the parent tuple.
+        """Return mating-type-scaled investments aligned with the investor tuple.
 
         Args:
-            parents: One or more reproductive parents.
+            investors: One or more selected reproductive investors.
             simulation_state: Current simulation state.
 
         Returns:
@@ -302,26 +303,26 @@ class MatingTypeScaledInvestment:
         """
         base_values = validators.validate_tuple(
             self.base_investment.determine_investments(
-                parents,
+                investors,
                 simulation_state=simulation_state,
             ),
             name="base investments",
         )
-        if len(base_values) != len(parents):
+        if len(base_values) != len(investors):
             raise ValueError(
-                "base_investment must return exactly one investment per parent."
+                "base_investment must return exactly one investment per investor."
             )
 
         return tuple(
-            self._scale_for(parent.mating_type).scale(
+            self._scale_for(investor.mating_type).scale(
                 validators.validate_int_ge(
                     base_value,
                     bound=0,
                     name=f"base investments[{index}]",
                 )
             )
-            for index, (parent, base_value) in enumerate(
-                zip(parents, base_values, strict=True)
+            for index, (investor, base_value) in enumerate(
+                zip(investors, base_values, strict=True)
             )
         )
 

@@ -250,17 +250,24 @@ Biological evolution maps naturally onto the abstract semantics:
 | selection | differential survival and reproductive contribution |
 | lineage | pedigree / genetic ancestry |
 
-Biological reproduction deliberately distinguishes several relationships that
-coincide in simple systems but are not universally identical. A reproductive
-episode first has **participants**, which are the organisms involved in mating and
-resolver competition. During materialization, biology may choose an ordered subset
-of those participants as **genetic contributors**; only their genomes become
-source states for inheritance, and pedigree parentage follows that genetic
-contribution. Entity production has a separate `source_entities` context whose
-meaning is defined by the biological production policy. The current biological
-implementation passes the full participant group to offspring production while
-that production/placement boundary is being hardened; the generic production
-contract does not require those source entities to equal propagation contributors.
+Biological reproduction deliberately distinguishes relationships that coincide in
+simple systems but are not universally identical. A reproductive episode has
+**participants**, which are the organisms involved in mating and resolver
+competition. A proposal-time biological policy may choose a participant subset as
+**reproductive investors** whose committed energy determines whether the proposal
+is affordable. During materialization, biology separately chooses **genetic
+contributors**; only their genomes become propagation source states, and pedigree
+parentage follows that genetic contribution. Biology also chooses
+**offspring-production sources**, the participant subset supplied through the
+generic entity-production `source_entities` context for placement, newborn state,
+or other production-time policies.
+
+These sets are deliberately independent at the biological layer. Current simple
+configurations use all-participants defaults for investment, genetic contribution,
+and production context, but the generic propagation and production contracts do
+not require those relationships to coincide. Resolver conflicts remain based on
+reproductive participation rather than being redefined by whichever subset later
+invests, contributes transmissible state, or supplies production context.
 
 Biological semantics therefore belong in a biological layer that configures the
 general evolution and simulation machinery rather than inside the simulation

@@ -94,7 +94,7 @@ def test_reproduction_uses_generic_propagation_before_entity_production() -> Non
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=PropagationOnlyInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 

@@ -99,7 +99,7 @@ def test_environment_can_determine_offspring_mating_type_through_development() -
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         development_model=development,
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
         offspring_mating_type_model=DevelopmentalProfileMatingType(

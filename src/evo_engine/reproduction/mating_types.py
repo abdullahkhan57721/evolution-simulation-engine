@@ -26,7 +26,7 @@ class OffspringMatingTypeModel(Protocol):
 
     def determine_mating_type(
         self,
-        parents: Sequence[Organism],
+        source_entities: Sequence[Organism],
         *,
         offspring_genome: Genome,
         offspring_genetic_phenotype: GeneticPhenotype,
@@ -37,7 +37,7 @@ class OffspringMatingTypeModel(Protocol):
         """Return the mating-type label assigned at birth.
 
         Args:
-            parents: Resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             offspring_genome: Inherited offspring genome.
             offspring_genetic_phenotype: Deterministic phenotype expressed from
                 the offspring genome.
@@ -73,7 +73,7 @@ class FixedMatingType:
 
     def determine_mating_type(
         self,
-        parents: Sequence[Organism],
+        source_entities: Sequence[Organism],
         *,
         offspring_genome: Genome,
         offspring_genetic_phenotype: GeneticPhenotype,
@@ -119,7 +119,7 @@ class RandomMatingType:
 
     def determine_mating_type(
         self,
-        parents: Sequence[Organism],
+        source_entities: Sequence[Organism],
         *,
         offspring_genome: Genome,
         offspring_genetic_phenotype: GeneticPhenotype,
@@ -156,7 +156,7 @@ class GeneticPhenotypeMatingType:
 
     def determine_mating_type(
         self,
-        parents: Sequence[Organism],
+        source_entities: Sequence[Organism],
         *,
         offspring_genome: Genome,
         offspring_genetic_phenotype: GeneticPhenotype,
@@ -198,7 +198,7 @@ class DevelopmentalProfileMatingType:
 
     def determine_mating_type(
         self,
-        parents: Sequence[Organism],
+        source_entities: Sequence[Organism],
         *,
         offspring_genome: Genome,
         offspring_genetic_phenotype: GeneticPhenotype,
@@ -235,7 +235,7 @@ class DifferentMatingTypes:
 
 def determine_offspring_mating_type(
     model: OffspringMatingTypeModel,
-    parents: Sequence[Organism],
+    source_entities: Sequence[Organism],
     *,
     offspring_genome: Genome,
     offspring_genetic_phenotype: GeneticPhenotype,
@@ -247,7 +247,7 @@ def determine_offspring_mating_type(
 
     Args:
         model: Offspring mating-type assignment model.
-        parents: Resolved reproductive parents.
+        source_entities: Biological offspring-production source organisms.
         offspring_genome: Inherited offspring genome.
         offspring_genetic_phenotype: Deterministic offspring genetic phenotype.
         offspring_developmental_profile: Realized offspring developmental targets.
@@ -267,7 +267,7 @@ def determine_offspring_mating_type(
         raise TypeError("model must provide a callable determine_mating_type method.")
 
     mating_type = method(
-        parents,
+        source_entities,
         offspring_genome=offspring_genome,
         offspring_genetic_phenotype=offspring_genetic_phenotype,
         offspring_developmental_profile=offspring_developmental_profile,

@@ -108,9 +108,10 @@ Domain packages own modeled meaning. Important packages include:
 - `energetics` — metabolic/locomotion cost and expenditure policies.
 - `feeding` — intake and assimilation physiology.
 - `predation` — predation eligibility and preference policies.
-- `reproduction` — reproductive eligibility, reproductive-group selection,
-  genetic-contributor selection, investment, inheritance composition, movement
-  adapters, offspring-production context, and placement.
+- `reproduction` — reproductive eligibility and group selection, investor and
+  genetic-contributor selection, reproductive energy investment, inheritance
+  composition, movement adapters, offspring-production source selection/context,
+  mating-type assignment, newborn body mass, and placement.
 - `spatial` — geometry, neighborhoods, distance, and boundary behavior.
 - `world` — mutable biological/ecological domain state.
 - `observation` — committed population/evolution measurements.

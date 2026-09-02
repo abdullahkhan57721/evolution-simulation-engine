@@ -19,7 +19,7 @@ class OffspringBodyMassModel(Protocol):
     def determine_body_mass(
         self,
         developmental_profile: DevelopmentalProfile,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> int:
@@ -27,7 +27,7 @@ class OffspringBodyMassModel(Protocol):
 
         Args:
             developmental_profile: Offspring developmental target profile.
-            parents: One or two resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             simulation_state: Current simulation state.
 
         Returns:
@@ -68,7 +68,7 @@ class AdultBodyMassAtBirth:
     def determine_body_mass(
         self,
         developmental_profile: DevelopmentalProfile,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> int:
@@ -76,7 +76,7 @@ class AdultBodyMassAtBirth:
 
         Args:
             developmental_profile: Offspring developmental target profile.
-            parents: One or two resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             simulation_state: Current simulation state.
 
         Returns:
@@ -105,7 +105,7 @@ class FixedBodyMassAtBirth:
     def determine_body_mass(
         self,
         developmental_profile: DevelopmentalProfile,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> int:
@@ -113,7 +113,7 @@ class FixedBodyMassAtBirth:
 
         Args:
             developmental_profile: Offspring developmental target profile.
-            parents: One or two resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             simulation_state: Current simulation state.
 
         Returns:
@@ -166,7 +166,7 @@ class FractionOfAdultBodyMassAtBirth:
     def determine_body_mass(
         self,
         developmental_profile: DevelopmentalProfile,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
         simulation_state: SimulationState,
     ) -> int:
@@ -174,7 +174,7 @@ class FractionOfAdultBodyMassAtBirth:
 
         Args:
             developmental_profile: Offspring developmental target profile.
-            parents: One or two resolved reproductive parents.
+            source_entities: Biological offspring-production source organisms.
             simulation_state: Current simulation state.
 
         Returns:

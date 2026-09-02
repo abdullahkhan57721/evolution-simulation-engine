@@ -6,6 +6,7 @@ import random
 
 import pytest
 
+from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.genetics import ClonalInheritance
 from evo_engine.processes import Reproduction
 from evo_engine.reproduction import (
@@ -26,7 +27,7 @@ class FirstParticipantContributes:
         self,
         participants: tuple[Organism, ...],
         *,
-        simulation_state,
+        simulation_state: SimulationState,
         rng: random.Random,
     ) -> tuple[Organism, ...]:
         """Return the first participant only."""
@@ -44,7 +45,7 @@ class RecordingRandomContributorSelection:
         self,
         participants: tuple[Organism, ...],
         *,
-        simulation_state,
+        simulation_state: SimulationState,
         rng: random.Random,
     ) -> tuple[Organism, ...]:
         """Choose one participant using the provided RNG."""
@@ -63,25 +64,25 @@ class FixedContributorSelection:
         self,
         participants: tuple[Organism, ...],
         *,
-        simulation_state,
+        simulation_state: SimulationState,
         rng: random.Random,
     ) -> tuple[Organism, ...]:
         """Return the configured contributor tuple."""
         return self.contributors
 
 
-class SecondParticipantLocation:
-    """Place offspring at the second production source participant."""
+class SecondProductionSourceLocation:
+    """Place offspring at the second biological production source."""
 
     def choose_location(
         self,
-        parents: tuple[Organism, ...],
+        source_entities: tuple[Organism, ...],
         *,
-        simulation_state,
+        simulation_state: SimulationState,
         rng: random.Random,
     ) -> tuple[int, int]:
-        """Return the second participant's location, proving both sources arrive."""
-        return parents[1].x, parents[1].y
+        """Return the second source's location, proving both sources arrive."""
+        return source_entities[1].x, source_entities[1].y
 
 
 def _pair_process(*, contributor_selection) -> Reproduction:
@@ -90,8 +91,8 @@ def _pair_process(*, contributor_selection) -> Reproduction:
         reproductive_group_selection=PairwiseMating(neighborhood=Moore(radius=10)),
         inheritance_model=ClonalInheritance(),
         genetic_contributor_selection=contributor_selection,
-        parental_investment=FixedEnergyInvestment(amount=2),
-        offspring_placement=SecondParticipantLocation(),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=2),
+        offspring_placement=SecondProductionSourceLocation(),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
     )
 
@@ -124,7 +125,8 @@ def test_two_participants_can_have_one_genetic_parent() -> None:
     assert event.parent_ids == (first.id,)
     assert event.genetic_contributor_ids == (first.id,)
     assert event.offspring_genome == first.genome
-    # Production/placement still receives all participants in this milestone.
+    # The default production-source policy still supplies all participants.
+    assert event.production_source_ids == (first.id, second.id)
     assert (event.x, event.y) == (second.x, second.y)
 
     process.apply_event(state, event)

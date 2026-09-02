@@ -47,7 +47,7 @@ class OffsetOrganismReference:
 
 
 def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
-    """Test proposal, materialization, and application share entity references."""
+    """Test all reproduction roles share configured access/reference semantics."""
     architecture = make_integer_architecture("offspring_energy")
     state = make_state(genetic_architecture=architecture)
     excluded = add_organism(
@@ -66,7 +66,7 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
         eligibility=AlwaysEligible(),
         reproductive_group_selection=SingleParent(),
         inheritance_model=ClonalInheritance(),
-        parental_investment=FixedEnergyInvestment(amount=5),
+        reproductive_energy_investment=FixedEnergyInvestment(amount=5),
         offspring_body_mass_model=FixedBodyMassAtBirth(body_mass=1),
         access_model=access,
         reference_model=reference,
@@ -77,10 +77,14 @@ def test_reproduction_uses_same_reference_policy_across_all_phases() -> None:
     process.apply_event(state, event)
 
     expected_reference = selected.id + 100
-    assert proposal.participant_energy_contributions == ((expected_reference, 5),)
-    assert event.participant_ids == (expected_reference,)
+    assert proposal.participant_ids == (expected_reference,)
+    assert proposal.investor_ids == (expected_reference,)
+    assert proposal.investor_energy_contributions == ((expected_reference, 5),)
     assert event.parent_ids == (expected_reference,)
-    assert reference.entities == [selected] * 5
+    assert event.production_source_ids == (expected_reference,)
+    assert reference.entities
+    assert all(entity is selected for entity in reference.entities)
+    assert excluded not in reference.entities
     assert access.references == [
         expected_reference,
         expected_reference,

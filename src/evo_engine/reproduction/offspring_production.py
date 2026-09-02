@@ -28,7 +28,7 @@ from evo_engine.reproduction.mating_types import (
 )
 from evo_engine.reproduction.placement import (
     OffspringPlacement,
-    RandomParentLocation,
+    RandomProductionSourceLocation,
 )
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.organism import Organism
@@ -53,7 +53,9 @@ class BiologicalOffspringProduction(
     """Produce a newborn organism from an already-propagated genome."""
 
     development_model: DevelopmentModel = attrs.field(factory=DeterministicDevelopment)
-    offspring_placement: OffspringPlacement = attrs.field(factory=RandomParentLocation)
+    offspring_placement: OffspringPlacement = attrs.field(
+        factory=RandomProductionSourceLocation
+    )
     offspring_body_mass_model: OffspringBodyMassModel = attrs.field(
         factory=AdultBodyMassAtBirth
     )

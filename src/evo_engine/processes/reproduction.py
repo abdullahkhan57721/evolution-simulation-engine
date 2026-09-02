@@ -36,7 +36,11 @@ from evo_engine.reproduction.eligibility import ReproductiveEligibility
 from evo_engine.reproduction.group_selection import ReproductiveGroupSelection
 from evo_engine.reproduction.investment import (
     GeneticPhenotypeEnergyInvestment,
-    ParentalInvestment,
+    ReproductiveEnergyInvestment,
+)
+from evo_engine.reproduction.investor_selection import (
+    AllParticipantsInvest,
+    ReproductiveInvestorSelection,
 )
 from evo_engine.reproduction.mating_types import (
     FixedMatingType,
@@ -48,7 +52,11 @@ from evo_engine.reproduction.offspring_production import (
 )
 from evo_engine.reproduction.placement import (
     OffspringPlacement,
-    RandomParentLocation,
+    RandomProductionSourceLocation,
+)
+from evo_engine.reproduction.production_source_selection import (
+    AllParticipantsAsProductionSources,
+    OffspringProductionSourceSelection,
 )
 from evo_engine.validation import attrs_validators, validators
 from evo_engine.world.access import WorldOrganismAccess
@@ -70,46 +78,70 @@ def _validate_reproduction_proposal(
         )
 
 
+def _validate_unique_ids(
+    values: object,
+    *,
+    name: str,
+    allow_empty: bool,
+) -> tuple[int, ...]:
+    """Return validated nonnegative unique integer IDs."""
+    validated = validators.validate_tuple(values, name=name)
+    if not validated and not allow_empty:
+        raise ValueError(f"{name} must not be empty.")
+
+    seen: set[int] = set()
+    result: list[int] = []
+    for index, value in enumerate(validated):
+        item = validators.validate_int_ge(value, bound=0, name=f"{name}[{index}]")
+        if item in seen:
+            raise ValueError(f"{name} must not contain duplicate IDs.")
+        seen.add(item)
+        result.append(item)
+    return tuple(result)
+
+
 @attrs.frozen(slots=True, kw_only=True)
 class Reproduction:
     """Represent a biological reproduction simulation process.
 
     Eligibility determines which organisms may individually reproduce.
     Reproductive-group selection forms nonempty candidate participant groups.
-    Parental investment currently determines one energy cost for each participant,
-    and the configured energy expenditure policy determines whether those costs are
-    permitted. Stage resolution then chooses which competing participant groups may
-    proceed.
+    Investor selection then chooses the participant subset whose energy investment
+    is considered when deciding whether a proposal is affordable. Stage resolution
+    remains based on all reproductive participants rather than investors or genetic
+    contributors.
 
     Resolved proposals are materialized before any stage event is applied.
-    Materialization first chooses the ordered genetic contributors from the resolved
-    participants, then propagates an offspring genome from only those contributor
-    states. Biological offspring production still receives the full participant
-    tuple in this milestone so placement and other production-source semantics can
-    be hardened independently later. Application pays the recorded participant
-    energy investments and admits the already-produced offspring.
+    Materialization chooses genetic contributors, propagates an offspring genome,
+    then chooses the participant subset supplied as offspring-production context.
+    Genetic contribution and production context are therefore independent while
+    remaining explicitly related to the resolved reproductive episode.
 
-    Contributor selection occurs only during materialization. This preserves the
-    transactional RNG contract: rejected reproductive candidates never consume
-    stochastic contributor-selection randomness.
+    Investor selection is proposal-time and intentionally non-stochastic because
+    affordability determines whether a proposal exists. Genetic-contributor and
+    production-source selection occur only during materialization and may consume
+    the simulation-owned RNG without rejected candidates consuming stochastic state.
 
     Attributes:
         eligibility: Policy determining individual reproductive eligibility.
         reproductive_group_selection: Policy proposing nonempty participant groups.
         inheritance_model: Biological adapter propagating an offspring genome from
             selected genetic-contributor states.
-        genetic_contributor_selection: Policy choosing the ordered contributor
-            subset from each resolved participant group.
-        parental_investment: Policy currently determining each participant's energy
-            cost.
-        energy_expenditure_policy: Policy deciding whether each participant may pay
-            its proposed energy contribution.
-        development_model: Policy realizing individual developmental targets
-            during offspring production.
+        genetic_contributor_selection: Policy choosing ordered genetic contributors
+            from each resolved participant group.
+        reproductive_investor_selection: Policy choosing the participant subset that
+            invests offspring energy during proposal generation.
+        reproductive_energy_investment: Policy determining one energy amount for
+            each selected investor.
+        offspring_production_source_selection: Policy choosing the resolved
+            participant subset supplied to biological offspring production.
+        energy_expenditure_policy: Policy deciding whether each investor may pay its
+            proposed energy contribution.
+        development_model: Policy realizing individual developmental targets during
+            offspring production.
         offspring_placement: Policy choosing the offspring birth coordinate during
             offspring production.
-        offspring_body_mass_model: Policy determining newborn current body mass
-            during offspring production.
+        offspring_body_mass_model: Policy determining newborn current body mass.
         offspring_mating_type_model: Policy assigning immutable reproductive mating
             type during offspring production.
         access_model: Policy enumerating and resolving active participant organisms.
@@ -127,8 +159,14 @@ class Reproduction:
     genetic_contributor_selection: GeneticContributorSelection = attrs.field(
         factory=AllParticipantsContribute,
     )
-    parental_investment: ParentalInvestment = attrs.field(
+    reproductive_investor_selection: ReproductiveInvestorSelection = attrs.field(
+        factory=AllParticipantsInvest,
+    )
+    reproductive_energy_investment: ReproductiveEnergyInvestment = attrs.field(
         factory=GeneticPhenotypeEnergyInvestment,
+    )
+    offspring_production_source_selection: OffspringProductionSourceSelection = (
+        attrs.field(factory=AllParticipantsAsProductionSources)
     )
     energy_expenditure_policy: EnergyExpenditurePolicy = attrs.field(
         factory=SpendToZero,
@@ -137,7 +175,7 @@ class Reproduction:
         factory=DeterministicDevelopment,
     )
     offspring_placement: OffspringPlacement = attrs.field(
-        factory=RandomParentLocation,
+        factory=RandomProductionSourceLocation,
     )
     offspring_body_mass_model: OffspringBodyMassModel = attrs.field(
         factory=AdultBodyMassAtBirth,
@@ -175,9 +213,19 @@ class Reproduction:
                 "genetic_contributor_selection",
             ),
             (
-                self.parental_investment,
+                self.reproductive_investor_selection,
+                "select_investors",
+                "reproductive_investor_selection",
+            ),
+            (
+                self.reproductive_energy_investment,
                 "determine_investments",
-                "parental_investment",
+                "reproductive_energy_investment",
+            ),
+            (
+                self.offspring_production_source_selection,
+                "select_sources",
+                "offspring_production_source_selection",
             ),
             (
                 self.energy_expenditure_policy,
@@ -218,7 +266,9 @@ class Reproduction:
             self.reproductive_group_selection,
             self.inheritance_model,
             self.genetic_contributor_selection,
-            self.parental_investment,
+            self.reproductive_investor_selection,
+            self.reproductive_energy_investment,
+            self.offspring_production_source_selection,
             self.energy_expenditure_policy,
             self._offspring_production_model,
             self.offspring_admission_model,
@@ -228,34 +278,35 @@ class Reproduction:
     def _validate_investments(
         investments: object,
         *,
-        participant_count: int,
+        investor_count: int,
     ) -> tuple[int, ...]:
-        """Return validated participant energy investments."""
+        """Return validated reproductive-investor energy investments."""
         validated_investments = validators.validate_tuple(
             investments,
-            name="participant investments",
+            name="investor investments",
         )
 
-        if len(validated_investments) != participant_count:
+        if len(validated_investments) != investor_count:
             raise ValueError(
-                "parental_investment must return exactly one investment "
-                "for each reproductive participant."
+                "reproductive_energy_investment must return exactly one investment "
+                "for each selected investor."
             )
 
         total_investment = 0
-
+        result: list[int] = []
         for index, investment in enumerate(validated_investments):
             validated_investment = validators.validate_int_ge(
                 investment,
                 bound=0,
-                name=f"participant investments[{index}]",
+                name=f"investor investments[{index}]",
             )
             total_investment += validated_investment
+            result.append(validated_investment)
 
         if total_investment < 1:
             raise ValueError("total reproductive energy investment must be at least 1.")
 
-        return validated_investments
+        return tuple(result)
 
     @attrs.frozen(slots=True, kw_only=True)
     class Proposal:
@@ -263,102 +314,109 @@ class Reproduction:
 
         Attributes:
             step_index: Simulation step associated with the proposal.
-            participant_energy_contributions: ``(organism_id, energy)`` pairs for
-                one or more reproductive participants. A participant may contribute
-                zero energy, but total offspring investment must be positive.
+            participant_ids: Ordered reproductive participants used by resolvers.
+            investor_energy_contributions: ``(organism_id, energy)`` pairs for the
+                participant subset investing offspring energy. An investor may
+                contribute zero energy, but total offspring investment is positive.
             preference_score: Reproductive preference used by resolvers.
         """
 
         step_index: int = attrs.field(
             validator=attrs_validators.validate_int_ge(0),
         )
-        participant_energy_contributions: tuple[tuple[int, int], ...]
+        participant_ids: tuple[int, ...]
+        investor_energy_contributions: tuple[tuple[int, int], ...]
         preference_score: int = attrs.field(
             default=0,
             validator=attrs_validators.validate_int,
         )
 
         def __attrs_post_init__(self) -> None:
-            """Validate participant energy contributions."""
-            validators.validate_tuple(
-                self.participant_energy_contributions,
-                name="participant_energy_contributions",
+            """Validate participants and investor energy contributions."""
+            participants = _validate_unique_ids(
+                self.participant_ids,
+                name="participant_ids",
+                allow_empty=False,
             )
+            contributions = validators.validate_tuple(
+                self.investor_energy_contributions,
+                name="investor_energy_contributions",
+            )
+            if not contributions:
+                raise ValueError("investor_energy_contributions must not be empty.")
 
-            if not self.participant_energy_contributions:
-                raise ValueError(
-                    "participant_energy_contributions must contain at least one "
-                    "participant."
-                )
-
-            participant_ids: set[int] = set()
+            participant_set = frozenset(participants)
+            investor_ids: set[int] = set()
             total_investment = 0
-
-            for index, contribution in enumerate(self.participant_energy_contributions):
+            for index, contribution in enumerate(contributions):
                 if type(contribution) is not tuple:
                     raise TypeError(
-                        f"participant_energy_contributions[{index}] must be a tuple."
+                        f"investor_energy_contributions[{index}] must be a tuple."
                     )
-
                 if len(contribution) != 2:
                     raise ValueError(
-                        f"participant_energy_contributions[{index}] must contain "
+                        f"investor_energy_contributions[{index}] must contain "
                         "exactly two items."
                     )
 
-                participant_id, amount = contribution
-
-                validators.validate_int_ge(
-                    participant_id,
+                investor_id, amount = contribution
+                investor_id = validators.validate_int_ge(
+                    investor_id,
                     bound=0,
-                    name=f"participant_energy_contributions[{index}][0]",
+                    name=f"investor_energy_contributions[{index}][0]",
                 )
-                validators.validate_int_ge(
+                amount = validators.validate_int_ge(
                     amount,
                     bound=0,
-                    name=f"participant_energy_contributions[{index}][1]",
+                    name=f"investor_energy_contributions[{index}][1]",
                 )
-
-                if participant_id in participant_ids:
+                if investor_id not in participant_set:
                     raise ValueError(
-                        "participant_energy_contributions must not contain duplicate "
-                        f"participant ID {participant_id}."
+                        "investor_energy_contributions must contain only reproductive "
+                        "participants."
                     )
-
-                participant_ids.add(participant_id)
+                if investor_id in investor_ids:
+                    raise ValueError(
+                        "investor_energy_contributions must not contain duplicate "
+                        f"investor ID {investor_id}."
+                    )
+                investor_ids.add(investor_id)
                 total_investment += amount
 
             if total_investment < 1:
                 raise ValueError(
-                    "total participant energy contribution must be at least 1."
+                    "total investor energy contribution must be at least 1."
                 )
 
         @property
-        def participant_ids(self) -> tuple[int, ...]:
-            """Return reproductive participant IDs in recorded order."""
+        def investor_ids(self) -> tuple[int, ...]:
+            """Return reproductive investor IDs in recorded order."""
             return tuple(
-                participant_id
-                for participant_id, _ in self.participant_energy_contributions
+                investor_id for investor_id, _ in self.investor_energy_contributions
             )
 
         @property
         def initial_energy(self) -> int:
             """Return total reproductive energy invested in the offspring."""
-            return sum(amount for _, amount in self.participant_energy_contributions)
+            return sum(amount for _, amount in self.investor_energy_contributions)
 
     @attrs.frozen(slots=True, kw_only=True)
     class Event:
         """Represent a materialized Reproduction event.
 
-        ``participant_ids`` records every organism that participated in the
-        resolved reproductive episode. ``parent_ids`` exposes only the genetic
-        contributors for biological pedigree/ancestry semantics.
+        ``participant_ids`` records every organism in the resolved reproductive
+        episode. ``parent_ids`` exposes only genetic contributors for pedigree and
+        genetic ancestry. Investor contributions remain on the originating proposal,
+        while ``production_source_ids`` records the organisms supplied as biological
+        offspring-production context.
 
         Attributes:
             proposal: Resolved proposal from which the event was materialized.
             offspring: Fully produced newborn, not yet admitted to the world.
             genetic_contributor_ids: Ordered IDs whose transmissible state supplied
                 the offspring genome.
+            production_source_ids: Ordered participant IDs supplied to biological
+                offspring production.
         """
 
         proposal: Reproduction.Proposal = attrs.field(
@@ -368,40 +426,36 @@ class Reproduction:
             validator=attrs.validators.instance_of(Organism),
         )
         genetic_contributor_ids: tuple[int, ...]
+        production_source_ids: tuple[int, ...]
 
         def __attrs_post_init__(self) -> None:
-            """Validate committed energy and contributor/participant consistency."""
+            """Validate committed energy and relationship consistency."""
             if self.offspring.energy != self.proposal.initial_energy:
                 raise ValueError(
                     "offspring energy must equal the proposal's committed "
                     "reproductive energy investment."
                 )
 
-            validators.validate_tuple(
+            contributor_ids = _validate_unique_ids(
                 self.genetic_contributor_ids,
                 name="genetic_contributor_ids",
+                allow_empty=False,
             )
-            if not self.genetic_contributor_ids:
-                raise ValueError("genetic_contributor_ids must not be empty.")
-
+            production_source_ids = _validate_unique_ids(
+                self.production_source_ids,
+                name="production_source_ids",
+                allow_empty=True,
+            )
             participant_ids = frozenset(self.proposal.participant_ids)
-            seen_ids: set[int] = set()
-            for index, contributor_id in enumerate(self.genetic_contributor_ids):
-                validators.validate_int_ge(
-                    contributor_id,
-                    bound=0,
-                    name=f"genetic_contributor_ids[{index}]",
+            if not set(contributor_ids).issubset(participant_ids):
+                raise ValueError(
+                    "genetic_contributor_ids must contain only reproductive "
+                    "participants."
                 )
-                if contributor_id in seen_ids:
-                    raise ValueError(
-                        "genetic_contributor_ids must not contain duplicate IDs."
-                    )
-                if contributor_id not in participant_ids:
-                    raise ValueError(
-                        "genetic_contributor_ids must contain only reproductive "
-                        "participants."
-                    )
-                seen_ids.add(contributor_id)
+            if not set(production_source_ids).issubset(participant_ids):
+                raise ValueError(
+                    "production_source_ids must contain only reproductive participants."
+                )
 
         @property
         def step_index(self) -> int:
@@ -409,14 +463,19 @@ class Reproduction:
             return self.proposal.step_index
 
         @property
-        def participant_energy_contributions(self) -> tuple[tuple[int, int], ...]:
-            """Return recorded reproductive-participant energy contributions."""
-            return self.proposal.participant_energy_contributions
-
-        @property
         def participant_ids(self) -> tuple[int, ...]:
             """Return all reproductive participant IDs in recorded order."""
             return self.proposal.participant_ids
+
+        @property
+        def investor_energy_contributions(self) -> tuple[tuple[int, int], ...]:
+            """Return recorded reproductive-investor energy contributions."""
+            return self.proposal.investor_energy_contributions
+
+        @property
+        def investor_ids(self) -> tuple[int, ...]:
+            """Return reproductive investor IDs in recorded order."""
+            return self.proposal.investor_ids
 
         @property
         def parent_ids(self) -> tuple[int, ...]:
@@ -472,15 +531,7 @@ class Reproduction:
         self,
         simulation_state: SimulationState,
     ) -> list[Reproduction.Proposal]:
-        """Propose energetically permitted reproductive events.
-
-        Args:
-            simulation_state: Current simulation state.
-
-        Returns:
-            Candidate Reproduction proposals permitted by the configured
-            expenditure policy.
-        """
+        """Propose energetically permitted reproductive events."""
         world = simulation_state.domain_state
         eligible_participants = self._eligible_participants(simulation_state)
         reproductive_groups = (
@@ -491,15 +542,11 @@ class Reproduction:
             )
         )
         participants_by_id = {
-            self.reference_model.reference(
-                participant,
-                state=world,
-            ): participant
+            self.reference_model.reference(participant, state=world): participant
             for participant in eligible_participants
         }
 
         proposals: list[Reproduction.Proposal] = []
-
         for group in reproductive_groups:
             proposal = self._proposal_from_reproductive_group(
                 group.participant_ids,
@@ -509,7 +556,6 @@ class Reproduction:
             )
             if proposal is not None:
                 proposals.append(proposal)
-
         return proposals
 
     def _eligible_participants(
@@ -531,13 +577,10 @@ class Reproduction:
                 organism,
                 simulation_state=simulation_state,
             )
-
             if type(is_eligible) is not bool:
                 raise TypeError("eligibility.is_eligible must return a Boolean.")
-
             if is_eligible:
                 eligible_participants.append(organism)
-
         return eligible_participants
 
     def _proposal_from_reproductive_group(
@@ -553,30 +596,34 @@ class Reproduction:
             participant_ids,
             participants_by_id=participants_by_id,
         )
+        investors = self._select_investors(
+            participants,
+            simulation_state=simulation_state,
+        )
         investments = self._validate_investments(
-            self.parental_investment.determine_investments(
-                participants,
+            self.reproductive_energy_investment.determine_investments(
+                investors,
                 simulation_state=simulation_state,
             ),
-            participant_count=len(participants),
+            investor_count=len(investors),
         )
-
         if not self._can_spend_investments(
-            participants,
+            investors,
             investments,
             simulation_state=simulation_state,
         ):
             return None
 
+        world = simulation_state.domain_state
         return self.Proposal(
             step_index=simulation_state.step_index,
-            participant_energy_contributions=tuple(
-                (participant_id, investment)
-                for participant_id, investment in zip(
-                    participant_ids,
-                    investments,
-                    strict=True,
+            participant_ids=participant_ids,
+            investor_energy_contributions=tuple(
+                (
+                    self.reference_model.reference(investor, state=world),
+                    investment,
                 )
+                for investor, investment in zip(investors, investments, strict=True)
             ),
             preference_score=preference_score,
         )
@@ -598,26 +645,59 @@ class Reproduction:
                 "individually eligible to reproduce."
             ) from error
 
-    def _can_spend_investments(
+    def _canonical_participant_selection(
+        self,
+        selected: object,
+        participants: tuple[Organism, ...],
+        *,
+        name: str,
+        allow_empty: bool,
+        simulation_state: SimulationState,
+    ) -> tuple[Organism, ...]:
+        """Return a canonical unique participant selection."""
+        selected_tuple = validators.validate_tuple(selected, name=name)
+        if not selected_tuple and not allow_empty:
+            raise ValueError(f"{name} must not be empty.")
+
+        world = simulation_state.domain_state
+        canonical_by_reference = {
+            self.reference_model.reference(participant, state=world): participant
+            for participant in participants
+        }
+        seen_references: set[int] = set()
+        canonical: list[Organism] = []
+        for index, selected_organism in enumerate(selected_tuple):
+            if not isinstance(selected_organism, Organism):
+                raise TypeError(f"{name}[{index}] must be an Organism.")
+            reference = self.reference_model.reference(selected_organism, state=world)
+            try:
+                participant = canonical_by_reference[reference]
+            except KeyError as error:
+                raise ValueError(
+                    f"{name} must contain only resolved reproductive participants."
+                ) from error
+            if reference in seen_references:
+                raise ValueError(f"{name} must not contain duplicate participants.")
+            seen_references.add(reference)
+            canonical.append(participant)
+        return tuple(canonical)
+
+    def _select_investors(
         self,
         participants: tuple[Organism, ...],
-        investments: tuple[int, ...],
         *,
         simulation_state: SimulationState,
-    ) -> bool:
-        """Return whether every participant may pay its proposed investment."""
-        return all(
-            energy_expenditure_is_allowed(
-                self.energy_expenditure_policy,
-                participant,
-                energy_cost=investment,
-                simulation_state=simulation_state,
-            )
-            for participant, investment in zip(
+    ) -> tuple[Organism, ...]:
+        """Return canonical proposal-time reproductive investors."""
+        return self._canonical_participant_selection(
+            self.reproductive_investor_selection.select_investors(
                 participants,
-                investments,
-                strict=True,
-            )
+                simulation_state=simulation_state,
+            ),
+            participants,
+            name="reproductive investors",
+            allow_empty=False,
+            simulation_state=simulation_state,
         )
 
     def _select_genetic_contributors(
@@ -626,45 +706,57 @@ class Reproduction:
         *,
         simulation_state: SimulationState,
     ) -> tuple[Organism, ...]:
-        """Return validated canonical contributors selected from participants."""
-        selected = validators.validate_tuple(
+        """Return canonical materialization-time genetic contributors."""
+        return self._canonical_participant_selection(
             self.genetic_contributor_selection.select_contributors(
                 participants,
                 simulation_state=simulation_state,
                 rng=simulation_state.rng,
             ),
+            participants,
             name="genetic contributors",
+            allow_empty=False,
+            simulation_state=simulation_state,
         )
-        if not selected:
-            raise ValueError("genetic contributors must not be empty.")
 
-        world = simulation_state.domain_state
-        canonical_by_reference = {
-            self.reference_model.reference(participant, state=world): participant
-            for participant in participants
-        }
-        seen_references: set[int] = set()
-        contributors: list[Organism] = []
+    def _select_production_sources(
+        self,
+        participants: tuple[Organism, ...],
+        *,
+        genetic_contributors: tuple[Organism, ...],
+        simulation_state: SimulationState,
+    ) -> tuple[Organism, ...]:
+        """Return canonical materialization-time offspring-production sources."""
+        return self._canonical_participant_selection(
+            self.offspring_production_source_selection.select_sources(
+                participants,
+                genetic_contributors=genetic_contributors,
+                simulation_state=simulation_state,
+                rng=simulation_state.rng,
+            ),
+            participants,
+            name="offspring production sources",
+            allow_empty=True,
+            simulation_state=simulation_state,
+        )
 
-        for index, contributor in enumerate(selected):
-            if not isinstance(contributor, Organism):
-                raise TypeError(f"genetic contributors[{index}] must be an Organism.")
-            reference = self.reference_model.reference(contributor, state=world)
-            try:
-                canonical = canonical_by_reference[reference]
-            except KeyError as error:
-                raise ValueError(
-                    "genetic contributors must be drawn only from the resolved "
-                    "reproductive participants."
-                ) from error
-            if reference in seen_references:
-                raise ValueError(
-                    "genetic contributors must not contain duplicate participants."
-                )
-            seen_references.add(reference)
-            contributors.append(canonical)
-
-        return tuple(contributors)
+    def _can_spend_investments(
+        self,
+        investors: tuple[Organism, ...],
+        investments: tuple[int, ...],
+        *,
+        simulation_state: SimulationState,
+    ) -> bool:
+        """Return whether every selected investor may pay its proposed investment."""
+        return all(
+            energy_expenditure_is_allowed(
+                self.energy_expenditure_policy,
+                investor,
+                energy_cost=investment,
+                simulation_state=simulation_state,
+            )
+            for investor, investment in zip(investors, investments, strict=True)
+        )
 
     def materialize_event(
         self,
@@ -673,83 +765,70 @@ class Reproduction:
     ) -> Reproduction.Event:
         """Materialize a resolved Reproduction proposal.
 
-        Reproductive participation, state propagation, and entity production are
-        intentionally distinct. Contributor selection first chooses which resolved
-        participants supply transmissible state. Inheritance then propagates a
-        genome from only those contributor states. Biological offspring production
-        receives the full participant tuple for the current production/placement
-        semantics, and admission remains deferred until application.
-
-        Args:
-            simulation_state: Current pre-application simulation state.
-            resolved_event: Resolved Reproduction proposal to materialize.
-
-        Returns:
-            Fully determined Reproduction event ready for mechanical application.
-
-        Raises:
-            RuntimeError: If a resolved participant can no longer pay its recorded
-                investment under the configured expenditure policy.
+        Contributor and production-source selection happen only after conflict
+        resolution. Inheritance sees only contributor transmissible state, while
+        biological offspring production sees only the independently selected
+        production-source tuple.
         """
         world = simulation_state.domain_state
         participants = tuple(
-            self.access_model.get(
-                participant_id,
-                state=world,
-            )
+            self.access_model.get(participant_id, state=world)
             for participant_id in resolved_event.participant_ids
         )
-
-        for participant_id, amount in resolved_event.participant_energy_contributions:
-            participant = self.access_model.get(
-                participant_id,
-                state=world,
+        investors = tuple(
+            self.access_model.get(investor_id, state=world)
+            for investor_id in resolved_event.investor_ids
+        )
+        investment_amounts = tuple(
+            amount for _, amount in resolved_event.investor_energy_contributions
+        )
+        if not self._can_spend_investments(
+            investors,
+            investment_amounts,
+            simulation_state=simulation_state,
+        ):
+            raise RuntimeError(
+                "One or more reproductive investors cannot pay their recorded "
+                "energy investment under the configured expenditure policy."
             )
-            if not energy_expenditure_is_allowed(
-                self.energy_expenditure_policy,
-                participant,
-                energy_cost=amount,
-                simulation_state=simulation_state,
-            ):
-                raise RuntimeError(
-                    f"Organism {participant_id} cannot pay its recorded reproductive "
-                    "energy investment under the configured energy expenditure "
-                    "policy."
-                )
 
         contributors = self._select_genetic_contributors(
             participants,
             simulation_state=simulation_state,
         )
         architecture = simulation_state.context.require(GENETIC_ARCHITECTURE)
-
-        # All stochastic contributor choice and offspring state is deferred until
-        # after resolution so rejected reproductive candidates do not consume RNG
-        # or generate throwaway individual state.
         offspring_genome = self.inheritance_model.propagate(
             tuple(contributor.transmissible_state for contributor in contributors),
             recipient=None,
             context=architecture,
             rng=simulation_state.rng,
         )
+        production_sources = self._select_production_sources(
+            participants,
+            genetic_contributors=contributors,
+            simulation_state=simulation_state,
+        )
         offspring = self._offspring_production_model.produce(
             offspring_genome,
-            source_entities=participants,
+            source_entities=production_sources,
             context=OffspringProductionContext(
                 simulation_state=simulation_state,
                 initial_energy=resolved_event.initial_energy,
             ),
             rng=simulation_state.rng,
         )
-        genetic_contributor_ids = tuple(
-            self.reference_model.reference(contributor, state=world)
-            for contributor in contributors
-        )
 
         return self.Event(
             proposal=resolved_event,
             offspring=offspring,
-            genetic_contributor_ids=genetic_contributor_ids,
+            genetic_contributor_ids=tuple(
+                self.reference_model.reference(contributor, state=world)
+                for contributor in contributors
+            ),
+            production_source_ids=tuple(
+                self.reference_model.reference(source, state=world)
+                for source in production_sources
+            ),
         )
 
     def apply_event(
@@ -757,51 +836,28 @@ class Reproduction:
         simulation_state: SimulationState,
         materialized_event: Reproduction.Event,
     ) -> None:
-        """Mechanically apply a materialized Reproduction event.
-
-        Participant expenditure and entity admission are distinct application
-        responsibilities. The admission model owns how the already-produced
-        offspring becomes part of world state.
-
-        Args:
-            simulation_state: Current simulation state.
-            materialized_event: Fully determined Reproduction event to apply.
-
-        Raises:
-            RuntimeError: If a participant can no longer pay its recorded energy
-                contribution under the configured expenditure policy.
-        """
+        """Mechanically charge investors and admit a materialized offspring."""
         world = simulation_state.domain_state
-        resolved_participants: list[tuple[Organism, int]] = []
-
-        for (
-            participant_id,
-            amount,
-        ) in materialized_event.participant_energy_contributions:
-            participant = self.access_model.get(
-                participant_id,
-                state=world,
-            )
-
+        resolved_investors: list[tuple[Organism, int]] = []
+        for investor_id, amount in materialized_event.investor_energy_contributions:
+            investor = self.access_model.get(investor_id, state=world)
             if not energy_expenditure_is_allowed(
                 self.energy_expenditure_policy,
-                participant,
+                investor,
                 energy_cost=amount,
                 simulation_state=simulation_state,
             ):
                 raise RuntimeError(
-                    f"Organism {participant_id} cannot pay its recorded reproductive "
+                    f"Organism {investor_id} cannot pay its recorded reproductive "
                     "energy investment under the configured energy expenditure "
                     "policy."
                 )
+            resolved_investors.append((investor, amount))
 
-            resolved_participants.append((participant, amount))
-
-        # Validate every contribution before charging any participant. This keeps
-        # application atomic if a stale materialized event can no longer be
-        # permitted.
-        for participant, amount in resolved_participants:
-            participant.energy -= amount
+        # Validate every contribution before charging any investor so stale events
+        # cannot partially mutate state before an affordability failure is detected.
+        for investor, amount in resolved_investors:
+            investor.energy -= amount
 
         self.offspring_admission_model.admit(
             materialized_event.offspring,

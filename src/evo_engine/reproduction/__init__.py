@@ -34,7 +34,11 @@ from evo_engine.reproduction.investment import (
     GeneticPhenotypeEnergyInvestment,
     MatingTypeInvestmentScale,
     MatingTypeScaledInvestment,
-    ParentalInvestment,
+    ReproductiveEnergyInvestment,
+)
+from evo_engine.reproduction.investor_selection import (
+    AllParticipantsInvest,
+    ReproductiveInvestorSelection,
 )
 from evo_engine.reproduction.mating import (
     AllOfMatingCompatibility,
@@ -63,7 +67,11 @@ from evo_engine.reproduction.offspring_production import (
 )
 from evo_engine.reproduction.placement import (
     OffspringPlacement,
-    RandomParentLocation,
+    RandomProductionSourceLocation,
+)
+from evo_engine.reproduction.production_source_selection import (
+    AllParticipantsAsProductionSources,
+    OffspringProductionSourceSelection,
 )
 from evo_engine.reproduction.role_selection import DirectedPairwiseMating
 from evo_engine.reproduction.roles import MatingTypeRoles, ReproductiveRoleModel
@@ -73,7 +81,9 @@ __all__ = [
     "AdultBodyMassAtBirth",
     "AllOfEligibility",
     "AllOfMatingCompatibility",
+    "AllParticipantsAsProductionSources",
     "AllParticipantsContribute",
+    "AllParticipantsInvest",
     "AlwaysEligible",
     "BiologicalOffspringProduction",
     "CharacteristicEnergyInvestment",
@@ -105,15 +115,17 @@ __all__ = [
     "OffspringMatingTypeModel",
     "OffspringPlacement",
     "OffspringProductionContext",
+    "OffspringProductionSourceSelection",
     "PairwiseMating",
-    "ParentalInvestment",
     "PreferredMateTarget",
     "RandomMatingType",
-    "RandomParentLocation",
+    "RandomProductionSourceLocation",
     "ReproductiveEligibility",
     "ReproductiveEligibilityMovementCondition",
+    "ReproductiveEnergyInvestment",
     "ReproductiveGroup",
     "ReproductiveGroupSelection",
+    "ReproductiveInvestorSelection",
     "ReproductiveRoleModel",
     "SingleParent",
     "determine_offspring_mating_type",
