@@ -144,6 +144,7 @@ def test_one_participant_proposal_records_energy_contribution() -> None:
     assert proposals == [
         Reproduction.Proposal(
             step_index=0,
+            participant_ids=(parent.id,),
             investor_energy_contributions=((parent.id, 6),),
         )
     ]
