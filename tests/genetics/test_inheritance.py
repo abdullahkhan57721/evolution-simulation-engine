@@ -41,9 +41,7 @@ def make_architecture(
     )
     architecture = GeneticArchitecture(
         genome_structure=GenomeStructure(
-            chromosomes=(
-                ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
-            )
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
         ),
         loci=(locus,),
         traits=(),
