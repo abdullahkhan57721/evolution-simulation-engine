@@ -42,29 +42,23 @@ nonbiological evolutionary vertical slice
 transmissible-state contract normalization
         |
         v
-#92
-reproduction arity neutrality
+#92 → #95 → #98/#99
+reproduction boundary hardening
         |
-        v
-#95
-participant / contributor separation
-        |
-        v
-#98
-investment / production-source separation
-        |
-        +-----------------------------+
-        |                             |
-        v                             v
-ploidy / segregation          richer mating systems
-        |                             |
-        v                             |
- richer recombination                 |
-        |                             |
-        +-------------+---------------+
-                      |
-                      v
-            richer evolutionary ecology
+        +--------------------------------+
+        |                                |
+        v                                v
+#102 / #103                     richer mating systems
+chromosome-copy / pairing /             |
+segregation foundation                  |
+        |                                |
+        v                                |
+richer pairing + recombination           |
+        |                                |
+        +---------------+----------------+
+                        |
+                        v
+              richer evolutionary ecology
 ```
 
 Richer genetic-expression and development/G×E models can advance alongside these
@@ -176,8 +170,8 @@ implementation; Codex only for broad mechanical migration after contracts settle
 
 ## Milestone 3 — Richer genetic expression
 
-**Goal:** extend the existing ploidy-aware, multi-locus expression framework with
-additional biological expression policies rather than redesigning general
+**Goal:** extend the existing copy-count-aware, multi-locus expression framework
+with additional biological expression policies rather than redesigning general
 evolution.
 
 The current architecture already supports multi-locus expression and complete
@@ -210,34 +204,85 @@ realization, and current mutable physiological state into one catch-all object.
 **Implementation mode:** ChatGPT for new public-model semantics; settled,
 independent expression policies and test matrices are good Codex candidates.
 
-## Milestone 4 — Explicit ploidy, pairing, segregation, and recombination
+## Milestone 4 — Explicit chromosome-copy, pairing, segregation, and recombination foundations
 
-**Status:** next genetics architecture front after reproduction-source hardening.
+**Status:** foundational responsibility split completed by Issue #102 / PR #103.
 
-**Goal:** deepen biological transmission without narrowing general propagation.
+**Goal:** deepen biological transmission without narrowing general propagation or
+making ordinary diploidy universal architecture.
 
-`Genome` already represents arbitrary chromosome-copy collections. Future ploidy
-work should therefore make the biological rules around those copies explicit,
-including as needed:
+`Genome` remains permissive inherited chromosome-copy data. Biological structural
+meaning is now explicit above it:
 
-- chromosome-specific expected copy counts;
-- homolog pairing;
-- gamete copy counts and segregation;
-- role- or mating-type-specific gamete formation;
+```text
+Genome
+  |
+  v
+GenomeStructure + GeneticArchitecture validation
+  |
+  v
+ChromosomePairingModel
+  |
+  v
+ChromosomeAssociation(s)
+  |
+  v
+RecombinationModel
+  |
+  v
+ChromosomeSegregationModel
+  |
+  v
+Gamete
+```
+
+`GenomeStructure` declares chromosome types and chromosome-specific allowed copy
+counts; there is no foundational organism-wide `ploidy` scalar. A structurally
+valid genome may still be unsupported by a configured transmission policy.
+
+Pairing now decides temporary chromosome associations before recombination.
+Recombination operates only within those supplied associations and preserves copy
+cardinality. Segregation separately determines which and how many chromosome
+copies enter a gamete. `MeioticGameteFormation` composes those policies rather
+than embedding a universal one-copy-per-chromosome-name rule.
+
+`SameNameBivalentPairing`, `NoRecombination` /
+`SingleCrossoverRecombination`, and `BivalentSegregation` preserve current simple
+singleton/diploid Mendelian behavior. Chromosome-name equality is therefore a
+convention of the current simple policies, not a permanent definition of
+homology.
+
+A representative higher-copy test proves that a four-copy chromosome group can
+be structurally valid, be organized by an explicit alternative pairing policy
+into two bivalents, form a two-copy gamete through ordinary bivalent segregation,
+and flow through existing `SexualInheritance` to a valid four-copy offspring.
+That proof establishes architectural extensibility without shipping a production
+polyploid meiosis model prematurely.
+
+### Remaining genetics direction
+
+Build richer behavior on these settled contracts only when a concrete biological
+use case justifies it. Candidate follow-ups include:
+
+- production higher-copy pairing policies, including random or preferential
+  bivalents and eventually multivalents;
+- chromosome-specific pairing behavior;
 - chromosome-specific and multiple-crossover recombination;
-- richer polyploid transmission policies.
+- role-, mating-type-, or lifecycle-sensitive gamete formation where required;
+- more explicit sex-chromosome or homeolog semantics if same-name grouping is no
+  longer sufficient.
 
-The current `SexualInheritance` and meiotic gamete-formation policies remain useful
-simple Mendelian configurations; they should not be stretched into universal
-models.
+Do not add these capabilities merely to enumerate biological possibilities. The
+next genetics milestone should choose a concrete richer recombination/pairing case
+that exercises the new responsibility boundary.
 
-Pairing and segregation semantics should be established before richer
-polyploid/chromosome-specific recombination is layered on top. This remains a
-biological specialization; the general `PropagationModel` and frozen kernel do not
-need ploidy concepts.
+This remains a biological specialization. General `PropagationModel` and the
+frozen kernel do not need chromosome-copy, homolog, meiosis, or segregation
+concepts.
 
-**Implementation mode:** ChatGPT for pairing/segregation contracts and algorithmic
-semantics; Codex selectively for repetitive matrices and settled implementations.
+**Implementation mode:** ChatGPT for new pairing/recombination semantics and public
+contracts; Codex selectively for settled repetitive test matrices or mechanical
+migrations.
 
 ## Milestone 5 — Richer mating systems
 
@@ -291,10 +336,10 @@ and biogeographic structure. Selection should continue to emerge from
 differential persistence and propagation rather than becoming an intrinsic
 generic scalar field.
 
-Critical reproduction-boundary hardening is now complete. Major ecology work no
-longer needs to wait for every future expression, ploidy, recombination, mating,
-or development feature; add those capabilities when concrete ecological or
-biological use cases require them.
+Critical reproduction-boundary and chromosome-transmission-foundation hardening
+are complete. Major ecology work does not need to wait for every future expression,
+recombination, mating, or development feature; add those capabilities when
+concrete ecological or biological use cases require them.
 
 ## Cross-cutting fronts
 
