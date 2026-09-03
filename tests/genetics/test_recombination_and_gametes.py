@@ -89,9 +89,7 @@ def make_heterozygous_genome() -> tuple[GeneticArchitecture, Genome]:
 def test_no_recombination_returns_same_association() -> None:
     """Test explicit preservation when recombination is disabled."""
     architecture, genome = make_heterozygous_genome()
-    association = ChromosomeAssociation(
-        chromosomes=genome.chromosomes_named("1")
-    )
+    association = ChromosomeAssociation(chromosomes=genome.chromosomes_named("1"))
 
     result = NoRecombination().recombine(
         association,
@@ -105,9 +103,7 @@ def test_no_recombination_returns_same_association() -> None:
 def test_single_crossover_probability_zero_preserves_association() -> None:
     """Test crossover probability boundary at zero."""
     architecture, genome = make_heterozygous_genome()
-    association = ChromosomeAssociation(
-        chromosomes=genome.chromosomes_named("1")
-    )
+    association = ChromosomeAssociation(chromosomes=genome.chromosomes_named("1"))
 
     result = SingleCrossoverRecombination(
         probability_ppm=0,
@@ -123,9 +119,7 @@ def test_single_crossover_probability_zero_preserves_association() -> None:
 def test_single_crossover_probability_one_swaps_distal_alleles() -> None:
     """Test one crossover preserves phase on each side of the crossover."""
     architecture, genome = make_heterozygous_genome()
-    association = ChromosomeAssociation(
-        chromosomes=genome.chromosomes_named("1")
-    )
+    association = ChromosomeAssociation(chromosomes=genome.chromosomes_named("1"))
 
     result = SingleCrossoverRecombination(
         probability_ppm=1_000_000,
@@ -151,9 +145,7 @@ def test_single_crossover_rejects_multivalent_association() -> None:
     """Test pairwise crossover rejects unsupported multivalent exchange."""
     architecture, genome = make_heterozygous_genome()
     homologs = genome.chromosomes_named("1")
-    association = ChromosomeAssociation(
-        chromosomes=homologs + (homologs[0],)
-    )
+    association = ChromosomeAssociation(chromosomes=homologs + (homologs[0],))
 
     with pytest.raises(ValueError, match="singleton or bivalent"):
         SingleCrossoverRecombination(
@@ -193,9 +185,7 @@ def test_valid_four_copy_genome_can_be_unsupported_by_simple_pairing() -> None:
         loci=(),
         traits=(),
     )
-    genome = Genome(
-        chromosomes=tuple(Chromosome(name="1") for _ in range(4))
-    )
+    genome = Genome(chromosomes=tuple(Chromosome(name="1") for _ in range(4)))
 
     architecture.validate_genome(genome)
     with pytest.raises(ValueError, match="at most two copies"):
