@@ -44,8 +44,7 @@ class BivalentSegregation:
             )
         if not isinstance(rng, random.Random):
             raise TypeError(
-                "rng must be an instance of random.Random; "
-                f"received {rng!r}."
+                f"rng must be an instance of random.Random; received {rng!r}."
             )
 
         transmitted: list[Chromosome] = []
