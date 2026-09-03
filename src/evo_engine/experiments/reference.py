@@ -15,7 +15,15 @@ from evo_engine.observation import (
     IndividualLifeHistory,
     PopulationObservation,
 )
-from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
+from evo_engine.presets import (
+    FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS,
+    FlagshipMaxIntakeSpecification,
+    ReferenceEcology,
+    ReferenceEcologyConfig,
+    build_flagship_max_intake_ecology,
+    build_flagship_max_intake_specification,
+    build_reference_ecology,
+)
 from evo_engine.validation import validators
 
 _PACKAGE_NAME = "evolution-simulation-engine"
@@ -125,6 +133,7 @@ def run_reference_replicates(
     *,
     seeds: tuple[int, ...],
 ) -> ReferenceExperimentResult:
+    """Run independent homogeneous-founder reference-ecology replicates."""
     resolved_config = config if config is not None else ReferenceEcologyConfig()
     _validate_seeds(seeds)
     return ReferenceExperimentResult(
@@ -135,10 +144,49 @@ def run_reference_replicates(
     )
 
 
+def run_flagship_max_intake_replicates(
+    *,
+    seeds: tuple[int, ...] = FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS,
+) -> ReferenceExperimentResult:
+    """Run the flagship standing-variation scenario across independent seeds.
+
+    Args:
+        seeds: Unique simulation seeds. Defaults to the canonical eight-seed
+            robustness set measured during M4 scenario selection.
+
+    Returns:
+        Existing immutable experiment-result format for the flagship replicates.
+    """
+    _validate_seeds(seeds)
+    return ReferenceExperimentResult(
+        replicates=tuple(_run_flagship_max_intake_replicate(seed) for seed in seeds)
+    )
+
+
 def _run_reference_replicate(
     config: ReferenceEcologyConfig,
 ) -> ReferenceReplicateResult:
     ecology = build_reference_ecology(config)
+    return _run_ecology_replicate(
+        ecology,
+        config_json=_canonical_config_json(config),
+    )
+
+
+def _run_flagship_max_intake_replicate(seed: int) -> ReferenceReplicateResult:
+    specification = build_flagship_max_intake_specification(seed=seed)
+    ecology = build_flagship_max_intake_ecology(specification)
+    return _run_ecology_replicate(
+        ecology,
+        config_json=_canonical_flagship_config_json(specification),
+    )
+
+
+def _run_ecology_replicate(
+    ecology: ReferenceEcology,
+    *,
+    config_json: str,
+) -> ReferenceReplicateResult:
     ecology.engine.run(ecology.simulation)
     world = ecology.simulation.state.domain_state
     architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
@@ -147,10 +195,10 @@ def _run_reference_replicate(
     )
     return ReferenceReplicateResult(
         metadata=RunMetadata(
-            seed=config.seed,
+            seed=ecology.config.seed,
             engine_version=_engine_version(),
             python_version=platform.python_version(),
-            config_json=_canonical_config_json(config),
+            config_json=config_json,
             trait_names=tuple(sorted(architecture.trait_names)),
             locus_names=tuple(locus.name for locus in architecture.loci),
             completed_steps=ecology.simulation.state.step_index,
@@ -167,6 +215,20 @@ def _run_reference_replicate(
 
 def _canonical_config_json(config: ReferenceEcologyConfig) -> str:
     return json.dumps(attrs.asdict(config), sort_keys=True, separators=(",", ":"))
+
+
+def _canonical_flagship_config_json(
+    specification: FlagshipMaxIntakeSpecification,
+) -> str:
+    payload = {
+        "scenario": "flagship_max_intake",
+        "reference_config": attrs.asdict(specification.reference_config),
+        "founder_max_intake_rate": {
+            "low": specification.low_max_intake_rate,
+            "high": specification.high_max_intake_rate,
+        },
+    }
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
 def _engine_version() -> str:
