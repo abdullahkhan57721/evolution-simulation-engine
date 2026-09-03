@@ -48,8 +48,9 @@ Read in this order:
 6. [Kernel Public API](kernel_public_api.md)
 7. [Kernel Runtime](kernel_runtime.md)
 8. [Kernel Design Rationale and Invariants](kernel_design_rationale.md)
-9. [Worked Examples Across the Layers](worked_examples.md)
-10. [Reading the Kernel Source](source_code_walkthrough.md)
+9. [How the Architecture Evolved](architecture_evolution.md)
+10. [Worked Examples Across the Layers](worked_examples.md)
+11. [Reading the Kernel Source](source_code_walkthrough.md)
 
 Then use the [Debugger Labs](debugger_labs.md) and [Exercises](exercises.md) to
 turn recognition into working understanding.
@@ -95,6 +96,16 @@ entity production   -> biological offspring production
 
 Those are **specializations**, not synonyms.
 
+### I want to understand why the architecture is this complicated
+
+Read:
+
+1. [Kernel Design Rationale and Invariants](kernel_design_rationale.md)
+2. [How the Architecture Evolved](architecture_evolution.md)
+3. [Simulation Fundamentals](simulation_fundamentals.md)
+
+These chapters reconstruct the failure modes that forced the current abstractions.
+
 ### I want to practice
 
 Go to:
@@ -103,8 +114,64 @@ Go to:
 2. [Exercises](exercises.md)
 3. [Reading the Kernel Source](source_code_walkthrough.md)
 
-The exercises emphasize prediction, comparison, and implementation rather than
-terminology recall.
+The exercises emphasize prediction, comparison, implementation, and review rather
+than terminology recall.
+
+## How to study this textbook
+
+A single front-to-back read is useful, but it is not the fastest route to durable
+understanding. Use three passes.
+
+### Pass 1 — Build the conceptual skeleton
+
+Read the architecture primer, simulation fundamentals, general evolution,
+biological specialization, and kernel mental model.
+
+Do not stop to memorize every class or helper. Your goal is to be able to redraw:
+
+```text
+three architectural layers
+ownership graph
+one-step transaction
+one-stage phase order
+general-evolution loop
+```
+
+from memory.
+
+### Pass 2 — Connect concepts to production code
+
+Read the public API, runtime walkthrough, examples, and source-code walkthrough.
+
+At every real snippet, practice two explanations:
+
+```text
+What does this Python execute?
+Why does this line exist architecturally?
+```
+
+### Pass 3 — Retrieve and apply without the guide
+
+Use the debugger labs and exercises with the textbook closed whenever possible.
+Predict first. Open the guide only after you have committed to an answer.
+
+Good retrieval prompts include:
+
+```text
+Draw the transaction from memory.
+Explain materialization without using the source.
+Name the four reproduction relationships and their timing.
+Explain why the resolver does not mutate.
+Trace inheritance through kernel -> general evolution -> biology.
+```
+
+### Revisit after spacing
+
+A few days later, use only the [Cheat Sheet](cheatsheet.md). Try to reconstruct the
+full explanation behind each compact line.
+
+If a cheat-sheet item feels like a fact you recognize but cannot explain, return
+to that chapter. This is more useful than rereading everything equally.
 
 ## Concept dependency graph
 
