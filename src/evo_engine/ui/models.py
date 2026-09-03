@@ -71,9 +71,7 @@ class DashboardRun:
     def event_counts(self) -> tuple[tuple[str, int], ...]:
         """Return committed event counts by producing process name."""
         counts = Counter(
-            event.process_name
-            for step in self.telemetry_steps
-            for event in step.events
+            event.process_name for step in self.telemetry_steps for event in step.events
         )
         return tuple(sorted(counts.items()))
 
@@ -100,9 +98,7 @@ def build_curated_config(
     if type(mutation_percent) is not int or not 0 <= mutation_percent <= 100:
         raise ValueError("mutation_percent must be an integer from 0 through 100.")
     if type(recombination_percent) is not int or not 0 <= recombination_percent <= 100:
-        raise ValueError(
-            "recombination_percent must be an integer from 0 through 100."
-        )
+        raise ValueError("recombination_percent must be an integer from 0 through 100.")
 
     baseline = ReferenceEcologyConfig()
     return attrs.evolve(
