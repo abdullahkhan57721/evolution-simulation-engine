@@ -7,10 +7,12 @@ import random
 from evo_engine.genetics import (
     ChoiceAlleleDomain,
     Chromosome,
+    ChromosomeCopyExpectation,
     ClonalInheritance,
     CompleteDominanceExpression,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     Locus,
     NoMutation,
     Trait,
@@ -67,6 +69,14 @@ def test_materialization_can_assign_mating_type_from_offspring_genetics() -> Non
         mutation=NoMutation(),
     )
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosome_expectations=(
+                ChromosomeCopyExpectation(
+                    chromosome_name="1",
+                    allowed_copy_counts=(2,),
+                ),
+            )
+        ),
         loci=(locus,),
         traits=(
             Trait(
