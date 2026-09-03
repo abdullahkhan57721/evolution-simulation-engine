@@ -1,4 +1,4 @@
-"""Recombination models for meiotic chromosome exchange."""
+"""Recombination models for exchange within paired chromosome associations."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from evo_engine.evolution import (
     sample_linkage_breakpoint,
 )
 from evo_engine.genetics.chromosome import Chromosome
+from evo_engine.genetics.chromosome_association import ChromosomeAssociation
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.validation import validators
 
@@ -20,84 +21,78 @@ PROBABILITY_SCALE = 1_000_000
 
 
 class RecombinationModel(Protocol):
-    """Define how homologous chromosomes recombine before segregation."""
+    """Define exchange within an already-selected chromosome association."""
 
     def recombine(
         self,
-        homologs: tuple[Chromosome, ...],
+        association: ChromosomeAssociation,
         *,
         genetic_architecture: GeneticArchitecture,
         rng: random.Random,
-    ) -> tuple[Chromosome, ...]:
-        """Return chromosome copies available for meiotic segregation.
+    ) -> ChromosomeAssociation:
+        """Return an association after any configured recombination.
 
-        Args:
-            homologs: Homologous chromosome copies from one parent.
-            genetic_architecture: Shared genetic architecture.
-            rng: Simulation random-number generator.
-
-        Returns:
-            Chromosome copies after any configured recombination.
+        Pairing is a separate biological responsibility. Recombination operates
+        only on chromosome copies that a pairing policy has already selected to
+        interact and must preserve their copy cardinality.
         """
         ...
 
 
 def _validate_recombination_inputs(
-    homologs: tuple[Chromosome, ...],
+    association: ChromosomeAssociation,
     *,
     genetic_architecture: GeneticArchitecture,
     rng: random.Random,
 ) -> str:
-    """Validate inputs shared by recombination implementations."""
-    validators.validate_tuple(homologs, name="homologs")
-
-    if not homologs:
-        raise ValueError("homologs must contain at least one chromosome.")
-
+    """Validate inputs shared by current recombination implementations."""
+    if not isinstance(association, ChromosomeAssociation):
+        raise TypeError(
+            "association must be a ChromosomeAssociation; "
+            f"received {association!r}."
+        )
     if not isinstance(genetic_architecture, GeneticArchitecture):
         raise TypeError(
             "genetic_architecture must be an instance of GeneticArchitecture."
         )
-
     if not isinstance(rng, random.Random):
         raise TypeError("rng must be an instance of random.Random.")
 
-    chromosome_name = _validate_homolog_structure(homologs)
-
-    for chromosome in homologs:
+    chromosome_name = _validate_current_crossover_structure(association.chromosomes)
+    for chromosome in association.chromosomes:
         _validate_chromosome_alleles(
             chromosome,
             genetic_architecture=genetic_architecture,
         )
-
     return chromosome_name
 
 
-def _validate_homolog_structure(
-    homologs: tuple[Chromosome, ...],
+def _validate_current_crossover_structure(
+    chromosomes: tuple[Chromosome, ...],
 ) -> str:
-    """Return the shared chromosome name after validating homolog structure."""
-    first = homologs[0]
+    """Validate the same-name structure required by current crossover models."""
+    validators.validate_tuple(chromosomes, name="chromosomes")
+    if not chromosomes:
+        raise ValueError("chromosome association must not be empty.")
+
+    first = chromosomes[0]
     if not isinstance(first, Chromosome):
         raise TypeError(
-            f"homologs[0] must be an instance of Chromosome; received {first!r}."
+            f"chromosomes[0] must be an instance of Chromosome; received {first!r}."
         )
-
     chromosome_name = first.name
 
-    for index, chromosome in enumerate(homologs[1:], start=1):
+    for index, chromosome in enumerate(chromosomes[1:], start=1):
         if not isinstance(chromosome, Chromosome):
             raise TypeError(
-                f"homologs[{index}] must be an instance of Chromosome; "
+                f"chromosomes[{index}] must be an instance of Chromosome; "
                 f"received {chromosome!r}."
             )
-
         if chromosome.name != chromosome_name:
             raise ValueError(
-                "all homologs must have the same chromosome name; "
-                f"received {chromosome_name!r} and {chromosome.name!r}."
+                "current recombination models require one chromosome type per "
+                f"association; received {chromosome_name!r} and {chromosome.name!r}."
             )
-
     return chromosome_name
 
 
@@ -106,7 +101,7 @@ def _validate_chromosome_alleles(
     *,
     genetic_architecture: GeneticArchitecture,
 ) -> None:
-    """Validate one homolog's allele-to-locus relationships."""
+    """Validate one chromosome's allele-to-locus relationships."""
     for allele in chromosome.alleles:
         try:
             locus = genetic_architecture.locus(allele.locus_name)
@@ -121,54 +116,42 @@ def _validate_chromosome_alleles(
                 f"locus {locus.name!r} belongs to chromosome "
                 f"{locus.chromosome_name!r}, not {chromosome.name!r}."
             )
-
         locus.validate_allele(allele)
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class NoRecombination:
-    """Leave homologous chromosome copies unchanged before segregation."""
+    """Leave a selected chromosome association unchanged."""
 
     def recombine(
         self,
-        homologs: tuple[Chromosome, ...],
+        association: ChromosomeAssociation,
         *,
         genetic_architecture: GeneticArchitecture,
         rng: random.Random,
-    ) -> tuple[Chromosome, ...]:
-        """Return homologous chromosome copies unchanged.
-
-        Args:
-            homologs: Homologous chromosome copies from one parent.
-            genetic_architecture: Shared genetic architecture.
-            rng: Simulation random-number generator.
-
-        Returns:
-            Unchanged homologous chromosome copies.
-        """
+    ) -> ChromosomeAssociation:
+        """Return the supplied association unchanged."""
         _validate_recombination_inputs(
-            homologs,
+            association,
             genetic_architecture=genetic_architecture,
             rng=rng,
         )
-        return homologs
+        return association
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class SingleCrossoverRecombination:
-    """Perform at most one crossover between a pair of homologs.
+    """Perform at most one crossover within a singleton or chromosome pair.
 
-    Locus coordinates supply the baseline linkage geometry: nearby loci have
-    fewer possible breakpoint coordinates between them and therefore tend to
-    remain associated. ``linkage_map`` can additionally lower breakpoint
-    intensity in sticky regions, prevent crossing over entirely, or create
-    hotspots. The default uniform map preserves the previous coordinate-based
-    behavior.
+    Pairing occurs before this model runs. This implementation supports a
+    singleton association unchanged or a two-copy same-name association with at
+    most one crossover. Higher-cardinality associations are unsupported by this
+    concrete recombination model; that limitation is distinct from whether the
+    parent genome itself is structurally valid.
 
-    Attributes:
-        probability_ppm: Probability of attempting crossover in parts per
-            million.
-        linkage_map: Domain-neutral map controlling local breakpoint intensity.
+    Locus coordinates supply the baseline linkage geometry. ``linkage_map`` can
+    additionally alter local breakpoint intensity. The default uniform map
+    preserves the previous coordinate-based crossover behavior.
     """
 
     probability_ppm: int
@@ -195,52 +178,33 @@ class SingleCrossoverRecombination:
 
     def recombine(
         self,
-        homologs: tuple[Chromosome, ...],
+        association: ChromosomeAssociation,
         *,
         genetic_architecture: GeneticArchitecture,
         rng: random.Random,
-    ) -> tuple[Chromosome, ...]:
-        """Return homologs after an optional single crossover.
-
-        Haploid chromosome groups pass through unchanged. Diploid groups may
-        undergo one crossover. Groups with more than two homologs are rejected
-        because this model does not define polyploid pairing behavior.
-
-        Args:
-            homologs: Homologous chromosome copies from one parent.
-            genetic_architecture: Shared genetic architecture.
-            rng: Simulation random-number generator.
-
-        Returns:
-            Original or recombined chromosome copies.
-
-        Raises:
-            TypeError: If an input has an invalid type.
-            ValueError: If homolog structure is incompatible with this model.
-        """
+    ) -> ChromosomeAssociation:
+        """Return the association after an optional single crossover."""
         chromosome_name = _validate_recombination_inputs(
-            homologs,
+            association,
             genetic_architecture=genetic_architecture,
             rng=rng,
         )
+        chromosomes = association.chromosomes
 
-        if len(homologs) == 1:
-            return homologs
-
-        if len(homologs) != 2:
+        if len(chromosomes) == 1:
+            return association
+        if len(chromosomes) != 2:
             raise ValueError(
-                "SingleCrossoverRecombination requires one or two homologs "
-                "per chromosome name."
+                "SingleCrossoverRecombination requires a singleton or two-copy "
+                "chromosome association."
             )
 
-        first_homolog, second_homolog = homologs
-
+        first_homolog, second_homolog = chromosomes
         first_locus_names = {allele.locus_name for allele in first_homolog.alleles}
         second_locus_names = {allele.locus_name for allele in second_homolog.alleles}
-
         if first_locus_names != second_locus_names:
             raise ValueError(
-                "paired homologs must contain the same loci for crossover."
+                "paired chromosomes must contain the same loci for crossover."
             )
 
         ordered_loci = tuple(
@@ -252,14 +216,12 @@ class SingleCrossoverRecombination:
                 key=lambda locus: locus.linkage_position,
             )
         )
-
         if len(ordered_loci) < 2:
-            return homologs
+            return association
 
         crossover_roll = rng.randrange(PROBABILITY_SCALE)
-
         if crossover_roll >= self.probability_ppm:
-            return homologs
+            return association
 
         first_position = ordered_loci[0].linkage_position
         last_position = ordered_loci[-1].linkage_position
@@ -270,15 +232,13 @@ class SingleCrossoverRecombination:
             rng=rng,
         )
         if crossover_position is None:
-            return homologs
+            return association
 
         first_recombinant_alleles = []
         second_recombinant_alleles = []
-
         for locus in ordered_loci:
             first_allele = first_homolog.allele_at(locus.name)
             second_allele = second_homolog.allele_at(locus.name)
-
             if locus.linkage_position <= crossover_position:
                 first_recombinant_alleles.append(first_allele)
                 second_recombinant_alleles.append(second_allele)
@@ -286,15 +246,17 @@ class SingleCrossoverRecombination:
                 first_recombinant_alleles.append(second_allele)
                 second_recombinant_alleles.append(first_allele)
 
-        return (
-            Chromosome(
-                name=chromosome_name,
-                alleles=tuple(first_recombinant_alleles),
-            ),
-            Chromosome(
-                name=chromosome_name,
-                alleles=tuple(second_recombinant_alleles),
-            ),
+        return ChromosomeAssociation(
+            chromosomes=(
+                Chromosome(
+                    name=chromosome_name,
+                    alleles=tuple(first_recombinant_alleles),
+                ),
+                Chromosome(
+                    name=chromosome_name,
+                    alleles=tuple(second_recombinant_alleles),
+                ),
+            )
         )
 
     def _sample_crossover_position(
@@ -309,8 +271,6 @@ class SingleCrossoverRecombination:
         if isinstance(self.linkage_map, UniformLinkageMap):
             if self.linkage_map.relative_rate == 0:
                 return None
-            # Preserve the historical RNG sequence and uniform physical-distance
-            # semantics for the default map.
             return rng.randrange(first_position, last_position)
 
         return sample_linkage_breakpoint(
