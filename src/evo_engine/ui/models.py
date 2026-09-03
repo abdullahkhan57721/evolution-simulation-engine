@@ -84,21 +84,58 @@ def build_curated_config(
     width: int = 12,
     height: int = 12,
     initial_energy: int = 30,
-    mutation_percent: int = 1,
-    recombination_percent: int = 50,
+    mutation_enabled: bool = True,
+    mutation_percent: int | None = 1,
+    mutation_max_change: int | None = 1,
+    recombination_enabled: bool = True,
+    recombination_percent: int | None = 50,
     resource_generation_amount: int = 6,
     resource_deposits_per_step: int = 8,
     growth_rate: int = 1,
 ) -> ReferenceEcologyConfig:
     """Build the validated reference configuration exposed by the dashboard.
 
-    Percentage controls are converted to the existing integer parts-per-million
-    contracts rather than introducing a second simulation configuration format.
+    Conditional UI branches normalize into one real ``ReferenceEcologyConfig``.
+    Dependent values are validated only while their branch is active; disabled
+    branches ignore any stale UI value and canonicalize the corresponding model
+    parameter to zero. Percentage controls are converted to the engine's existing
+    integer parts-per-million contracts rather than introducing a second
+    simulation configuration format.
     """
-    if type(mutation_percent) is not int or not 0 <= mutation_percent <= 100:
-        raise ValueError("mutation_percent must be an integer from 0 through 100.")
-    if type(recombination_percent) is not int or not 0 <= recombination_percent <= 100:
-        raise ValueError("recombination_percent must be an integer from 0 through 100.")
+    if type(mutation_enabled) is not bool:
+        raise TypeError("mutation_enabled must be a Boolean.")
+    if type(recombination_enabled) is not bool:
+        raise TypeError("recombination_enabled must be a Boolean.")
+
+    if mutation_enabled:
+        if type(mutation_percent) is not int or not 0 <= mutation_percent <= 100:
+            raise ValueError(
+                "mutation_percent must be an integer from 0 through 100 when "
+                "mutation is enabled."
+            )
+        if type(mutation_max_change) is not int or mutation_max_change < 0:
+            raise ValueError(
+                "mutation_max_change must be a non-negative integer when mutation "
+                "is enabled."
+            )
+        normalized_mutation_percent = mutation_percent
+        normalized_mutation_max_change = mutation_max_change
+    else:
+        normalized_mutation_percent = 0
+        normalized_mutation_max_change = 0
+
+    if recombination_enabled:
+        if (
+            type(recombination_percent) is not int
+            or not 0 <= recombination_percent <= 100
+        ):
+            raise ValueError(
+                "recombination_percent must be an integer from 0 through 100 when "
+                "recombination is enabled."
+            )
+        normalized_recombination_percent = recombination_percent
+    else:
+        normalized_recombination_percent = 0
 
     baseline = ReferenceEcologyConfig()
     return attrs.evolve(
@@ -109,8 +146,9 @@ def build_curated_config(
         width=width,
         height=height,
         initial_energy=initial_energy,
-        mutation_probability_ppm=mutation_percent * 10_000,
-        recombination_probability_ppm=recombination_percent * 10_000,
+        mutation_probability_ppm=normalized_mutation_percent * 10_000,
+        mutation_max_change=normalized_mutation_max_change,
+        recombination_probability_ppm=normalized_recombination_percent * 10_000,
         resource_generation_amount=resource_generation_amount,
         resource_deposits_per_step=resource_deposits_per_step,
         traits=attrs.evolve(baseline.traits, growth_rate=growth_rate),
