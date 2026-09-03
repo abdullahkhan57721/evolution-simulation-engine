@@ -26,6 +26,7 @@ from evo_engine.experiments.reference import (
     ReferenceExperimentResult,
     ReferenceReplicateResult,
     RunMetadata,
+    run_flagship_max_intake_replicates,
     run_reference_replicates,
 )
 
@@ -45,6 +46,7 @@ __all__ = [
     "profile_reference_scenario",
     "read_reference_checkpoint_manifest",
     "resume_reference_checkpoint",
+    "run_flagship_max_intake_replicates",
     "run_reference_replicates",
     "write_experiment_json",
     "write_population_history_csv",
