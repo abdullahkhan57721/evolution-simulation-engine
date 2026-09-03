@@ -56,15 +56,17 @@ investment / production-source separation
         +-----------------------------+
         |                             |
         v                             v
-ploidy / segregation          richer mating systems
-        |                             |
-        v                             |
- richer recombination                 |
-        |                             |
-        +-------------+---------------+
-                      |
-                      v
-            richer evolutionary ecology
+#100                            richer mating systems
+copy / pairing / segregation           |
+        |                              |
+        v                              |
+ richer recombination                  |
+ and pairing policies                  |
+        |                              |
+        +--------------+---------------+
+                       |
+                       v
+             richer evolutionary ecology
 ```
 
 Richer genetic-expression and development/G×E models can advance alongside these
@@ -176,8 +178,8 @@ implementation; Codex only for broad mechanical migration after contracts settle
 
 ## Milestone 3 — Richer genetic expression
 
-**Goal:** extend the existing ploidy-aware, multi-locus expression framework with
-additional biological expression policies rather than redesigning general
+**Goal:** extend the existing copy-count-aware, multi-locus expression framework
+with additional biological expression policies rather than redesigning general
 evolution.
 
 The current architecture already supports multi-locus expression and complete
@@ -210,34 +212,72 @@ realization, and current mutable physiological state into one catch-all object.
 **Implementation mode:** ChatGPT for new public-model semantics; settled,
 independent expression policies and test matrices are good Codex candidates.
 
-## Milestone 4 — Explicit ploidy, pairing, segregation, and recombination
+## Milestone 4 — Explicit chromosome-copy transmission architecture
 
-**Status:** next genetics architecture front after reproduction-source hardening.
+**Status:** foundational boundary completed by Issue #100; richer concrete
+transmission policies are the next genetics front.
 
 **Goal:** deepen biological transmission without narrowing general propagation.
 
-`Genome` already represents arbitrary chromosome-copy collections. Future ploidy
-work should therefore make the biological rules around those copies explicit,
-including as needed:
+Issue #100 established the durable decomposition:
 
-- chromosome-specific expected copy counts;
-- homolog pairing;
-- gamete copy counts and segregation;
-- role- or mating-type-specific gamete formation;
-- chromosome-specific and multiple-crossover recombination;
-- richer polyploid transmission policies.
+```text
+parent Genome
+    |
+    v
+GeneticArchitecture + GenomeStructure
+    |
+    v
+ChromosomePairing
+    |
+    v
+ChromosomeAssociation(s)
+    |
+    v
+RecombinationModel
+    |
+    v
+ChromosomeSegregation
+    |
+    v
+Gamete
+```
 
-The current `SexualInheritance` and meiotic gamete-formation policies remain useful
-simple Mendelian configurations; they should not be stretched into universal
-models.
+`GenomeStructure` declares chromosome types and chromosome-specific allowed copy
+counts rather than a universal organism-level ploidy scalar. Pairing determines
+which chromosome copies may interact; recombination operates only within those
+selected associations and preserves copy cardinality; segregation determines the
+transmitted chromosome copies. `MeioticGameteFormation` orchestrates those
+policies.
 
-Pairing and segregation semantics should be established before richer
-polyploid/chromosome-specific recombination is layered on top. This remains a
-biological specialization; the general `PropagationModel` and frozen kernel do not
-need ploidy concepts.
+The built-in simple policies preserve current Mendelian behavior: same-name
+singletons/bivalents pair, current pairwise crossover remains available, and one
+copy segregates from each singleton/bivalent association. A higher-copy test
+configuration demonstrates that multiple bivalents can produce multi-copy gametes
+and flow through existing `SexualInheritance` without teaching the inheritance
+model about ploidy.
 
-**Implementation mode:** ChatGPT for pairing/segregation contracts and algorithmic
-semantics; Codex selectively for repetitive matrices and settled implementations.
+**Next genetics work:** add richer concrete policies only when supported by a
+biological use case. Candidates include:
+
+- random or preferential bivalent pairing for higher-copy groups;
+- multivalent pairing and the recombination/segregation semantics it requires;
+- chromosome-specific recombination policies;
+- multiple-crossover recombination;
+- role-, mating-type-, or life-cycle-specific gamete formation;
+- deliberately modeled nondisjunction/aneuploid transmission.
+
+Do not add these by weakening the settled boundaries. In particular, pairing
+should remain upstream of recombination, gamete copy count should remain a
+segregation result, and structural genome validity should remain distinct from a
+particular transmission policy's processing limits. See ADR 0008.
+
+This remains a biological specialization; the general `PropagationModel` and
+frozen kernel do not need ploidy concepts.
+
+**Implementation mode:** ChatGPT for consequential biological/public-model
+semantics; Codex selectively for broad test matrices or repetitive implementations
+behind settled pairing/recombination/segregation contracts.
 
 ## Milestone 5 — Richer mating systems
 
@@ -291,10 +331,11 @@ and biogeographic structure. Selection should continue to emerge from
 differential persistence and propagation rather than becoming an intrinsic
 generic scalar field.
 
-Critical reproduction-boundary hardening is now complete. Major ecology work no
-longer needs to wait for every future expression, ploidy, recombination, mating,
-or development feature; add those capabilities when concrete ecological or
-biological use cases require them.
+Critical reproduction-boundary hardening and the foundational chromosome-copy
+transmission boundary are now explicit. Major ecology work does not need to wait
+for every future expression, recombination, mating, or development feature; add
+those capabilities when concrete ecological or biological use cases require
+them.
 
 ## Cross-cutting fronts
 
