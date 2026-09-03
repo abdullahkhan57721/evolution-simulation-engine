@@ -42,8 +42,7 @@ class SameNameBivalentPairing:
         """Return singleton or bivalent associations in genome order."""
         if not isinstance(genome, Genome):
             raise TypeError(
-                "genome must be an instance of Genome; "
-                f"received {genome!r}."
+                f"genome must be an instance of Genome; received {genome!r}."
             )
         if not isinstance(genetic_architecture, GeneticArchitecture):
             raise TypeError(
@@ -52,8 +51,7 @@ class SameNameBivalentPairing:
             )
         if not isinstance(rng, random.Random):
             raise TypeError(
-                "rng must be an instance of random.Random; "
-                f"received {rng!r}."
+                f"rng must be an instance of random.Random; received {rng!r}."
             )
 
         chromosome_names = tuple(
