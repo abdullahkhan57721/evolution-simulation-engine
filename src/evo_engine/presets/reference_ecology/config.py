@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.ecology import ResourcePlacementModel, UniformResourcePlacement
 from evo_engine.genetics import (
     ADULT_BODY_MASS,
     ASSIMILATION_EFFICIENCY,
@@ -317,6 +318,7 @@ class ReferenceEcologyConfig:
         recombination_probability_ppm: Single-crossover probability per meiosis.
         resource_generation_amount: Resource units per generated deposit.
         resource_deposits_per_step: Number of deposits generated each timestep.
+        resource_placement_model: Spatial model choosing each generated deposit.
         decomposition_amount: Maximum carcass units decomposed per timestep.
         resource_request_amount: Behavioral resource demand before an
             organism-specific intake-capacity ceiling is applied.
@@ -400,6 +402,9 @@ class ReferenceEcologyConfig:
         default=8,
         validator=attrs_validators.validate_int_ge(1),
     )
+    resource_placement_model: ResourcePlacementModel = attrs.field(
+        factory=UniformResourcePlacement,
+    )
     decomposition_amount: int = attrs.field(
         default=2,
         validator=attrs_validators.validate_int_ge(0),
@@ -438,6 +443,14 @@ class ReferenceEcologyConfig:
         if self.initial_population > self.width * self.height:
             raise ValueError(
                 "initial_population must not exceed the number of world cells."
+            )
+
+        if not callable(
+            getattr(self.resource_placement_model, "choose_position", None)
+        ):
+            raise TypeError(
+                "resource_placement_model must provide a callable "
+                "choose_position method."
             )
 
         if self.newborn_mass_numerator > self.newborn_mass_denominator:
