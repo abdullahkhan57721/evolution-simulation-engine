@@ -11,10 +11,12 @@ from evo_engine.genetics import (
     Allele,
     ChoiceAlleleDomain,
     Chromosome,
+    ChromosomeCopyExpectation,
     CompleteDominanceExpression,
     GeneticArchitecture,
     GeneticPhenotype,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
@@ -25,6 +27,19 @@ from tests.helpers import (
     make_diploid_genome,
     make_integer_architecture,
 )
+
+
+def diploid_structure(*chromosome_names: str) -> GenomeStructure:
+    """Return fixed diploid expectations for named test chromosomes."""
+    return GenomeStructure(
+        chromosome_expectations=tuple(
+            ChromosomeCopyExpectation(
+                chromosome_name=chromosome_name,
+                allowed_copy_counts=(2,),
+            )
+            for chromosome_name in chromosome_names
+        )
+    )
 
 
 def test_mean_integer_expression_rounds_half_away_from_zero() -> None:
@@ -127,6 +142,7 @@ def test_trait_can_express_from_multiple_loci() -> None:
         expression=AdditiveIntegerExpression(),
     )
     architecture = GeneticArchitecture(
+        genome_structure=diploid_structure("1"),
         loci=loci,
         traits=(trait,),
     )
@@ -172,6 +188,7 @@ def test_architecture_rejects_duplicate_locus_names() -> None:
 
     with pytest.raises(ValueError):
         GeneticArchitecture(
+            genome_structure=diploid_structure("1"),
             loci=(first, second),
             traits=(),
         )
@@ -196,6 +213,7 @@ def test_architecture_rejects_duplicate_position_on_same_chromosome() -> None:
 
     with pytest.raises(ValueError):
         GeneticArchitecture(
+            genome_structure=diploid_structure("1"),
             loci=(first, second),
             traits=(),
         )
@@ -211,6 +229,7 @@ def test_architecture_rejects_trait_reference_to_unknown_locus() -> None:
 
     with pytest.raises(ValueError):
         GeneticArchitecture(
+            genome_structure=GenomeStructure(chromosome_expectations=()),
             loci=(),
             traits=(trait,),
         )
@@ -226,6 +245,14 @@ def test_architecture_rejects_allele_on_wrong_chromosome() -> None:
         mutation=NoMutation(),
     )
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosome_expectations=(
+                ChromosomeCopyExpectation(
+                    chromosome_name="1",
+                    allowed_copy_counts=(1,),
+                ),
+            )
+        ),
         loci=(locus,),
         traits=(),
     )
@@ -312,6 +339,7 @@ def test_categorical_trait_can_use_dominance_expression() -> None:
         ),
     )
     architecture = GeneticArchitecture(
+        genome_structure=diploid_structure("1"),
         loci=(locus,),
         traits=(trait,),
     )
