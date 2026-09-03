@@ -34,7 +34,7 @@ transactional step working copy
 ```
 
 Custom observers are responsible for treating `WorldState` as read-only. The
-built-in recorder stores immutable value records and never retains mutable entity
+built-in recorders store immutable value records and never retain mutable entity
 references.
 
 ## PopulationRecorder
@@ -145,6 +145,49 @@ B → ((1, 2), (3, 2))
 Tracking the distribution therefore makes mutation, inheritance, selection, and
 population polymorphism visible without forcing one downstream analysis format.
 
+## SpatialRecorder
+
+`SpatialRecorder` captures immutable committed world frames for downstream
+visualization and animation without retaining live `WorldState`, organism,
+carcass, genome, or mapping references.
+
+Each `SpatialObservation` contains:
+
+- completed `step_index`;
+- world width and height;
+- organisms ordered by permanent ID, with ID, position, age, energy, body mass,
+  and mating type;
+- resource deposits ordered by coordinate, with position and amount; and
+- carcasses ordered by permanent ID, with position and remaining resource units.
+
+The spatial recorder deliberately does **not** duplicate per-organism genomes,
+trait distributions, event causality, or pedigree state. Those concerns already
+have dedicated observers. A visualization can therefore compose the spatial
+frames with population, genetic, event, and pedigree records rather than treating
+a spatial snapshot as a universal analysis object.
+
+Spatial observation is opt-in because frame histories can be much larger than
+summary histories. The complete reference ecology accepts additional observers
+without attaching a `SpatialRecorder` by default:
+
+```python
+from evo_engine.observation import SpatialRecorder
+from evo_engine.presets import build_reference_ecology
+
+spatial = SpatialRecorder(every_n_steps=1)
+ecology = build_reference_ecology(
+    additional_observers=(spatial,),
+)
+ecology.engine.run(ecology.simulation)
+
+for frame in spatial.observations:
+    print(frame.step_index, len(frame.organisms), len(frame.resources))
+```
+
+Downstream Plotly, Streamlit, notebook, video, or other presentation code should
+consume these immutable records rather than reach back into historical mutable
+simulation internals.
+
 ## Observation scheduling
 
 Scheduling belongs to the observer rather than `SimulationEngine`.
@@ -152,17 +195,17 @@ Scheduling belongs to the observer rather than `SimulationEngine`.
 `include_step_zero=False` suppresses the founder baseline.
 
 This makes different observers independently schedulable. A lightweight
-population recorder may run every step while a future expensive spatial snapshot
-observer runs less frequently.
+population recorder may run every step while a larger spatial snapshot recorder
+runs less frequently.
 
 Repeated calls to `SimulationEngine.run()` do not duplicate a recorder's most
-recent step because `PopulationRecorder.should_observe()` suppresses an already
-recorded `step_index`.
+recent step because built-in state recorders suppress an already recorded
+`step_index`.
 
 ## Reference ecology
 
-`build_reference_ecology()` creates and attaches a `PopulationRecorder`
-automatically:
+`build_reference_ecology()` creates and attaches the standard population,
+genetic-composition, event, and pedigree recorders automatically:
 
 ```python
 from evo_engine.presets import build_reference_ecology
@@ -174,11 +217,11 @@ baseline = ecology.recorder.observations[0]
 latest = ecology.recorder.latest
 ```
 
-The reference recorder tracks every integer trait in `ReferenceTraitValues` plus
-the active population's mating-type composition. Its time series can therefore
-expose changes in growth rate, metabolic and locomotion coefficients, sensory
-traits, feeding physiology, predation traits, mate-choice traits, life-history
-thresholds, lifespan, and reproductive type ratios.
+The reference population recorder tracks every integer trait in
+`ReferenceTraitValues` plus the active population's mating-type composition. Its
+time series can therefore expose changes in growth rate, metabolic and locomotion
+coefficients, sensory traits, feeding physiology, predation traits, mate-choice
+traits, life-history thresholds, lifespan, and reproductive type ratios.
 
 The reference preset remains a modeling baseline rather than a calibrated
 biological claim. Observation makes its dynamics inspectable; it does not make
@@ -195,6 +238,10 @@ PopulationRecorder
     → phenotype distributions
     → mating-type composition
 
+SpatialRecorder
+    → immutable spatial world frames
+    → organism/resource/carcass positions and selected scalar state
+
 GeneticCompositionRecorder
     → allele frequencies
     → genotype frequencies
@@ -208,7 +255,8 @@ PedigreeRecorder
     → lifetime reproductive success
 ```
 
-The experiment layer composes these records across seeds and exports them without
-moving analytics responsibilities back into simulation processes. Plotting,
-animation, and higher-level statistical analysis can remain downstream consumers
-of the immutable records.
+The experiment layer composes the non-spatial analysis records across seeds and
+exports them without moving analytics responsibilities back into simulation
+processes. Plotting, animation, and higher-level statistical analysis remain
+downstream consumers of immutable records; callers opt into spatial history only
+when a presentation or analysis requires it.
