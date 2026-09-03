@@ -5,11 +5,14 @@ from __future__ import annotations
 import attrs
 import pytest
 
+from evo_engine.genetics import MAX_INTAKE_RATE
 from evo_engine.ui.models import (
+    FLAGSHIP_MAX_INTAKE_SCENARIO,
     DashboardRun,
     build_curated_config,
     parse_seed_list,
     run_dashboard_experiment,
+    run_dashboard_flagship_max_intake,
     run_dashboard_reference,
 )
 
@@ -110,6 +113,7 @@ def test_dashboard_run_contains_only_immutable_completed_result_values() -> None
         "spatial_history",
         "telemetry_steps",
         "life_histories",
+        "scenario",
     )
     assert not hasattr(result, "engine")
     assert not hasattr(result, "simulation")
@@ -139,6 +143,19 @@ def test_dashboard_reference_runs_with_adaptive_branches_disabled() -> None:
     assert result.config.recombination_probability_ppm == 0
 
 
+def test_dashboard_flagship_uses_committed_canonical_evidence() -> None:
+    """Test the featured dashboard route reuses the canonical flagship run."""
+    result = run_dashboard_flagship_max_intake()
+
+    assert result.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO
+    assert result.config.seed == 41
+    assert result.completed_steps == 40
+    assert result.final_population_size > 0
+    assert result.genetic_history[0].locus(MAX_INTAKE_RATE).allele_frequency(8) == 0.5
+    assert result.genetic_history[30].locus(MAX_INTAKE_RATE).allele_frequency(8) > 0.85
+    assert dict(result.event_counts).get("Predation", 0) == 0
+
+
 def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None:
     """Test small UI experiments return the canonical experiment result."""
     config = build_curated_config(
@@ -157,6 +174,22 @@ def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None
     assert all(
         len(replicate.population_history) == 2 for replicate in result.replicates
     )
+
+
+def test_dashboard_flagship_experiment_reuses_flagship_runner() -> None:
+    """Test the featured experiment path does not reconstruct custom orchestration."""
+    config = build_curated_config(max_steps=1)
+
+    result = run_dashboard_experiment(
+        config,
+        seeds=(41,),
+        scenario=FLAGSHIP_MAX_INTAKE_SCENARIO,
+    )
+
+    replicate = result.replicates[0]
+    assert result.seeds == (41,)
+    assert replicate.metadata.completed_steps == 40
+    assert replicate.genetic_history[0].locus(MAX_INTAKE_RATE).allele_frequency(8) == 0.5
 
 
 def test_parse_seed_list_is_bounded_unique_and_understandable() -> None:
