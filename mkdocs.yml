@@ -80,6 +80,7 @@ nav:
   - Exact Checkpoint and Resume: checkpointing.md
   - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md
+  - Flagship Evolution Demo: flagship_evolution_demo.md
   - Development Log: development_log.md
   - API Reference:
       - Validators: references/validators.md

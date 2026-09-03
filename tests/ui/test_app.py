@@ -15,7 +15,9 @@ def test_dashboard_launches_without_running_a_simulation() -> None:
 
     assert not app.exception
     assert app.title[0].value == "Evolution Simulation Engine"
-    assert any("Run simulation" in button.label for button in app.button)
+    labels = {button.label for button in app.button}
+    assert "Run flagship evolution demo" in labels
+    assert "Run simulation" in labels
     assert app.info
 
 
@@ -112,6 +114,32 @@ def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
         metric for metric in app.metric if metric.label == "Completed steps"
     )
     assert completed.value == "1"
+
+
+def test_dashboard_can_run_featured_flagship_evolution_demo() -> None:
+    """Test the featured action executes the canonical committed scenario."""
+    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+
+    next(
+        button for button in app.button if button.label == "Run flagship evolution demo"
+    ).click()
+    app.run(timeout=60)
+
+    assert not app.exception
+    completed = next(
+        metric for metric in app.metric if metric.label == "Completed steps"
+    )
+    assert completed.value == "40"
+    assert any("Flagship demo" in success.value for success in app.success)
+    assert any(
+        selectbox.label == "Inspect heritable trait"
+        and selectbox.value == "max_intake_rate"
+        for selectbox in app.selectbox
+    )
+    assert any(
+        selectbox.label == "Inspect locus" and selectbox.value == "max_intake_rate"
+        for selectbox in app.selectbox
+    )
 
 
 def test_dashboard_runs_after_disabling_adaptive_branches() -> None:

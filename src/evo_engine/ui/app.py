@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from evo_engine.experiments import ReferenceExperimentResult
+from evo_engine.genetics import MAX_INTAKE_RATE
 from evo_engine.presets import ReferenceEcologyConfig
 from evo_engine.ui.charts import (
     allele_frequency_figure,
@@ -26,10 +27,12 @@ from evo_engine.ui.charts import (
 )
 from evo_engine.ui.exports import build_experiment_downloads
 from evo_engine.ui.models import (
+    FLAGSHIP_MAX_INTAKE_SCENARIO,
     DashboardRun,
     build_curated_config,
     parse_seed_list,
     run_dashboard_experiment,
+    run_dashboard_flagship_max_intake,
     run_dashboard_reference,
 )
 
@@ -57,8 +60,16 @@ def main() -> None:
         "experiments, and exports."
     )
 
+    flagship_submitted = _flagship_control()
     submitted_config = _configuration_controls()
-    if submitted_config is not None:
+    if flagship_submitted:
+        try:
+            with st.spinner("Running flagship evolutionary demonstration…"):
+                st.session_state[_RUN_KEY] = run_dashboard_flagship_max_intake()
+            st.session_state.pop(_EXPERIMENT_KEY, None)
+        except (TypeError, ValueError) as exc:
+            st.error(f"Flagship demonstration could not be run: {exc}")
+    elif submitted_config is not None:
         try:
             with st.spinner("Running reference ecology…"):
                 st.session_state[_RUN_KEY] = run_dashboard_reference(submitted_config)
@@ -69,11 +80,18 @@ def main() -> None:
     run = st.session_state.get(_RUN_KEY)
     if not isinstance(run, DashboardRun):
         st.info(
-            "Choose a curated configuration in the sidebar, then select "
-            "**Run simulation** to create a committed result set."
+            "Run the featured evolutionary demonstration, or choose a curated "
+            "reference configuration in the sidebar and select **Run simulation**."
         )
         _render_architecture_note()
         return
+
+    if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
+        st.success(
+            "Flagship demo: standing variation in maximum intake rate under a "
+            "renewable patchy-resource regime. This is an illustrative engine "
+            "demonstration, not a calibrated ecological prediction."
+        )
 
     _render_kpis(run)
     world_tab, population_tab, genetics_tab, events_tab, experiments_tab = st.tabs(
@@ -98,8 +116,22 @@ def main() -> None:
         _render_experiments(run)
 
 
+def _flagship_control() -> bool:
+    st.sidebar.header("Featured demonstration")
+    st.sidebar.caption(
+        "Start with the fixed-seed v0.1 story: a balanced 50/50 founder split "
+        "between low- and high-intake genotypes, mutation off, predation isolated, "
+        "and renewable resources distributed across the world."
+    )
+    return st.sidebar.button(
+        "Run flagship evolution demo",
+        type="primary",
+        use_container_width=True,
+    )
+
+
 def _configuration_controls() -> ReferenceEcologyConfig | None:
-    st.sidebar.header("Reference ecology")
+    st.sidebar.header("Custom reference ecology")
     st.sidebar.caption(
         "A curated subset of validated model parameters. High-level choices "
         "show only controls that affect the active configuration."
@@ -250,7 +282,6 @@ def _configuration_controls() -> ReferenceEcologyConfig | None:
     )
     submitted = st.sidebar.button(
         "Run simulation",
-        type="primary",
         use_container_width=True,
     )
 
@@ -337,10 +368,15 @@ def _render_population(run: DashboardRun) -> None:
     if not trait_names:
         st.info("No heritable trait summaries were recorded.")
         return
+    preferred_trait = (
+        MAX_INTAKE_RATE
+        if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO
+        else "growth_rate"
+    )
     trait_name = st.selectbox(
         "Inspect heritable trait",
         trait_names,
-        index=_preferred_index(trait_names, "growth_rate"),
+        index=_preferred_index(trait_names, preferred_trait),
     )
     trait_left, trait_right = st.columns(2)
     with trait_left:
@@ -367,10 +403,15 @@ def _render_genetics(run: DashboardRun) -> None:
     if not locus_names:
         st.info("No genetic loci were recorded.")
         return
+    preferred_locus = (
+        MAX_INTAKE_RATE
+        if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO
+        else "growth_rate"
+    )
     locus_name = st.selectbox(
         "Inspect locus",
         locus_names,
-        index=_preferred_index(locus_names, "growth_rate"),
+        index=_preferred_index(locus_names, preferred_locus),
     )
     left, right = st.columns(2)
     with left:
@@ -424,11 +465,20 @@ def _render_events(run: DashboardRun) -> None:
 
 def _render_experiments(run: DashboardRun) -> None:
     st.subheader("Reproducible multi-seed experiments")
-    st.caption(
-        "Replicates are executed by `evo_engine.experiments.run_reference_replicates`; "
-        "the dashboard does not duplicate experiment orchestration."
-    )
-    seed_text = st.text_input("Experiment seeds", value="11, 22, 33")
+    if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
+        st.caption(
+            "Flagship replicates reuse `run_flagship_max_intake_replicates`; the "
+            "dashboard does not duplicate experiment orchestration."
+        )
+        default_seeds = "11, 23, 37, 41, 59, 73, 89, 101"
+    else:
+        st.caption(
+            "Replicates are executed by `evo_engine.experiments.run_reference_replicates`; "
+            "the dashboard does not duplicate experiment orchestration."
+        )
+        default_seeds = "11, 22, 33"
+
+    seed_text = st.text_input("Experiment seeds", value=default_seeds)
     if st.button("Run experiment", type="primary"):
         try:
             seeds = parse_seed_list(seed_text)
@@ -436,6 +486,7 @@ def _render_experiments(run: DashboardRun) -> None:
                 st.session_state[_EXPERIMENT_KEY] = run_dashboard_experiment(
                     run.config,
                     seeds=seeds,
+                    scenario=run.scenario,
                 )
         except (TypeError, ValueError) as exc:
             st.error(f"Experiment could not be run: {exc}")

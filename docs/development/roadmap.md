@@ -73,7 +73,8 @@ adaptive curated configuration
 renderer-neutral cinematic proof
         |
         v
-M4 flagship evolutionary demonstration
+#121 / #122
+flagship evolutionary demonstration
         |
         v
 M5 v0.1 release hardening / verification
@@ -100,8 +101,9 @@ portfolio release.
 **Status:** committed spatial presentation boundary completed by Issue #106 /
 PR #107; dashboard implemented by Issue #108 / PR #109; adaptive curated
 configuration completed by Issue #110 / PR #111; renderer-neutral Manim cinematic
-proof completed by Issue #114 / PR #115. The next presentation milestone is the
-flagship evolutionary demonstration, followed by final v0.1 hardening.
+proof completed by Issue #114 / PR #115; reproducible flagship max-intake
+evolutionary demonstration completed by Issue #121 / PR #122. The remaining
+portfolio milestone is final v0.1 hardening and release verification.
 
 **Goal:** expose the strength of the existing engine through a polished,
 reproducible end-to-end experience without creating a second simulation
@@ -150,6 +152,15 @@ Hidden or stale UI state must never become implicit simulation configuration, an
 adaptive forms do not authorize fabricating model modes the preset does not
 support.
 
+The flagship scenario is now a thin composition above the reference ecology,
+not a second ecological model. It deliberately establishes balanced standing
+variation at `max_intake_rate`, isolates mutation and predation for causal clarity,
+and reuses the ordinary genetics, resource acquisition, reproduction, committed
+observation, experiment, dashboard, and cinematic boundaries. The canonical
+fixed-seed run and canonical multi-seed set are part of the reproducible portfolio
+story; final release media should present them as illustrative engine behavior,
+not calibrated ecological prediction.
+
 The remaining v0.1 presentation sequence is deliberately narrow:
 
 1. **M2 — adaptive curated configuration — completed:** conditional configuration
@@ -158,11 +169,10 @@ The remaining v0.1 presentation sequence is deliberately narrow:
 2. **M3 — renderer-neutral cinematic proof — completed:** existing committed
    values drive a downstream Manim renderer without making the renderer a
    simulation owner or introducing speculative replay architecture;
-3. **M4 — flagship evolutionary demonstration — next:** compose existing
-   simulation, observation, interactive, and cinematic capabilities into one
-   reproducible portfolio story rather than broadening biology merely for visual
-   drama;
-4. **M5 — v0.1 release hardening:** perform browser-level visual QA,
+3. **M4 — flagship evolutionary demonstration — completed:** existing simulation,
+   observation, experiment, interactive, and cinematic capabilities compose into
+   one reproducible max-intake selection story without new biology;
+4. **M5 — v0.1 release hardening — next:** perform browser-level visual QA,
    deployment/discoverability work, README/media polish, release tagging, and
    final reproducibility/CI verification.
 
