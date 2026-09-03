@@ -9,8 +9,8 @@ import attrs
 from evo_engine.engine import Observer, Simulation
 from evo_engine.genetics import (
     GENETIC_ARCHITECTURE,
-    GeneticArchitecture,
     MAX_INTAKE_RATE,
+    GeneticArchitecture,
 )
 from evo_engine.presets.reference_ecology.builders import ReferenceEcology
 from evo_engine.presets.reference_ecology.config import ReferenceEcologyConfig
