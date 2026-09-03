@@ -8,9 +8,11 @@ import pytest
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeStructure,
     ClonalInheritance,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     NoMutation,
@@ -23,7 +25,7 @@ def make_architecture(
     *,
     mutation=None,
 ) -> tuple[GeneticArchitecture, Locus[int]]:
-    """Return one-locus genetics for inheritance tests."""
+    """Return one-locus explicitly diploid genetics for inheritance tests."""
     if mutation is None:
         mutation = NoMutation()
 
@@ -38,6 +40,9 @@ def make_architecture(
         mutation=mutation,
     )
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
+        ),
         loci=(locus,),
         traits=(),
     )
@@ -67,11 +72,7 @@ def make_genome(
 def test_clonal_inheritance_preserves_chromosome_structure() -> None:
     """Test one-parent inheritance without mutation."""
     architecture, locus = make_architecture()
-    parent = make_genome(
-        locus,
-        4,
-        8,
-    )
+    parent = make_genome(locus, 4, 8)
 
     offspring = ClonalInheritance().inherit(
         (parent,),
@@ -91,11 +92,7 @@ def test_clonal_inheritance_applies_locus_mutation() -> None:
             max_change=1,
         )
     )
-    parent = make_genome(
-        locus,
-        50,
-        50,
-    )
+    parent = make_genome(locus, 50, 50)
 
     offspring = ClonalInheritance().inherit(
         (parent,),
@@ -120,7 +117,13 @@ def test_clonal_inheritance_requires_one_parent(
     parent_genomes: tuple[Genome, ...],
 ) -> None:
     """Test clonal inheritance owns its one-parent constraint."""
-    architecture, _ = make_architecture()
+    architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(0, 2)),)
+        ),
+        loci=(),
+        traits=(),
+    )
 
     with pytest.raises(ValueError):
         ClonalInheritance().inherit(
@@ -133,22 +136,11 @@ def test_clonal_inheritance_requires_one_parent(
 def test_sexual_inheritance_combines_one_gamete_from_each_parent() -> None:
     """Test two-parent Mendelian inheritance."""
     architecture, locus = make_architecture()
-    first_parent = make_genome(
-        locus,
-        1,
-        2,
-    )
-    second_parent = make_genome(
-        locus,
-        10,
-        20,
-    )
+    first_parent = make_genome(locus, 1, 2)
+    second_parent = make_genome(locus, 10, 20)
 
     offspring = SexualInheritance().inherit(
-        (
-            first_parent,
-            second_parent,
-        ),
+        (first_parent, second_parent),
         genetic_architecture=architecture,
         rng=random.Random(1),
     )
@@ -177,6 +169,7 @@ def test_sexual_inheritance_requires_two_parents(
 ) -> None:
     """Test sexual inheritance owns its two-parent constraint."""
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(),
         loci=(),
         traits=(),
     )

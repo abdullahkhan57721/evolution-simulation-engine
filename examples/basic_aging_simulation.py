@@ -7,7 +7,7 @@ from evo_engine.engine import (
     SimulationEngine,
     StageCoordinator,
 )
-from evo_engine.genetics import GeneticArchitecture, Genome
+from evo_engine.genetics import GeneticArchitecture, Genome, GenomeStructure
 from evo_engine.processes import Aging
 from evo_engine.resolvers import AcceptAll
 from evo_engine.world import Organism, WorldState
@@ -20,6 +20,7 @@ def create_simulation() -> Simulation:
         Configured simulation.
     """
     genetic_architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(),
         loci=(),
         traits=(),
     )

@@ -14,10 +14,12 @@ from evo_engine.engine import SimulationState
 from evo_engine.genetics import (
     ChoiceAlleleDomain,
     Chromosome,
+    ChromosomeStructure,
     ClonalInheritance,
     CompleteDominanceExpression,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     Locus,
     NoMutation,
     Trait,
@@ -44,6 +46,9 @@ def test_environment_can_determine_offspring_mating_type_through_development() -
         mutation=NoMutation(),
     )
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
+        ),
         loci=(locus,),
         traits=(
             Trait(
