@@ -89,6 +89,13 @@ from evo_engine.presets.reference_ecology.mating_types import (
     build_reference_mating_type_compatibility,
     build_reference_offspring_mating_type_model,
 )
+from evo_engine.presets.reference_ecology.movement import (
+    ReferenceExplorationMovement,
+    ReferenceGaussianMovement,
+    ReferenceMooreMovement,
+    ReferenceUniformMovement,
+    ReferenceVonNeumannMovement,
+)
 from evo_engine.presets.reference_ecology.reproductive_investment import (
     build_reference_reproductive_investment,
 )
@@ -125,7 +132,13 @@ from evo_engine.resolvers.reproduction import (
 )
 from evo_engine.resolvers.resource_allocation import EqualShare
 from evo_engine.spatial.boundary_conditions import Clamped
-from evo_engine.spatial.movement_patterns import MooreRandom
+from evo_engine.spatial.movement_patterns import (
+    GaussianRandom,
+    MooreRandom,
+    MovementPattern,
+    UniformRandom,
+    VonNeumannRandom,
+)
 from evo_engine.spatial.neighborhoods import Moore
 from evo_engine.telemetry import TelemetryObserver
 
@@ -271,7 +284,9 @@ def build_reference_engine(
     )
     movement_stage = _accept_all_stage(
         Movement(
-            movement_pattern=MooreRandom(),
+            movement_pattern=_build_exploration_movement_pattern(
+                config.exploration_movement
+            ),
             boundary_condition=Clamped(),
             locomotion_cost_model=PowerLawLocomotionCost(
                 coefficient=CharacteristicCoefficient(
@@ -457,6 +472,20 @@ def build_reference_ecology(
         pedigree_recorder=pedigree_recorder,
         genetic_recorder=genetic_recorder,
     )
+
+
+def _build_exploration_movement_pattern(
+    movement: ReferenceExplorationMovement,
+) -> MovementPattern:
+    if isinstance(movement, ReferenceMooreMovement):
+        return MooreRandom()
+    if isinstance(movement, ReferenceVonNeumannMovement):
+        return VonNeumannRandom()
+    if isinstance(movement, ReferenceUniformMovement):
+        return UniformRandom()
+    if isinstance(movement, ReferenceGaussianMovement):
+        return GaussianRandom(standard_deviation=movement.standard_deviation)
+    raise TypeError(f"Unsupported reference exploration movement: {movement!r}")
 
 
 def _reference_trait_maintenance_cost(
