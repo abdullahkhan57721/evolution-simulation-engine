@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import json
 
-from evo_engine.experiments import run_flagship_max_intake_replicates
+from evo_engine.experiments import (
+    ReferenceReplicateResult,
+    run_flagship_max_intake_replicates,
+)
 from evo_engine.genetics import MAX_INTAKE_RATE
 from evo_engine.presets import (
     FLAGSHIP_HIGH_MAX_INTAKE_RATE,
@@ -13,9 +16,8 @@ from evo_engine.presets import (
 )
 
 
-def _high_frequency(replicate: object, step: int) -> float:
-    genetic_history = replicate.genetic_history  # type: ignore[attr-defined]
-    locus = genetic_history[step].locus(MAX_INTAKE_RATE)
+def _high_frequency(replicate: ReferenceReplicateResult, step: int) -> float:
+    locus = replicate.genetic_history[step].locus(MAX_INTAKE_RATE)
     return locus.allele_frequency(FLAGSHIP_HIGH_MAX_INTAKE_RATE)
 
 
