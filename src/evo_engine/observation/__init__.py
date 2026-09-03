@@ -16,6 +16,13 @@ from evo_engine.observation.records import (
     IntegerTraitSummary,
     PopulationObservation,
 )
+from evo_engine.observation.spatial import (
+    SpatialCarcassSnapshot,
+    SpatialObservation,
+    SpatialOrganismSnapshot,
+    SpatialRecorder,
+    SpatialResourceSnapshot,
+)
 
 __all__ = [
     "AlleleFrequency",
@@ -31,4 +38,9 @@ __all__ = [
     "PedigreeRecorder",
     "PopulationObservation",
     "PopulationRecorder",
+    "SpatialCarcassSnapshot",
+    "SpatialObservation",
+    "SpatialOrganismSnapshot",
+    "SpatialRecorder",
+    "SpatialResourceSnapshot",
 ]
