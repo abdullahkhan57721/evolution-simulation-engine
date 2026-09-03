@@ -58,6 +58,10 @@ from evo_engine.genetics.genetic_architecture import (
 )
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
+from evo_engine.genetics.genome_structure import (
+    ChromosomeCopyExpectation,
+    GenomeStructure,
+)
 from evo_engine.genetics.inheritance import (
     ClonalInheritance,
     InheritanceModel,
@@ -71,6 +75,11 @@ from evo_engine.genetics.mutation import (
     UniformChoiceMutation,
     UniformIntegerMutation,
 )
+from evo_engine.genetics.pairing import (
+    ChromosomeAssociation,
+    ChromosomePairing,
+    SameNameBivalentPairing,
+)
 from evo_engine.genetics.recombination import (
     NoRecombination,
     RecombinationModel,
@@ -79,6 +88,10 @@ from evo_engine.genetics.recombination import (
 from evo_engine.genetics.requirements import (
     TraitRequirementProvider,
     collect_required_traits,
+)
+from evo_engine.genetics.segregation import (
+    ChromosomeSegregation,
+    MendelianSegregation,
 )
 from evo_engine.genetics.trait import Trait
 
@@ -116,6 +129,10 @@ __all__ = [
     "AlleleDomain",
     "ChoiceAlleleDomain",
     "Chromosome",
+    "ChromosomeAssociation",
+    "ChromosomeCopyExpectation",
+    "ChromosomePairing",
+    "ChromosomeSegregation",
     "ClonalInheritance",
     "CompleteDominanceExpression",
     "ExpressionModel",
@@ -125,17 +142,20 @@ __all__ = [
     "GeneticArchitecture",
     "GeneticPhenotype",
     "Genome",
+    "GenomeStructure",
     "InheritanceModel",
     "IntegerAlleleDomain",
     "Locus",
     "MeanIntegerExpression",
     "MeioticGameteFormation",
+    "MendelianSegregation",
     "MutationPolicy",
     "NoMutation",
     "NoRecombination",
     "PiecewiseLinkageMap",
     "RecombinationInterval",
     "RecombinationModel",
+    "SameNameBivalentPairing",
     "SexualInheritance",
     "SingleCrossoverRecombination",
     "Trait",
