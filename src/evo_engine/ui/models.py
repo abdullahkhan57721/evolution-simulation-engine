@@ -14,7 +14,15 @@ from evo_engine.observation import (
     SpatialObservation,
     SpatialRecorder,
 )
-from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
+from evo_engine.presets import (
+    ReferenceEcologyConfig,
+    ReferenceExplorationMovement,
+    ReferenceGaussianMovement,
+    ReferenceMooreMovement,
+    ReferenceUniformMovement,
+    ReferenceVonNeumannMovement,
+    build_reference_ecology,
+)
 from evo_engine.telemetry import StepTelemetry
 
 
@@ -84,6 +92,8 @@ def build_curated_config(
     width: int = 12,
     height: int = 12,
     initial_energy: int = 30,
+    exploration_movement_kind: str = "moore",
+    gaussian_standard_deviation: int | None = None,
     mutation_enabled: bool = True,
     mutation_percent: int | None = 1,
     mutation_max_change: int | None = 1,
@@ -96,12 +106,17 @@ def build_curated_config(
     """Build the validated reference configuration exposed by the dashboard.
 
     Conditional UI branches normalize into one real ``ReferenceEcologyConfig``.
-    Dependent values are validated only while their branch is active; disabled
-    branches ignore any stale UI value and canonicalize the corresponding model
-    parameter to zero. Percentage controls are converted to the engine's existing
-    integer parts-per-million contracts rather than introducing a second
-    simulation configuration format.
+    Dependent values are validated only while their branch is active. Inactive
+    values are ignored so stale Streamlit widget state cannot affect the built
+    simulation. Percentage controls are converted to the engine's existing integer
+    parts-per-million contracts rather than introducing a second simulation
+    configuration format.
     """
+    exploration_movement = _normalize_exploration_movement(
+        kind=exploration_movement_kind,
+        gaussian_standard_deviation=gaussian_standard_deviation,
+    )
+
     if type(mutation_enabled) is not bool:
         raise TypeError("mutation_enabled must be a Boolean.")
     if type(recombination_enabled) is not bool:
@@ -146,12 +161,42 @@ def build_curated_config(
         width=width,
         height=height,
         initial_energy=initial_energy,
+        exploration_movement=exploration_movement,
         mutation_probability_ppm=normalized_mutation_percent * 10_000,
         mutation_max_change=normalized_mutation_max_change,
         recombination_probability_ppm=normalized_recombination_percent * 10_000,
         resource_generation_amount=resource_generation_amount,
         resource_deposits_per_step=resource_deposits_per_step,
         traits=attrs.evolve(baseline.traits, growth_rate=growth_rate),
+    )
+
+
+def _normalize_exploration_movement(
+    *,
+    kind: str,
+    gaussian_standard_deviation: int | None,
+) -> ReferenceExplorationMovement:
+    if kind == "moore":
+        return ReferenceMooreMovement()
+    if kind == "von_neumann":
+        return ReferenceVonNeumannMovement()
+    if kind == "uniform":
+        return ReferenceUniformMovement()
+    if kind == "gaussian":
+        if (
+            type(gaussian_standard_deviation) is not int
+            or gaussian_standard_deviation < 0
+        ):
+            raise ValueError(
+                "gaussian_standard_deviation must be a non-negative integer when "
+                "Gaussian exploration movement is selected."
+            )
+        return ReferenceGaussianMovement(
+            standard_deviation=gaussian_standard_deviation,
+        )
+    raise ValueError(
+        "exploration_movement_kind must be one of: moore, von_neumann, uniform, "
+        "gaussian."
     )
 
 
