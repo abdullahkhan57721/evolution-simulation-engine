@@ -10,7 +10,7 @@ from evo_engine.ecology import (
     UniformResourcePlacement,
 )
 from evo_engine.engine import SequentialStepCoordinator
-from evo_engine.observation import SpatialRecorder
+from evo_engine.observation import EventRecorder, SpatialRecorder
 from evo_engine.presets import ReferenceEcologyConfig
 from evo_engine.presets.reference_ecology.builders import (
     build_reference_engine,
@@ -30,6 +30,13 @@ def _reference_resource_generation(config: ReferenceEcologyConfig) -> ResourceGe
             if isinstance(process, ResourceGeneration):
                 return process
     raise AssertionError("reference engine has no ResourceGeneration process")
+
+
+def _run_spatial_history(config: ReferenceEcologyConfig) -> SpatialRecorder:
+    recorder = SpatialRecorder()
+    simulation = build_reference_simulation(config)
+    build_reference_engine(config, observers=(recorder,)).run(simulation)
+    return recorder
 
 
 def test_reference_config_defaults_to_uniform_resource_placement() -> None:
@@ -63,6 +70,37 @@ def test_reference_engine_wires_configured_patchy_placement() -> None:
     assert _reference_resource_generation(config).placement_model is placement
 
 
+def test_uniform_and_patchy_reference_runs_generate_equal_total_resource() -> None:
+    """Test landscape geometry changes without changing configured generation."""
+    common = dict(
+        initial_population=1,
+        max_steps=1,
+        seed=57,
+        resource_request_amount=0,
+    )
+    uniform = _run_spatial_history(ReferenceEcologyConfig(**common))
+    patchy = _run_spatial_history(
+        ReferenceEcologyConfig(
+            **common,
+            resource_placement_model=PatchyResourcePlacement(
+                patches=(ResourcePatch(center_x=11, center_y=11, radius=0),)
+            ),
+        )
+    )
+
+    uniform_resources = uniform.observations[-1].resources
+    patchy_resources = patchy.observations[-1].resources
+    expected_total = (
+        ReferenceEcologyConfig().resource_generation_amount
+        * ReferenceEcologyConfig().resource_deposits_per_step
+    )
+
+    assert sum(resource.amount for resource in uniform_resources) == expected_total
+    assert sum(resource.amount for resource in patchy_resources) == expected_total
+    assert uniform_resources != patchy_resources
+    assert {(resource.x, resource.y) for resource in patchy_resources} == {(11, 11)}
+
+
 def test_patchy_reference_run_is_recorded_by_existing_spatial_observation() -> None:
     """Test committed patch geography appears without observation schema changes."""
     placement = PatchyResourcePlacement(
@@ -74,11 +112,7 @@ def test_patchy_reference_run_is_recorded_by_existing_spatial_observation() -> N
         seed=59,
         resource_placement_model=placement,
     )
-    recorder = SpatialRecorder()
-    simulation = build_reference_simulation(config)
-    engine = build_reference_engine(config, observers=(recorder,))
-
-    engine.run(simulation)
+    recorder = _run_spatial_history(config)
 
     assert len(recorder.observations) == 2
     assert recorder.observations[0].resources == ()
@@ -88,6 +122,24 @@ def test_patchy_reference_run_is_recorded_by_existing_spatial_observation() -> N
     assert resource.amount == (
         config.resource_generation_amount * config.resource_deposits_per_step
     )
+
+
+def test_patchy_reference_run_keeps_movement_and_consumption_pipeline_active() -> None:
+    """Test existing movement and consumption stages still commit under patchiness."""
+    config = ReferenceEcologyConfig(
+        initial_population=4,
+        max_steps=2,
+        seed=60,
+        resource_placement_model=PatchyResourcePlacement(
+            patches=(ResourcePatch(center_x=6, center_y=6, radius=2),)
+        ),
+    )
+    recorder = EventRecorder()
+    simulation = build_reference_simulation(config)
+    build_reference_engine(config, telemetry_observers=(recorder,)).run(simulation)
+
+    assert recorder.events_for_process("Movement")
+    assert recorder.events_for_process("ResourceConsumption")
 
 
 def test_patchy_reference_spatial_history_replays_for_fixed_seed() -> None:
@@ -104,12 +156,7 @@ def test_patchy_reference_spatial_history_replays_for_fixed_seed() -> None:
         ),
     )
 
-    first_recorder = SpatialRecorder()
-    first_simulation = build_reference_simulation(config)
-    build_reference_engine(config, observers=(first_recorder,)).run(first_simulation)
+    first = _run_spatial_history(config)
+    second = _run_spatial_history(config)
 
-    second_recorder = SpatialRecorder()
-    second_simulation = build_reference_simulation(config)
-    build_reference_engine(config, observers=(second_recorder,)).run(second_simulation)
-
-    assert first_recorder.observations == second_recorder.observations
+    assert first.observations == second.observations
