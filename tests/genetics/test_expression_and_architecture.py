@@ -32,9 +32,7 @@ from tests.helpers import (
 def _diploid_structure() -> GenomeStructure:
     """Return the explicit one-chromosome diploid structure used here."""
     return GenomeStructure(
-        chromosomes=(
-            ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
-        )
+        chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
     )
 
 
