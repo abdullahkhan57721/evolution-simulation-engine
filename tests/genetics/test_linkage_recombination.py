@@ -34,9 +34,7 @@ def test_piecewise_linkage_map_controls_crossover_location() -> None:
     )
     architecture = GeneticArchitecture(
         genome_structure=GenomeStructure(
-            chromosomes=(
-                ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
-            )
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
         ),
         loci=loci,
         traits=(),
