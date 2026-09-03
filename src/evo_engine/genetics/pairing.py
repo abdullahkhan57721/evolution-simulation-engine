@@ -20,7 +20,8 @@ class ChromosomeAssociation:
     An association is transient meiotic organization, not persistent chromosome
     identity. It intentionally does not require chromosome-name equality so
     future pairing policies can represent biological relationships stronger than
-    today's simple same-name rule.
+    today's simple same-name rule. Each physical chromosome-copy object may occur
+    at most once in an association; distinct copies may still carry equal state.
 
     Attributes:
         chromosomes: Ordered chromosome copies participating in the association.
@@ -34,12 +35,20 @@ class ChromosomeAssociation:
         if not self.chromosomes:
             raise ValueError("chromosomes must contain at least one chromosome.")
 
+        chromosome_identities: set[int] = set()
         for index, chromosome in enumerate(self.chromosomes):
             if not isinstance(chromosome, Chromosome):
                 raise TypeError(
                     f"chromosomes[{index}] must be an instance of Chromosome; "
                     f"received {chromosome!r}."
                 )
+            chromosome_identity = id(chromosome)
+            if chromosome_identity in chromosome_identities:
+                raise ValueError(
+                    "chromosomes must contain unique chromosome-copy objects; "
+                    f"chromosomes[{index}] repeats an earlier copy."
+                )
+            chromosome_identities.add(chromosome_identity)
 
 
 class ChromosomePairing(Protocol):
