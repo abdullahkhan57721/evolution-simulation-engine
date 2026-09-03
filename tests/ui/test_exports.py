@@ -35,13 +35,9 @@ def test_experiment_downloads_reuse_existing_json_and_csv_formats() -> None:
     payload = json.loads(artifacts[0].data.decode("utf-8"))
     assert [item["metadata"]["seed"] for item in payload["replicates"]] == [7, 9]
 
-    summary_rows = list(
-        csv.DictReader(io.StringIO(artifacts[1].data.decode("utf-8")))
-    )
+    summary_rows = list(csv.DictReader(io.StringIO(artifacts[1].data.decode("utf-8"))))
     assert [int(row["seed"]) for row in summary_rows] == [7, 9]
 
-    history_rows = list(
-        csv.DictReader(io.StringIO(artifacts[2].data.decode("utf-8")))
-    )
+    history_rows = list(csv.DictReader(io.StringIO(artifacts[2].data.decode("utf-8"))))
     assert {int(row["seed"]) for row in history_rows} == {7, 9}
     assert {int(row["step_index"]) for row in history_rows} == {0, 1}
