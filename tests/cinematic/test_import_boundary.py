@@ -84,7 +84,9 @@ def test_manim_import_is_isolated_to_optional_renderer_module() -> None:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             for module in _imported_modules(node):
-                if (module == "manim" or module.startswith("manim.")) and path != allowed:
+                if (
+                    module == "manim" or module.startswith("manim.")
+                ) and path != allowed:
                     violations.append(f"{path}: imports {module}")
 
     assert violations == []
