@@ -61,9 +61,7 @@ def test_genome_structure_rejects_invalid_copy_count() -> None:
     )
 
     with pytest.raises(ValueError, match="allowed copy counts"):
-        architecture.validate_genome(
-            Genome(chromosomes=(Chromosome(name="1"),))
-        )
+        architecture.validate_genome(Genome(chromosomes=(Chromosome(name="1"),)))
 
 
 def test_genome_structure_rejects_undeclared_chromosome_type() -> None:
