@@ -10,6 +10,16 @@ from evo_engine.presets.reference_ecology.config import (
     ReferencePhysiologicalTradeoffs,
     ReferenceTraitValues,
 )
+from evo_engine.presets.reference_ecology.flagship import (
+    FLAGSHIP_HIGH_MAX_INTAKE_RATE,
+    FLAGSHIP_LOW_MAX_INTAKE_RATE,
+    FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS,
+    FLAGSHIP_MAX_INTAKE_SEED,
+    FlagshipMaxIntakeSpecification,
+    build_flagship_max_intake_ecology,
+    build_flagship_max_intake_specification,
+    build_flagship_max_intake_world,
+)
 from evo_engine.presets.reference_ecology.genetics import (
     build_reference_founder_genome,
     build_reference_genetic_architecture,
@@ -30,6 +40,11 @@ from evo_engine.presets.reference_ecology.reproductive_investment import (
 from evo_engine.presets.reference_ecology.spec import build_reference_spec
 
 __all__ = [
+    "FLAGSHIP_HIGH_MAX_INTAKE_RATE",
+    "FLAGSHIP_LOW_MAX_INTAKE_RATE",
+    "FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS",
+    "FLAGSHIP_MAX_INTAKE_SEED",
+    "FlagshipMaxIntakeSpecification",
     "ReferenceEcology",
     "ReferenceEcologyConfig",
     "ReferenceExplorationMovement",
@@ -40,6 +55,9 @@ __all__ = [
     "ReferenceTraitValues",
     "ReferenceUniformMovement",
     "ReferenceVonNeumannMovement",
+    "build_flagship_max_intake_ecology",
+    "build_flagship_max_intake_specification",
+    "build_flagship_max_intake_world",
     "build_reference_ecology",
     "build_reference_engine",
     "build_reference_founder_genome",
