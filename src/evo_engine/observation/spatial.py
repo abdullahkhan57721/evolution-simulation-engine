@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from typing import Any
+
 import attrs
 
 from evo_engine.validation import attrs_validators, validators
@@ -327,8 +330,8 @@ def _validate_coordinate(
         )
 
 
-def _validate_unique_sorted(values: list[object], *, name: str) -> None:
-    if values != sorted(values):
+def _validate_unique_sorted(values: Sequence[Any], *, name: str) -> None:
+    if tuple(values) != tuple(sorted(values)):
         raise ValueError(f"{name} must be in deterministic increasing order.")
     if len(values) != len(set(values)):
         raise ValueError(f"{name} must be unique.")
