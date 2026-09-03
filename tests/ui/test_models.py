@@ -102,8 +102,12 @@ def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None
     result = run_dashboard_experiment(config, seeds=(3, 5))
 
     assert result.seeds == (3, 5)
-    assert all(replicate.metadata.completed_steps == 1 for replicate in result.replicates)
-    assert all(len(replicate.population_history) == 2 for replicate in result.replicates)
+    assert all(
+        replicate.metadata.completed_steps == 1 for replicate in result.replicates
+    )
+    assert all(
+        len(replicate.population_history) == 2 for replicate in result.replicates
+    )
 
 
 def test_parse_seed_list_is_bounded_unique_and_understandable() -> None:
