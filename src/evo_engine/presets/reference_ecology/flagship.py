@@ -7,17 +7,16 @@ from collections.abc import Iterable
 import attrs
 
 from evo_engine.engine import Observer, Simulation
-from evo_engine.genetics import GENETIC_ARCHITECTURE, GeneticArchitecture
+from evo_engine.genetics import GENETIC_ARCHITECTURE, GeneticArchitecture, MAX_INTAKE_RATE
 from evo_engine.presets.reference_ecology.builders import ReferenceEcology
 from evo_engine.presets.reference_ecology.config import ReferenceEcologyConfig
-from evo_engine.presets.reference_ecology.genetics import build_reference_founder_genome
-from evo_engine.presets.reference_ecology.mating_types import (
-    reference_founder_mating_type,
+from evo_engine.presets.reference_ecology.genetics import (
+    build_balanced_reference_trait_world,
 )
 from evo_engine.presets.reference_ecology.observable import build_reference_ecology
 from evo_engine.telemetry import TelemetryObserver
 from evo_engine.validation import validators
-from evo_engine.world import Organism, WorldState
+from evo_engine.world import WorldState
 
 FLAGSHIP_MAX_INTAKE_SEED = 41
 FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS = (11, 23, 37, 41, 59, 73, 89, 101)
@@ -126,42 +125,15 @@ def build_flagship_max_intake_world(
     if not isinstance(specification, FlagshipMaxIntakeSpecification):
         raise TypeError("specification must be a FlagshipMaxIntakeSpecification.")
 
-    config = specification.reference_config
-    low_config = attrs.evolve(
-        config,
-        traits=attrs.evolve(
-            config.traits,
-            max_intake_rate=specification.low_max_intake_rate,
+    return build_balanced_reference_trait_world(
+        genetic_architecture,
+        trait_name=MAX_INTAKE_RATE,
+        variant_values=(
+            specification.low_max_intake_rate,
+            specification.high_max_intake_rate,
         ),
+        config=specification.reference_config,
     )
-    high_config = attrs.evolve(
-        config,
-        traits=attrs.evolve(
-            config.traits,
-            max_intake_rate=specification.high_max_intake_rate,
-        ),
-    )
-    founder_genomes = (
-        build_reference_founder_genome(genetic_architecture, low_config),
-        build_reference_founder_genome(genetic_architecture, high_config),
-    )
-    world = WorldState(width=config.width, height=config.height)
-
-    for index in range(config.initial_population):
-        genome_index = 0 if index % 4 in (0, 3) else 1
-        world.add_organism(
-            Organism.from_genome(
-                genetic_architecture=genetic_architecture,
-                genome=founder_genomes[genome_index],
-                age=0,
-                energy=config.initial_energy,
-                mating_type=reference_founder_mating_type(index),
-                x=index % config.width,
-                y=index // config.width,
-            )
-        )
-
-    return world
 
 
 def build_flagship_max_intake_ecology(
