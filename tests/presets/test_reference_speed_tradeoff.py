@@ -90,7 +90,7 @@ def test_balanced_reference_trait_world_is_deterministic() -> None:
     assert first_snapshot == second_snapshot
 
 
-def test_reference_speed_variants_are_transmitted_by_existing_sexual_inheritance() -> None:
+def test_reference_speed_variants_are_transmitted_by_sexual_inheritance() -> None:
     """Test low and high speed alleles remain ordinary transmissible genetics."""
     _, architecture, world = _speed_world()
     founders = tuple(world.organisms.values())
@@ -112,7 +112,7 @@ def test_reference_speed_variants_are_transmitted_by_existing_sexual_inheritance
     )
 
     assert tuple(
-        sorted(allele.value for allele in offspring_genome.alleles_at(MAX_SPEED))
+        allele.value for allele in offspring_genome.alleles_at(MAX_SPEED)
     ) == (LOW_SPEED, HIGH_SPEED)
     assert architecture.express(offspring_genome).int_value(MAX_SPEED) == 3
 
