@@ -279,6 +279,7 @@ def build_reference_engine(
         ResourceGeneration(
             amount=config.resource_generation_amount,
             number_of_deposits=config.resource_deposits_per_step,
+            placement_model=config.resource_placement_model,
         ),
         Decomposition(amount=config.decomposition_amount),
     )
