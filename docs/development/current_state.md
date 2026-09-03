@@ -180,12 +180,40 @@ The design should remain extensible toward richer genetics, dominance and other
 non-additive expression, ploidy variation, chromosome-specific recombination,
 richer mating systems, and variable reproductive contributors.
 
-### Observation, experiments, and reproducibility
+### Observation, experiments, reproducibility, and presentation
 
 The repository includes committed telemetry and observation layers for population
 and evolutionary state, causal event history, pedigree/lifetime contribution,
 genetic composition, reproducible experiments/export, and exact checkpoint/resume
 behavior.
+
+Spatial presentation data now has its own opt-in committed observation boundary.
+`SpatialRecorder` stores immutable scalar snapshots of organism positions and
+selected state, resource deposits, carcasses, and world dimensions. It follows the
+same post-commit observer semantics as the other recorders and does not retain live
+world or entity references.
+
+The optional `evo_engine.ui` package is a top-level consumer of those committed
+records and the existing experiment API. Its `DashboardRun` presentation value
+contains completed immutable results rather than an engine, mutable world, or
+recorder ownership. The Streamlit/Plotly portfolio dashboard therefore preserves:
+
+```text
+simulation/domain layers
+        |
+        v
+committed observation / experiment values
+        |
+        v
+presentation transforms
+        |
+        v
+UI / visualization
+```
+
+Production packages are mechanically guarded from importing `evo_engine.ui`.
+Streamlit and Plotly are optional UI dependencies rather than mandatory core
+runtime requirements.
 
 ### Performance and quality boundaries
 
@@ -197,6 +225,9 @@ hard constraints on performance changes.
 The repository quality gate includes Ruff, Pyright, Import Linter/architecture
 checks, kernel-contract regressions, Complexipy, pytest/coverage, reference and
 kernel performance checks, strict MkDocs, and a stable final aggregator status.
+The quality environment also installs the optional UI dependencies so dashboard
+code and headless Streamlit interactions are verified without making them core
+runtime dependencies.
 
 ## Most recent architectural proof
 
@@ -222,23 +253,31 @@ produce a valid four-copy offspring. That demonstrates that the public
 architecture is not secretly diploid-only while leaving production polyploid
 meiosis deliberately out of scope.
 
+The portfolio-release work then exercised a different architectural claim: the
+engine can be presented interactively without turning the UI into an alternate
+simulation owner. Issue #106 / PR #107 added the missing committed spatial history
+boundary, and Issue #108 / PR #109 built the dashboard above that boundary while
+reusing existing population, genetics, event, pedigree, experiment, and export
+contracts.
+
 ## Current development front
 
-The foundational chromosome-transmission responsibility split is now established.
-The genetics front is therefore **richer pairing and recombination behavior on the
-settled chromosome-transmission contracts**, selected only when a concrete
-biological use case justifies it.
+The immediate project front is the **v0.1 portfolio release**, not additional
+biological breadth. The core simulation architecture should remain stable while
+the project emphasizes a polished end-to-end demonstration, concise documentation,
+reproducible examples, release/deployment ergonomics, and verification of the
+interactive experience.
 
-Candidate next genetics work includes production higher-copy pairing policies,
-chromosome-specific pairing behavior, richer crossover models, and eventually
-role-, mating-type-, or lifecycle-sensitive gamete formation. These should extend
-the existing pairing/recombination/segregation interfaces rather than redesign
-`Genome`, general propagation, or the frozen kernel.
+The dashboard now exposes the existing reference ecology through curated
+configuration, committed spatial playback, evolutionary/genetic analytics,
+life-history/event inspection, multi-seed experiments, and exports. Follow-up
+portfolio work should improve release presentation or discoverability without
+moving presentation concerns into lower modeled domains.
 
-Richer mating systems are also architecturally unblocked by arity-neutral
-reproductive groups and independent participant/investor/contributor/production-
-source semantics. They may advance as a parallel biological front when a concrete
-use case justifies them.
+After v0.1, richer pairing/recombination, richer mating systems, genetic
+expression, development/G×E, and evolutionary ecology remain valid modeled-domain
+fronts. They should resume only against concrete use cases and the already-settled
+contracts rather than through broad architectural redesign.
 
 See `docs/development/roadmap.md` for milestone-level direction.
 
@@ -280,6 +319,10 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#106 / #107 and #108 / #109 — portfolio observation/interface stack:** added
+  opt-in committed spatial snapshots, then a Streamlit/Plotly reference-ecology
+  dashboard that consumes committed observations and existing experiment/export
+  contracts without owning live simulation internals.
 - **#102 / #103 — chromosome-transmission foundation:** made chromosome-specific
   copy expectations, temporary pairing associations, recombination eligibility,
   and segregation explicit while preserving `Genome`, current Mendelian behavior,
