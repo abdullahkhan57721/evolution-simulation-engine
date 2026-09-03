@@ -7,8 +7,8 @@ from collections.abc import Iterable
 import attrs
 
 from evo_engine.engine import Observer, SimulationEngine
+from evo_engine.presets.reference_ecology.builders import ReferenceEcology
 from evo_engine.presets.reference_ecology.builders import (
-    ReferenceEcology,
     build_reference_ecology as _build_reference_ecology,
 )
 from evo_engine.presets.reference_ecology.config import ReferenceEcologyConfig
