@@ -87,9 +87,7 @@ def test_patchy_generation_conserves_exact_configured_quantity() -> None:
     assert len(events) == 6
     assert sum(event.amount for event in events) == 18
     assert sum(state.domain_state.resources.values()) == 18
-    assert all(
-        (event.x - 3) ** 2 + (event.y - 3) ** 2 <= 1 for event in events
-    )
+    assert all((event.x - 3) ** 2 + (event.y - 3) ** 2 <= 1 for event in events)
     assert all(0 <= event.x < 7 and 0 <= event.y < 7 for event in events)
 
 
