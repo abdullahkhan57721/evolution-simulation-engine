@@ -62,9 +62,7 @@ def make_integer_architecture(*trait_names: str) -> GeneticArchitecture:
     )
     return GeneticArchitecture(
         genome_structure=GenomeStructure(
-            chromosomes=(
-                ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
-            )
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
         ),
         loci=loci,
         traits=traits,
