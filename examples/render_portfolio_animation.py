@@ -1,4 +1,4 @@
-"""Render a fixed-seed cinematic replay of the complete reference ecology."""
+"""Render the fixed-seed flagship evolutionary demonstration."""
 
 from __future__ import annotations
 
@@ -9,24 +9,25 @@ from evo_engine.cinematic import (
     build_portfolio_animation_timeline,
     render_portfolio_animation,
 )
-from evo_engine.genetics import GROWTH_RATE
+from evo_engine.genetics import MAX_INTAKE_RATE
 from evo_engine.observation import SpatialRecorder
-from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
+from evo_engine.presets import (
+    FLAGSHIP_MAX_INTAKE_SEED,
+    build_flagship_max_intake_ecology,
+    build_flagship_max_intake_specification,
+)
 
 
 def main() -> None:
-    """Run the deterministic reference ecology, then render committed results."""
+    """Run the deterministic flagship ecology, then render committed results."""
     arguments = _parse_arguments()
-    config = ReferenceEcologyConfig(
-        width=12,
-        height=12,
-        initial_population=20,
+    specification = build_flagship_max_intake_specification(
+        seed=FLAGSHIP_MAX_INTAKE_SEED,
         max_steps=arguments.max_steps,
-        seed=42,
     )
     spatial_recorder = SpatialRecorder()
-    ecology = build_reference_ecology(
-        config,
+    ecology = build_flagship_max_intake_ecology(
+        specification,
         additional_observers=(spatial_recorder,),
     )
 
@@ -35,21 +36,21 @@ def main() -> None:
     timeline = build_portfolio_animation_timeline(
         spatial_history=spatial_recorder.observations,
         population_history=ecology.recorder.observations,
-        trait_name=GROWTH_RATE,
+        trait_name=MAX_INTAKE_RATE,
     )
     output_path = render_portfolio_animation(
         timeline,
         arguments.output,
         quality=arguments.quality,
     )
-    print(f"Rendered deterministic portfolio animation: {output_path}")
+    print(f"Rendered deterministic flagship animation: {output_path}")
 
 
 def _parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run the fixed-seed reference ecology to completion and render its "
-            "committed observations with the optional Manim cinematic path."
+            "Run the fixed-seed flagship max-intake demonstration to completion "
+            "and render its committed observations with the optional Manim path."
         )
     )
     parser.add_argument(
@@ -67,8 +68,8 @@ def _parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--max-steps",
         type=int,
-        default=30,
-        help="Number of deterministic reference-ecology steps to record.",
+        default=40,
+        help="Number of deterministic flagship steps to record.",
     )
     return parser.parse_args()
 
