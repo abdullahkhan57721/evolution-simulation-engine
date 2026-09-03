@@ -288,7 +288,10 @@ def genotype_frequency_figure(
     composition = history[-1].locus(locus_name)
     if not composition.genotypes:
         return _empty_figure(f"No active genotypes remain at {locus_name}.")
-    labels = [" / ".join(repr(value) for value in item.allele_values) for item in composition.genotypes]
+    labels = [
+        " / ".join(repr(value) for value in item.allele_values)
+        for item in composition.genotypes
+    ]
     figure = go.Figure(
         data=[
             go.Bar(
@@ -345,16 +348,12 @@ def event_activity_figure(steps: tuple[StepTelemetry, ...]) -> go.Figure:
 def mortality_figure(histories: tuple[IndividualLifeHistory, ...]) -> go.Figure:
     """Plot recorded biological deaths by cause."""
     counts = Counter(
-        history.death_cause
-        for history in histories
-        if history.death_cause is not None
+        history.death_cause for history in histories if history.death_cause is not None
     )
     if not counts:
         return _empty_figure("No biological deaths were recorded.")
     names = sorted(counts)
-    figure = go.Figure(
-        data=[go.Bar(x=names, y=[counts[name] for name in names])]
-    )
+    figure = go.Figure(data=[go.Bar(x=names, y=[counts[name] for name in names])])
     figure.update_layout(
         title="Mortality causes",
         xaxis_title="process",
@@ -480,7 +479,9 @@ def top_reproductive_success_rows(
     )
 
 
-def _spatial_traces(frame: SpatialObservation) -> tuple[go.Scatter, go.Scatter, go.Scatter]:
+def _spatial_traces(
+    frame: SpatialObservation,
+) -> tuple[go.Scatter, go.Scatter, go.Scatter]:
     organisms = go.Scatter(
         x=[item.x for item in frame.organisms],
         y=[item.y for item in frame.organisms],
@@ -525,9 +526,7 @@ def _spatial_traces(frame: SpatialObservation) -> tuple[go.Scatter, go.Scatter, 
         mode="markers",
         name="Carcasses",
         marker={"size": 12, "symbol": "x"},
-        customdata=[
-            [item.carcass_id, item.resource_units] for item in frame.carcasses
-        ],
+        customdata=[[item.carcass_id, item.resource_units] for item in frame.carcasses],
         hovertemplate=(
             "Carcass %{customdata[0]}<br>position=(%{x}, %{y})<br>"
             "resource units=%{customdata[1]}<extra></extra>"
