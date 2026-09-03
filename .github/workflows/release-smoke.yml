@@ -29,6 +29,7 @@ jobs:
           cache: pip
           cache-dependency-path: |
             pyproject.toml
+            requirements.txt
             requirements-ui.txt
 
       - name: Create clean core environment
@@ -92,14 +93,31 @@ jobs:
           print("Exports:", *(str(path) for path in outputs))
           PY
 
-      - name: Install optional dashboard dependencies
+      - name: Create clean Streamlit Community Cloud environment
         shell: bash
-        run: venv/bin/python -m pip install -r requirements-ui.txt
+        run: |
+          python -m venv cloud-venv
+          cloud-venv/bin/python -m pip install --upgrade pip
+          cloud-venv/bin/python -m pip install -r requirements.txt
+          cloud-venv/bin/python - <<'PY'
+          from importlib import metadata
+
+          import evo_engine
+          import plotly
+          import streamlit
+
+          version = metadata.version("evolution-simulation-engine")
+          assert version == "0.1.0", version
+          print(f"Cloud install imported evo_engine {version}")
+          print(f"Streamlit {streamlit.__version__}")
+          print(f"Plotly {plotly.__version__}")
+          print(f"evo_engine package: {evo_engine.__file__}")
+          PY
 
       - name: Verify dashboard launches headlessly
         shell: bash
         run: |
-          venv/bin/python - <<'PY'
+          cloud-venv/bin/python - <<'PY'
           from streamlit.testing.v1 import AppTest
 
           app = AppTest.from_file("src/evo_engine/ui/app.py").run(timeout=30)

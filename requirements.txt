@@ -1,0 +1,7 @@
+# Streamlit Community Cloud deployment adapter.
+#
+# The project itself remains packaged by setuptools through pyproject.toml. This
+# file exists so Community Cloud selects its supported pip requirements path
+# instead of interpreting pyproject.toml as Poetry configuration.
+.
+-r requirements-ui.txt
