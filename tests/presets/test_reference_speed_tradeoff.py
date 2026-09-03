@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections import Counter
 import random
+from collections import Counter
 
 import attrs
 
@@ -14,7 +14,7 @@ from evo_engine.presets import (
     build_reference_genetic_architecture,
 )
 from evo_engine.presets.reference_ecology.mating_types import REFERENCE_MATING_TYPES
-from evo_engine.spatial import StraightLineTowardTarget
+from evo_engine.spatial.targeted_movement import StraightLineTowardTarget
 
 LOW_SPEED = 1
 HIGH_SPEED = 4
