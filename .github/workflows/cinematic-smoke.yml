@@ -1,0 +1,62 @@
+name: Cinematic Smoke
+
+on:
+  pull_request:
+    paths:
+      - "requirements-animation.txt"
+      - "src/evo_engine/cinematic/**"
+      - "examples/render_portfolio_animation.py"
+      - ".github/workflows/cinematic-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cinematic-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    name: Low-quality Manim render
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-animation.txt
+      - name: Install project and optional animation dependency
+        shell: bash
+        run: |
+          python -m venv venv
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/python -m pip install -e .
+          venv/bin/python -m pip install -r requirements-animation.txt
+      - name: Render deterministic smoke animation
+        shell: bash
+        run: |
+          venv/bin/python examples/render_portfolio_animation.py \
+            --quality low \
+            --max-steps 2 \
+            --output outputs/cinematic-smoke.mp4
+          venv/bin/python - <<'PY'
+          from pathlib import Path
+
+          output = Path("outputs/cinematic-smoke.mp4")
+          assert output.is_file(), output
+          assert output.stat().st_size > 1_000, output.stat().st_size
+          print(f"Verified {output} ({output.stat().st_size} bytes)")
+          PY
+      - name: Upload smoke render
+        uses: actions/upload-artifact@v4
+        with:
+          name: cinematic-smoke-${{ github.run_id }}
+          path: outputs/cinematic-smoke.mp4
+          retention-days: 14
+          if-no-files-found: error
