@@ -132,10 +132,16 @@ from `production_source_ids`; pedigree parentage and direct genetic reproductive
 success continue to follow only transmissible-state contributors. Concrete
 inheritance and production policies retain their own stronger requirements.
 
-The genome representation already permits arbitrary chromosome-copy collections.
-Future ploidy work should therefore focus on explicit biological copy-count
-validation, pairing, segregation, gamete formation, and recombination policies
-rather than replacing `Genome` or generalizing the kernel.
+Biological chromosome-copy semantics are explicit without narrowing the genome
+representation. `Genome` and `Gamete` continue to hold arbitrary ordered
+chromosome copies. `GeneticArchitecture` composes a `GenomeStructure` that declares
+chromosome types and chromosome-specific allowed copy counts. Meiotic transmission
+is decomposed into explicit pairing, recombination, and segregation
+responsibilities: pairing creates transient chromosome associations, recombination
+operates only within those selected associations and preserves their copy
+cardinality, and segregation decides which/how many products enter the gamete.
+The current same-name singleton/bivalent pairing and Mendelian segregation are
+simple concrete policies rather than universal ploidy rules; see ADR 0008.
 
 The design should remain extensible toward richer genetics, dominance and other
 non-additive expression, ploidy variation, chromosome-specific recombination,
@@ -196,39 +202,44 @@ identified reproduction orchestration, rather than the kernel or general
 framework, as the main remaining boundary to harden. Issues #92, #95, and #98
 incrementally removed the universal arity and reproductive-source conflations
 found by that audit without changing the frozen kernel or general-evolution layer.
+Issue #100 then made chromosome-copy validity, pairing, recombination eligibility,
+and segregation explicit inside biological genetics without changing those lower
+layers.
 
 ## Current development front
 
-The current architectural front is **explicit biological ploidy, pairing, and
-segregation semantics**.
+The foundational chromosome-copy/pairing/segregation boundary is established.
+The next genetics front is **richer recombination and transmission policies built
+on those explicit responsibilities**, rather than another representation or
+kernel redesign.
 
-`Genome` already stores arbitrary chromosome-copy collections, so the next genetics
-milestone should model what those copies biologically mean: expected copy counts,
-homolog pairing, transmitted gamete copy counts, and segregation rules. Existing
-Mendelian sexual inheritance should remain a concrete simple policy rather than
-becoming the universal model.
+Useful future work can now add concrete biological policies such as richer
+pairing for higher-copy chromosome groups, chromosome-specific recombination,
+multiple crossovers, or role/life-cycle-specific gamete formation when a concrete
+use case justifies them. Those policies should compose with `GenomeStructure`,
+chromosome associations, and segregation instead of re-collapsing the
+responsibilities into one universal meiosis implementation.
 
-Richer mating systems are also now architecturally unblocked by arity-neutral
+Richer mating systems remain architecturally unblocked by arity-neutral
 reproductive groups and independent participant/investor/contributor/production-
-source semantics. They may advance as a parallel biological front when a concrete
-use case justifies them; they do not require a kernel or general-evolution change.
+source semantics. They may advance as a parallel biological front and do not
+require a kernel or general-evolution change.
 
 See `docs/development/roadmap.md` for the milestone-level direction.
 
 ## Known architectural friction
 
-### Ploidy is representable but not yet an explicit biological policy
+### Richer biological pairing and recombination remain intentionally narrow
 
-The `Genome` container can represent arbitrary chromosome-copy counts, and
-expression already supports multiple allele copies. Current meiotic gamete
-formation, however, is still a simple Mendelian policy that groups homologous
-chromosomes and transmits one copy per group. The architecture does not yet expose
-explicit chromosome-copy expectations, pairing behavior, transmitted gamete copy
-counts, or richer segregation rules.
+The architecture can validate chromosome-specific copy structures and can
+represent higher-copy genomes/gametes, but the built-in pairing policy is still
+the current simple same-name singleton/bivalent model and
+`SingleCrossoverRecombination` remains pairwise. This is now an explicit policy
+limitation rather than a hidden genome/inheritance constraint.
 
-The next hardening work should add those responsibilities above the frozen kernel
-and without replacing the existing `Genome` data model. Recombination should be
-deepened only after the pairing/segregation semantics it depends on are explicit.
+Future richer recombination work should add concrete policies behind the settled
+pairing → recombination → segregation boundary. It should not move ploidy into the
+kernel/general-evolution layer or introduce a global organism-level ploidy scalar.
 
 ## Current collaboration model
 
@@ -252,6 +263,11 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#100 — explicit chromosome-copy/pairing/segregation semantics:** made
+  chromosome-specific valid copy structure part of biological genetic
+  architecture; separated pairing, recombination eligibility, and segregation;
+  and preserved ordinary Mendelian behavior as a concrete simple policy while
+  proving higher-copy composition without a production polyploid meiosis model.
 - **#98 — investor/production-source separation:** separated proposal-time
   reproductive investors and materialization-time offspring-production sources from
   resolver-facing participants and genetic contributors while preserving current
