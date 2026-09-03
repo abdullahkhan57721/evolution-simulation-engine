@@ -236,7 +236,7 @@ def test_architecture_rejects_trait_reference_to_unknown_locus() -> None:
 
 
 def test_architecture_rejects_allele_on_wrong_chromosome() -> None:
-    """Test genome structure against configured locus location."""
+    """Test allele location against the locus's configured chromosome."""
     locus = Locus(
         name="a",
         chromosome_name="1",
@@ -249,6 +249,10 @@ def test_architecture_rejects_allele_on_wrong_chromosome() -> None:
             chromosome_expectations=(
                 ChromosomeCopyExpectation(
                     chromosome_name="1",
+                    allowed_copy_counts=(0,),
+                ),
+                ChromosomeCopyExpectation(
+                    chromosome_name="2",
                     allowed_copy_counts=(1,),
                 ),
             )
@@ -265,16 +269,22 @@ def test_architecture_rejects_allele_on_wrong_chromosome() -> None:
         )
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="belongs to chromosome"):
         architecture.validate_genome(genome)
 
 
 def test_architecture_requires_loci_needed_for_expression() -> None:
     """Test that phenotype expression cannot silently omit required loci."""
     architecture = make_integer_architecture("adult_body_mass")
+    genome = Genome(
+        chromosomes=(
+            Chromosome(name="1"),
+            Chromosome(name="1"),
+        )
+    )
 
-    with pytest.raises(ValueError):
-        architecture.express(Genome(chromosomes=()))
+    with pytest.raises(ValueError, match="missing locus"):
+        architecture.express(genome)
 
 
 def test_architecture_expresses_all_traits_in_configured_order() -> None:
