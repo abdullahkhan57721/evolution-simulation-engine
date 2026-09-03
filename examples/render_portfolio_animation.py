@@ -6,7 +6,6 @@ import argparse
 from pathlib import Path
 
 from evo_engine.cinematic import (
-    AnimationQuality,
     build_portfolio_animation_timeline,
     render_portfolio_animation,
 )
@@ -71,9 +70,7 @@ def _parse_arguments() -> argparse.Namespace:
         default=30,
         help="Number of deterministic reference-ecology steps to record.",
     )
-    arguments = parser.parse_args()
-    arguments.quality = AnimationQuality(arguments.quality)
-    return arguments
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
