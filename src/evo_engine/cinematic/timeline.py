@@ -59,6 +59,16 @@ class PortfolioAnimationFrame:
         """Return the completed simulation-step index represented by the frame."""
         return self.spatial.step_index
 
+    @property
+    def born_organism_ids(self) -> tuple[int, ...]:
+        """Return appearing IDs used by the current reference-ecology renderer.
+
+        This convenience name does not establish generic birth causality; the
+        committed event record remains authoritative when a renderer needs to
+        distinguish birth from another kind of biological admission.
+        """
+        return self.appeared_organism_ids
+
 
 @attrs.frozen(slots=True, kw_only=True)
 class PortfolioAnimationTimeline:
