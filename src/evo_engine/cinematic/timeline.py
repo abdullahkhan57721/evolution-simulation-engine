@@ -17,7 +17,7 @@ class PortfolioAnimationFrame:
     Attributes:
         spatial: Immutable committed spatial observation for the step.
         population: Immutable committed population observation for the same step.
-        born_organism_ids: Organism IDs appearing since the preceding frame.
+        appeared_organism_ids: Organism IDs appearing since the preceding frame.
         departed_organism_ids: Organism IDs absent since the preceding frame.
         trait_mean: Recorded mean for the selected trait, or ``None`` for an
             empty population.
@@ -29,7 +29,7 @@ class PortfolioAnimationFrame:
     population: PopulationObservation = attrs.field(
         validator=attrs.validators.instance_of(PopulationObservation),
     )
-    born_organism_ids: tuple[int, ...] = attrs.field(factory=tuple)
+    appeared_organism_ids: tuple[int, ...] = attrs.field(factory=tuple)
     departed_organism_ids: tuple[int, ...] = attrs.field(factory=tuple)
     trait_mean: float | None = None
 
@@ -40,16 +40,16 @@ class PortfolioAnimationFrame:
                 "spatial and population observations must represent the same step."
             )
         _validate_sorted_unique_ids(
-            self.born_organism_ids,
-            name="born_organism_ids",
+            self.appeared_organism_ids,
+            name="appeared_organism_ids",
         )
         _validate_sorted_unique_ids(
             self.departed_organism_ids,
             name="departed_organism_ids",
         )
-        if set(self.born_organism_ids) & set(self.departed_organism_ids):
+        if set(self.appeared_organism_ids) & set(self.departed_organism_ids):
             raise ValueError(
-                "An organism ID cannot be both born and departed in one frame."
+                "An organism ID cannot both appear and depart in one frame."
             )
         if self.trait_mean is not None:
             validators.validate_float(self.trait_mean, name="trait_mean")
@@ -207,11 +207,11 @@ def _build_animation_frame(
     _validate_history_pair(index=index, spatial=spatial, population=population)
     current_ids = frozenset(snapshot.organism_id for snapshot in spatial.organisms)
     _validate_population_count(spatial=spatial, population=population, ids=current_ids)
-    born_ids, departed_ids = _identity_transitions(previous_ids, current_ids)
+    appeared_ids, departed_ids = _identity_transitions(previous_ids, current_ids)
     frame = PortfolioAnimationFrame(
         spatial=spatial,
         population=population,
-        born_organism_ids=born_ids,
+        appeared_organism_ids=appeared_ids,
         departed_organism_ids=departed_ids,
         trait_mean=population.trait(trait_name).summary.mean,
     )
