@@ -12,9 +12,11 @@ from evo_engine.engine import SimulationState
 from evo_engine.genetics import (
     GENETIC_ARCHITECTURE,
     Chromosome,
+    ChromosomeStructure,
     GeneticArchitecture,
     GeneticPhenotype,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
@@ -25,8 +27,12 @@ from evo_engine.world import Organism, WorldState
 
 
 def make_empty_architecture() -> GeneticArchitecture:
-    """Return a genetic architecture with no modeled loci or traits."""
-    return GeneticArchitecture(loci=(), traits=())
+    """Return a genetic architecture with no modeled chromosomes, loci, or traits."""
+    return GeneticArchitecture(
+        genome_structure=GenomeStructure(),
+        loci=(),
+        traits=(),
+    )
 
 
 def make_empty_genome() -> Genome:
@@ -35,7 +41,7 @@ def make_empty_genome() -> Genome:
 
 
 def make_integer_architecture(*trait_names: str) -> GeneticArchitecture:
-    """Return one-locus integer traits on a single modeled chromosome."""
+    """Return diploid one-locus integer traits on one modeled chromosome."""
     loci = tuple(
         Locus(
             name=trait_name,
@@ -54,7 +60,15 @@ def make_integer_architecture(*trait_names: str) -> GeneticArchitecture:
         )
         for trait_name in trait_names
     )
-    return GeneticArchitecture(loci=loci, traits=traits)
+    return GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(
+                ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
+            )
+        ),
+        loci=loci,
+        traits=traits,
+    )
 
 
 def make_diploid_genome(
