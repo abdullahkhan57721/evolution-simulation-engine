@@ -43,15 +43,17 @@ def test_spatial_world_figure_uses_fixed_bounds_frames_and_hover_state() -> None
     )
 
     figure = spatial_world_figure(history)
+    figure_json = figure.to_plotly_json()
+    frames = figure_json["frames"]
 
-    assert len(figure.frames) == 2
-    assert figure.frames[0].name == "0"
-    assert figure.frames[1].name == "1"
+    assert len(frames) == 2
+    assert frames[0]["name"] == "0"
+    assert frames[1]["name"] == "1"
     assert tuple(figure.layout.xaxis.range) == (-0.5, 3.5)
     assert tuple(figure.layout.yaxis.range) == (2.5, -0.5)
     assert "energy=%{customdata[2]}" in figure.data[0].hovertemplate
     assert len(figure.data) == 3
-    assert len(figure.frames[1].data[0].x) == 0
+    assert len(frames[1]["data"][0]["x"]) == 0
 
 
 def test_empty_spatial_history_builds_a_valid_placeholder_figure() -> None:
