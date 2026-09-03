@@ -222,7 +222,7 @@ def test_sexual_inheritance_combines_one_gamete_from_each_parent() -> None:
     assert values[1] in {10, 20}
 
 
-def test_sexual_inheritance_combines_two_copy_gametes_into_four_copy_offspring() -> None:
+def test_sexual_inheritance_supports_four_copy_offspring() -> None:
     """Test inheritance remains neutral to chromosome copies within each gamete."""
     architecture, locus = make_architecture(copy_count=4)
     first_parent = make_copy_count_genome(locus, (1, 2, 3, 4))
