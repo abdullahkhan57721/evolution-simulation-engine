@@ -139,9 +139,7 @@ def test_single_crossover_rejects_association_larger_than_two() -> None:
     """Test the current crossover model owns its pair-size limitation."""
     architecture = GeneticArchitecture(
         genome_structure=GenomeStructure(
-            chromosomes=(
-                ChromosomeStructure(name="1", allowed_copy_counts=(3,)),
-            )
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(3,)),)
         ),
         loci=(),
         traits=(),
