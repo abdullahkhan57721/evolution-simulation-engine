@@ -85,11 +85,14 @@ def test_simple_pairing_forms_singleton_and_bivalent_associations() -> None:
         ChromosomeAssociation(chromosomes=(chromosomes[0],)),
         ChromosomeAssociation(chromosomes=chromosomes[1:]),
     )
-    assert tuple(
-        chromosome
-        for association in associations
-        for chromosome in association.chromosomes
-    ) == chromosomes
+    assert (
+        tuple(
+            chromosome
+            for association in associations
+            for chromosome in association.chromosomes
+        )
+        == chromosomes
+    )
 
 
 def test_valid_four_copy_genome_can_be_unsupported_by_simple_pairing() -> None:
@@ -166,7 +169,9 @@ def test_explicit_pairing_and_segregation_can_form_two_copy_gamete() -> None:
     assert all(chromosome.name == "1" for chromosome in gamete.chromosomes)
 
 
-def test_sexual_inheritance_combines_two_copy_gametes_into_four_copy_offspring() -> None:
+def test_sexual_inheritance_combines_two_copy_gametes_into_four_copy_offspring() -> (
+    None
+):
     architecture = _architecture(
         ChromosomeStructure(name="1", allowed_copy_counts=(4,)),
     )
