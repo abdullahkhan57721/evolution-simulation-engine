@@ -63,7 +63,10 @@ def _replace_founders(ecology, trait_name: str, low: int, high: int) -> None:
     high_genome = _homozygous_variant(founder, architecture, trait_name, high)
     world = WorldState(width=ecology.config.width, height=ecology.config.height)
     for index in range(ecology.config.initial_population):
-        genome = low_genome if index % 2 == 0 else high_genome
+        # Pattern 0:L, 1:H, 2:H, 3:L repeats. With alternating mating types,
+        # each type contains both variants in near-equal counts instead of
+        # genotype being perfectly correlated with mating type.
+        genome = high_genome if index % 4 in (1, 2) else low_genome
         world.add_organism(
             Organism.from_genome(
                 genetic_architecture=architecture,
@@ -137,7 +140,7 @@ def test_m4_probe() -> None:
             45,
         ),
     }
-    lines = ["M4_PROBE_V4_FOUNDER_VARIATION"]
+    lines = ["M4_PROBE_V4B_FOUNDER_VARIATION"]
     for name, (config, trait_name, low, high) in candidates.items():
         results = [
             _run_candidate(
