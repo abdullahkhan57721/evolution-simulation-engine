@@ -78,9 +78,7 @@ def test_piecewise_linkage_map_controls_crossover_location() -> None:
     )
 
     result = recombination.recombine(
-        ChromosomeAssociation(
-            chromosomes=genome.chromosomes_named("1")
-        ),
+        ChromosomeAssociation(chromosomes=genome.chromosomes_named("1")),
         genetic_architecture=architecture,
         rng=random.Random(1),
     )
