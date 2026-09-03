@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeCopyExpectation,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
@@ -30,7 +32,8 @@ def build_reference_genetic_architecture(
     """Build the genetic architecture used by the reference ecology.
 
     Each modeled trait has one bounded integer locus. All loci share one
-    chromosome so sexual reproduction exercises segregation and crossover.
+    explicitly diploid chromosome so sexual reproduction exercises segregation
+    and crossover.
 
     Args:
         config: Optional reference configuration. Defaults to standard values.
@@ -70,6 +73,14 @@ def build_reference_genetic_architecture(
     )
 
     return GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosome_expectations=(
+                ChromosomeCopyExpectation(
+                    chromosome_name=REFERENCE_CHROMOSOME,
+                    allowed_copy_counts=(2,),
+                ),
+            )
+        ),
         loci=loci,
         traits=traits,
     )
