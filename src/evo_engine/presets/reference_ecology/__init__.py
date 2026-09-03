@@ -21,6 +21,7 @@ from evo_engine.presets.reference_ecology.flagship import (
     build_flagship_max_intake_world,
 )
 from evo_engine.presets.reference_ecology.genetics import (
+    build_balanced_reference_trait_world,
     build_reference_founder_genome,
     build_reference_genetic_architecture,
     build_reference_world,
@@ -55,6 +56,7 @@ __all__ = [
     "ReferenceTraitValues",
     "ReferenceUniformMovement",
     "ReferenceVonNeumannMovement",
+    "build_balanced_reference_trait_world",
     "build_flagship_max_intake_ecology",
     "build_flagship_max_intake_specification",
     "build_flagship_max_intake_world",
