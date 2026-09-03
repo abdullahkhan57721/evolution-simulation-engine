@@ -125,8 +125,7 @@ class GenomeStructure:
         """
         if not isinstance(genome, Genome):
             raise TypeError(
-                "genome must be an instance of Genome; "
-                f"received {genome!r}."
+                f"genome must be an instance of Genome; received {genome!r}."
             )
 
         declared = {chromosome.name: chromosome for chromosome in self.chromosomes}
