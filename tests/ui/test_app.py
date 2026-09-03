@@ -6,7 +6,7 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
-_APP_PATH = Path("src/evo_engine/ui/app.py")
+_APP_PATH = Path(__file__).parents[2] / "src" / "evo_engine" / "ui" / "app.py"
 
 
 def test_dashboard_launches_without_running_a_simulation() -> None:
@@ -27,7 +27,9 @@ def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
     app.number_input[2].set_value(4)
     app.number_input[3].set_value(4)
     app.number_input[4].set_value(4)
-    run_button = next(button for button in app.button if button.label == "Run simulation")
+    run_button = next(
+        button for button in app.button if button.label == "Run simulation"
+    )
     run_button.click()
     app.run(timeout=60)
 
@@ -40,7 +42,9 @@ def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
         "Deaths",
         "Final resources",
     } <= labels
-    completed = next(metric for metric in app.metric if metric.label == "Completed steps")
+    completed = next(
+        metric for metric in app.metric if metric.label == "Completed steps"
+    )
     assert completed.value == "1"
 
 
@@ -51,7 +55,9 @@ def test_dashboard_surfaces_cross_field_configuration_errors() -> None:
     app.number_input[2].set_value(5)
     app.number_input[3].set_value(2)
     app.number_input[4].set_value(2)
-    run_button = next(button for button in app.button if button.label == "Run simulation")
+    run_button = next(
+        button for button in app.button if button.label == "Run simulation"
+    )
     run_button.click()
     app.run(timeout=30)
 
