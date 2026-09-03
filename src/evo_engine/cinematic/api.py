@@ -62,7 +62,9 @@ def render_portfolio_animation(
             import_module("evo_engine.cinematic._manim"),
         )
     except ModuleNotFoundError as exc:
-        if exc.name == "manim" or (exc.name is not None and exc.name.startswith("manim.")):
+        if exc.name == "manim" or (
+            exc.name is not None and exc.name.startswith("manim.")
+        ):
             raise RuntimeError(
                 "Manim is an optional dependency. Install it with "
                 "`python -m pip install -r requirements-animation.txt` before "
