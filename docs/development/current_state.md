@@ -142,6 +142,28 @@ built-in policies intentionally preserve simple singleton/diploid Mendelian
 behavior; richer higher-copy biology should be added as explicit policies against
 these settled interfaces.
 
+Spatial resource generation now has a similarly explicit ecological responsibility
+split:
+
+```text
+ResourceGeneration
+    | quantity / cadence
+    v
+ResourcePlacementModel
+    | coordinate choice using SimulationState.rng
+    v
+ResourceGeneration.Event
+    |
+    v
+WorldState.add_resources()
+```
+
+Uniform placement preserves the ordinary baseline and historical RNG draw order.
+Patchy placement adds static weighted circular resource regions with world-bounded
+grid sampling. Placement models are immutable ecological configuration; resource
+mutation remains owned by `WorldState`, and committed spatial observations reveal
+the resulting real resource geography without renderer metadata.
+
 ### Reproducibility, observation, and experiments
 
 Committed evidence is a first-class architectural layer. The repository includes:
@@ -209,11 +231,24 @@ not become a core dependency.
 
 ## Current development front
 
-The portfolio architecture is no longer the development frontier. **Post-v0.1
-work should return to modeled-domain capability only when a concrete use case
-justifies it.**
+Post-v0.1 development now has **two coordinated parallel fronts** rather than one
+release-only sequence:
 
-Likely fronts are:
+1. **modeled-domain enrichment** — add concrete ecological and biological
+   capabilities that create more consequential selection pressures while keeping
+   the kernel frozen; and
+2. **presentation refinement** — improve configuration, world visualization, and
+   analytical presentation strictly as downstream consumers of settled simulation,
+   observation, experiment, and export contracts.
+
+The first ecological enrichment seam is static spatial resource heterogeneity:
+resource-generation quantity/cadence is separate from uniform or patchy placement.
+Near-term domain work may build on this with explicit heritable performance
+tradeoffs and, later, temporal change in spatial resource structure. Temporal
+landscape behavior should remain a separate composition concern rather than being
+folded into static placement prematurely.
+
+Other longer-term modeled fronts remain:
 
 1. richer genetic expression;
 2. richer chromosome pairing/recombination against the explicit transmission
@@ -222,6 +257,10 @@ Likely fronts are:
    production-source separation;
 4. richer development and G×E;
 5. richer evolutionary ecology that exercises those capabilities.
+
+Presentation work may run concurrently with these fronts, but it must not define
+or distort ecological semantics for renderer convenience. Shared-data gaps should
+be solved at the appropriate domain/observation layer first.
 
 A native Rust/C++ execution backend remains a separate, evidence-driven future
 front. Python should continue to own high-level modeling/configuration until a
@@ -266,6 +305,10 @@ cycle time, architectural correctness, recoverability, and user attention.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Spatial resource landscapes:** separated renewable-resource generation amount
+  and cadence from immutable ecology-owned placement, preserving exact uniform
+  default RNG behavior while adding opt-in static weighted patch placement that is
+  naturally visible through committed spatial observations.
 - **v0.1 portfolio baseline:** integrated release-facing documentation,
   installation/release metadata, dashboard, experiments/export, cinematic replay,
   flagship demonstration, and protected verification into one reviewer-facing

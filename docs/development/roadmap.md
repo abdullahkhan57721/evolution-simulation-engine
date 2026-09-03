@@ -95,25 +95,58 @@ keep adding presentation frameworks.
 
 ## Post-v0.1 dependency shape
 
-The major modeled-domain fronts are intentionally partially independent:
+The next phase has **two coordinated but architecturally separate tracks**:
 
 ```text
-                 v0.1.0 baseline
-                       |
-       +---------------+----------------+
-       |               |                |
-       v               v                v
-richer genetic     richer mating    richer development /
-expression         systems           G×E
-       |               |                |
-       +--------+------+----------------+
-                |
-                v
-      concrete evolutionary ecology
-                |
-                v
-       evidence for further needs
+                         v0.1.0 baseline
+                               |
+             +-----------------+-----------------+
+             |                                   |
+             v                                   v
+  modeled-domain enrichment              presentation refinement
+             |                                   |
+             v                                   |
+spatial ecology / biological tradeoffs           |
+             |                                   |
+             v                                   |
+richer environment dynamics                      |
+             |                                   |
+             +---------------+-------------------+
+                             |
+                             v
+                  settled committed evidence
 ```
+
+Presentation work may proceed in parallel when it consumes already-settled
+configuration, observation, experiment, or export contracts. It must not invent
+simulation semantics merely to improve rendering. When presentation exposes a
+real shared-data gap, the domain/observation contract should be settled at the
+appropriate lower layer before renderer-specific use.
+
+The modeled-domain fronts are also intentionally partially independent. Richer
+genetic expression, mating systems, chromosome transmission, development/G×E,
+and ecology need not serialize behind one another when their public boundaries are
+already settled.
+
+Near-term ecological development should prefer concrete discriminating pressures
+over taxonomies of environment models. The current direction is roughly:
+
+```text
+static spatial resource heterogeneity
+        |
+        +--------------------+
+        |                    |
+        v                    v
+heritable performance    presentation consumes
+tradeoffs                real spatial evidence
+        |
+        v
+later temporal change in spatial resource structure
+```
+
+Static placement and temporal change remain separate responsibilities. Temporal
+or seasonal landscape behavior should be added only after a concrete scenario
+shows what composition is actually needed.
 
 Richer chromosome pairing/recombination can advance when a concrete genetic or
 ecological use case requires it. It does not need to block every other
@@ -220,7 +253,14 @@ phenotype merely to accommodate plasticity.
 selection pressures and interactions while keeping ecology out of the kernel and
 general evolution layer.
 
-Possible fronts include:
+The current ecological direction begins with explicit spatial resource-placement
+policy: renewable-resource quantity/cadence remains process responsibility, while
+an immutable ecology policy chooses each deposit location from the
+simulation-owned RNG. Uniform placement remains the simple baseline; patchy
+placement supplies static spatial heterogeneity. Committed world resources remain
+the authoritative state observed by downstream spatial recorders.
+
+Possible continuing fronts include:
 
 - richer resource competition;
 - movement/behavior tradeoffs;
@@ -288,7 +328,8 @@ need appears:
 - checkpoint/resume guarantees;
 - documentation and examples;
 - evidence-based performance measurement;
-- portfolio maintenance above stable production contracts.
+- portfolio maintenance and presentation refinement above stable production
+  contracts.
 
 Do not turn them into foundational redesigns merely because they are
 cross-cutting.
@@ -303,7 +344,8 @@ cross-cutting.
   separate.
 - Keep chromosome structure, pairing, recombination, and segregation separate.
 - Keep genetic expression, development, and current state separate.
-- Keep presentation downstream of committed evidence.
+- Keep presentation downstream of committed evidence even when presentation work
+  proceeds in parallel with domain enrichment.
 - Prefer readable maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 
