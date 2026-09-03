@@ -21,6 +21,7 @@ runs:
         cache: pip
         cache-dependency-path: |
           pyproject.toml
+          requirements-ui.txt
           requirements-performance.txt
 
     - name: Create virtual environment
@@ -33,6 +34,7 @@ runs:
       run: |
         venv/bin/python -m pip install --upgrade pip
         venv/bin/python -m pip install -e ".[dev]"
+        venv/bin/python -m pip install -r requirements-ui.txt
 
     - name: Install project, quality, and documentation tools
       if: ${{ inputs.docs == 'true' }}
@@ -40,6 +42,7 @@ runs:
       run: |
         venv/bin/python -m pip install --upgrade pip
         venv/bin/python -m pip install -e ".[dev,docs]"
+        venv/bin/python -m pip install -r requirements-ui.txt
 
     - name: Install performance tools
       if: ${{ inputs.performance == 'true' }}
