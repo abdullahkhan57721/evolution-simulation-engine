@@ -18,6 +18,7 @@ nav:
           - Public API: learning/engine_guide/kernel_public_api.md
           - Runtime Walkthrough: learning/engine_guide/kernel_runtime.md
           - Design Rationale and Invariants: learning/engine_guide/kernel_design_rationale.md
+          - How the Architecture Evolved: learning/engine_guide/architecture_evolution.md
       - Worked Examples Across the Layers: learning/engine_guide/worked_examples.md
       - Reading the Kernel Source: learning/engine_guide/source_code_walkthrough.md
       - Practice:
