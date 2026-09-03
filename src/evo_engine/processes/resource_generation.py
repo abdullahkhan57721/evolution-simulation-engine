@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import attrs
 
+from evo_engine.ecology import ResourcePlacementModel, UniformResourcePlacement
 from evo_engine.engine.simulation_state import SimulationState
 from evo_engine.validation import attrs_validators
 
@@ -15,6 +16,7 @@ class ResourceGeneration:
     Attributes:
         amount: Resource units generated per deposit.
         number_of_deposits: Number of deposits per simulation step.
+        placement_model: Ecological policy choosing each deposit coordinate.
     """
 
     amount: int = attrs.field(
@@ -23,6 +25,16 @@ class ResourceGeneration:
     number_of_deposits: int = attrs.field(
         validator=attrs_validators.validate_int_gt(0),
     )
+    placement_model: ResourcePlacementModel = attrs.field(
+        factory=UniformResourcePlacement,
+    )
+
+    def __attrs_post_init__(self) -> None:
+        """Validate the configured placement model contract."""
+        if not callable(getattr(self.placement_model, "choose_position", None)):
+            raise TypeError(
+                "placement_model must provide a callable choose_position method."
+            )
 
     @property
     def event_type(self) -> type[ResourceGeneration.Event]:
@@ -59,7 +71,8 @@ class ResourceGeneration:
     ) -> list[ResourceGeneration.Event]:
         """Propose Resource Generation events.
 
-        Each configured deposit is generated at a randomly selected world coordinate.
+        Each configured deposit delegates coordinate selection to
+        ``placement_model`` using the simulation-owned RNG.
 
         Args:
             simulation_state: Current simulation state.
@@ -73,11 +86,16 @@ class ResourceGeneration:
         # Each deposit receives its own coordinate draw. Multiple deposits may
         # legitimately land on the same cell; application will accumulate them.
         for _ in range(self.number_of_deposits):
+            x, y = self.placement_model.choose_position(
+                width=world.width,
+                height=world.height,
+                rng=simulation_state.rng,
+            )
             events.append(
                 self.Event(
                     step_index=simulation_state.step_index,
-                    x=simulation_state.rng.randrange(world.width),
-                    y=simulation_state.rng.randrange(world.height),
+                    x=x,
+                    y=y,
                     amount=self.amount,
                 )
             )
