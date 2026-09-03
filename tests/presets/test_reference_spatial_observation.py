@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from evo_engine.observation import SpatialRecorder
+from evo_engine.observation import SpatialOrganismSnapshot, SpatialRecorder
 from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
 
 
@@ -78,8 +78,8 @@ def test_reference_spatial_history_aligns_with_committed_population_history() ->
 
     final_world = ecology.simulation.state.domain_state
     final_frame = spatial_recorder.observations[-1]
-    assert final_frame.organisms == tuple(
-        type(final_frame.organisms[0])(
+    expected_organisms = tuple(
+        SpatialOrganismSnapshot(
             organism_id=organism_id,
             x=organism.x,
             y=organism.y,
@@ -89,7 +89,8 @@ def test_reference_spatial_history_aligns_with_committed_population_history() ->
             mating_type=organism.mating_type,
         )
         for organism_id, organism in sorted(final_world.organisms.items())
-    ) if final_frame.organisms else ()
+    )
+    assert final_frame.organisms == expected_organisms
 
 
 def test_spatial_observation_does_not_change_fixed_seed_reference_outcomes() -> None:
