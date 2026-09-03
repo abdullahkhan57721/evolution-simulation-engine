@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from evo_engine.experiments import ReferenceExperimentResult
+from evo_engine.presets import ReferenceEcologyConfig
 from evo_engine.ui.charts import (
     allele_frequency_figure,
     environment_figure,
@@ -91,7 +92,7 @@ def main() -> None:
         _render_experiments(run)
 
 
-def _configuration_controls():
+def _configuration_controls() -> ReferenceEcologyConfig | None:
     st.sidebar.header("Reference ecology")
     st.sidebar.caption(
         "A curated subset of validated model parameters. High-level choices "
