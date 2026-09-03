@@ -3,6 +3,7 @@ name: Cinematic Smoke
 on:
   pull_request:
     paths:
+      - "pyproject.toml"
       - "requirements-animation.txt"
       - "src/evo_engine/cinematic/**"
       - "examples/render_portfolio_animation.py"

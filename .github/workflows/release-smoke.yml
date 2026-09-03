@@ -1,0 +1,112 @@
+name: Release Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-smoke:
+    name: Clean Python 3.12 install and portfolio smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            requirements-ui.txt
+
+      - name: Create clean core environment
+        shell: bash
+        run: |
+          python -m venv venv
+          venv/bin/python -m pip install --upgrade pip
+          venv/bin/python -m pip install -e .
+
+      - name: Verify package metadata and core examples
+        shell: bash
+        run: |
+          venv/bin/python - <<'PY'
+          from importlib import metadata
+
+          version = metadata.version("evolution-simulation-engine")
+          assert version == "0.1.0", version
+          print(f"Installed evolution-simulation-engine {version}")
+          PY
+          venv/bin/python examples/basic_aging_simulation.py
+          venv/bin/python examples/reference_ecology_simulation.py
+
+      - name: Verify flagship experiment and JSON/CSV export
+        shell: bash
+        run: |
+          venv/bin/python - <<'PY'
+          from pathlib import Path
+
+          from evo_engine.experiments import (
+              run_flagship_max_intake_replicates,
+              write_experiment_json,
+              write_population_history_csv,
+              write_replicate_summary_csv,
+          )
+
+          result = run_flagship_max_intake_replicates(seeds=(41,))
+          assert result.seeds == (41,), result.seeds
+
+          outputs = (
+              write_experiment_json(result, "outputs/release-smoke.json"),
+              write_replicate_summary_csv(
+                  result,
+                  "outputs/release-smoke-summary.csv",
+              ),
+              write_population_history_csv(
+                  result,
+                  "outputs/release-smoke-history.csv",
+              ),
+          )
+          for output in outputs:
+              path = Path(output)
+              assert path.is_file(), path
+              assert path.stat().st_size > 0, path
+
+          replicate = result.replicate(41)
+          print(
+              "Flagship smoke: "
+              f"steps={replicate.metadata.completed_steps}, "
+              f"final_population={replicate.final_population_size}"
+          )
+          print("Exports:", *(str(path) for path in outputs))
+          PY
+
+      - name: Install optional dashboard dependencies
+        shell: bash
+        run: venv/bin/python -m pip install -r requirements-ui.txt
+
+      - name: Verify dashboard launches headlessly
+        shell: bash
+        run: |
+          venv/bin/python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+
+          app = AppTest.from_file("src/evo_engine/ui/app.py").run(timeout=30)
+          assert not app.exception
+          assert app.title[0].value == "Evolution Simulation Engine"
+          labels = {button.label for button in app.button}
+          assert "Run flagship evolution demo" in labels
+          assert "Run simulation" in labels
+          print("Dashboard initial state verified with Streamlit AppTest")
+          PY

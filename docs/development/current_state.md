@@ -5,8 +5,7 @@ answers **where the project is now** without replacing live repository state.
 
 ## Authority and staleness boundary
 
-This document is intentionally subordinate to executable and authoritative
-sources. When anything here disagrees with the repository, use this order:
+When anything here disagrees with the repository, use this order:
 
 1. current `main`, tests, and CI;
 2. root `AGENTS.md`;
@@ -16,15 +15,15 @@ sources. When anything here disagrees with the repository, use this order:
 6. conversation history.
 
 Do not store volatile commit SHAs, CI run status, detailed ticket progress, or a
-full PR history here. Verify those directly in GitHub.
+full PR history here.
 
-## What the engine is now
+## v0.1.0 baseline
 
-The Evolution Simulation Engine is a layered Python simulation system whose
-execution kernel is domain-neutral and whose evolutionary and biological meaning
-lives above that kernel.
+The repository is now organized around a **v0.1.0 portfolio baseline**: a stable
+simulation architecture plus one reproducible end-to-end evolutionary
+demonstration and two downstream presentation paths.
 
-The architectural shape is:
+The architectural direction is:
 
 ```text
 validation / context / generic foundations
@@ -45,16 +44,30 @@ validation / context / generic foundations
        presets / experiments / interfaces
 ```
 
-The kernel owns deterministic transactional execution, stage coordination,
-committed telemetry, and generic preflight. It does not own organisms, genomes,
-reproduction, energy, ecology, or other modeled-domain semantics.
+The presentation direction is separately downstream:
 
-## Established architectural capabilities
+```text
+simulation/domain layers
+        |
+        v
+committed observation / experiment values
+        |
+        +-------------------------+
+        |                         |
+        v                         v
+Streamlit / Plotly             Manim
+interactive exploration       cinematic replay
+```
 
-### Frozen simulation kernel
+Neither presentation path is a second simulation architecture.
+
+## Settled architectural capabilities
+
+### Frozen domain-neutral kernel
 
 The simulation kernel is complete for the current architecture and is in
-maintenance mode. Its durable semantics include:
+maintenance mode. It owns generic deterministic execution rather than modeled
+biology. Durable semantics include:
 
 - opaque `SimulationState.domain_state`;
 - immutable `SimulationContext`;
@@ -68,72 +81,36 @@ maintenance mode. Its durable semantics include:
 New modeled behavior normally belongs above the kernel unless a genuine generic
 kernel deficiency is demonstrated.
 
-### General evolutionary foundations
+### General evolution layer
 
-The project has domain-neutral foundations for:
+The domain-neutral evolution layer covers transmissible-state expression,
+variation, linkage/co-transmission, propagation, entity production,
+access/reference, and admission/departure without assuming organisms, DNA,
+chromosomes, sex, energy, or ecology.
 
-- evolving entities as an architectural concept and small capability contracts;
-- transmissible-state expression;
-- variation;
-- linkage and co-transmission structure;
-- source-state/recipient propagation;
-- entity production;
-- entity access/reference;
-- admission/departure and generic conflict/effect foundations.
-
-`transmissible state` is the canonical general-evolution term for information
-that may be expressed, varied, or propagated. `TransmissibleStateExpression`
-models expression, while `TransmissibleStateCarrier` and `PropagationModel`
-model the independent carrier/propagation capabilities. The former redundant
-`EvolutionaryEntity.heritable_state` contract is intentionally removed; see ADR
-0007.
-
-Propagation is broader than biological inheritance: it accepts zero or more
-source states, a separately modeled recipient, immutable propagation
-configuration/context, and the simulation-owned RNG.
+`transmissible state` is the canonical general term. Biological genomes and
+inheritance specialize that layer rather than redefining the kernel vocabulary.
+The nonbiological vertical slice remains the executable proof that these contracts
+work outside biological simulation objects.
 
 ### Biological specialization
 
-Biological packages specialize the generic layers rather than defining kernel
-vocabulary. Existing capabilities include genomes and genetic architecture,
-inheritance, mutation/recombination, sexual inheritance, development, organism
-production, lifecycle behavior, energetics, feeding, movement, predation,
-reproduction, spatial ecology, and biological world state.
+The biological stack composes genetics, inheritance, development, life history,
+growth, energetics, feeding, behavior, movement, predation, reproduction, spatial
+ecology, and biological world state above the generic layers.
 
-Biology keeps its domain-native terms where they carry stronger semantics:
-`Organism.genome` is also exposed through the generic `transmissible_state`
-carrier capability, while inheritance remains the biological specialization of
-general propagation.
+Shared reproduction orchestration is arity-neutral. It distinguishes:
 
-Shared reproduction orchestration is arity-neutral and distinguishes four
-biological relationships that simple systems often collapse:
+- reproductive **participants** used for mating and resolver conflicts;
+- reproductive **investors** whose committed energy determines affordability;
+- genetic **contributors** whose transmissible states feed inheritance; and
+- offspring-production **sources** supplied as biological production context.
 
-- `ReproductiveGroup` records ordered reproductive **participants** used for
-  mating and resolver conflicts;
-- `ReproductiveInvestorSelection` chooses the participant subset whose committed
-  energy investment determines proposal affordability, with
-  `AllParticipantsInvest` preserving current simple behavior;
-- `GeneticContributorSelection` chooses the ordered participant subset whose
-  genomes feed inheritance, with `AllParticipantsContribute` as the default; and
-- `OffspringProductionSourceSelection` chooses the participant subset supplied as
-  biological entity-production context, with
-  `AllParticipantsAsProductionSources` as the default.
+Concrete clonal and current sexual inheritance policies retain their own stronger
+source-count requirements. Pedigree genetic parentage follows genetic contributors,
+not every participant or production source.
 
-Investor selection occurs during proposal generation and intentionally receives no
-RNG argument because rejected candidates must not consume investor-selection
-randomness. Genetic-contributor and production-source selection occur only during
-materialization and may use the simulation-owned RNG. Resolver capacity remains
-participant-based regardless of the later investor, contributor, or production-
-source subsets.
-
-`Reproduction.Proposal` records `participant_ids` separately from investor energy
-contributions. Materialized reproduction events keep genetic `parent_ids` distinct
-from `production_source_ids`; pedigree parentage and direct genetic reproductive
-success continue to follow only transmissible-state contributors. Concrete
-inheritance and production policies retain their own stronger requirements.
-
-Chromosome transmission now has an explicit biological responsibility split above
-`Genome`:
+Chromosome transmission also has an explicit responsibility split:
 
 ```text
 Genome
@@ -157,287 +134,183 @@ ChromosomeSegregationModel
 Gamete
 ```
 
-`Genome` remains a permissive inherited-state container capable of arbitrary
-chromosome-copy collections. `GenomeStructure` gives those copies biological
-structural meaning through chromosome-specific allowed copy counts; there is no
-foundational organism-wide `ploidy` scalar.
+`Genome` remains permissive inherited-state data. `GenomeStructure` supplies
+chromosome-specific copy expectations without a foundational organism-wide
+`ploidy` scalar. Pairing chooses temporary associations, recombination operates
+inside those associations, and segregation determines transmitted copies. Current
+built-in policies intentionally preserve simple singleton/diploid Mendelian
+behavior; richer higher-copy biology should be added as explicit policies against
+these settled interfaces.
 
-Pairing determines temporary chromosome associations before recombination.
-Recombination operates only on already-selected associations and preserves their
-copy cardinality. Segregation separately determines which and how many chromosome
-copies enter a gamete. `MeioticGameteFormation` composes those responsibilities
-rather than embedding a universal one-copy-per-chromosome-name rule.
+### Reproducibility, observation, and experiments
 
-Current built-in policies intentionally remain simple:
-`SameNameBivalentPairing`, `NoRecombination` /
-`SingleCrossoverRecombination`, and `BivalentSegregation` preserve singleton and
-ordinary diploid Mendelian behavior. Chromosome-name equality is therefore a
-convention of these concrete policies rather than the universal definition of
-homology. A structurally valid higher-copy genome may be unsupported by one of
-these policies without being classified as structurally invalid.
+Committed evidence is a first-class architectural layer. The repository includes:
 
-The design should remain extensible toward richer genetics, dominance and other
-non-additive expression, ploidy variation, chromosome-specific recombination,
-richer mating systems, and variable reproductive contributors.
+- population/evolution observations;
+- immutable spatial observations;
+- allele and genotype composition records;
+- pedigree and lifetime reproductive-contribution records;
+- committed causal event/effect telemetry;
+- deterministic seeded execution;
+- exact checkpoint/resume;
+- reproducible multi-seed experiments;
+- JSON and CSV experiment export.
 
-### Observation, experiments, reproducibility, and presentation
+Observers receive only authoritative committed states. Presentation code consumes
+immutable completed values rather than retaining a live mutable simulation owner.
 
-The repository includes committed telemetry and observation layers for population
-and evolutionary state, causal event history, pedigree/lifetime contribution,
-genetic composition, reproducible experiments/export, and exact checkpoint/resume
-behavior.
+### Portfolio interfaces
 
-Spatial presentation data has its own opt-in committed observation boundary.
-`SpatialRecorder` stores immutable scalar snapshots of organism positions and
-selected state, resource deposits, carcasses, and world dimensions. It follows the
-same post-commit observer semantics as the other recorders and does not retain live
-world or entity references.
+`evo_engine.ui` is an optional top-level Streamlit/Plotly consumer. It provides
+curated typed reference-ecology configuration, conditional mutation/recombination
+controls, spatial playback, evolutionary/genetic analytics, event/life-history
+views, experiment comparison, and export. Hidden UI state is not implicit engine
+configuration; selected values normalize into typed configuration before execution.
 
-The optional `evo_engine.ui` package is a top-level consumer of those committed
-records and the existing experiment API. Its `DashboardRun` presentation value
-contains completed immutable results rather than an engine, mutable world, or
-recorder ownership. Adaptive controls are curated around real supported model
-choices and normalize into typed reference-ecology configuration before the run;
-hidden UI state is not treated as implicit simulation configuration.
+`evo_engine.cinematic` is an optional sibling Manim consumer. Its
+`PortfolioAnimationTimeline` is renderer-owned ordering/interpolation state over
+committed `SpatialObservation` and `PopulationObservation` values, not a generic
+replay contract. Rendering occurs only after simulation completion and the heavy
+Manim dependency remains outside the core/default runtime.
 
-The optional `evo_engine.cinematic` package is a sibling top-level consumer for
-polished deterministic replay. `PortfolioAnimationTimeline` is deliberately a
-renderer-owned presentation transform over existing committed
-`SpatialObservation` and `PopulationObservation` histories, not a new simulation
-result contract or generic replay framework. The public render entry point lazily
-loads Manim only after a completed timeline is supplied, and the fixed-seed
-portfolio example completes the simulation before any rendering begins.
+### Flagship evolutionary demonstration
 
-The reference ecology now also has a named flagship composition above its normal
-homogeneous integration baseline. The flagship builds balanced standing variation
-at the existing `max_intake_rate` locus, runs the ordinary reference ecological,
-inheritance, observation, and experiment machinery, and exposes one canonical
-fixed-seed demonstration plus a canonical multi-seed robustness set. Mutation and
-predation are intentionally isolated in that demonstration so its resource-
-acquisition selection story remains interpretable. The dashboard and cinematic
-example consume the same committed evidence rather than owning separate demo
-mechanics.
+The v0.1 flagship is a thin composition above the ordinary reference ecology, not
+a separate model architecture. It starts with balanced standing variation at the
+existing `max_intake_rate` locus, isolates mutation and predation for causal
+clarity, and reuses the existing ecology, genetics, reproduction, observation,
+experiment, dashboard, and cinematic paths.
 
-The presentation architecture is therefore:
+The canonical fixed-seed run uses seed `41` for `40` steps. The canonical
+robustness set is:
 
 ```text
-simulation/domain layers
-        |
-        v
-committed observation / experiment values
-        |
-        +-------------------------+
-        |                         |
-        v                         v
-presentation transforms     cinematic transform
-        |                         |
-        v                         v
-Streamlit / Plotly              Manim
+11, 23, 37, 41, 59, 73, 89, 101
 ```
 
-Production packages are mechanically guarded from importing either top-level
-presentation package. Streamlit/Plotly and Manim remain optional dependency sets
-rather than mandatory simulation-runtime requirements. Manim-specific interpolation
-and scene state stay downstream and cannot feed back into simulation semantics.
+The protected tests assert qualitative evidence: all canonical runs remain alive
+through the demonstration window and finish with the high-intake allele above its
+initial `0.50` frequency. The scenario is illustrative and not empirically
+calibrated.
 
-### Performance and quality boundaries
+## Release and quality posture
 
-Kernel performance work is evidence-driven and uses domain-neutral synthetic
-benchmarks. Reference-ecology profiles remain integration signals but do not
-substitute for kernel-specific evidence. Readability and semantic correctness are
-hard constraints on performance changes.
+The v0.1.0 release surface includes a reviewer-oriented README, public MkDocs/GitHub
+Pages documentation, an MIT license, package release metadata, documented clean
+Python 3.12 installation, optional UI and Manim dependency paths, the flagship
+scenario, experiments/export, and protected CI.
 
-The repository quality gate includes Ruff, Pyright, Import Linter/architecture
-checks, kernel-contract regressions, Complexipy, pytest/coverage, reference and
-kernel performance checks, strict MkDocs, and a stable final aggregator status.
-The default quality environment installs the optional UI dependencies so dashboard
-code and headless Streamlit interactions are verified without making them core
-runtime dependencies. The heavier Manim stack remains outside that default
-environment and has its own isolated low-quality headless render smoke check;
-deterministic cinematic preparation and the lazy public API remain covered by the
-ordinary test suite.
-
-## Most recent architectural proof
-
-Issue #84 / PR #85 added a deterministic nonbiological information-propagation
-vertical slice through the real `SimulationSpec` and frozen kernel. It provided
-executable evidence that the general evolution architecture works without
-biological `Organism`, `Genome`, genetics, reproduction, or biological world
-objects.
-
-Issue #86 then normalized the remaining generic expression vocabulary around
-transmissible state. The subsequent biological-specialization audit identified
-reproduction orchestration, rather than the kernel or general framework, as the
-main remaining boundary to harden. Issues #92, #95, and #98 incrementally removed
-universal arity and reproductive-source conflations without changing the frozen
-kernel or general-evolution layer.
-
-Issue #102 / PR #103 then established explicit chromosome-copy, pairing,
-recombination-eligibility, and segregation responsibilities. Its discriminating
-higher-copy proof uses a structurally valid four-copy chromosome group, an
-explicit alternative pairing policy that forms two bivalents, ordinary bivalent
-segregation that produces a two-copy gamete, and existing `SexualInheritance` to
-produce a valid four-copy offspring. That demonstrates that the public
-architecture is not secretly diploid-only while leaving production polyploid
-meiosis deliberately out of scope.
-
-The portfolio-release work exercised a different architectural claim: the engine
-can be presented through multiple interfaces without turning presentation into an
-alternate simulation owner. Issue #106 / PR #107 added the missing committed
-spatial history boundary, Issue #108 / PR #109 built the Streamlit/Plotly dashboard
-above that boundary, and Issue #110 / PR #111 made its curated configuration
-conditional while still compiling UI selections into typed engine configuration.
-Issue #114 / PR #115 then proved that the same committed observation values can
-drive a separate Manim cinematic renderer without Plotly conversion, live-world
-ownership, or a speculative generic replay abstraction.
-
-Issue #121 / PR #122 composes those capabilities into the first reproducible
-flagship evolutionary story rather than adding another subsystem. Balanced
-homozygous founder variation at `max_intake_rate` is propagated through the
-existing genetics and reproduction stack under a renewable spatial resource
-regime. The canonical eight-seed experiment verifies directional high-intake
-allele increase without extinction through the 40-step demonstration window, and
-the same scenario feeds the dashboard and deterministic cinematic example.
+The repository quality gate includes Ruff, Pyright, Import Linter architecture
+contracts, kernel-contract regressions, Complexipy, pytest with coverage, strict
+MkDocs, reference/kernel performance checks, and a stable protected aggregate
+status. Headless Streamlit interaction tests exercise the real dashboard path.
+Manim has a separate real render/decode smoke workflow so the heavy renderer does
+not become a core dependency.
 
 ## Current development front
 
-The immediate project front remains the **v0.1 portfolio release**, not additional
-biological breadth. The core simulation architecture should remain stable while
-the project emphasizes release/deployment ergonomics, concise documentation,
-reproducibility, and verification of the interactive and cinematic experience.
+The portfolio architecture is no longer the development frontier. **Post-v0.1
+work should return to modeled-domain capability only when a concrete use case
+justifies it.**
 
-The adaptive dashboard, renderer-neutral cinematic path, and reproducible flagship
-evolutionary demonstration are now established above the same committed evidence
-boundary. The next portfolio milestone is **M5 release hardening**: browser-level
-visual QA, README/media presentation, deployment/discoverability work, release
-instructions/tagging, and final full-stack reproducibility/CI verification. It
-should polish and expose the settled demonstration rather than introduce another
-presentation framework or broaden biology for visual drama.
+Likely fronts are:
 
-After v0.1, richer pairing/recombination, richer mating systems, genetic
-expression, development/G×E, and evolutionary ecology remain valid modeled-domain
-fronts. They should resume only against concrete use cases and the already-settled
-contracts rather than through broad architectural redesign.
+1. richer genetic expression;
+2. richer chromosome pairing/recombination against the explicit transmission
+   interfaces;
+3. richer mating systems using the existing participant/investor/contributor/
+   production-source separation;
+4. richer development and G×E;
+5. richer evolutionary ecology that exercises those capabilities.
 
-See `docs/development/roadmap.md` for milestone-level direction.
+A native Rust/C++ execution backend remains a separate, evidence-driven future
+front. Python should continue to own high-level modeling/configuration until a
+measured workload demonstrates the need for a compiled execution plan/backend.
+Do not speculate a backend contract into the kernel merely for future possibility.
+
+See `docs/development/roadmap.md` for milestone-level sequencing.
 
 ## Known architectural friction
 
-### Built-in chromosome transmission remains intentionally conservative
+### Built-in chromosome transmission is intentionally conservative
 
-The chromosome-copy structure and transmission responsibility boundaries are now
-explicit, but the production pairing and crossover policies still model only the
-simple behavior required by current simulations. `SameNameBivalentPairing`
-rejects same-name groups larger than two, and current crossover support is limited
-to singleton/two-copy associations with the existing single-crossover model.
+The public chromosome-copy/pairing/recombination/segregation responsibilities are
+explicit, but production policies model only current simple needs.
+`SameNameBivalentPairing` rejects same-name groups larger than two and current
+single-crossover support is limited to the supported singleton/two-copy
+associations.
 
-This is now a **capability limitation of concrete policies**, not a structural
-ambiguity in `Genome` or `GeneticArchitecture`. Future higher-copy or
-chromosome-specific biology should add explicit policies against the settled
-interfaces and should not weaken structural validation or infer pairing from copy
-count implicitly.
+This is a capability limitation of concrete policies, not a structural ambiguity
+in `Genome` or `GeneticArchitecture`.
 
-## Current collaboration model
+### Scientific scope remains intentionally illustrative
 
-ChatGPT Chat is the default place for:
+The reference ecology is an integration baseline, and the flagship scenario is an
+evidence-backed software demonstration. Neither should be described as a
+species-calibrated or predictive ecological model without future empirical work.
 
-- architecture and consequential design decisions;
-- architecture-heavy or tightly scoped sequential implementation;
-- public-contract decisions;
-- small refactors where conversation context materially improves correctness;
-- independent PR architecture review and merge decisions.
+## Collaboration model
 
-Codex is used selectively for work that is primarily execution-heavy, repetitive,
-large-scale, migration-oriented, validation-intensive, independently
-parallelizable, or otherwise benefits from unattended repository iteration behind
-settled interfaces.
+Use ChatGPT Chat primarily for architecture, roadmap sequencing, consequential
+public-contract decisions, tightly scoped sequential implementation, and
+independent PR review/merge decisions.
 
-Do not delegate to Codex merely because a ticket is substantial. Optimize for
-total cycle time to a correct merged change.
+Use Codex selectively for execution-heavy work behind settled interfaces: broad
+mechanical migrations, analogous test expansion, validation/debug cycles, or
+independently parallelizable repository iteration.
+
+Do not delegate merely because a milestone is substantial. Optimize for total
+cycle time, architectural correctness, recoverability, and user attention.
 
 ## Recent significant milestones
 
-Newest first; this is a milestone summary, not a changelog.
+Newest first; this is a capability summary, not a changelog.
 
-- **#121 / #122 — reproducible flagship evolutionary demonstration:** added a
-  balanced standing-variation `max_intake_rate` scenario above the reference
-  ecology, canonical fixed- and multi-seed experiment helpers, a featured dashboard
-  route, and the deterministic cinematic input used for the v0.1 portfolio story.
-- **#114 / #115 — renderer-neutral Manim cinematic proof:** added an optional
-  sibling renderer that derives a deterministic presentation timeline directly
-  from committed spatial/population observations, renders only after simulation
-  completion, and keeps Manim out of lower packages and mandatory runtime
-  dependencies.
-- **#110 / #111 — adaptive curated configuration:** made the portfolio UI
-  conditionally expose real supported model choices, normalize form state, and
-  construct typed reference-ecology configuration without hidden stale values.
-- **#106 / #107 and #108 / #109 — portfolio observation/interface stack:** added
-  opt-in committed spatial snapshots, then a Streamlit/Plotly reference-ecology
-  dashboard that consumes committed observations and existing experiment/export
-  contracts without owning live simulation internals.
-- **#102 / #103 — chromosome-transmission foundation:** made chromosome-specific
-  copy expectations, temporary pairing associations, recombination eligibility,
-  and segregation explicit while preserving `Genome`, current Mendelian behavior,
-  the general-evolution layer, and the frozen kernel.
-- **#98 — investor/production-source separation:** separated proposal-time
-  reproductive investors and materialization-time offspring-production sources from
-  resolver-facing participants and genetic contributors while preserving current
-  behavior through all-participants defaults.
-- **#95 — participant/contributor separation:** made reproductive groups about
-  participants, introduced materialization-time genetic-contributor selection, and
-  defined pedigree parentage as genetic/transmissible-state contribution while
-  preserving all-participants contribution as the default.
-- **#92 — reproduction arity neutrality:** removed universal one/two-parent
-  assumptions from shared biological grouping and inheritance orchestration while
-  preserving clonal and current biparental sexual models as concrete policies.
-- **#86 — transmissible-state terminology normalization:** made `transmissible
-  state` the single generic expression/variation/propagation vocabulary, removed
-  the redundant evolving-entity carrier Protocol, and kept biological inheritance
-  terminology as a specialization.
-- **#84 / #85 — nonbiological evolution proof:** demonstrated genuine evolution
-  through generic contracts without biological simulation objects and supplied
-  the evidence used by #86.
-- **#81 / #83 — collaboration workflow hardening:** made Issues, PR recovery
-  checkpoints, manual verification, and repository-native agent handoff more
-  explicit.
-- **#77 / #78 — repository as durable collaboration memory:** added `AGENTS.md`,
-  architecture index, ADR structure, Issue/PR templates, and focused kernel
-  contract verification.
-- **#75 / #76 — frozen kernel contract:** documented and mechanically hardened the
-  domain-neutral kernel boundary and maintenance policy.
-- **#74 — kernel nomenclature/readability:** completed the public move from generic
-  `world` vocabulary to `domain_state` and clarified the execution algorithm.
-- **#41–#52 — domain-neutral configuration/evolution lifecycle foundations:**
-  generalized configuration/context and separated propagation, production,
-  admission/departure, access/reference, conflicts, and committed effects from
-  biological assumptions.
+- **v0.1 portfolio baseline:** integrated release-facing documentation,
+  installation/release metadata, dashboard, experiments/export, cinematic replay,
+  flagship demonstration, and protected verification into one reviewer-facing
+  release surface.
+- **Flagship demonstration:** added the balanced standing-variation
+  `max_intake_rate` scenario, canonical fixed/multi-seed helpers, dashboard route,
+  and cinematic input used for the portfolio story.
+- **Renderer-neutral cinematic proof:** added optional Manim rendering directly
+  from committed spatial/population observations.
+- **Adaptive portfolio configuration:** made real supported mutation/recombination
+  choices conditional while preserving typed configuration and explicit run
+  semantics.
+- **Portfolio observation/interface stack:** added immutable committed spatial
+  history and a Streamlit/Plotly dashboard above existing observation/experiment
+  contracts.
+- **Chromosome-transmission foundation:** separated chromosome structure, pairing,
+  recombination eligibility, and segregation while preserving current Mendelian
+  behavior and demonstrating higher-copy architectural extensibility.
+- **Reproduction boundary hardening:** separated participants, investors, genetic
+  contributors, and production sources and removed universal one/two-participant
+  assumptions from shared orchestration.
+- **General-evolution normalization:** established transmissible-state terminology
+  and a nonbiological vertical proof above the frozen kernel.
+- **Frozen kernel/collaboration hardening:** documented kernel maintenance rules,
+  architecture guardrails, ADRs, Issues/PR recovery checkpoints, and repository-
+  native collaboration memory.
 
 Use Git history and merged PRs for exact implementation details.
 
 ## Where to read next
 
-For a fresh session, use this sequence:
+For a fresh session:
 
 1. `AGENTS.md` — durable working rules and source-of-truth hierarchy.
 2. This file — concise current orientation.
-3. `docs/development/roadmap.md` — rolling milestone-level direction.
-4. `docs/architecture/index.md` — architecture map and subsystem reading order.
+3. `docs/development/roadmap.md` — rolling milestone direction.
+4. `docs/architecture/index.md` — subsystem map and reading order.
 5. `docs/kernel_contract.md` and `docs/general_evolution_framework.md` — core
-   execution/evolution contracts.
-6. Relevant ADRs in `docs/decisions/` — why settled choices exist.
-7. The active GitHub Issue and PR — exact live scope, status, and recovery state.
+   contracts.
+6. Relevant ADRs in `docs/decisions/`.
+7. The active GitHub Issue and PR for exact live work.
 
 ## Maintenance rule
 
-Update this file when a merged milestone materially changes one or more of:
-
-- architectural capability;
-- current development front;
-- an important public contract;
-- known architectural friction;
-- collaboration/delegation policy;
-- the set of recent milestones needed to orient a fresh contributor.
-
-Do not update it for trivial bug fixes, mechanical maintenance, every PR, current
-SHAs, transient CI state, or detailed ticket progress. Keep it concise enough to
-read in a few minutes.
+Update this file only when a merged milestone materially changes architectural
+capability, the current development front, a major public contract, known
+architectural friction, collaboration policy, or the small set of recent
+milestones needed for orientation. Do not turn it into a changelog or CI ledger.

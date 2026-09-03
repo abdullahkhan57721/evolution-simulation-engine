@@ -6,110 +6,66 @@ ticket system.
 
 ## Authority and maintenance boundary
 
-GitHub Issues remain authoritative for the scope, acceptance criteria, status,
-and dependencies of active implementation work. Architecture/subsystem docs and
-ADRs remain authoritative for settled contracts and rationale.
+GitHub Issues remain authoritative for active scope, acceptance criteria, status,
+and dependencies. Architecture/subsystem docs and ADRs remain authoritative for
+settled contracts and rationale.
 
-This roadmap should change when milestone ordering or architectural direction
-materially changes. It should not mirror every Issue, PR, commit, or transient
-status update.
+Update this roadmap only when milestone ordering or architectural direction
+materially changes. Do not mirror every Issue, PR, commit, or CI result here.
 
 ## Guiding direction
 
-The project is moving toward a simulation engine in which:
+The project should continue toward a simulation engine in which:
 
-1. the frozen kernel provides domain-neutral deterministic transactional
-   execution;
-2. the general evolution layer expresses evolution without assuming biology;
-3. biological genetics, reproduction, development, and ecology specialize those
-   settled general contracts;
-4. richer modeled biology is added only after the abstraction boundary it depends
-   on is coherent;
-5. experiments, observation, and interfaces expose the resulting model without
-   pushing domain assumptions back into lower layers.
+1. the frozen kernel provides domain-neutral deterministic transactional execution;
+2. the general-evolution layer expresses evolution without assuming biology;
+3. genetics, reproduction, development, and ecology specialize those settled
+   general contracts;
+4. richer modeled biology is added against explicit public responsibilities rather
+   than by broadening lower layers speculatively;
+5. observation, experiments, and presentation remain downstream of committed
+   simulation evidence;
+6. performance/native-backend work begins only from measured need.
 
-The kernel is not the current development frontier. New modeled behavior normally
-belongs above it unless a genuine generic deficiency is demonstrated.
+The kernel is not the development frontier. New modeled behavior normally belongs
+above it unless a genuine generic deficiency is demonstrated.
 
-For the v0.1 portfolio release, the immediate priority is to **demonstrate the
-architecture already present** rather than broaden biology. The reference ecology,
-committed observation stack, experiment API, checkpointing, and export system are
-stable enough to support polished interactive and cinematic presentation layers
-above them.
+## v0.1.0 portfolio baseline
 
-## Near-term dependency graph
+The first portfolio sequence is complete as an architectural direction:
 
 ```text
-#84 / #85
-nonbiological evolutionary vertical slice
+nonbiological evolution proof
         |
         v
-#86
-transmissible-state contract normalization
+transmissible-state normalization
         |
         v
-#92 → #95 → #98/#99
 reproduction boundary hardening
         |
         v
-#102 / #103
-chromosome-copy / pairing /
-segregation foundation
+explicit chromosome transmission responsibilities
         |
         v
-#106 / #107
-committed spatial observation boundary
+committed spatial observation
         |
         v
-#108 / #109
-portfolio reference-ecology dashboard
+Streamlit / Plotly dashboard
         |
         v
-#110 / #111
 adaptive curated configuration
         |
         v
-#114 / #115
-renderer-neutral cinematic proof
+renderer-neutral Manim cinematic
         |
         v
-#121 / #122
-flagship evolutionary demonstration
+reproducible flagship evolutionary demonstration
         |
         v
-M5 v0.1 release hardening / verification
-        |
-        +-----------------------+-----------------------+
-        |                       |                       |
-        v                       v                       v
-richer genetics          richer mating systems    richer development /
-                                                  evolutionary ecology
+v0.1.0 release baseline
 ```
 
-A future native execution backend is a separate evidence-driven architectural
-front after the portfolio release. Near-term presentation work should preserve
-static typed configuration and committed result boundaries that would make such a
-backend possible without redesigning the kernel or `SimulationSpec`
-speculatively.
-
-Richer genetic-expression and development/G×E models remain valid post-v0.1
-fronts once their own public responsibilities are clear; they do not block the
-portfolio release.
-
-## Portfolio release front — Interactive and cinematic reference ecology
-
-**Status:** committed spatial presentation boundary completed by Issue #106 /
-PR #107; dashboard implemented by Issue #108 / PR #109; adaptive curated
-configuration completed by Issue #110 / PR #111; renderer-neutral Manim cinematic
-proof completed by Issue #114 / PR #115; reproducible flagship max-intake
-evolutionary demonstration completed by Issue #121 / PR #122. The remaining
-portfolio milestone is final v0.1 hardening and release verification.
-
-**Goal:** expose the strength of the existing engine through a polished,
-reproducible end-to-end experience without creating a second simulation
-architecture.
-
-The settled presentation direction is:
+The settled presentation boundary is:
 
 ```text
 simulation/domain layers
@@ -117,204 +73,58 @@ simulation/domain layers
         v
 committed observation / experiment values
         |
-        +-----------------------+
-        |                       |
-        v                       v
-interactive presentation   cinematic presentation
-(Streamlit / Plotly)             (Manim)
+        +-------------------------+
+        |                         |
+        v                         v
+Streamlit / Plotly             Manim
+interactive exploration       cinematic replay
 ```
 
-Renderers remain downstream consumers. Committed observation/result values should
-not contain Plotly, Streamlit, Manim, animation-frame, or other renderer-owned
-concepts. Do not introduce a generic replay framework unless implementation finds
-a concrete reusable-data gap that forces renderer-specific assumptions into
-committed simulation results.
+Renderers remain downstream consumers. Committed observation/result contracts do
+not contain Plotly, Streamlit, Manim, frame, timing, interpolation, or other
+renderer-owned concepts. Do not introduce a generic replay framework unless a
+concrete future renderer exposes a real reusable-data gap.
 
-`SpatialRecorder` supplies the opt-in immutable spatial history needed for world
-playback. The Streamlit/Plotly dashboard consumes that boundary plus the existing
-population, genetic-composition, event, pedigree/life-history, experiment, and
-export contracts. It retains completed immutable presentation values rather than
-mutable worlds or engines.
+The dashboard remains the primary interactive exploration interface. Manim remains
+a deterministic explanatory/portfolio renderer. The flagship `max_intake_rate`
+scenario remains an illustrative evidence-backed demonstration, not a calibrated
+ecological prediction.
 
-The Manim path consumes existing committed `SpatialObservation` and
-`PopulationObservation` histories directly through a renderer-owned
-`PortfolioAnimationTimeline`. That timeline exists only to order and align values
-for cinematic presentation; it is not a simulation result, backend contract, or
-universal replay abstraction. Rendering is lazy and optional, occurs only after a
-run has completed, and cannot feed interpolation/timing back into simulation
-state. A separate headless smoke path verifies that the optional renderer can
-produce decodable media without making Manim part of every quality environment.
+The v0.1 release is therefore a stable baseline to build **from**, not a reason to
+keep adding presentation frameworks.
 
-Curated configuration evolves through real supported model choices rather than a
-dump of every internal field. Conditional visibility belongs to the UI, while
-selected values normalize into actual typed configuration before the engine runs.
-Hidden or stale UI state must never become implicit simulation configuration, and
-adaptive forms do not authorize fabricating model modes the preset does not
-support.
+## Post-v0.1 dependency shape
 
-The flagship scenario is now a thin composition above the reference ecology,
-not a second ecological model. It deliberately establishes balanced standing
-variation at `max_intake_rate`, isolates mutation and predation for causal clarity,
-and reuses the ordinary genetics, resource acquisition, reproduction, committed
-observation, experiment, dashboard, and cinematic boundaries. The canonical
-fixed-seed run and canonical multi-seed set are part of the reproducible portfolio
-story; final release media should present them as illustrative engine behavior,
-not calibrated ecological prediction.
-
-The remaining v0.1 presentation sequence is deliberately narrow:
-
-1. **M2 — adaptive curated configuration — completed:** conditional configuration
-   uses supported reference-ecology controls while preserving typed validation and
-   an explicit run action;
-2. **M3 — renderer-neutral cinematic proof — completed:** existing committed
-   values drive a downstream Manim renderer without making the renderer a
-   simulation owner or introducing speculative replay architecture;
-3. **M4 — flagship evolutionary demonstration — completed:** existing simulation,
-   observation, experiment, interactive, and cinematic capabilities compose into
-   one reproducible max-intake selection story without new biology;
-4. **M5 — v0.1 release hardening — next:** perform browser-level visual QA,
-   deployment/discoverability work, README/media polish, release tagging, and
-   final reproducibility/CI verification.
-
-The v0.1 release should prioritize:
-
-- adaptive but curated reference-ecology configuration and understandable
-  validation errors;
-- committed spatial playback;
-- population/ecological, heritable-trait, genetic, event, and life-history views;
-- reproducible multi-seed experiment comparison;
-- existing JSON/CSV exports;
-- renderer-neutral committed evidence reusable by interactive and cinematic
-  presentation;
-- one clear flagship evolutionary story that demonstrates why the architecture
-  matters;
-- concise portfolio-oriented README/release instructions;
-- reliable headless UI/cinematic checks and full protected-CI verification;
-- deployment/discoverability polish only where it materially improves portfolio
-  presentation.
-
-**Non-goals before v0.1:** richer recombination, richer mating systems, new
-biology subsystems, kernel redesign, live mutable-engine browser ownership,
-checkpoint upload/resume UI, databases, a custom frontend/backend stack, native
-Rust/C++ execution, or speculative `SimulationReplay`/backend-neutral-plan
-frameworks.
-
-After v0.1, the modeled-domain milestones below resume against their settled
-contracts. Any native-backend milestone should begin from measured requirements
-and preserve the distinction between Python modeling/configuration, a possible
-future static compiled plan, backend execution, and committed result values.
-
-## Milestone 1 — General-evolution contract normalization
-
-**Status:** completed by Issue #86.
-
-**Goal:** reconcile the biology-shaped `EvolutionaryEntity` /
-`HeritableStateExpression` / `heritable_state` vocabulary with the broader
-`TransmissibleStateCarrier` / `transmissible_state` model demonstrated by the
-nonbiological vertical slice.
-
-The settled contract uses `transmissible state` as the canonical generic term,
-renames expression to `TransmissibleStateExpression`, and removes the redundant
-`EvolutionaryEntity` carrier Protocol without compatibility aliases. Biological
-inheritance and genome terminology remain domain-native specializations. See ADR
-0007 for the rationale.
-
-**Constraints preserved:**
-
-- source/recipient propagation semantics;
-- the frozen kernel;
-- production/lifecycle/genetics behavior and package boundaries;
-- one coherent pre-1.0 migration without compatibility aliases.
-
-## Milestone 2 — Harden biological reproduction boundaries
-
-**Status:** completed through Issues #92, #95, and #98.
-
-**Goal:** make biological reproduction a clean specialization of general
-propagation and entity production without treating the simplest current mating
-systems as universal architecture.
-
-The resulting conceptual path is:
+The major modeled-domain fronts are intentionally partially independent:
 
 ```text
-eligible organisms
-        |
-        v
-reproductive participants
-        |
-        +----------------------+----------------------+
-        |                      |                      |
-        v                      v                      v
-reproductive investors  genetic contributors  production-source context
-        |                      |                      |
-        v                      v                      |
-committed energy          source genomes             |
-                               |                      |
-                               v                      |
-                      inheritance / propagation       |
-                               |                      |
-                               v                      |
-                        offspring genome              |
-                               |                      |
-                               +----------+-----------+
-                                          |
-                                          v
-                              expression + development
-                                          |
-                                          v
-                              biological offspring production
-                                          |
-                                          v
-                                   world admission
+                 v0.1.0 baseline
+                       |
+       +---------------+----------------+
+       |               |                |
+       v               v                v
+richer genetic     richer mating    richer development /
+expression         systems           G×E
+       |               |                |
+       +--------+------+----------------+
+                |
+                v
+      concrete evolutionary ecology
+                |
+                v
+       evidence for further needs
 ```
 
-Issue #92 established that shared reproductive groups may contain any nonempty
-ordered tuple of unique participants and that source-count requirements belong to
-concrete inheritance models. Clonal inheritance remains a one-source policy and
-the current Mendelian sexual model remains a two-source policy.
+Richer chromosome pairing/recombination can advance when a concrete genetic or
+ecological use case requires it. It does not need to block every other
+post-v0.1 domain milestone.
 
-Issue #95 established **reproductive participation** and **genetic contribution**
-as separate responsibilities. Resolver-facing groups contain participants;
-`GeneticContributorSelection` chooses the ordered contributor subset only during
-materialization, preserving transaction/RNG semantics. Existing simple
-configurations use `AllParticipantsContribute`, while pedigree `parent_ids`
-unambiguously mean genetic/transmissible-state contributors.
-
-Issue #98 completed the critical source-role hardening by separating
-**reproductive investors** and **offspring-production sources** from both the
-participant and genetic-contributor sets. `ReproductiveInvestorSelection` runs
-while proposals are formed because affordability determines proposal existence;
-its default `AllParticipantsInvest` preserves current behavior and its contract
-intentionally exposes no RNG argument. `OffspringProductionSourceSelection` runs
-only during materialization and may use the simulation-owned RNG; its default
-`AllParticipantsAsProductionSources` preserves current production/placement
-behavior. Resolver conflicts continue to use all participants, while materialized
-events retain genetic parentage separately from production-source identity.
-
-These shared selectors currently choose subsets of the resolved reproductive
-participants. Future biology involving external gestational hosts, caregivers, or
-energy/resource contributors should broaden that boundary only with explicit
-lifecycle and conflict semantics rather than by silently reaching into arbitrary
-world entities.
-
-**Constraints preserved:**
-
-- no kernel change unless a genuine generic deficiency is demonstrated;
-- no redesign of `Genome` merely to support variable contributor count;
-- preserve materialize-before-apply and simulation-owned RNG semantics;
-- preserve simple clonal and biparental configurations as concrete policies.
-
-**Implementation mode:** ChatGPT for public contracts and representative
-implementation; Codex only for broad mechanical migration after contracts settle.
-
-## Milestone 3 — Richer genetic expression
+## Front A — Richer genetic expression
 
 **Goal:** extend the existing copy-count-aware, multi-locus expression framework
-with additional biological expression policies rather than redesigning general
-evolution.
+with additional explicit biological expression policies.
 
-The current architecture already supports multi-locus expression and complete
-dominance. Future models can add, as evidence and use cases require:
+Potential cases include:
 
 - incomplete dominance;
 - codominance;
@@ -322,7 +132,7 @@ dominance. Future models can add, as evidence and use cases require:
 - dosage-sensitive expression;
 - richer quantitative architectures.
 
-The important boundary remains:
+Preserve the boundary:
 
 ```text
 genome
@@ -335,184 +145,185 @@ genetic phenotype
   |
   v
 development / environment-dependent realization
+  |
+  v
+current mutable physiological state
 ```
 
-Expression extensions should not collapse genetic phenotype, developmental
-realization, and current mutable physiological state into one catch-all object.
+Do not collapse those layers into one catch-all phenotype object.
 
-**Implementation mode:** ChatGPT for new public-model semantics; settled,
-independent expression policies and test matrices are good Codex candidates.
+**Implementation mode:** use ChatGPT for public-model semantics and representative
+implementation. Settled independent policy/test matrices are good Codex work.
 
-## Milestone 4 — Explicit chromosome-copy, pairing, segregation, and recombination foundations
+## Front B — Richer chromosome pairing and recombination
 
-**Status:** foundational responsibility split completed by Issue #102 / PR #103.
+**Current foundation:** chromosome-copy structure, pairing, recombination
+eligibility, segregation, and gamete formation are already separate public
+responsibilities. `Genome` remains permissive inherited-state data and there is no
+foundational organism-wide ploidy scalar.
 
-**Goal:** deepen biological transmission without narrowing general propagation or
-making ordinary diploidy universal architecture.
+**Goal:** add richer biological transmission only when a concrete case requires it.
+Candidate directions include:
 
-`Genome` remains permissive inherited chromosome-copy data. Biological structural
-meaning is now explicit above it:
-
-```text
-Genome
-  |
-  v
-GenomeStructure + GeneticArchitecture validation
-  |
-  v
-ChromosomePairingModel
-  |
-  v
-ChromosomeAssociation(s)
-  |
-  v
-RecombinationModel
-  |
-  v
-ChromosomeSegregationModel
-  |
-  v
-Gamete
-```
-
-`GenomeStructure` declares chromosome types and chromosome-specific allowed copy
-counts; there is no foundational organism-wide `ploidy` scalar. A structurally
-valid genome may still be unsupported by a configured transmission policy.
-
-Pairing now decides temporary chromosome associations before recombination.
-Recombination operates only within those supplied associations and preserves copy
-cardinality. Segregation separately determines which and how many chromosome
-copies enter a gamete. `MeioticGameteFormation` composes those policies rather
-than embedding a universal one-copy-per-chromosome-name rule.
-
-`SameNameBivalentPairing`, `NoRecombination` /
-`SingleCrossoverRecombination`, and `BivalentSegregation` preserve current simple
-singleton/diploid Mendelian behavior. Chromosome-name equality is therefore a
-convention of the current simple policies, not a permanent definition of
-homology.
-
-A representative higher-copy test proves that a four-copy chromosome group can
-be structurally valid, be organized by an explicit alternative pairing policy
-into two bivalents, form a two-copy gamete through ordinary bivalent segregation,
-and flow through existing `SexualInheritance` to a valid four-copy offspring.
-That proof establishes architectural extensibility without shipping a production
-polyploid meiosis model prematurely.
-
-### Remaining genetics direction
-
-Build richer behavior on these settled contracts only when a concrete biological
-use case justifies it. Candidate follow-ups include:
-
-- production higher-copy pairing policies, including random or preferential
-  bivalents and eventually multivalents;
+- production higher-copy pairing policies;
+- preferential versus random bivalent formation;
+- multivalent models;
 - chromosome-specific pairing behavior;
-- chromosome-specific and multiple-crossover recombination;
-- role-, mating-type-, or lifecycle-sensitive gamete formation where required;
-- more explicit sex-chromosome or homeolog semantics if same-name grouping is no
-  longer sufficient.
+- chromosome-specific or multiple-crossover recombination;
+- role/mating-type/lifecycle-sensitive gamete formation;
+- sex-chromosome or homeolog semantics when same-name grouping is insufficient.
 
-Do not add these capabilities merely to enumerate biological possibilities. The
-next genetics milestone should choose a concrete richer recombination/pairing case
-that exercises the new responsibility boundary.
+Do not add these merely to enumerate biological possibilities. A future milestone
+should choose one discriminating use case and exercise the settled boundaries.
+General `PropagationModel` and the frozen kernel do not need meiosis vocabulary.
 
-This remains a biological specialization. General `PropagationModel` and the
-frozen kernel do not need chromosome-copy, homolog, meiosis, or segregation
-concepts.
+## Front C — Richer mating systems
 
-**Implementation mode:** ChatGPT for new pairing/recombination semantics and public
-contracts; Codex selectively for settled repetitive test matrices or mechanical
-migrations.
+**Current foundation:** shared reproduction already supports arbitrary nonempty
+participant groups and separates participant, investor, genetic-contributor, and
+production-source responsibilities. Current clonal/biparental behavior is concrete
+policy, not universal orchestration.
 
-## Milestone 5 — Richer mating systems
+**Goal:** use those contracts for richer systems such as:
 
-**Status:** architecturally unblocked and may advance alongside the genetics front.
-
-**Goal:** extend the existing mating-type and reproductive-role infrastructure
-beyond primarily pairwise group formation.
-
-The project already supports arbitrary mating-type labels, compatibility networks,
-multiple reproductive roles per mating type, arity-neutral reproductive groups,
-contributor subsets distinct from participants, independent investor subsets, and
-independent offspring-production source subsets. Future work should build on those
-capabilities toward:
-
-- asymmetric and ordered roles;
+- asymmetric or ordered reproductive roles;
 - multi-participant reproductive groups;
 - hermaphroditic systems;
 - role-sensitive mate choice;
-- richer policies determining which participants contribute genetic state or
-  reproductive investment.
+- contributor/investor policies that choose real subsets;
+- lifecycle-specific production sources where biology requires them.
 
 Mating-system composition should remain separate from low-level inheritance.
+External hosts/caregivers/resource contributors should broaden the current
+participant-subset boundary only with explicit lifecycle and conflict semantics.
 
-## Milestone 6 — Richer development and phenotype realization
+## Front D — Richer development and G×E
 
-**Goal:** extend the existing environmental and G×E developmental realization
-path while preserving clear distinctions among inheritance, genetic expression,
-development, environment, and current physiological/behavioral state.
+**Goal:** extend environmental and G×E realization while preserving distinctions
+among inheritance, genetic expression, development, environment, and current
+physiological/behavioral state.
 
-Potential fronts include:
+Potential directions include:
 
 - nonlinear reaction norms;
-- developmental timing and stages;
+- developmental timing/stages;
 - environmental history;
 - richer developmental stochasticity;
-- explicit reversible adult plasticity distinct from lifetime developmental
-  targets.
+- reversible adult plasticity distinct from lifetime developmental targets.
 
-The existing frozen `DevelopmentalProfile` should not become a catch-all mutable
-phenotype merely to accommodate dynamic plasticity.
+Do not turn the existing frozen `DevelopmentalProfile` into a catch-all mutable
+phenotype merely to accommodate plasticity.
 
-## Milestone 7 — Richer evolutionary ecology
+## Front E — Richer evolutionary ecology
 
 **Goal:** use the stable biological boundaries to model more consequential
-selection pressures and interactions without pushing ecological meaning into
-general evolution or the kernel.
+selection pressures and interactions while keeping ecology out of the kernel and
+general evolution layer.
 
-Possible fronts include richer resource competition, movement/behavior,
-predation, life-history tradeoffs, environment-dependent reproductive outcomes,
-and biogeographic structure. Selection should continue to emerge from
-differential persistence and propagation rather than becoming an intrinsic
-generic scalar field.
+Possible fronts include:
 
-Critical reproduction-boundary and chromosome-transmission-foundation hardening
-are complete. Major ecology work does not need to wait for every future expression,
-recombination, mating, or development feature; add those capabilities when
-concrete ecological or biological use cases require them.
+- richer resource competition;
+- movement/behavior tradeoffs;
+- predation/prey coevolution;
+- life-history tradeoffs;
+- environment-dependent reproductive outcomes;
+- spatial/biogeographic structure;
+- fluctuating or heterogeneous selection regimes.
+
+Selection should continue to emerge from differential persistence and propagation
+rather than becoming a generic scalar `fitness` field imposed by the kernel.
+
+Ecology should drive requests for richer genetics, mating, or development where
+possible. That keeps abstractions attached to real modeled behavior instead of
+speculative biological completeness.
+
+## Future native execution backend
+
+A Rust/C++ backend is a separate evidence-driven architectural front, not part of
+the v0.1 release and not an excuse to redesign the kernel now.
+
+The desirable long-term shape, if performance measurements justify it, is roughly:
+
+```text
+Python modeling / configuration
+        |
+        v
+validated static typed simulation plan
+        |
+        v
+backend execution boundary
+        |
+        +----------------------+
+        |                      |
+        v                      v
+Python reference backend   native backend
+        |                      |
+        +----------+-----------+
+                   |
+                   v
+        committed result values
+```
+
+Do not create that plan/backend abstraction until real execution-heavy workloads
+show that Python is the limiting factor and the stable subset worth compiling is
+known. Python should remain the ergonomic modeling/composition layer.
+
+When that front becomes concrete, require:
+
+- measured performance evidence;
+- deterministic parity requirements;
+- explicit ownership/mutability semantics;
+- serialization/versioning rules for any compiled plan;
+- cross-backend conformance tests;
+- clear fallback/reference behavior;
+- no renderer concepts in the backend contract.
 
 ## Cross-cutting fronts
 
-The following concerns continue alongside modeled-domain milestones when there is
-concrete need:
+The following concerns continue alongside modeled-domain milestones when concrete
+need appears:
 
-- observation and analysis of evolutionary outcomes;
-- reproducible experiment composition and export;
+- evolutionary observation and statistical analysis;
+- reproducible experiment composition/export;
 - checkpoint/resume guarantees;
 - documentation and examples;
-- performance measurement based on evidence;
-- portfolio UI/release polish above stable production contracts.
+- evidence-based performance measurement;
+- portfolio maintenance above stable production contracts.
 
-Do not turn these into foundational redesigns merely because they are
+Do not turn them into foundational redesigns merely because they are
 cross-cutting.
+
+## Architectural constraints that should survive future work
+
+- Preserve the frozen transactional kernel unless a true generic deficiency is
+  demonstrated.
+- Preserve simulation-owned RNG and materialize-before-apply semantics.
+- Preserve domain-neutral general-evolution vocabulary.
+- Keep reproduction participant/investor/contributor/production-source roles
+  separate.
+- Keep chromosome structure, pairing, recombination, and segregation separate.
+- Keep genetic expression, development, and current state separate.
+- Keep presentation downstream of committed evidence.
+- Prefer readable maintainable architecture over micro-optimization.
+- Require evidence before performance/backend work.
 
 ## ChatGPT versus Codex allocation
 
-Use ChatGPT Chat primarily when work is:
+Use ChatGPT Chat primarily for:
 
-- architecture-heavy;
-- a consequential public-contract decision;
-- tightly scoped and sequential;
-- easier because the design conversation itself is important context;
-- an independent architectural review.
+- architecture-heavy work;
+- consequential public-contract decisions;
+- tightly scoped sequential implementation;
+- roadmap sequencing and tradeoffs;
+- independent architectural review/merge decisions.
 
-Use Codex selectively when work is:
+Use Codex selectively for:
 
-- execution-heavy behind settled contracts;
-- broad and repetitive;
-- a mechanical migration across many files;
-- validation/debug-cycle intensive;
-- independently parallelizable;
-- valuable to run unattended while other design work continues.
+- execution-heavy work behind settled contracts;
+- broad analogous migrations;
+- repetitive test expansion;
+- validation/debug-cycle intensive work;
+- independently parallelizable repository iteration.
 
 Optimize for total time and attention required to reach a correct merged change,
 not for a blanket preference for one implementation agent.
@@ -522,12 +333,13 @@ not for a blanket preference for one implementation agent.
 Before opening each new milestone Issue:
 
 1. re-read current `main` and `docs/development/current_state.md`;
-2. verify whether earlier milestones changed the assumptions in this roadmap;
-3. settle consequential architecture in Chat before implementation when needed;
-4. create a focused Issue with explicit dependencies, boundaries, non-goals,
-   acceptance criteria, and verification;
-5. update this roadmap in the same PR when the milestone materially changes
-   ordering or architectural direction.
+2. verify whether earlier work changed assumptions in this roadmap;
+3. start from a concrete modeled use case rather than a feature taxonomy;
+4. settle consequential public architecture in Chat when needed;
+5. create one focused Issue with boundaries, traps, acceptance criteria, automated
+   tests, and manual verification where material;
+6. update this roadmap in the same PR only when ordering or architectural direction
+   materially changes.
 
-A roadmap is a hypothesis about the best sequence. Evidence from implementation
-may change it.
+A roadmap is a hypothesis about the best sequence. Repository evidence may change
+it.

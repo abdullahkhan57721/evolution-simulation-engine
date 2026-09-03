@@ -5,12 +5,35 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "evolution-simulation-engine"
 version = "0.1.0"
-description = """An extensible engine for general evolutionary and spatial ecological simulations."""
+description = """A domain-neutral evolutionary simulation engine with compositional biology, spatial ecology, reproducible experiments, and portfolio visualization."""
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    { name = "Abdullah Khan" },
+]
+keywords = [
+    "evolution",
+    "genetics",
+    "simulation",
+    "spatial-ecology",
+    "reproducible-research",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
 dependencies = [
     "attrs>=25.0",
 ]
+
+[project.urls]
+Documentation = "https://abdullahkhan57721.github.io/evolution-simulation-engine/"
+Repository = "https://github.com/abdullahkhan57721/evolution-simulation-engine"
+Issues = "https://github.com/abdullahkhan57721/evolution-simulation-engine/issues"
 
 [project.optional-dependencies]
 dev = [
