@@ -112,6 +112,10 @@ Domain packages own modeled meaning. Important packages include:
   genetic-contributor selection, reproductive energy investment, inheritance
   composition, movement adapters, offspring-production source selection/context,
   mating-type assignment, newborn body mass, and placement.
+- `ecology` — reusable environmental policy, including temporal forcing and
+  simulation-RNG-owned spatial resource-placement models. Renewable-resource
+  quantity/cadence remains process responsibility while placement policy chooses
+  where each deposit occurs.
 - `spatial` — geometry, neighborhoods, distance, and boundary behavior.
 - `world` — mutable biological/ecological domain state.
 - `observation` — committed population/evolution measurements.
