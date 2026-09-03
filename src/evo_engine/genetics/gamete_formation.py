@@ -170,7 +170,9 @@ class MeioticGameteFormation:
                 )
             associated_chromosomes.extend(association.chromosomes)
 
-        parent_identity_counts = Counter(id(chromosome) for chromosome in genome.chromosomes)
+        parent_identity_counts = Counter(
+            id(chromosome) for chromosome in genome.chromosomes
+        )
         associated_identity_counts = Counter(
             id(chromosome) for chromosome in associated_chromosomes
         )
@@ -199,8 +201,7 @@ class MeioticGameteFormation:
             )
         if len(recombined.chromosomes) != len(association.chromosomes):
             raise ValueError(
-                "recombination must preserve chromosome-association copy "
-                "cardinality."
+                "recombination must preserve chromosome-association copy cardinality."
             )
         return recombined
 
