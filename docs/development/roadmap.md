@@ -311,8 +311,7 @@ development / environment-dependent realization
 ```
 
 Expression extensions should not collapse genetic phenotype, developmental
-realization, and current mutable physiological/behavioral state into one catch-all
-object.
+realization, and current mutable physiological state into one catch-all object.
 
 **Implementation mode:** ChatGPT for new public-model semantics; settled,
 independent expression policies and test matrices are good Codex candidates.
