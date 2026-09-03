@@ -99,8 +99,9 @@ kernel's vocabulary.
 
 Domain packages own modeled meaning. Important packages include:
 
-- `genetics` — alleles, loci, chromosomes, genomes, expression, inheritance,
-  recombination, and genetic phenotype.
+- `genetics` — alleles, loci, chromosomes, genomes, chromosome-specific copy
+  structure, genetic expression, inheritance, explicit pairing/recombination/
+  segregation policies, gamete formation, and genetic phenotype.
 - `development` — developmental realization and G×E variation.
 - `life_history` — reusable organism strategy abstractions.
 - `growth` — potential body-mass gain policies.
