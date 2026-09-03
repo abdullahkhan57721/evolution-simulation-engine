@@ -1,0 +1,9 @@
+[run]
+branch = true
+omit =
+    */evo_engine/ui/app.py
+
+# Streamlit AppTest executes the dashboard entrypoint in Streamlit's isolated app
+# runner, which is verified by tests/ui/test_app.py but is not attributed to the
+# source file by pytest-cov. Keep presentation transforms/models in coverage and
+# omit only the framework-owned entrypoint from the aggregate threshold.
