@@ -11,7 +11,9 @@ from evo_engine.genetics import GENETIC_ARCHITECTURE, GeneticArchitecture
 from evo_engine.presets.reference_ecology.builders import ReferenceEcology
 from evo_engine.presets.reference_ecology.config import ReferenceEcologyConfig
 from evo_engine.presets.reference_ecology.genetics import build_reference_founder_genome
-from evo_engine.presets.reference_ecology.mating_types import reference_founder_mating_type
+from evo_engine.presets.reference_ecology.mating_types import (
+    reference_founder_mating_type,
+)
 from evo_engine.presets.reference_ecology.observable import build_reference_ecology
 from evo_engine.telemetry import TelemetryObserver
 from evo_engine.validation import validators
@@ -122,9 +124,7 @@ def build_flagship_max_intake_world(
     if not isinstance(genetic_architecture, GeneticArchitecture):
         raise TypeError("genetic_architecture must be a GeneticArchitecture.")
     if not isinstance(specification, FlagshipMaxIntakeSpecification):
-        raise TypeError(
-            "specification must be a FlagshipMaxIntakeSpecification."
-        )
+        raise TypeError("specification must be a FlagshipMaxIntakeSpecification.")
 
     config = specification.reference_config
     low_config = attrs.evolve(
