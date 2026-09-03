@@ -111,9 +111,10 @@ def test_reference_speed_variants_are_transmitted_by_sexual_inheritance() -> Non
         rng=random.Random(17),
     )
 
-    assert tuple(
-        allele.value for allele in offspring_genome.alleles_at(MAX_SPEED)
-    ) == (LOW_SPEED, HIGH_SPEED)
+    assert tuple(allele.value for allele in offspring_genome.alleles_at(MAX_SPEED)) == (
+        LOW_SPEED,
+        HIGH_SPEED,
+    )
     assert architecture.express(offspring_genome).int_value(MAX_SPEED) == 3
 
 
