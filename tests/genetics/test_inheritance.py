@@ -119,9 +119,7 @@ def test_clonal_inheritance_requires_one_parent(
     """Test clonal inheritance owns its one-parent constraint."""
     architecture = GeneticArchitecture(
         genome_structure=GenomeStructure(
-            chromosomes=(
-                ChromosomeStructure(name="1", allowed_copy_counts=(0, 2)),
-            )
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(0, 2)),)
         ),
         loci=(),
         traits=(),
