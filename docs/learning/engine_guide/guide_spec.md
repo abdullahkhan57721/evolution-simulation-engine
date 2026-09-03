@@ -193,6 +193,35 @@ Prefer exercises that ask the reader to predict observable semantics before
 running code, or compare two designs and identify consequences. Avoid relying on
 vocabulary recall alone.
 
+### Retrieval practice, spacing, and fading scaffolds
+
+The landing page should recommend multiple passes rather than one passive read:
+
+```text
+pass 1: build conceptual skeleton
+pass 2: connect concepts to production source/tests
+pass 3: retrieve and apply with the guide closed
+```
+
+Encourage the reader to predict before using the debugger and to reconstruct key
+diagrams from memory. Early source examples may be heavily annotated; later
+exercises should deliberately remove hints so the reader practices independent
+code reading. A compact cheat sheet should support spaced review: recognition
+without explanation is a signal to revisit the deeper chapter.
+
+### Design history as problem narrative
+
+Include a selective architecture-evolution chapter that answers:
+
+```text
+What limitation in the previous design forced the next abstraction?
+```
+
+It should not become a changelog. Use stable milestones/ADRs to show the movement
+from a biology-shaped engine through domain-neutral transactions and general
+evolution to hardened biological specialization. Historical implementation
+specifics must remain subordinate to current contracts.
+
 ### Mastery criteria
 
 End major chapters with “You understand this chapter if you can…” prompts that
@@ -272,6 +301,7 @@ The landing page must support at least these entry paths:
 - **I want to understand the kernel now**;
 - **I am reading code and I am lost**;
 - **I want to understand reproduction/evolution**;
+- **I want to understand why the architecture is this complicated**;
 - **I want to practice**.
 
 Use descriptive headings that work well with MkDocs search. Cross-link related
@@ -294,7 +324,7 @@ front-to-back course and as a reference manual.
 The durable content plan is:
 
 1. **Start Here** — learning paths, dependency graph, master architecture map,
-   source-of-truth warning.
+   source-of-truth warning, and recommended three-pass study cadence.
 2. **Software Architecture Primer** — abstraction, contracts/implementations,
    specialization/generalization, generic vs abstract vs concrete, composition,
    dependency direction/injection/inversion, layers/boundaries, coupling/cohesion,
@@ -318,14 +348,17 @@ The durable content plan is:
    telemetry/effects, observers, commit semantics.
 9. **Kernel Design Rationale and Invariants** — why not simpler designs; invariant
    catalog tied to tests and ADRs.
-10. **Worked Examples Across the Layers** — counter -> nonbiological evolution ->
+10. **How the Architecture Evolved** — selective problem-driven design history,
+    not a changelog.
+11. **Worked Examples Across the Layers** — counter -> nonbiological evolution ->
     biological example, with side-by-side comparison.
-11. **Reading the Kernel Source** — guided file order, heavily annotated method,
+12. **Reading the Kernel Source** — guided file order, heavily annotated method,
     semantic vs optimization code, source-reading strategy.
-12. **Debugger Labs** — breakpoints and state/RNG/event inspection.
-13. **Exercises** — predictions, design comparisons, and a mini-kernel build.
-14. **Glossary** — project-specific architecture/evolution vocabulary.
-15. **Cheat Sheet** — printable quick-reference maps and invariants.
+13. **Debugger Labs** — breakpoints and state/RNG/event inspection.
+14. **Exercises** — predictions, design comparisons, mini-kernel build, and
+    review-oriented practice.
+15. **Glossary** — project-specific architecture/evolution vocabulary.
+16. **Cheat Sheet** — printable quick-reference maps and invariants.
 
 Split or combine pages only when doing so improves navigation without removing
 substance.
@@ -398,4 +431,7 @@ review should verify:
 - diagrams remain readable in plain Markdown rendering;
 - code snippets match current `main`;
 - authoritative and pedagogical sources are clearly distinguished;
-- chapter mastery criteria actually test reasoning rather than trivia.
+- chapter mastery criteria actually test reasoning rather than trivia;
+- early chapters provide more scaffolding than later exercises; and
+- the cheat sheet supports delayed retrieval rather than becoming a replacement
+  for conceptual understanding.
