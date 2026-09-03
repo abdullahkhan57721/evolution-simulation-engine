@@ -34,7 +34,8 @@ belongs above it unless a genuine generic deficiency is demonstrated.
 For the v0.1 portfolio release, the immediate priority is to **demonstrate the
 architecture already present** rather than broaden biology. The reference ecology,
 committed observation stack, experiment API, checkpointing, and export system are
-stable enough to support a polished interactive presentation layer above them.
+stable enough to support polished interactive and cinematic presentation layers
+above them.
 
 ## Near-term dependency graph
 
@@ -64,10 +65,12 @@ committed spatial observation boundary
 portfolio reference-ecology dashboard
         |
         v
-M2 adaptive curated configuration
+#110 / #111
+adaptive curated configuration
         |
         v
-M3 renderer-neutral cinematic proof
+#114 / #115
+renderer-neutral cinematic proof
         |
         v
 M4 flagship evolutionary demonstration
@@ -83,20 +86,22 @@ richer genetics          richer mating systems    richer development /
 ```
 
 A future native execution backend is a separate evidence-driven architectural
-front after the portfolio release. Near-term UI work should preserve static typed
-configuration and committed result boundaries that would make such a backend
-possible without redesigning the kernel or `SimulationSpec` speculatively.
+front after the portfolio release. Near-term presentation work should preserve
+static typed configuration and committed result boundaries that would make such a
+backend possible without redesigning the kernel or `SimulationSpec`
+speculatively.
 
 Richer genetic-expression and development/G×E models remain valid post-v0.1
 fronts once their own public responsibilities are clear; they do not block the
 portfolio release.
 
-## Portfolio release front — Interactive reference ecology
+## Portfolio release front — Interactive and cinematic reference ecology
 
 **Status:** committed spatial presentation boundary completed by Issue #106 /
-PR #107; dashboard implemented by Issue #108 / PR #109. Adaptive configuration is
-the next presentation capability, followed by a downstream cinematic-rendering
-proof, a flagship demonstration, and final v0.1 hardening.
+PR #107; dashboard implemented by Issue #108 / PR #109; adaptive curated
+configuration completed by Issue #110 / PR #111; renderer-neutral Manim cinematic
+proof completed by Issue #114 / PR #115. The next presentation milestone is the
+flagship evolutionary demonstration, followed by final v0.1 hardening.
 
 **Goal:** expose the strength of the existing engine through a polished,
 reproducible end-to-end experience without creating a second simulation
@@ -114,7 +119,7 @@ committed observation / experiment values
         |                       |
         v                       v
 interactive presentation   cinematic presentation
-(Streamlit / Plotly)       (future Manim)
+(Streamlit / Plotly)             (Manim)
 ```
 
 Renderers remain downstream consumers. Committed observation/result values should
@@ -129,24 +134,34 @@ population, genetic-composition, event, pedigree/life-history, experiment, and
 export contracts. It retains completed immutable presentation values rather than
 mutable worlds or engines.
 
-Curated configuration should evolve through real supported model choices rather
-than a dump of every internal field. Conditional visibility belongs to the UI,
-while selected values must normalize into actual typed configuration before the
-engine runs. Hidden or stale UI state must never become implicit simulation
-configuration, and adding adaptive forms does not authorize fabricating model
-modes the preset does not support.
+The Manim path consumes existing committed `SpatialObservation` and
+`PopulationObservation` histories directly through a renderer-owned
+`PortfolioAnimationTimeline`. That timeline exists only to order and align values
+for cinematic presentation; it is not a simulation result, backend contract, or
+universal replay abstraction. Rendering is lazy and optional, occurs only after a
+run has completed, and cannot feed interpolation/timing back into simulation
+state. A separate headless smoke path verifies that the optional renderer can
+produce decodable media without making Manim part of every quality environment.
+
+Curated configuration evolves through real supported model choices rather than a
+dump of every internal field. Conditional visibility belongs to the UI, while
+selected values normalize into actual typed configuration before the engine runs.
+Hidden or stale UI state must never become implicit simulation configuration, and
+adaptive forms do not authorize fabricating model modes the preset does not
+support.
 
 The remaining v0.1 presentation sequence is deliberately narrow:
 
-1. **M2 — adaptive curated configuration:** prove conditional configuration using
-   supported reference-ecology controls while preserving typed validation and an
-   explicit run action;
-2. **M3 — renderer-neutral cinematic proof:** consume existing committed values
-   from a downstream Manim renderer without making the renderer a simulation
-   owner or introducing speculative replay architecture;
-3. **M4 — flagship evolutionary demonstration:** compose existing simulation,
-   observation, interactive, and cinematic capabilities into one reproducible
-   portfolio story rather than broadening biology merely for visual drama;
+1. **M2 — adaptive curated configuration — completed:** conditional configuration
+   uses supported reference-ecology controls while preserving typed validation and
+   an explicit run action;
+2. **M3 — renderer-neutral cinematic proof — completed:** existing committed
+   values drive a downstream Manim renderer without making the renderer a
+   simulation owner or introducing speculative replay architecture;
+3. **M4 — flagship evolutionary demonstration — next:** compose existing
+   simulation, observation, interactive, and cinematic capabilities into one
+   reproducible portfolio story rather than broadening biology merely for visual
+   drama;
 4. **M5 — v0.1 release hardening:** perform browser-level visual QA,
    deployment/discoverability work, README/media polish, release tagging, and
    final reproducibility/CI verification.
@@ -161,8 +176,10 @@ The v0.1 release should prioritize:
 - existing JSON/CSV exports;
 - renderer-neutral committed evidence reusable by interactive and cinematic
   presentation;
+- one clear flagship evolutionary story that demonstrates why the architecture
+  matters;
 - concise portfolio-oriented README/release instructions;
-- reliable headless UI and full protected-CI verification;
+- reliable headless UI/cinematic checks and full protected-CI verification;
 - deployment/discoverability polish only where it materially improves portfolio
   presentation.
 

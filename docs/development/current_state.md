@@ -187,7 +187,7 @@ and evolutionary state, causal event history, pedigree/lifetime contribution,
 genetic composition, reproducible experiments/export, and exact checkpoint/resume
 behavior.
 
-Spatial presentation data now has its own opt-in committed observation boundary.
+Spatial presentation data has its own opt-in committed observation boundary.
 `SpatialRecorder` stores immutable scalar snapshots of organism positions and
 selected state, resource deposits, carcasses, and world dimensions. It follows the
 same post-commit observer semantics as the other recorders and does not retain live
@@ -196,7 +196,19 @@ world or entity references.
 The optional `evo_engine.ui` package is a top-level consumer of those committed
 records and the existing experiment API. Its `DashboardRun` presentation value
 contains completed immutable results rather than an engine, mutable world, or
-recorder ownership. The Streamlit/Plotly portfolio dashboard therefore preserves:
+recorder ownership. Adaptive controls are curated around real supported model
+choices and normalize into typed reference-ecology configuration before the run;
+hidden UI state is not treated as implicit simulation configuration.
+
+The optional `evo_engine.cinematic` package is a sibling top-level consumer for
+polished deterministic replay. `PortfolioAnimationTimeline` is deliberately a
+renderer-owned presentation transform over existing committed
+`SpatialObservation` and `PopulationObservation` histories, not a new simulation
+result contract or generic replay framework. The public render entry point lazily
+loads Manim only after a completed timeline is supplied, and the fixed-seed
+portfolio example completes the simulation before any rendering begins.
+
+The presentation architecture is therefore:
 
 ```text
 simulation/domain layers
@@ -204,16 +216,19 @@ simulation/domain layers
         v
 committed observation / experiment values
         |
-        v
-presentation transforms
-        |
-        v
-UI / visualization
+        +-------------------------+
+        |                         |
+        v                         v
+presentation transforms     cinematic transform
+        |                         |
+        v                         v
+Streamlit / Plotly              Manim
 ```
 
-Production packages are mechanically guarded from importing `evo_engine.ui`.
-Streamlit and Plotly are optional UI dependencies rather than mandatory core
-runtime requirements.
+Production packages are mechanically guarded from importing either top-level
+presentation package. Streamlit/Plotly and Manim remain optional dependency sets
+rather than mandatory simulation-runtime requirements. Manim-specific interpolation
+and scene state stay downstream and cannot feed back into simulation semantics.
 
 ### Performance and quality boundaries
 
@@ -225,9 +240,12 @@ hard constraints on performance changes.
 The repository quality gate includes Ruff, Pyright, Import Linter/architecture
 checks, kernel-contract regressions, Complexipy, pytest/coverage, reference and
 kernel performance checks, strict MkDocs, and a stable final aggregator status.
-The quality environment also installs the optional UI dependencies so dashboard
+The default quality environment installs the optional UI dependencies so dashboard
 code and headless Streamlit interactions are verified without making them core
-runtime dependencies.
+runtime dependencies. The heavier Manim stack remains outside that default
+environment and has its own isolated low-quality headless render smoke check;
+deterministic cinematic preparation and the lazy public API remain covered by the
+ordinary test suite.
 
 ## Most recent architectural proof
 
@@ -253,26 +271,31 @@ produce a valid four-copy offspring. That demonstrates that the public
 architecture is not secretly diploid-only while leaving production polyploid
 meiosis deliberately out of scope.
 
-The portfolio-release work then exercised a different architectural claim: the
-engine can be presented interactively without turning the UI into an alternate
-simulation owner. Issue #106 / PR #107 added the missing committed spatial history
-boundary, and Issue #108 / PR #109 built the dashboard above that boundary while
-reusing existing population, genetics, event, pedigree, experiment, and export
-contracts.
+The portfolio-release work exercised a different architectural claim: the engine
+can be presented through multiple interfaces without turning presentation into an
+alternate simulation owner. Issue #106 / PR #107 added the missing committed
+spatial history boundary, Issue #108 / PR #109 built the Streamlit/Plotly dashboard
+above that boundary, and Issue #110 / PR #111 made its curated configuration
+conditional while still compiling UI selections into typed engine configuration.
+Issue #114 / PR #115 then proved that the same committed observation values can
+drive a separate Manim cinematic renderer without Plotly conversion, live-world
+ownership, or a speculative generic replay abstraction.
 
 ## Current development front
 
-The immediate project front is the **v0.1 portfolio release**, not additional
+The immediate project front remains the **v0.1 portfolio release**, not additional
 biological breadth. The core simulation architecture should remain stable while
 the project emphasizes a polished end-to-end demonstration, concise documentation,
 reproducible examples, release/deployment ergonomics, and verification of the
-interactive experience.
+interactive and cinematic experience.
 
-The dashboard now exposes the existing reference ecology through curated
-configuration, committed spatial playback, evolutionary/genetic analytics,
-life-history/event inspection, multi-seed experiments, and exports. Follow-up
-portfolio work should improve release presentation or discoverability without
-moving presentation concerns into lower modeled domains.
+The interactive configuration/dashboard path and deterministic cinematic sibling
+renderer are now established above the same committed evidence boundary. The next
+portfolio milestone should compose those capabilities into the flagship
+reproducible evolutionary demonstration rather than add another presentation
+framework or broaden biology merely for visual drama. Final README/media,
+deployment, release tagging, and broad presentation polish remain release-hardening
+work after that demonstration is settled.
 
 After v0.1, richer pairing/recombination, richer mating systems, genetic
 expression, development/G×E, and evolutionary ecology remain valid modeled-domain
@@ -319,6 +342,14 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#114 / #115 — renderer-neutral Manim cinematic proof:** added an optional
+  sibling renderer that derives a deterministic presentation timeline directly
+  from committed spatial/population observations, renders only after simulation
+  completion, and keeps Manim out of lower packages and mandatory runtime
+  dependencies.
+- **#110 / #111 — adaptive curated configuration:** made the portfolio UI
+  conditionally expose real supported model choices, normalize form state, and
+  construct typed reference-ecology configuration without hidden stale values.
 - **#106 / #107 and #108 / #109 — portfolio observation/interface stack:** added
   opt-in committed spatial snapshots, then a Streamlit/Plotly reference-ecology
   dashboard that consumes committed observations and existing experiment/export
