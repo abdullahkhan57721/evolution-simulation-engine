@@ -237,8 +237,7 @@ class GeneticArchitecture:
         self.validate_genome(genome)
         return GeneticPhenotype(
             trait_values=tuple(
-                (trait.name, trait.express(genome))
-                for trait in self.traits
+                (trait.name, trait.express(genome)) for trait in self.traits
             )
         )
 
