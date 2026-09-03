@@ -115,9 +115,7 @@ def _configuration_form():
             st.number_input("World width", min_value=1, max_value=50, value=12, step=1)
         )
         height = int(
-            st.number_input(
-                "World height", min_value=1, max_value=50, value=12, step=1
-            )
+            st.number_input("World height", min_value=1, max_value=50, value=12, step=1)
         )
         initial_energy = int(
             st.number_input(
@@ -348,7 +346,9 @@ def _render_experiments(run: DashboardRun) -> None:
 
     experiment = st.session_state.get(_EXPERIMENT_KEY)
     if not isinstance(experiment, ReferenceExperimentResult):
-        st.info("Run a small seed set to compare replicate outcomes and enable exports.")
+        st.info(
+            "Run a small seed set to compare replicate outcomes and enable exports."
+        )
         return
 
     left, right = st.columns(2)
