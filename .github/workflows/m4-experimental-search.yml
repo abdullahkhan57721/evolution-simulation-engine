@@ -47,7 +47,7 @@ jobs:
               ("max_intake_rate", 2, 8),
               ("metabolic_cost_coefficient", 15, 60),
           )
-          RESOURCE_DEPOSITS = (8, 16)
+          RESOURCE_DEPOSITS = (8, 16, 32)
 
           def make_world(config: ReferenceEcologyConfig, trait_name: str, low: int, high: int):
               architecture = build_reference_genetic_architecture(config)
@@ -78,7 +78,7 @@ jobs:
               traits = attrs.evolve(
                   ReferenceEcologyConfig().traits,
                   maturity_age=3,
-                  energy_conservation_threshold=35,
+                  energy_conservation_threshold=15,
                   reproduction_energy_threshold=20,
                   maximum_age=30,
               )
@@ -115,8 +115,10 @@ jobs:
               engine.run(simulation)
 
               start_pop = population.observations[0]
+              mid_pop = population.observations[min(30, len(population.observations) - 1)]
               final_pop = population.observations[-1]
               start_gen = genetic.observations[0].locus(candidate)
+              mid_gen = genetic.observations[min(30, len(genetic.observations) - 1)].locus(candidate)
               final_gen = genetic.observations[-1].locus(candidate)
               event_counts = Counter(event.process_name for event in events.events)
               result = {
@@ -127,12 +129,16 @@ jobs:
                   "seed": seed,
                   "steps": simulation.state.step_index,
                   "start_population": start_pop.population_size,
+                  "mid_population": mid_pop.population_size,
                   "final_population": final_pop.population_size,
                   "start_trait_mean": start_pop.trait(candidate).summary.mean,
+                  "mid_trait_mean": mid_pop.trait(candidate).summary.mean,
                   "final_trait_mean": final_pop.trait(candidate).summary.mean,
                   "start_high_allele_frequency": start_gen.allele_frequency(high),
+                  "mid_high_allele_frequency": mid_gen.allele_frequency(high),
                   "final_high_allele_frequency": final_gen.allele_frequency(high),
-                  "delta_high_allele_frequency": final_gen.allele_frequency(high) - start_gen.allele_frequency(high),
+                  "delta_high_mid": mid_gen.allele_frequency(high) - start_gen.allele_frequency(high),
+                  "delta_high_final": final_gen.allele_frequency(high) - start_gen.allele_frequency(high),
                   "final_energy_mean": final_pop.energy.mean,
                   "final_resources": final_pop.total_resources,
                   "event_counts": dict(sorted(event_counts.items())),
@@ -145,20 +151,25 @@ jobs:
               for deposits in RESOURCE_DEPOSITS:
                   bucket = [run_one(candidate, low, high, deposits, seed) for seed in SEEDS]
                   all_results.extend(bucket)
-                  deltas = [row["delta_high_allele_frequency"] for row in bucket]
+                  mid_deltas = [row["delta_high_mid"] for row in bucket]
+                  final_deltas = [row["delta_high_final"] for row in bucket]
                   summary = {
                       "candidate": candidate,
                       "low": low,
                       "high": high,
                       "deposits": deposits,
                       "n": len(bucket),
-                      "mean_delta_high": statistics.fmean(deltas),
-                      "median_delta_high": statistics.median(deltas),
-                      "positive": sum(delta > 0 for delta in deltas),
-                      "negative": sum(delta < 0 for delta in deltas),
-                      "zero": sum(delta == 0 for delta in deltas),
+                      "mean_delta_high_mid": statistics.fmean(mid_deltas),
+                      "mean_delta_high_final": statistics.fmean(final_deltas),
+                      "median_delta_high_final": statistics.median(final_deltas),
+                      "positive_final": sum(delta > 0 for delta in final_deltas),
+                      "negative_final": sum(delta < 0 for delta in final_deltas),
+                      "zero_final": sum(delta == 0 for delta in final_deltas),
                       "extinctions": sum(row["final_population"] == 0 for row in bucket),
+                      "mean_mid_population": statistics.fmean(row["mid_population"] for row in bucket),
                       "mean_final_population": statistics.fmean(row["final_population"] for row in bucket),
+                      "mean_reproduction_events": statistics.fmean(row["event_counts"].get("Reproduction", 0) for row in bucket),
+                      "mean_starvation_events": statistics.fmean(row["event_counts"].get("Starvation", 0) for row in bucket),
                   }
                   print("M4_SUMMARY " + json.dumps(summary, sort_keys=True))
           print(f"M4_COMPLETE runs={len(all_results)}")
