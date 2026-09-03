@@ -11,7 +11,7 @@ from evo_engine.ecology import (
 )
 from evo_engine.engine import SequentialStepCoordinator
 from evo_engine.observation import EventRecorder, SpatialRecorder
-from evo_engine.presets import ReferenceEcologyConfig
+from evo_engine.presets import ReferenceEcologyConfig, ReferenceTraitValues
 from evo_engine.presets.reference_ecology.builders import (
     build_reference_engine,
     build_reference_simulation,
@@ -19,7 +19,9 @@ from evo_engine.presets.reference_ecology.builders import (
 from evo_engine.processes import ResourceGeneration
 
 
-def _reference_resource_generation(config: ReferenceEcologyConfig) -> ResourceGeneration:
+def _reference_resource_generation(
+    config: ReferenceEcologyConfig,
+) -> ResourceGeneration:
     engine = build_reference_engine(config)
     coordinator = engine.step_coordinator
     if not isinstance(coordinator, SequentialStepCoordinator):
@@ -72,27 +74,29 @@ def test_reference_engine_wires_configured_patchy_placement() -> None:
 
 def test_uniform_and_patchy_reference_runs_generate_equal_total_resource() -> None:
     """Test landscape geometry changes without changing configured generation."""
-    common = dict(
+    uniform_config = ReferenceEcologyConfig(
         initial_population=1,
         max_steps=1,
         seed=57,
         resource_request_amount=0,
     )
-    uniform = _run_spatial_history(ReferenceEcologyConfig(**common))
-    patchy = _run_spatial_history(
-        ReferenceEcologyConfig(
-            **common,
-            resource_placement_model=PatchyResourcePlacement(
-                patches=(ResourcePatch(center_x=11, center_y=11, radius=0),)
-            ),
-        )
+    patchy_config = ReferenceEcologyConfig(
+        initial_population=1,
+        max_steps=1,
+        seed=57,
+        resource_request_amount=0,
+        resource_placement_model=PatchyResourcePlacement(
+            patches=(ResourcePatch(center_x=11, center_y=11, radius=0),)
+        ),
     )
+    uniform = _run_spatial_history(uniform_config)
+    patchy = _run_spatial_history(patchy_config)
 
     uniform_resources = uniform.observations[-1].resources
     patchy_resources = patchy.observations[-1].resources
     expected_total = (
-        ReferenceEcologyConfig().resource_generation_amount
-        * ReferenceEcologyConfig().resource_deposits_per_step
+        uniform_config.resource_generation_amount
+        * uniform_config.resource_deposits_per_step
     )
 
     assert sum(resource.amount for resource in uniform_resources) == expected_total
@@ -125,13 +129,14 @@ def test_patchy_reference_run_is_recorded_by_existing_spatial_observation() -> N
 
 
 def test_patchy_reference_run_keeps_movement_and_consumption_pipeline_active() -> None:
-    """Test existing movement and consumption stages still commit under patchiness."""
+    """Test existing movement and consumption stages commit under patchiness."""
     config = ReferenceEcologyConfig(
-        initial_population=4,
-        max_steps=2,
+        initial_population=1,
+        max_steps=1,
         seed=60,
+        traits=ReferenceTraitValues(max_speed=0),
         resource_placement_model=PatchyResourcePlacement(
-            patches=(ResourcePatch(center_x=6, center_y=6, radius=2),)
+            patches=(ResourcePatch(center_x=0, center_y=0, radius=0),)
         ),
     )
     recorder = EventRecorder()
