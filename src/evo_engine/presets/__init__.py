@@ -1,6 +1,11 @@
 """Reusable high-level simulation presets."""
 
 from evo_engine.presets.reference_ecology import (
+    FLAGSHIP_HIGH_MAX_INTAKE_RATE,
+    FLAGSHIP_LOW_MAX_INTAKE_RATE,
+    FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS,
+    FLAGSHIP_MAX_INTAKE_SEED,
+    FlagshipMaxIntakeSpecification,
     ReferenceEcology,
     ReferenceEcologyConfig,
     ReferenceExplorationMovement,
@@ -11,6 +16,9 @@ from evo_engine.presets.reference_ecology import (
     ReferenceTraitValues,
     ReferenceUniformMovement,
     ReferenceVonNeumannMovement,
+    build_flagship_max_intake_ecology,
+    build_flagship_max_intake_specification,
+    build_flagship_max_intake_world,
     build_reference_ecology,
     build_reference_engine,
     build_reference_founder_genome,
@@ -22,6 +30,11 @@ from evo_engine.presets.reference_ecology import (
 )
 
 __all__ = [
+    "FLAGSHIP_HIGH_MAX_INTAKE_RATE",
+    "FLAGSHIP_LOW_MAX_INTAKE_RATE",
+    "FLAGSHIP_MAX_INTAKE_ROBUSTNESS_SEEDS",
+    "FLAGSHIP_MAX_INTAKE_SEED",
+    "FlagshipMaxIntakeSpecification",
     "ReferenceEcology",
     "ReferenceEcologyConfig",
     "ReferenceExplorationMovement",
@@ -32,6 +45,9 @@ __all__ = [
     "ReferenceTraitValues",
     "ReferenceUniformMovement",
     "ReferenceVonNeumannMovement",
+    "build_flagship_max_intake_ecology",
+    "build_flagship_max_intake_specification",
+    "build_flagship_max_intake_world",
     "build_reference_ecology",
     "build_reference_engine",
     "build_reference_founder_genome",
