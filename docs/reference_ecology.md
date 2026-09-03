@@ -134,7 +134,7 @@ Movement uses `PrioritizedMovementIntent`:
 
 3. otherwise
        → exploration
-       → untargeted Moore movement
+       → configured untargeted movement pattern (Moore by default)
 ```
 
 The order is biologically meaningful. Low-energy food acquisition outranks mate
@@ -145,6 +145,15 @@ Reproduction process.
 `PurposeMovementTargetRouter` dispatches energy-acquisition movement to resource
 targeting and reproduction-purpose movement to `PreferredMateTarget`. Exploration
 has no target and therefore falls back to the ordinary movement pattern.
+
+`ReferenceEcologyConfig.exploration_movement` makes that fallback pattern an
+explicit typed preset choice. The reference preset supports adjacent Moore random
+movement, orthogonal Von Neumann random movement, uniform random displacement
+within the organism's speed limit, and Gaussian random displacement within that
+speed limit. Moore remains the default, preserving the original reference-ecology
+behavior. The Gaussian variant additionally owns its sampling standard deviation.
+These variants configure only untargeted exploration; food- and mate-seeking keep
+the existing targeted movement routes described above.
 
 The reference ecology uses genetic sensory range and genetic sensory accuracy.
 Accuracy 0 always misses an in-range resource deposit and accuracy 100 always
@@ -385,14 +394,16 @@ The defaults compose:
 
 ## Customization
 
-Simulation-wide numerical assumptions live in `ReferenceEcologyConfig`, while
-founder organism traits live in `ReferenceTraitValues`.
+Simulation-wide numerical assumptions and preset-level strategy variants live in
+`ReferenceEcologyConfig`, while founder organism traits live in
+`ReferenceTraitValues`.
 
 For example:
 
 ```python
 from evo_engine.presets import (
     ReferenceEcologyConfig,
+    ReferenceGaussianMovement,
     ReferenceTraitValues,
     build_reference_ecology,
 )
@@ -403,6 +414,7 @@ config = ReferenceEcologyConfig(
     initial_population=40,
     max_steps=200,
     seed=123,
+    exploration_movement=ReferenceGaussianMovement(standard_deviation=2),
     mating_radius=1,
     metabolic_mass_exponent=0.75,
     locomotion_mass_exponent=0.50,
@@ -435,7 +447,7 @@ ecology = build_reference_ecology(config)
 ecology.engine.run(ecology.simulation)
 ```
 
-For changes that alter process choice rather than numeric configuration, use the
+For process choices beyond the explicitly typed preset variants, use the
 lower-level builders or assemble stages directly. The preset is deliberately not
 a replacement for the engine's compositional API.
 

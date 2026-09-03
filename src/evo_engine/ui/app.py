@@ -35,6 +35,12 @@ from evo_engine.ui.models import (
 
 _RUN_KEY = "portfolio_dashboard_run"
 _EXPERIMENT_KEY = "portfolio_experiment_result"
+_EXPLORATION_MOVEMENT_OPTIONS = {
+    "Adjacent random (Moore)": "moore",
+    "Orthogonal random (Von Neumann)": "von_neumann",
+    "Uniform random within speed limit": "uniform",
+    "Gaussian random within speed limit": "gaussian",
+}
 
 
 def main() -> None:
@@ -146,6 +152,35 @@ def _configuration_controls() -> ReferenceEcologyConfig | None:
         )
     )
 
+    st.sidebar.markdown("**Movement behavior**")
+    exploration_movement_label = st.sidebar.selectbox(
+        "Exploration movement pattern",
+        tuple(_EXPLORATION_MOVEMENT_OPTIONS),
+        index=0,
+        help=(
+            "Controls untargeted exploration movement. Food- and mate-seeking may "
+            "use the reference ecology's existing targeted movement routes instead."
+        ),
+    )
+    exploration_movement_kind = _EXPLORATION_MOVEMENT_OPTIONS[
+        exploration_movement_label
+    ]
+    gaussian_standard_deviation: int | None = None
+    if exploration_movement_kind == "gaussian":
+        gaussian_standard_deviation = int(
+            st.sidebar.number_input(
+                "Gaussian movement standard deviation",
+                min_value=0,
+                max_value=20,
+                value=1,
+                step=1,
+                help=(
+                    "Standard deviation used for each sampled movement axis before "
+                    "the organism's maximum-speed limit is enforced."
+                ),
+            )
+        )
+
     st.sidebar.markdown("**Evolutionary variation**")
     mutation_enabled = st.sidebar.checkbox(
         "Enable mutation",
@@ -230,6 +265,8 @@ def _configuration_controls() -> ReferenceEcologyConfig | None:
             width=width,
             height=height,
             initial_energy=initial_energy,
+            exploration_movement_kind=exploration_movement_kind,
+            gaussian_standard_deviation=gaussian_standard_deviation,
             mutation_enabled=mutation_enabled,
             mutation_percent=mutation_percent,
             mutation_max_change=mutation_max_change,

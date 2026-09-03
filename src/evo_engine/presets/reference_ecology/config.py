@@ -26,6 +26,13 @@ from evo_engine.genetics import (
     SENSORY_ACCURACY,
     SENSORY_RANGE,
 )
+from evo_engine.presets.reference_ecology.movement import (
+    ReferenceExplorationMovement,
+    ReferenceGaussianMovement,
+    ReferenceMooreMovement,
+    ReferenceUniformMovement,
+    ReferenceVonNeumannMovement,
+)
 from evo_engine.presets.reference_ecology.reproductive_investment import (
     ReferenceMatingTypeInvestmentScales,
 )
@@ -299,6 +306,7 @@ class ReferenceEcologyConfig:
         initial_energy: Initial founder energy.
         max_steps: Number of timesteps run by the reference engine.
         seed: Simulation random seed.
+        exploration_movement: Untargeted movement pattern used for exploration.
         traits: Founder life-history, physiological, and ecological trait values.
         physiological_tradeoffs: Maintenance-cost coefficients for realized
             performance traits.
@@ -348,6 +356,17 @@ class ReferenceEcologyConfig:
     seed: int = attrs.field(
         default=42,
         validator=attrs_validators.validate_int,
+    )
+    exploration_movement: ReferenceExplorationMovement = attrs.field(
+        factory=ReferenceMooreMovement,
+        validator=attrs.validators.instance_of(
+            (
+                ReferenceMooreMovement,
+                ReferenceVonNeumannMovement,
+                ReferenceUniformMovement,
+                ReferenceGaussianMovement,
+            )
+        ),
     )
     traits: ReferenceTraitValues = attrs.field(
         factory=ReferenceTraitValues,
