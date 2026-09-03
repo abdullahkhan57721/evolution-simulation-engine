@@ -6,13 +6,13 @@ import attrs
 
 from evo_engine.genetics import (
     ASSIMILATION_EFFICIENCY,
+    GENETIC_ARCHITECTURE,
     METABOLIC_COST_COEFFICIENT,
     SENSORY_RANGE,
     Chromosome,
     Genome,
 )
 from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
-from evo_engine.presets.reference_ecology.config import REFERENCE_CHROMOSOME
 from evo_engine.presets.reference_ecology.mating_types import (
     reference_founder_mating_type,
 )
@@ -56,7 +56,7 @@ def _homozygous_variant(founder: Genome, architecture, trait_name: str, value: i
 
 
 def _replace_founders(ecology, trait_name: str, low: int, high: int) -> None:
-    architecture = ecology.simulation.context.require("genetic_architecture")
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
     old_world = ecology.simulation.state.domain_state
     founder = old_world.organisms[0].genome
     low_genome = _homozygous_variant(founder, architecture, trait_name, low)
