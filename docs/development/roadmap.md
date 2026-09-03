@@ -31,6 +31,11 @@ The project is moving toward a simulation engine in which:
 The kernel is not the current development frontier. New modeled behavior normally
 belongs above it unless a genuine generic deficiency is demonstrated.
 
+For the v0.1 portfolio release, the immediate priority is to **demonstrate the
+architecture already present** rather than broaden biology. The reference ecology,
+committed observation stack, experiment API, checkpointing, and export system are
+stable enough to support a polished interactive presentation layer above them.
+
 ## Near-term dependency graph
 
 ```text
@@ -45,25 +50,81 @@ transmissible-state contract normalization
 #92 → #95 → #98/#99
 reproduction boundary hardening
         |
-        +--------------------------------+
-        |                                |
-        v                                v
-#102 / #103                     richer mating systems
-chromosome-copy / pairing /             |
-segregation foundation                  |
-        |                                |
-        v                                |
-richer pairing + recombination           |
-        |                                |
-        +---------------+----------------+
-                        |
-                        v
-              richer evolutionary ecology
+        v
+#102 / #103
+chromosome-copy / pairing /
+segregation foundation
+        |
+        v
+#106 / #107
+committed spatial observation boundary
+        |
+        v
+#108 / #109
+portfolio reference-ecology dashboard
+        |
+        v
+v0.1 portfolio release polish / verification
+        |
+        +-----------------------+-----------------------+
+        |                       |                       |
+        v                       v                       v
+richer genetics          richer mating systems    richer development /
+                                                  evolutionary ecology
 ```
 
-Richer genetic-expression and development/G×E models can advance alongside these
-fronts once their own public responsibilities are clear; they do not all need to
-block ecological work.
+Richer genetic-expression and development/G×E models remain valid post-v0.1
+fronts once their own public responsibilities are clear; they do not block the
+portfolio release.
+
+## Portfolio release front — Interactive reference ecology
+
+**Status:** committed spatial presentation boundary completed by Issue #106 /
+PR #107; dashboard implemented by Issue #108 / PR #109.
+
+**Goal:** expose the strength of the existing engine through a polished,
+reproducible end-to-end experience without creating a second simulation
+architecture.
+
+The settled presentation direction is:
+
+```text
+simulation/domain layers
+        |
+        v
+committed observation / experiment values
+        |
+        v
+presentation transforms
+        |
+        v
+UI / visualization
+```
+
+`SpatialRecorder` supplies the missing opt-in immutable spatial history needed for
+interactive world playback. The Streamlit/Plotly dashboard consumes that boundary
+plus the existing population, genetic-composition, event, pedigree/life-history,
+experiment, and export contracts. It retains completed immutable presentation
+values rather than mutable worlds or engines.
+
+The v0.1 release should prioritize:
+
+- curated reference-ecology configuration and understandable validation errors;
+- committed spatial playback;
+- population/ecological, heritable-trait, genetic, event, and life-history views;
+- reproducible multi-seed experiment comparison;
+- existing JSON/CSV exports;
+- concise portfolio-oriented README/release instructions;
+- reliable headless UI and full protected-CI verification;
+- deployment/discoverability polish only where it materially improves portfolio
+  presentation.
+
+**Non-goals before v0.1:** richer recombination, richer mating systems, new
+biology subsystems, kernel redesign, live mutable-engine browser ownership,
+checkpoint upload/resume UI, databases, or a custom frontend/backend stack.
+
+After v0.1, the modeled-domain milestones below resume against their settled
+contracts.
 
 ## Milestone 1 — General-evolution contract normalization
 
@@ -351,8 +412,7 @@ concrete need:
 - checkpoint/resume guarantees;
 - documentation and examples;
 - performance measurement based on evidence;
-- interfaces/UI only when the underlying public construction path is stable enough
-  to expose cleanly.
+- portfolio UI/release polish above stable production contracts.
 
 Do not turn these into foundational redesigns merely because they are
 cross-cutting.
