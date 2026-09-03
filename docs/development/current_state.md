@@ -208,6 +208,16 @@ result contract or generic replay framework. The public render entry point lazil
 loads Manim only after a completed timeline is supplied, and the fixed-seed
 portfolio example completes the simulation before any rendering begins.
 
+The reference ecology now also has a named flagship composition above its normal
+homogeneous integration baseline. The flagship builds balanced standing variation
+at the existing `max_intake_rate` locus, runs the ordinary reference ecological,
+inheritance, observation, and experiment machinery, and exposes one canonical
+fixed-seed demonstration plus a canonical multi-seed robustness set. Mutation and
+predation are intentionally isolated in that demonstration so its resource-
+acquisition selection story remains interpretable. The dashboard and cinematic
+example consume the same committed evidence rather than owning separate demo
+mechanics.
+
 The presentation architecture is therefore:
 
 ```text
@@ -281,21 +291,28 @@ Issue #114 / PR #115 then proved that the same committed observation values can
 drive a separate Manim cinematic renderer without Plotly conversion, live-world
 ownership, or a speculative generic replay abstraction.
 
+Issue #121 / PR #122 composes those capabilities into the first reproducible
+flagship evolutionary story rather than adding another subsystem. Balanced
+homozygous founder variation at `max_intake_rate` is propagated through the
+existing genetics and reproduction stack under a renewable spatial resource
+regime. The canonical eight-seed experiment verifies directional high-intake
+allele increase without extinction through the 40-step demonstration window, and
+the same scenario feeds the dashboard and deterministic cinematic example.
+
 ## Current development front
 
 The immediate project front remains the **v0.1 portfolio release**, not additional
 biological breadth. The core simulation architecture should remain stable while
-the project emphasizes a polished end-to-end demonstration, concise documentation,
-reproducible examples, release/deployment ergonomics, and verification of the
-interactive and cinematic experience.
+the project emphasizes release/deployment ergonomics, concise documentation,
+reproducibility, and verification of the interactive and cinematic experience.
 
-The interactive configuration/dashboard path and deterministic cinematic sibling
-renderer are now established above the same committed evidence boundary. The next
-portfolio milestone should compose those capabilities into the flagship
-reproducible evolutionary demonstration rather than add another presentation
-framework or broaden biology merely for visual drama. Final README/media,
-deployment, release tagging, and broad presentation polish remain release-hardening
-work after that demonstration is settled.
+The adaptive dashboard, renderer-neutral cinematic path, and reproducible flagship
+evolutionary demonstration are now established above the same committed evidence
+boundary. The next portfolio milestone is **M5 release hardening**: browser-level
+visual QA, README/media presentation, deployment/discoverability work, release
+instructions/tagging, and final full-stack reproducibility/CI verification. It
+should polish and expose the settled demonstration rather than introduce another
+presentation framework or broaden biology for visual drama.
 
 After v0.1, richer pairing/recombination, richer mating systems, genetic
 expression, development/G×E, and evolutionary ecology remain valid modeled-domain
@@ -342,6 +359,10 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#121 / #122 — reproducible flagship evolutionary demonstration:** added a
+  balanced standing-variation `max_intake_rate` scenario above the reference
+  ecology, canonical fixed- and multi-seed experiment helpers, a featured dashboard
+  route, and the deterministic cinematic input used for the v0.1 portfolio story.
 - **#114 / #115 — renderer-neutral Manim cinematic proof:** added an optional
   sibling renderer that derives a deterministic presentation timeline directly
   from committed spatial/population observations, renders only after simulation
