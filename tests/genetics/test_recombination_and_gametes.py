@@ -24,6 +24,34 @@ from evo_engine.genetics import (
 )
 
 
+class OmitLastChromosomePairing:
+    """Return an invalid test association set that omits a parent copy."""
+
+    def pair(
+        self,
+        genome: Genome,
+        *,
+        genetic_architecture: GeneticArchitecture,
+        rng: random.Random,
+    ) -> tuple[ChromosomeAssociation, ...]:
+        """Return only the first parent chromosome copy."""
+        return (ChromosomeAssociation(chromosomes=(genome.chromosomes[0],)),)
+
+
+class DropChromosomeRecombination:
+    """Return an invalid test recombination result with changed copy count."""
+
+    def recombine(
+        self,
+        association: ChromosomeAssociation,
+        *,
+        genetic_architecture: GeneticArchitecture,
+        rng: random.Random,
+    ) -> ChromosomeAssociation:
+        """Drop all but the first associated chromosome copy."""
+        return ChromosomeAssociation(chromosomes=(association.chromosomes[0],))
+
+
 def make_two_locus_architecture() -> tuple[
     GeneticArchitecture,
     Locus[int],
@@ -178,6 +206,32 @@ def test_same_name_pairing_forms_one_bivalent_for_diploid_group() -> None:
 
     assert len(associations) == 1
     assert associations[0].chromosomes == genome.chromosomes
+
+
+def test_meiotic_gamete_requires_pairing_to_cover_each_parent_copy() -> None:
+    """Test pairing cannot omit a chromosome copy from meiotic organization."""
+    architecture, genome = make_heterozygous_genome()
+
+    with pytest.raises(ValueError, match="each parent chromosome copy exactly once"):
+        MeioticGameteFormation(pairing=OmitLastChromosomePairing()).form_gamete(
+            genome,
+            genetic_architecture=architecture,
+            rng=random.Random(1),
+        )
+
+
+def test_meiotic_gamete_requires_recombination_to_preserve_copy_count() -> None:
+    """Test recombination cannot change chromosome-association cardinality."""
+    architecture, genome = make_heterozygous_genome()
+
+    with pytest.raises(ValueError, match="preserve chromosome-association"):
+        MeioticGameteFormation(
+            recombination=DropChromosomeRecombination()
+        ).form_gamete(
+            genome,
+            genetic_architecture=architecture,
+            rng=random.Random(1),
+        )
 
 
 def test_valid_four_copy_genome_can_be_unsupported_by_simple_pairing() -> None:
