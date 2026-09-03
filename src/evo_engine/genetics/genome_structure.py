@@ -100,8 +100,7 @@ class GenomeStructure:
     def chromosome_names(self) -> frozenset[str]:
         """Return chromosome types declared by this genome structure."""
         return frozenset(
-            expectation.chromosome_name
-            for expectation in self.chromosome_expectations
+            expectation.chromosome_name for expectation in self.chromosome_expectations
         )
 
     def expectation(self, chromosome_name: str) -> ChromosomeCopyExpectation:
@@ -124,9 +123,7 @@ class GenomeStructure:
             if expectation.chromosome_name == chromosome_name:
                 return expectation
 
-        raise KeyError(
-            f"genome structure has no chromosome named {chromosome_name!r}."
-        )
+        raise KeyError(f"genome structure has no chromosome named {chromosome_name!r}.")
 
     def validate_genome(self, genome: Genome) -> None:
         """Validate chromosome identities and copy counts in a genome.
@@ -151,8 +148,7 @@ class GenomeStructure:
         )
         if unknown_names:
             raise ValueError(
-                "genome contains undeclared chromosome type(s): "
-                f"{unknown_names!r}."
+                f"genome contains undeclared chromosome type(s): {unknown_names!r}."
             )
 
         for expectation in self.chromosome_expectations:
