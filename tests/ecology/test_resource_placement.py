@@ -22,9 +22,7 @@ def test_uniform_placement_replays_historical_rng_sequence() -> None:
     positions = tuple(
         placement.choose_position(width=5, height=7, rng=rng) for _ in range(6)
     )
-    expected = tuple(
-        (control.randrange(5), control.randrange(7)) for _ in range(6)
-    )
+    expected = tuple((control.randrange(5), control.randrange(7)) for _ in range(6))
 
     assert positions == expected
     assert rng.getstate() == control.getstate()
@@ -55,9 +53,10 @@ def test_zero_radius_patch_always_places_at_its_center() -> None:
     )
     rng = random.Random(11)
 
-    assert tuple(
-        placement.choose_position(width=6, height=7, rng=rng) for _ in range(5)
-    ) == ((2, 3),) * 5
+    assert (
+        tuple(placement.choose_position(width=6, height=7, rng=rng) for _ in range(5))
+        == ((2, 3),) * 5
+    )
 
 
 def test_edge_patch_is_truncated_to_in_bounds_disk_cells() -> None:
@@ -94,8 +93,7 @@ def test_multiple_patches_are_reproducible_and_never_place_between_patches() -> 
     second_rng = random.Random(29)
 
     first = tuple(
-        placement.choose_position(width=5, height=5, rng=first_rng)
-        for _ in range(12)
+        placement.choose_position(width=5, height=5, rng=first_rng) for _ in range(12)
     )
     second = tuple(
         placement.choose_position(width=5, height=5, rng=second_rng)
