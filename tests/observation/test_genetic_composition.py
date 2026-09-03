@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeCopyExpectation,
     CompleteDominanceExpression,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     NoMutation,
@@ -25,6 +27,14 @@ def _architecture() -> GeneticArchitecture:
         mutation=NoMutation(),
     )
     return GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosome_expectations=(
+                ChromosomeCopyExpectation(
+                    chromosome_name="1",
+                    allowed_copy_counts=(2,),
+                ),
+            )
+        ),
         loci=(locus,),
         traits=(
             Trait(
