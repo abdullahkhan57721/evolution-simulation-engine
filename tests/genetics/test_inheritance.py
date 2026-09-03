@@ -8,20 +8,46 @@ import pytest
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeAssociation,
+    ChromosomeCopyExpectation,
     ClonalInheritance,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
+    MeioticGameteFormation,
     NoMutation,
     SexualInheritance,
     UniformIntegerMutation,
 )
 
 
+class AdjacentBivalentPairing:
+    """Pair an even same-name chromosome group into adjacent test bivalents."""
+
+    def pair(
+        self,
+        genome: Genome,
+        *,
+        genetic_architecture: GeneticArchitecture,
+        rng: random.Random,
+    ) -> tuple[ChromosomeAssociation, ...]:
+        """Return adjacent pairs without adding production polyploid policy."""
+        genetic_architecture.validate_genome(genome)
+        chromosomes = genome.chromosomes_named("1")
+        if len(chromosomes) % 2 != 0:
+            raise ValueError("test pairing requires an even chromosome-copy count.")
+        return tuple(
+            ChromosomeAssociation(chromosomes=chromosomes[index : index + 2])
+            for index in range(0, len(chromosomes), 2)
+        )
+
+
 def make_architecture(
     *,
     mutation=None,
+    copy_count: int = 2,
 ) -> tuple[GeneticArchitecture, Locus[int]]:
     """Return one-locus genetics for inheritance tests."""
     if mutation is None:
@@ -38,6 +64,14 @@ def make_architecture(
         mutation=mutation,
     )
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosome_expectations=(
+                ChromosomeCopyExpectation(
+                    chromosome_name="1",
+                    allowed_copy_counts=(copy_count,),
+                ),
+            )
+        ),
         loci=(locus,),
         traits=(),
     )
@@ -64,6 +98,19 @@ def make_genome(
     )
 
 
+def make_copy_count_genome(locus: Locus[int], values: tuple[int, ...]) -> Genome:
+    """Return a one-locus genome with explicitly supplied chromosome copies."""
+    return Genome(
+        chromosomes=tuple(
+            Chromosome(
+                name="1",
+                alleles=(locus.create_allele(value),),
+            )
+            for value in values
+        )
+    )
+
+
 def test_clonal_inheritance_preserves_chromosome_structure() -> None:
     """Test one-parent inheritance without mutation."""
     architecture, locus = make_architecture()
@@ -81,6 +128,21 @@ def test_clonal_inheritance_preserves_chromosome_structure() -> None:
 
     assert offspring == parent
     assert offspring is not parent
+
+
+def test_clonal_inheritance_preserves_higher_copy_structure() -> None:
+    """Test clonal inheritance is not restricted to diploid genomes."""
+    architecture, locus = make_architecture(copy_count=4)
+    parent = make_copy_count_genome(locus, (1, 2, 3, 4))
+
+    offspring = ClonalInheritance().inherit(
+        (parent,),
+        genetic_architecture=architecture,
+        rng=random.Random(1),
+    )
+
+    assert offspring == parent
+    assert len(offspring.chromosomes_named("1")) == 4
 
 
 def test_clonal_inheritance_applies_locus_mutation() -> None:
@@ -160,6 +222,31 @@ def test_sexual_inheritance_combines_one_gamete_from_each_parent() -> None:
     assert values[1] in {10, 20}
 
 
+def test_sexual_inheritance_combines_two_copy_gametes_into_four_copy_offspring() -> None:
+    """Test inheritance remains neutral to chromosome copies within each gamete."""
+    architecture, locus = make_architecture(copy_count=4)
+    first_parent = make_copy_count_genome(locus, (1, 2, 3, 4))
+    second_parent = make_copy_count_genome(locus, (10, 20, 30, 40))
+    inheritance = SexualInheritance(
+        gamete_formation=MeioticGameteFormation(
+            pairing=AdjacentBivalentPairing(),
+        )
+    )
+
+    offspring = inheritance.inherit(
+        (first_parent, second_parent),
+        genetic_architecture=architecture,
+        rng=random.Random(1),
+    )
+
+    values = tuple(allele.value for allele in offspring.alleles_at("value"))
+    assert len(values) == 4
+    assert values[0] in {1, 2}
+    assert values[1] in {3, 4}
+    assert values[2] in {10, 20}
+    assert values[3] in {30, 40}
+
+
 @pytest.mark.parametrize(
     "parent_genomes",
     [
@@ -177,6 +264,7 @@ def test_sexual_inheritance_requires_two_parents(
 ) -> None:
     """Test sexual inheritance owns its two-parent constraint."""
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(chromosome_expectations=()),
         loci=(),
         traits=(),
     )
