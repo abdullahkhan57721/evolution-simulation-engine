@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import pytest
+
 from evo_engine.ecology import (
     PatchyResourcePlacement,
     ResourcePatch,
     UniformResourcePlacement,
 )
+from evo_engine.engine import SequentialStepCoordinator
 from evo_engine.observation import SpatialRecorder
 from evo_engine.presets import ReferenceEcologyConfig
 from evo_engine.presets.reference_ecology.builders import (
@@ -18,7 +21,11 @@ from evo_engine.processes import ResourceGeneration
 
 def _reference_resource_generation(config: ReferenceEcologyConfig) -> ResourceGeneration:
     engine = build_reference_engine(config)
-    for stage in engine.step_coordinator.stages:
+    coordinator = engine.step_coordinator
+    if not isinstance(coordinator, SequentialStepCoordinator):
+        raise AssertionError("reference engine must use SequentialStepCoordinator")
+
+    for stage in coordinator.stages:
         for process in stage.processes:
             if isinstance(process, ResourceGeneration):
                 return process
@@ -33,6 +40,12 @@ def test_reference_config_defaults_to_uniform_resource_placement() -> None:
     assert _reference_resource_generation(config).placement_model is (
         config.resource_placement_model
     )
+
+
+def test_reference_config_rejects_invalid_resource_placement_model() -> None:
+    """Test the reference preset validates the structural placement contract."""
+    with pytest.raises(TypeError, match="resource_placement_model"):
+        ReferenceEcologyConfig(resource_placement_model=object())  # type: ignore[arg-type]
 
 
 def test_reference_engine_wires_configured_patchy_placement() -> None:
