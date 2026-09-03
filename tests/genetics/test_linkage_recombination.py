@@ -6,8 +6,11 @@ import random
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeAssociation,
+    ChromosomeStructure,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     NoMutation,
@@ -29,7 +32,13 @@ def test_piecewise_linkage_map_controls_crossover_location() -> None:
         )
         for name, position in (("a", 0), ("b", 10), ("c", 20))
     )
-    architecture = GeneticArchitecture(loci=loci, traits=())
+    architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
+        ),
+        loci=loci,
+        traits=(),
+    )
     genome = Genome(
         chromosomes=(
             Chromosome(
@@ -64,10 +73,18 @@ def test_piecewise_linkage_map_controls_crossover_location() -> None:
     )
 
     result = recombination.recombine(
-        genome.chromosomes_named("1"),
+        ChromosomeAssociation(chromosomes=genome.chromosomes_named("1")),
         genetic_architecture=architecture,
         rng=random.Random(1),
     )
 
-    assert tuple(allele.value for allele in result[0].alleles) == (1, 2, 30)
-    assert tuple(allele.value for allele in result[1].alleles) == (10, 20, 3)
+    assert tuple(allele.value for allele in result.chromosomes[0].alleles) == (
+        1,
+        2,
+        30,
+    )
+    assert tuple(allele.value for allele in result.chromosomes[1].alleles) == (
+        10,
+        20,
+        3,
+    )

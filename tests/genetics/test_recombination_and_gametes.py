@@ -8,8 +8,11 @@ import pytest
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeAssociation,
+    ChromosomeStructure,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     MeioticGameteFormation,
@@ -24,7 +27,7 @@ def make_two_locus_architecture() -> tuple[
     Locus[int],
     Locus[int],
 ]:
-    """Return a two-locus architecture on one chromosome."""
+    """Return a two-locus explicitly diploid architecture on one chromosome."""
     first = Locus(
         name="a",
         chromosome_name="1",
@@ -41,6 +44,9 @@ def make_two_locus_architecture() -> tuple[
     )
     return (
         GeneticArchitecture(
+            genome_structure=GenomeStructure(
+                chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
+            ),
             loci=(first, second),
             traits=(),
         ),
@@ -73,51 +79,52 @@ def make_heterozygous_genome() -> tuple[GeneticArchitecture, Genome]:
     return architecture, genome
 
 
-def test_no_recombination_returns_same_homolog_tuple() -> None:
+def test_no_recombination_returns_same_association() -> None:
     """Test explicit preservation when recombination is disabled."""
     architecture, genome = make_heterozygous_genome()
-    homologs = genome.chromosomes_named("1")
+    association = ChromosomeAssociation(chromosomes=genome.chromosomes_named("1"))
 
     result = NoRecombination().recombine(
-        homologs,
+        association,
         genetic_architecture=architecture,
         rng=random.Random(1),
     )
 
-    assert result is homologs
+    assert result is association
 
 
-def test_single_crossover_probability_zero_preserves_homologs() -> None:
+def test_single_crossover_probability_zero_preserves_association() -> None:
     """Test crossover probability boundary at zero."""
     architecture, genome = make_heterozygous_genome()
-    homologs = genome.chromosomes_named("1")
+    association = ChromosomeAssociation(chromosomes=genome.chromosomes_named("1"))
 
     result = SingleCrossoverRecombination(
         probability_ppm=0,
     ).recombine(
-        homologs,
+        association,
         genetic_architecture=architecture,
         rng=random.Random(1),
     )
 
-    assert result == homologs
+    assert result == association
 
 
 def test_single_crossover_probability_one_swaps_distal_alleles() -> None:
     """Test one crossover preserves phase on each side of the crossover."""
     architecture, genome = make_heterozygous_genome()
-    homologs = genome.chromosomes_named("1")
+    association = ChromosomeAssociation(chromosomes=genome.chromosomes_named("1"))
 
     result = SingleCrossoverRecombination(
         probability_ppm=1_000_000,
     ).recombine(
-        homologs,
+        association,
         genetic_architecture=architecture,
         rng=random.Random(1),
     )
 
     values = tuple(
-        tuple(allele.value for allele in chromosome.alleles) for chromosome in result
+        tuple(allele.value for allele in chromosome.alleles)
+        for chromosome in result.chromosomes
     )
 
     assert values == (
@@ -126,23 +133,31 @@ def test_single_crossover_probability_one_swaps_distal_alleles() -> None:
     )
 
 
-def test_single_crossover_rejects_more_than_two_homologs() -> None:
-    """Test that the current crossover model is explicitly diploid."""
-    architecture, genome = make_heterozygous_genome()
-    homologs = genome.chromosomes_named("1")
+def test_single_crossover_rejects_association_larger_than_two() -> None:
+    """Test the current crossover model owns its pair-size limitation."""
+    architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(3,)),)
+        ),
+        loci=(),
+        traits=(),
+    )
+    association = ChromosomeAssociation(
+        chromosomes=tuple(Chromosome(name="1", alleles=()) for _ in range(3))
+    )
 
     with pytest.raises(ValueError):
         SingleCrossoverRecombination(
             probability_ppm=1_000_000,
         ).recombine(
-            homologs + (homologs[0],),
+            association,
             genetic_architecture=architecture,
             rng=random.Random(1),
         )
 
 
-def test_meiotic_gamete_contains_one_copy_per_chromosome_name() -> None:
-    """Test Mendelian segregation by chromosome type."""
+def test_meiotic_gamete_preserves_current_mendelian_segregation() -> None:
+    """Test current simple diploid segregation remains one copy per bivalent."""
     architecture, genome = make_heterozygous_genome()
 
     gamete = MeioticGameteFormation().form_gamete(
@@ -156,7 +171,7 @@ def test_meiotic_gamete_contains_one_copy_per_chromosome_name() -> None:
 
 
 def test_meiotic_gamete_with_recombination_can_transmit_recombinant() -> None:
-    """Test crossover integrates with segregation."""
+    """Test crossover integrates with explicit segregation."""
     architecture, genome = make_heterozygous_genome()
 
     gamete = MeioticGameteFormation(

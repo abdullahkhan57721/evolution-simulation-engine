@@ -9,6 +9,7 @@ from evo_engine.genetics import (
     ClonalInheritance,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     Locus,
     NoMutation,
     UniformChoiceMutation,
@@ -56,7 +57,11 @@ def test_mutation_policies_expose_general_variation_operation() -> None:
 
 def test_clonal_inheritance_adapts_to_general_propagation() -> None:
     """Test biological inheritance implements domain-neutral propagation."""
-    architecture = GeneticArchitecture(loci=(), traits=())
+    architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(),
+        loci=(),
+        traits=(),
+    )
     genome = Genome(chromosomes=())
     inheritance = ClonalInheritance()
 

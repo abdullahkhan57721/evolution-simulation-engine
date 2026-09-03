@@ -49,3 +49,4 @@ benchmarks rather than duplicating them.
 - [0005 — Use the repository as durable collaboration memory](0005-repository-collaboration-memory.md)
 - [0006 — Add concise orientation and rolling roadmap documents](0006-concise-orientation-and-roadmap.md)
 - [0007 — Use transmissible state as the canonical general-evolution term](0007-transmissible-state-terminology.md)
+- [0008 — Make chromosome transmission semantics explicit](0008-explicit-chromosome-transmission-semantics.md)

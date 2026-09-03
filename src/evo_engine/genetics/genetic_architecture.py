@@ -9,6 +9,7 @@ import attrs
 from evo_engine.context import ContextKey
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
+from evo_engine.genetics.genome_structure import GenomeStructure
 from evo_engine.genetics.locus import Locus
 from evo_engine.genetics.requirements import validate_required_traits
 from evo_engine.genetics.trait import Trait
@@ -16,25 +17,32 @@ from evo_engine.genetics.trait import Trait
 
 @attrs.frozen(slots=True, kw_only=True)
 class GeneticArchitecture:
-    """Define loci, traits, and genotype-to-genetic phenotype relationships.
+    """Define biological genome structure, loci, traits, and genetic expression.
 
     A genetic architecture is shared simulation configuration. Organisms carry
-    genomes; the architecture validates those genomes and expresses them as
-    genetic phenotypes.
+    permissive ``Genome`` state; the architecture gives its chromosome copies
+    biological structural meaning, validates alleles and loci, and expresses the
+    genome as a genetic phenotype.
 
     Attributes:
+        genome_structure: Declared chromosome types and valid copy counts.
         loci: Genetic loci available in the architecture. May be empty.
         traits: Expressed traits defined from those loci.
     """
 
+    genome_structure: GenomeStructure
     loci: tuple[Locus[Any], ...]
     traits: tuple[Trait[Any], ...]
 
     def __attrs_post_init__(self) -> None:
         """Validate architecture identities and references."""
+        if not isinstance(self.genome_structure, GenomeStructure):
+            raise TypeError(
+                "genome_structure must be a GenomeStructure; "
+                f"received {self.genome_structure!r}."
+            )
         if type(self.loci) is not tuple:
             raise TypeError("loci must be a tuple.")
-
         if type(self.traits) is not tuple:
             raise TypeError("traits must be a tuple.")
 
@@ -42,25 +50,27 @@ class GeneticArchitecture:
         self._validate_traits(locus_names)
 
     def _validate_loci(self) -> set[str]:
-        """Validate locus identity and chromosome-position uniqueness."""
+        """Validate locus identity, chromosome declarations, and positions."""
         locus_names: set[str] = set()
         locus_positions: set[tuple[str, int]] = set()
+        chromosome_names = set(self.genome_structure.chromosome_names)
 
         for index, locus in enumerate(self.loci):
             if not isinstance(locus, Locus):
                 raise TypeError(
                     f"loci[{index}] must be an instance of Locus; received {locus!r}."
                 )
-
             if locus.name in locus_names:
                 raise ValueError(
                     f"loci must have unique names; duplicate {locus.name!r}."
                 )
+            if locus.chromosome_name not in chromosome_names:
+                raise ValueError(
+                    f"locus {locus.name!r} references undeclared chromosome type "
+                    f"{locus.chromosome_name!r}."
+                )
 
-            position_key = (
-                locus.chromosome_name,
-                locus.position,
-            )
+            position_key = (locus.chromosome_name, locus.position)
             if position_key in locus_positions:
                 raise ValueError(
                     "loci on the same chromosome must have unique "
@@ -81,7 +91,6 @@ class GeneticArchitecture:
                 raise TypeError(
                     f"traits[{index}] must be an instance of Trait; received {trait!r}."
                 )
-
             if trait.name in trait_names:
                 raise ValueError(
                     f"traits must have unique names; duplicate {trait.name!r}."
@@ -96,7 +105,6 @@ class GeneticArchitecture:
                 raise ValueError(
                     f"trait {trait.name!r} references unknown loci {unknown_loci!r}."
                 )
-
             trait_names.add(trait.name)
 
     @property
@@ -122,7 +130,6 @@ class GeneticArchitecture:
         """
         validated_requirements = validate_required_traits(required_traits)
         missing_traits = validated_requirements - self.trait_names
-
         if not missing_traits:
             return
 
@@ -146,7 +153,6 @@ class GeneticArchitecture:
         for locus in self.loci:
             if locus.name == name:
                 return locus
-
         raise KeyError(f"genetic architecture has no locus named {name!r}.")
 
     def trait(self, name: str) -> Trait[Any]:
@@ -164,16 +170,16 @@ class GeneticArchitecture:
         for trait in self.traits:
             if trait.name == name:
                 return trait
-
         raise KeyError(f"genetic architecture has no trait named {name!r}.")
 
     def validate_genome(self, genome: Genome) -> None:
-        """Validate a genome against this architecture.
+        """Validate chromosome-copy structure, loci, and alleles.
 
-        Every allele must belong to a known locus, appear on the chromosome
-        configured for that locus, and satisfy the locus's allele domain.
-        Every locus required by an expressed trait must be represented at
-        least once in the genome.
+        ``GenomeStructure`` first determines whether chromosome types and copy
+        counts are structurally valid. Alleles must then belong to known loci,
+        appear on the chromosome configured for that locus, and satisfy the
+        locus's domain. Every locus required by an expressed trait must appear at
+        least once.
 
         Args:
             genome: Genome to validate.
@@ -185,13 +191,9 @@ class GeneticArchitecture:
         if not isinstance(genome, Genome):
             raise TypeError("genome must be an instance of Genome.")
 
-        chromosome_names = {locus.chromosome_name for locus in self.loci}
-
+        self.genome_structure.validate_genome(genome)
         for chromosome in genome.chromosomes:
-            self._validate_chromosome(
-                chromosome,
-                chromosome_names=chromosome_names,
-            )
+            self._validate_chromosome(chromosome)
 
         for locus_name in self._required_locus_names():
             try:
@@ -202,16 +204,8 @@ class GeneticArchitecture:
                     "which is required for genetic phenotype expression."
                 ) from error
 
-    def _validate_chromosome(
-        self,
-        chromosome: Any,
-        *,
-        chromosome_names: set[str],
-    ) -> None:
-        """Validate one chromosome and all alleles carried on it."""
-        if chromosome.name not in chromosome_names:
-            raise ValueError(f"genome contains unknown chromosome {chromosome.name!r}.")
-
+    def _validate_chromosome(self, chromosome: Any) -> None:
+        """Validate all alleles carried by one structurally declared chromosome."""
         for allele in chromosome.alleles:
             try:
                 locus = self.locus(allele.locus_name)
@@ -225,7 +219,6 @@ class GeneticArchitecture:
                     f"locus {locus.name!r} belongs to chromosome "
                     f"{locus.chromosome_name!r}, not {chromosome.name!r}."
                 )
-
             locus.validate_allele(allele)
 
     def _required_locus_names(self) -> set[str]:
@@ -242,16 +235,9 @@ class GeneticArchitecture:
             GeneticPhenotype containing all configured trait values.
         """
         self.validate_genome(genome)
-
-        # Preserve configured trait order so genetic phenotype serialization and
-        # deterministic comparisons remain stable.
         return GeneticPhenotype(
             trait_values=tuple(
-                (
-                    trait.name,
-                    trait.express(genome),
-                )
-                for trait in self.traits
+                (trait.name, trait.express(genome)) for trait in self.traits
             )
         )
 

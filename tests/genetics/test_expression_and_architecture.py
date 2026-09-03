@@ -11,10 +11,12 @@ from evo_engine.genetics import (
     Allele,
     ChoiceAlleleDomain,
     Chromosome,
+    ChromosomeStructure,
     CompleteDominanceExpression,
     GeneticArchitecture,
     GeneticPhenotype,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
@@ -25,6 +27,13 @@ from tests.helpers import (
     make_diploid_genome,
     make_integer_architecture,
 )
+
+
+def _diploid_structure() -> GenomeStructure:
+    """Return the explicit one-chromosome diploid structure used here."""
+    return GenomeStructure(
+        chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
+    )
 
 
 def test_mean_integer_expression_rounds_half_away_from_zero() -> None:
@@ -127,6 +136,7 @@ def test_trait_can_express_from_multiple_loci() -> None:
         expression=AdditiveIntegerExpression(),
     )
     architecture = GeneticArchitecture(
+        genome_structure=_diploid_structure(),
         loci=loci,
         traits=(trait,),
     )
@@ -172,6 +182,7 @@ def test_architecture_rejects_duplicate_locus_names() -> None:
 
     with pytest.raises(ValueError):
         GeneticArchitecture(
+            genome_structure=_diploid_structure(),
             loci=(first, second),
             traits=(),
         )
@@ -196,6 +207,7 @@ def test_architecture_rejects_duplicate_position_on_same_chromosome() -> None:
 
     with pytest.raises(ValueError):
         GeneticArchitecture(
+            genome_structure=_diploid_structure(),
             loci=(first, second),
             traits=(),
         )
@@ -211,13 +223,14 @@ def test_architecture_rejects_trait_reference_to_unknown_locus() -> None:
 
     with pytest.raises(ValueError):
         GeneticArchitecture(
+            genome_structure=GenomeStructure(),
             loci=(),
             traits=(trait,),
         )
 
 
 def test_architecture_rejects_allele_on_wrong_chromosome() -> None:
-    """Test genome structure against configured locus location."""
+    """Test genome allele location against configured locus location."""
     locus = Locus(
         name="a",
         chromosome_name="1",
@@ -226,6 +239,12 @@ def test_architecture_rejects_allele_on_wrong_chromosome() -> None:
         mutation=NoMutation(),
     )
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(
+                ChromosomeStructure(name="1", allowed_copy_counts=(0,)),
+                ChromosomeStructure(name="2", allowed_copy_counts=(1,)),
+            )
+        ),
         loci=(locus,),
         traits=(),
     )
@@ -312,6 +331,7 @@ def test_categorical_trait_can_use_dominance_expression() -> None:
         ),
     )
     architecture = GeneticArchitecture(
+        genome_structure=_diploid_structure(),
         loci=(locus,),
         traits=(trait,),
     )

@@ -132,21 +132,88 @@ from `production_source_ids`; pedigree parentage and direct genetic reproductive
 success continue to follow only transmissible-state contributors. Concrete
 inheritance and production policies retain their own stronger requirements.
 
-The genome representation already permits arbitrary chromosome-copy collections.
-Future ploidy work should therefore focus on explicit biological copy-count
-validation, pairing, segregation, gamete formation, and recombination policies
-rather than replacing `Genome` or generalizing the kernel.
+Chromosome transmission now has an explicit biological responsibility split above
+`Genome`:
+
+```text
+Genome
+  |
+  v
+GenomeStructure + GeneticArchitecture validation
+  |
+  v
+ChromosomePairingModel
+  |
+  v
+ChromosomeAssociation(s)
+  |
+  v
+RecombinationModel
+  |
+  v
+ChromosomeSegregationModel
+  |
+  v
+Gamete
+```
+
+`Genome` remains a permissive inherited-state container capable of arbitrary
+chromosome-copy collections. `GenomeStructure` gives those copies biological
+structural meaning through chromosome-specific allowed copy counts; there is no
+foundational organism-wide `ploidy` scalar.
+
+Pairing determines temporary chromosome associations before recombination.
+Recombination operates only on already-selected associations and preserves their
+copy cardinality. Segregation separately determines which and how many chromosome
+copies enter a gamete. `MeioticGameteFormation` composes those responsibilities
+rather than embedding a universal one-copy-per-chromosome-name rule.
+
+Current built-in policies intentionally remain simple:
+`SameNameBivalentPairing`, `NoRecombination` /
+`SingleCrossoverRecombination`, and `BivalentSegregation` preserve singleton and
+ordinary diploid Mendelian behavior. Chromosome-name equality is therefore a
+convention of these concrete policies rather than the universal definition of
+homology. A structurally valid higher-copy genome may be unsupported by one of
+these policies without being classified as structurally invalid.
 
 The design should remain extensible toward richer genetics, dominance and other
 non-additive expression, ploidy variation, chromosome-specific recombination,
 richer mating systems, and variable reproductive contributors.
 
-### Observation, experiments, and reproducibility
+### Observation, experiments, reproducibility, and presentation
 
 The repository includes committed telemetry and observation layers for population
 and evolutionary state, causal event history, pedigree/lifetime contribution,
 genetic composition, reproducible experiments/export, and exact checkpoint/resume
 behavior.
+
+Spatial presentation data now has its own opt-in committed observation boundary.
+`SpatialRecorder` stores immutable scalar snapshots of organism positions and
+selected state, resource deposits, carcasses, and world dimensions. It follows the
+same post-commit observer semantics as the other recorders and does not retain live
+world or entity references.
+
+The optional `evo_engine.ui` package is a top-level consumer of those committed
+records and the existing experiment API. Its `DashboardRun` presentation value
+contains completed immutable results rather than an engine, mutable world, or
+recorder ownership. The Streamlit/Plotly portfolio dashboard therefore preserves:
+
+```text
+simulation/domain layers
+        |
+        v
+committed observation / experiment values
+        |
+        v
+presentation transforms
+        |
+        v
+UI / visualization
+```
+
+Production packages are mechanically guarded from importing `evo_engine.ui`.
+Streamlit and Plotly are optional UI dependencies rather than mandatory core
+runtime requirements.
 
 ### Performance and quality boundaries
 
@@ -158,77 +225,77 @@ hard constraints on performance changes.
 The repository quality gate includes Ruff, Pyright, Import Linter/architecture
 checks, kernel-contract regressions, Complexipy, pytest/coverage, reference and
 kernel performance checks, strict MkDocs, and a stable final aggregator status.
+The quality environment also installs the optional UI dependencies so dashboard
+code and headless Streamlit interactions are verified without making them core
+runtime dependencies.
 
 ## Most recent architectural proof
 
 Issue #84 / PR #85 added a deterministic nonbiological information-propagation
-vertical slice through the real `SimulationSpec` and frozen kernel.
+vertical slice through the real `SimulationSpec` and frozen kernel. It provided
+executable evidence that the general evolution architecture works without
+biological `Organism`, `Genome`, genetics, reproduction, or biological world
+objects.
 
-That proof demonstrates:
+Issue #86 then normalized the remaining generic expression vocabulary around
+transmissible state. The subsequent biological-specialization audit identified
+reproduction orchestration, rather than the kernel or general framework, as the
+main remaining boundary to harden. Issues #92, #95, and #98 incrementally removed
+universal arity and reproductive-source conflations without changing the frozen
+kernel or general-evolution layer.
 
-```text
-transmissible strategy token
-        |
-        v
-expressed operative characteristic
-        |
-        v
-differential propagation
-        |
-        v
-source/recipient propagation + RNG variation
-        |
-        v
-committed token replacement
-        |
-        v
-changed transmissible-state composition
-```
+Issue #102 / PR #103 then established explicit chromosome-copy, pairing,
+recombination-eligibility, and segregation responsibilities. Its discriminating
+higher-copy proof uses a structurally valid four-copy chromosome group, an
+explicit alternative pairing policy that forms two bivalents, ordinary bivalent
+segregation that produces a two-copy gamete, and existing `SexualInheritance` to
+produce a valid four-copy offspring. That demonstrates that the public
+architecture is not secretly diploid-only while leaving production polyploid
+meiosis deliberately out of scope.
 
-The example uses no biological `Organism`, `Genome`, biological world, genetics,
-or reproduction implementation. This is executable evidence that the general
-evolution architecture is genuinely usable outside biology.
-
-Issue #86 then used that evidence to normalize the remaining generic expression
-vocabulary around transmissible state without changing the example's behavior or
-the propagation/kernel semantics. The subsequent biological-specialization audit
-identified reproduction orchestration, rather than the kernel or general
-framework, as the main remaining boundary to harden. Issues #92, #95, and #98
-incrementally removed the universal arity and reproductive-source conflations
-found by that audit without changing the frozen kernel or general-evolution layer.
+The portfolio-release work then exercised a different architectural claim: the
+engine can be presented interactively without turning the UI into an alternate
+simulation owner. Issue #106 / PR #107 added the missing committed spatial history
+boundary, and Issue #108 / PR #109 built the dashboard above that boundary while
+reusing existing population, genetics, event, pedigree, experiment, and export
+contracts.
 
 ## Current development front
 
-The current architectural front is **explicit biological ploidy, pairing, and
-segregation semantics**.
+The immediate project front is the **v0.1 portfolio release**, not additional
+biological breadth. The core simulation architecture should remain stable while
+the project emphasizes a polished end-to-end demonstration, concise documentation,
+reproducible examples, release/deployment ergonomics, and verification of the
+interactive experience.
 
-`Genome` already stores arbitrary chromosome-copy collections, so the next genetics
-milestone should model what those copies biologically mean: expected copy counts,
-homolog pairing, transmitted gamete copy counts, and segregation rules. Existing
-Mendelian sexual inheritance should remain a concrete simple policy rather than
-becoming the universal model.
+The dashboard now exposes the existing reference ecology through curated
+configuration, committed spatial playback, evolutionary/genetic analytics,
+life-history/event inspection, multi-seed experiments, and exports. Follow-up
+portfolio work should improve release presentation or discoverability without
+moving presentation concerns into lower modeled domains.
 
-Richer mating systems are also now architecturally unblocked by arity-neutral
-reproductive groups and independent participant/investor/contributor/production-
-source semantics. They may advance as a parallel biological front when a concrete
-use case justifies them; they do not require a kernel or general-evolution change.
+After v0.1, richer pairing/recombination, richer mating systems, genetic
+expression, development/G×E, and evolutionary ecology remain valid modeled-domain
+fronts. They should resume only against concrete use cases and the already-settled
+contracts rather than through broad architectural redesign.
 
-See `docs/development/roadmap.md` for the milestone-level direction.
+See `docs/development/roadmap.md` for milestone-level direction.
 
 ## Known architectural friction
 
-### Ploidy is representable but not yet an explicit biological policy
+### Built-in chromosome transmission remains intentionally conservative
 
-The `Genome` container can represent arbitrary chromosome-copy counts, and
-expression already supports multiple allele copies. Current meiotic gamete
-formation, however, is still a simple Mendelian policy that groups homologous
-chromosomes and transmits one copy per group. The architecture does not yet expose
-explicit chromosome-copy expectations, pairing behavior, transmitted gamete copy
-counts, or richer segregation rules.
+The chromosome-copy structure and transmission responsibility boundaries are now
+explicit, but the production pairing and crossover policies still model only the
+simple behavior required by current simulations. `SameNameBivalentPairing`
+rejects same-name groups larger than two, and current crossover support is limited
+to singleton/two-copy associations with the existing single-crossover model.
 
-The next hardening work should add those responsibilities above the frozen kernel
-and without replacing the existing `Genome` data model. Recombination should be
-deepened only after the pairing/segregation semantics it depends on are explicit.
+This is now a **capability limitation of concrete policies**, not a structural
+ambiguity in `Genome` or `GeneticArchitecture`. Future higher-copy or
+chromosome-specific biology should add explicit policies against the settled
+interfaces and should not weaken structural validation or infer pairing from copy
+count implicitly.
 
 ## Current collaboration model
 
@@ -252,6 +319,14 @@ total cycle time to a correct merged change.
 
 Newest first; this is a milestone summary, not a changelog.
 
+- **#106 / #107 and #108 / #109 — portfolio observation/interface stack:** added
+  opt-in committed spatial snapshots, then a Streamlit/Plotly reference-ecology
+  dashboard that consumes committed observations and existing experiment/export
+  contracts without owning live simulation internals.
+- **#102 / #103 — chromosome-transmission foundation:** made chromosome-specific
+  copy expectations, temporary pairing associations, recombination eligibility,
+  and segregation explicit while preserving `Genome`, current Mendelian behavior,
+  the general-evolution layer, and the frozen kernel.
 - **#98 — investor/production-source separation:** separated proposal-time
   reproductive investors and materialization-time offspring-production sources from
   resolver-facing participants and genetic contributors while preserving current

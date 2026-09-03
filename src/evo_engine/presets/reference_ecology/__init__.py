@@ -2,7 +2,6 @@
 
 from evo_engine.presets.reference_ecology.builders import (
     ReferenceEcology,
-    build_reference_ecology,
     build_reference_engine,
     build_reference_simulation,
 )
@@ -16,6 +15,7 @@ from evo_engine.presets.reference_ecology.genetics import (
     build_reference_genetic_architecture,
     build_reference_world,
 )
+from evo_engine.presets.reference_ecology.observable import build_reference_ecology
 from evo_engine.presets.reference_ecology.reproductive_investment import (
     ReferenceMatingTypeInvestmentScales,
     build_reference_reproductive_investment,

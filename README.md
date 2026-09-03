@@ -362,6 +362,47 @@ calibrated model. Simulation-wide assumptions are explicit in
 `ReferenceEcologyConfig`; founder organism traits are explicit in
 `ReferenceTraitValues`.
 
+## Portfolio dashboard
+
+The optional Streamlit/Plotly dashboard turns the reference ecology into an
+end-to-end portfolio experience without making UI frameworks part of the core
+runtime. Its dependency direction is intentionally one-way:
+
+```text
+simulation/domain layers
+        ↓
+committed observations and experiment results
+        ↓
+evo_engine.ui presentation transforms
+        ↓
+Streamlit + Plotly
+```
+
+The dashboard exposes a curated validated configuration, runs the existing
+reference ecology, animates immutable committed spatial snapshots, and presents
+population/ecological summaries, heritable-trait trajectories, raw allele and
+genotype frequencies, committed event activity, mortality and reproductive
+outcomes, multi-seed replicate comparisons, and the existing JSON/CSV experiment
+exports.
+
+Install the project and UI dependencies into the project virtual environment:
+
+```bash
+python -m pip install -e ".[dev]"
+python -m pip install -r requirements-ui.txt
+```
+
+Launch the dashboard:
+
+```bash
+venv/bin/python -m streamlit run src/evo_engine/ui/app.py
+```
+
+`requirements-ui.txt` is deliberately optional: ordinary engine users and core
+runtime environments do not need Streamlit or Plotly. The quality workflow also
+installs these dependencies so the UI package and headless Streamlit interactions
+are linted, type-checked, and tested in CI.
+
 Install the project and development tools into the project virtual
 environment:
 
