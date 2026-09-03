@@ -189,7 +189,9 @@ def test_dashboard_flagship_experiment_reuses_flagship_runner() -> None:
     replicate = result.replicates[0]
     assert result.seeds == (41,)
     assert replicate.metadata.completed_steps == 40
-    assert replicate.genetic_history[0].locus(MAX_INTAKE_RATE).allele_frequency(8) == 0.5
+    assert (
+        replicate.genetic_history[0].locus(MAX_INTAKE_RATE).allele_frequency(8) == 0.5
+    )
 
 
 def test_parse_seed_list_is_bounded_unique_and_understandable() -> None:
