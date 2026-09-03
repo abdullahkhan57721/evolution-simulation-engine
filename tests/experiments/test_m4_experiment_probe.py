@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
-
 import attrs
 
-from evo_engine.experiments import run_reference_replicates
-from evo_engine.presets import ReferenceEcologyConfig
+from evo_engine.genetics import (
+    ASSIMILATION_EFFICIENCY,
+    METABOLIC_COST_COEFFICIENT,
+    SENSORY_RANGE,
+    Chromosome,
+    Genome,
+)
+from evo_engine.presets import ReferenceEcologyConfig, build_reference_ecology
+from evo_engine.presets.reference_ecology.config import REFERENCE_CHROMOSOME
+from evo_engine.presets.reference_ecology.mating_types import (
+    reference_founder_mating_type,
+)
+from evo_engine.world import Organism, WorldState
 
 SEEDS = (7, 19, 42, 73, 101, 211)
 
@@ -27,94 +36,137 @@ def _base_config() -> ReferenceEcologyConfig:
         initial_population=30,
         initial_energy=60,
         max_steps=40,
-        mutation_probability_ppm=50_000,
+        mutation_probability_ppm=0,
         mutation_max_change=1,
+        resource_generation_amount=8,
+        resource_deposits_per_step=8,
     )
 
 
-def _candidate_configs() -> dict[str, ReferenceEcologyConfig]:
-    base = _base_config()
-    return {
-        "balanced": attrs.evolve(
-            base,
-            resource_generation_amount=10,
-            resource_deposits_per_step=10,
-        ),
-        "scarce": attrs.evolve(
-            base,
-            resource_generation_amount=4,
-            resource_deposits_per_step=4,
-        ),
-        "patchy": attrs.evolve(
-            base,
-            resource_generation_amount=16,
-            resource_deposits_per_step=2,
-        ),
-        "abundant": attrs.evolve(
-            base,
-            resource_generation_amount=12,
-            resource_deposits_per_step=14,
-        ),
-        "predation": attrs.evolve(
-            base,
-            resource_generation_amount=10,
-            resource_deposits_per_step=10,
-            predation_radius=1,
-        ),
-    }
+def _homozygous_variant(founder: Genome, architecture, trait_name: str, value: int) -> Genome:
+    variant_allele = architecture.locus(trait_name).create_allele(value)
+    chromosomes = []
+    for chromosome in founder.chromosomes:
+        alleles = tuple(
+            variant_allele if allele.locus_name == trait_name else allele
+            for allele in chromosome.alleles
+        )
+        chromosomes.append(Chromosome(name=chromosome.name, alleles=alleles))
+    return Genome(chromosomes=tuple(chromosomes))
 
 
-def _mean_trait(observation, name: str) -> float | None:
-    return observation.trait(name).summary.mean
+def _replace_founders(ecology, trait_name: str, low: int, high: int) -> None:
+    architecture = ecology.simulation.context.require("genetic_architecture")
+    old_world = ecology.simulation.state.domain_state
+    founder = old_world.organisms[0].genome
+    low_genome = _homozygous_variant(founder, architecture, trait_name, low)
+    high_genome = _homozygous_variant(founder, architecture, trait_name, high)
+    world = WorldState(width=ecology.config.width, height=ecology.config.height)
+    for index in range(ecology.config.initial_population):
+        genome = low_genome if index % 2 == 0 else high_genome
+        world.add_organism(
+            Organism.from_genome(
+                genetic_architecture=architecture,
+                genome=genome,
+                age=0,
+                energy=ecology.config.initial_energy,
+                mating_type=reference_founder_mating_type(index),
+                x=index % ecology.config.width,
+                y=index // ecology.config.width,
+            )
+        )
+    ecology.simulation.state.domain_state = world
+
+
+def _run_candidate(
+    config: ReferenceEcologyConfig,
+    *,
+    trait_name: str,
+    low: int,
+    high: int,
+) -> tuple[int, float, float, int]:
+    ecology = build_reference_ecology(config)
+    _replace_founders(ecology, trait_name, low, high)
+    ecology.engine.run(ecology.simulation)
+    start = ecology.recorder.observations[0].trait(trait_name).summary.mean
+    end = ecology.recorder.observations[-1].trait(trait_name).summary.mean
+    assert start is not None and end is not None
+    final_genetics = ecology.genetic_recorder.observations[-1].locus(trait_name)
+    return (
+        len(ecology.simulation.state.domain_state.organisms),
+        end - start,
+        final_genetics.allele_frequency(high),
+        sum(
+            event.process_name == "Reproduction"
+            for event in ecology.event_recorder.events
+        ),
+    )
 
 
 def test_m4_probe() -> None:
-    lines: list[str] = ["M4_PROBE_V3_TRAIT_SHIFTS"]
-    for name, config in _candidate_configs().items():
-        result = run_reference_replicates(config, seeds=SEEDS)
-        trait_deltas: dict[str, list[float]] = defaultdict(list)
-        populations: list[int] = []
-        births: list[int] = []
-        trajectories: list[str] = []
-
-        for replicate in result.replicates:
-            start = replicate.population_history[0]
-            end = replicate.population_history[-1]
-            populations.append(replicate.final_population_size)
-            births.append(replicate.total_births)
-            trajectories.append(
-                "/".join(
-                    str(observation.population_size)
-                    for observation in replicate.population_history
-                    if observation.step_index in (0, 10, 20, 30, 40)
-                )
+    base = _base_config()
+    candidates = {
+        "sensory_patchy": (
+            attrs.evolve(
+                base,
+                resource_generation_amount=16,
+                resource_deposits_per_step=4,
+            ),
+            SENSORY_RANGE,
+            2,
+            8,
+        ),
+        "assimilation_limited": (
+            attrs.evolve(
+                base,
+                resource_generation_amount=8,
+                resource_deposits_per_step=8,
+            ),
+            ASSIMILATION_EFFICIENCY,
+            50,
+            100,
+        ),
+        "metabolic_limited": (
+            attrs.evolve(
+                base,
+                resource_generation_amount=8,
+                resource_deposits_per_step=8,
+            ),
+            METABOLIC_COST_COEFFICIENT,
+            15,
+            45,
+        ),
+    }
+    lines = ["M4_PROBE_V4_FOUNDER_VARIATION"]
+    for name, (config, trait_name, low, high) in candidates.items():
+        results = [
+            _run_candidate(
+                attrs.evolve(config, seed=seed),
+                trait_name=trait_name,
+                low=low,
+                high=high,
             )
-            for start_trait in start.traits:
-                trait_name = start_trait.trait_name
-                start_mean = _mean_trait(start, trait_name)
-                end_mean = _mean_trait(end, trait_name)
-                if start_mean is not None and end_mean is not None:
-                    trait_deltas[trait_name].append(end_mean - start_mean)
-
+            for seed in SEEDS
+        ]
+        populations = [item[0] for item in results]
+        deltas = [item[1] for item in results]
+        high_frequencies = [item[2] for item in results]
+        births = [item[3] for item in results]
         lines.append(
-            f"ENV {name} final_pop_mean={sum(populations)/len(populations):.2f} "
-            f"range={min(populations)}-{max(populations)} "
+            f"{name} trait={trait_name} {low}/{high} "
+            f"pop_mean={sum(populations)/len(populations):.2f} "
             f"births_mean={sum(births)/len(births):.2f}"
         )
-        lines.append("  trajectories=" + ",".join(trajectories))
-        ranked = sorted(
-            trait_deltas.items(),
-            key=lambda item: abs(sum(item[1]) / len(item[1])),
-            reverse=True,
-        )[:12]
-        for trait_name, values in ranked:
-            mean_delta = sum(values) / len(values)
-            positive = sum(value > 0 for value in values)
-            negative = sum(value < 0 for value in values)
-            lines.append(
-                f"  {trait_name}: delta={mean_delta:+.3f} "
-                f"sign=+{positive}/-{negative} values="
-                + ",".join(f"{value:+.2f}" for value in values)
-            )
+        lines.append(
+            "  mean_delta="
+            + ",".join(f"{value:+.3f}" for value in deltas)
+            + f" avg={sum(deltas)/len(deltas):+.3f}"
+        )
+        lines.append(
+            "  high_allele_freq="
+            + ",".join(f"{value:.3f}" for value in high_frequencies)
+            + f" avg={sum(high_frequencies)/len(high_frequencies):.3f}"
+        )
+        lines.append("  final_pop=" + ",".join(str(value) for value in populations))
 
     raise AssertionError("\n".join(lines))
