@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import attrs
+
 from evo_engine.genetics import (
     Chromosome,
     ChromosomeStructure,
@@ -21,6 +23,7 @@ from evo_engine.presets.reference_ecology.config import (
     resolve_reference_config,
 )
 from evo_engine.presets.reference_ecology.mating_types import (
+    REFERENCE_MATING_TYPES,
     reference_founder_mating_type,
 )
 from evo_engine.world import Organism, WorldState
@@ -117,6 +120,98 @@ def build_reference_founder_genome(
             ),
         )
     )
+
+
+def build_balanced_reference_trait_world(
+    genetic_architecture: GeneticArchitecture,
+    *,
+    trait_name: str,
+    variant_values: tuple[int, int],
+    config: ReferenceEcologyConfig | None = None,
+) -> WorldState:
+    """Build reference founders balanced across two values of one existing trait.
+
+    Both variants are homozygous and all nonfocal traits retain the supplied
+    reference configuration. Founder placement remains deterministic row-major.
+    Variant assignment is crossed with the reference mating-type cycle so each
+    mating type receives equal representation of both variants whenever the
+    founder population is an exact multiple of the balance block.
+
+    Args:
+        genetic_architecture: Reference architecture shared by all founders.
+        trait_name: Existing reference trait to vary between founders.
+        variant_values: Two distinct homozygous allele values for the focal trait.
+        config: Optional reference configuration. Defaults to standard values.
+
+    Returns:
+        Initialized world with balanced standing variation at the focal trait.
+
+    Raises:
+        TypeError: If trait_name or variant_values has an invalid container type.
+        ValueError: If the trait is unknown, values are not distinct, or the
+            founder population cannot be balanced across mating types.
+    """
+    if not isinstance(genetic_architecture, GeneticArchitecture):
+        raise TypeError("genetic_architecture must be a GeneticArchitecture.")
+    if type(trait_name) is not str:
+        raise TypeError("trait_name must be a string.")
+    if type(variant_values) is not tuple:
+        raise TypeError("variant_values must be a tuple.")
+    if len(variant_values) != 2:
+        raise ValueError("variant_values must contain exactly two values.")
+    if variant_values[0] == variant_values[1]:
+        raise ValueError("variant_values must contain two distinct values.")
+
+    config = resolve_reference_config(config)
+    if trait_name not in config.traits.as_mapping():
+        raise ValueError(f"unknown reference trait {trait_name!r}.")
+
+    mating_type_count = len(REFERENCE_MATING_TYPES)
+    balance_block = 2 * mating_type_count
+    if config.initial_population % balance_block != 0:
+        raise ValueError(
+            "founder population must be divisible by twice the number of reference "
+            "mating types so both trait variants remain balanced within each type."
+        )
+
+    founder_genomes: list[Genome] = []
+    for variant_value in variant_values:
+        variant_traits = attrs.evolve(
+            config.traits,
+            **{trait_name: variant_value},
+        )
+        variant_config = attrs.evolve(
+            config,
+            traits=variant_traits,
+        )
+        founder_genomes.append(
+            build_reference_founder_genome(
+                genetic_architecture,
+                variant_config,
+            )
+        )
+
+    world = WorldState(
+        width=config.width,
+        height=config.height,
+    )
+    for index in range(config.initial_population):
+        mating_type_index = index % mating_type_count
+        balance_cycle = (index // mating_type_count) % 2
+        genome_index = (mating_type_index + balance_cycle) % 2
+        world.add_organism(
+            Organism.from_genome(
+                genetic_architecture=genetic_architecture,
+                genome=founder_genomes[genome_index],
+                age=0,
+                energy=config.initial_energy,
+                mating_type=reference_founder_mating_type(index),
+                x=index % config.width,
+                y=index // config.width,
+            )
+        )
+
+    return world
 
 
 def build_reference_world(

@@ -61,6 +61,21 @@ def test_reference_founder_physiology_has_modest_maintenance_cost() -> None:
     assert _founder_cost(config) == _founder_cost(basal_only_config) + 1
 
 
+def test_higher_max_speed_has_higher_reference_maintenance_cost() -> None:
+    """Test the B2 speed-performance benefit is paired with an explicit cost."""
+    config = ReferenceEcologyConfig()
+    low_speed_config = attrs.evolve(
+        config,
+        traits=attrs.evolve(config.traits, max_speed=1),
+    )
+    high_speed_config = attrs.evolve(
+        config,
+        traits=attrs.evolve(config.traits, max_speed=4),
+    )
+
+    assert _founder_cost(high_speed_config) == _founder_cost(low_speed_config) + 1
+
+
 def test_high_reference_performance_has_higher_maintenance_cost() -> None:
     """Test near-maximal realized capabilities cannot improve for free."""
     config = ReferenceEcologyConfig()
