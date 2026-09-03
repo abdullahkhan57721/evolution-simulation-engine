@@ -191,8 +191,7 @@ def _patch_cells(
         (x, y)
         for y in range(min_y, max_y + 1)
         for x in range(min_x, max_x + 1)
-        if (x - patch.center_x) ** 2 + (y - patch.center_y) ** 2
-        <= radius_squared
+        if (x - patch.center_x) ** 2 + (y - patch.center_y) ** 2 <= radius_squared
     )
 
 
