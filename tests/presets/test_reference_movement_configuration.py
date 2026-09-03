@@ -12,9 +12,10 @@ from evo_engine.presets import (
     ReferenceUniformMovement,
     ReferenceVonNeumannMovement,
     build_reference_ecology,
-    build_reference_engine,
 )
-from evo_engine.processes import Movement
+from evo_engine.presets.reference_ecology.builders import (
+    _build_exploration_movement_pattern,
+)
 from evo_engine.spatial.movement_patterns import (
     GaussianRandom,
     MooreRandom,
@@ -23,21 +24,15 @@ from evo_engine.spatial.movement_patterns import (
 )
 
 
-def _movement_process(config: ReferenceEcologyConfig) -> Movement:
-    engine = build_reference_engine(config)
-    for stage in engine.step_coordinator.stages:
-        for process in stage.processes:
-            if isinstance(process, Movement):
-                return process
-    raise AssertionError("Reference lifecycle did not contain Movement.")
-
-
 def test_reference_movement_defaults_to_moore_random() -> None:
     """Test the new config boundary preserves the existing reference default."""
     config = ReferenceEcologyConfig()
 
     assert isinstance(config.exploration_movement, ReferenceMooreMovement)
-    assert isinstance(_movement_process(config).movement_pattern, MooreRandom)
+    assert isinstance(
+        _build_exploration_movement_pattern(config.exploration_movement),
+        MooreRandom,
+    )
 
 
 @pytest.mark.parametrize(
@@ -54,17 +49,12 @@ def test_reference_movement_variants_build_existing_spatial_strategies(
     expected_pattern_type: type[object],
 ) -> None:
     """Test preset data variants map only to existing spatial strategies."""
-    process = _movement_process(
-        ReferenceEcologyConfig(exploration_movement=movement_config)
-    )
+    pattern = _build_exploration_movement_pattern(movement_config)
 
-    assert isinstance(process.movement_pattern, expected_pattern_type)
+    assert isinstance(pattern, expected_pattern_type)
     if isinstance(movement_config, ReferenceGaussianMovement):
-        assert isinstance(process.movement_pattern, GaussianRandom)
-        assert (
-            process.movement_pattern.standard_deviation
-            == movement_config.standard_deviation
-        )
+        assert isinstance(pattern, GaussianRandom)
+        assert pattern.standard_deviation == movement_config.standard_deviation
 
 
 def test_reference_gaussian_movement_rejects_negative_standard_deviation() -> None:
