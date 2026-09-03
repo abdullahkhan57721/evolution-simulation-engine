@@ -96,8 +96,7 @@ def test_multiple_patches_are_reproducible_and_never_place_between_patches() -> 
         placement.choose_position(width=5, height=5, rng=first_rng) for _ in range(12)
     )
     second = tuple(
-        placement.choose_position(width=5, height=5, rng=second_rng)
-        for _ in range(12)
+        placement.choose_position(width=5, height=5, rng=second_rng) for _ in range(12)
     )
 
     assert first == second
