@@ -2,8 +2,7 @@ name: M4 Experimental Search
 
 on:
   push:
-    branches:
-      - m4-experimental-search
+    branches: [m4-experimental-search]
 
 jobs:
   search:
@@ -14,20 +13,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install package
-        run: python -m pip install -e .
-      - name: Run bounded candidate sweep
+      - run: python -m pip install -e .
+      - name: Run isolated resource-selection sweep
         shell: bash
         run: |
           python - <<'PY'
-          from __future__ import annotations
-
           from collections import Counter
-          import json
-          import statistics
-
+          import json, statistics
           import attrs
-
           from evo_engine.behavior import EnergyConservationBehavior
           from evo_engine.engine import Simulation
           from evo_engine.energetics import DevelopmentalEnergyThreshold
@@ -39,138 +32,72 @@ jobs:
           from evo_engine.presets.reference_ecology.mating_types import reference_founder_mating_type
           from evo_engine.world import Organism, WorldState
 
-          SEEDS = (11, 23, 37, 41, 59, 73)
-          CANDIDATES = (
-              ("sensory_range", 2, 10),
-              ("max_speed", 1, 4),
-              ("assimilation_efficiency", 50, 100),
-              ("max_intake_rate", 2, 8),
-              ("metabolic_cost_coefficient", 15, 60),
-          )
-          RESOURCE_DEPOSITS = (8, 16, 32)
+          SEEDS=(11,23,37,41,59,73,89,101)
+          CANDIDATES=(("sensory_range",2,10),("max_speed",1,4),("assimilation_efficiency",50,100),("max_intake_rate",2,8),("metabolic_cost_coefficient",15,60))
+          DEPOSITS=(4,8,16)
+          CHECKPOINTS=(10,20,30,40)
 
-          def make_world(config: ReferenceEcologyConfig, trait_name: str, low: int, high: int):
-              architecture = build_reference_genetic_architecture(config)
-              low_config = attrs.evolve(config, traits=attrs.evolve(config.traits, **{trait_name: low}))
-              high_config = attrs.evolve(config, traits=attrs.evolve(config.traits, **{trait_name: high}))
-              genomes = (
-                  build_reference_founder_genome(architecture, low_config),
-                  build_reference_founder_genome(architecture, high_config),
-              )
-              world = WorldState(width=config.width, height=config.height)
+          def build_world(config, trait_name, low, high):
+              architecture=build_reference_genetic_architecture(config)
+              genomes=[]
+              for value in (low,high):
+                  variant=attrs.evolve(config,traits=attrs.evolve(config.traits,**{trait_name:value}))
+                  genomes.append(build_reference_founder_genome(architecture,variant))
+              world=WorldState(width=config.width,height=config.height)
               for index in range(config.initial_population):
-                  # Pattern balances trait variants within each alternating mating type.
-                  variant = 0 if index % 4 in (0, 3) else 1
-                  world.add_organism(
-                      Organism.from_genome(
-                          genetic_architecture=architecture,
-                          genome=genomes[variant],
-                          age=0,
-                          energy=config.initial_energy,
-                          mating_type=reference_founder_mating_type(index),
-                          x=index % config.width,
-                          y=index // config.width,
-                      )
-                  )
-              return architecture, world
+                  variant=0 if index%4 in (0,3) else 1
+                  world.add_organism(Organism.from_genome(
+                      genetic_architecture=architecture,genome=genomes[variant],age=0,
+                      energy=config.initial_energy,mating_type=reference_founder_mating_type(index),
+                      x=index%config.width,y=index//config.width))
+              return architecture,world
 
-          def run_one(candidate: str, low: int, high: int, deposits: int, seed: int):
-              traits = attrs.evolve(
-                  ReferenceEcologyConfig().traits,
-                  maturity_age=3,
-                  energy_conservation_threshold=15,
-                  reproduction_energy_threshold=20,
-                  maximum_age=30,
-              )
-              config = ReferenceEcologyConfig(
-                  initial_population=40,
-                  initial_energy=30,
-                  max_steps=60,
-                  seed=seed,
-                  traits=traits,
-                  mutation_probability_ppm=0,
-                  resource_generation_amount=6,
-                  resource_deposits_per_step=deposits,
-              )
-              architecture, world = make_world(config, candidate, low, high)
-              simulation = Simulation(
-                  initial_domain_state=world,
-                  genetic_architecture=architecture,
-                  seed=config.seed,
+          def run_one(name,low,high,deposits,seed):
+              base=ReferenceEcologyConfig()
+              # attack <= defense disables the existing attack/defense predation gate;
+              # all other life-history defaults remain reference values.
+              traits=attrs.evolve(base.traits,attack_strength=0,defense=1)
+              config=ReferenceEcologyConfig(
+                  initial_population=20,initial_energy=30,max_steps=40,seed=seed,
+                  traits=traits,mutation_probability_ppm=0,
+                  resource_generation_amount=6,resource_deposits_per_step=deposits)
+              architecture,world=build_world(config,name,low,high)
+              simulation=Simulation(
+                  initial_domain_state=world,genetic_architecture=architecture,seed=seed,
                   behavior_selection_model=EnergyConservationBehavior(
-                      energy_threshold=DevelopmentalEnergyThreshold(
-                          trait_name=ENERGY_CONSERVATION_THRESHOLD,
-                      )
-                  ),
-              )
-              population = PopulationRecorder(trait_names=(candidate,))
-              genetic = GeneticCompositionRecorder(locus_names=(candidate,))
-              events = EventRecorder()
-              pedigree = PedigreeRecorder()
-              engine = build_reference_engine(
-                  config,
-                  observers=(population, pedigree, genetic),
-                  telemetry_observers=(events, pedigree),
-              )
+                      energy_threshold=DevelopmentalEnergyThreshold(trait_name=ENERGY_CONSERVATION_THRESHOLD)))
+              pop=PopulationRecorder(trait_names=(name,)); gen=GeneticCompositionRecorder(locus_names=(name,)); events=EventRecorder(); pedigree=PedigreeRecorder()
+              engine=build_reference_engine(config,observers=(pop,pedigree,gen),telemetry_observers=(events,pedigree))
               engine.run(simulation)
+              counts=Counter(e.process_name for e in events.events)
+              points=[]
+              for step in CHECKPOINTS:
+                  p=pop.observations[min(step,len(pop.observations)-1)]
+                  g=gen.observations[min(step,len(gen.observations)-1)].locus(name)
+                  points.append({"step":step,"population":p.population_size,
+                      "trait_mean":p.trait(name).summary.mean,
+                      "high_frequency":g.allele_frequency(high) if p.population_size else None})
+              row={"candidate":name,"low":low,"high":high,"deposits":deposits,"seed":seed,
+                   "checkpoints":points,"events":dict(sorted(counts.items()))}
+              print("M4_RESULT "+json.dumps(row,sort_keys=True)); return row
 
-              start_pop = population.observations[0]
-              mid_pop = population.observations[min(30, len(population.observations) - 1)]
-              final_pop = population.observations[-1]
-              start_gen = genetic.observations[0].locus(candidate)
-              mid_gen = genetic.observations[min(30, len(genetic.observations) - 1)].locus(candidate)
-              final_gen = genetic.observations[-1].locus(candidate)
-              event_counts = Counter(event.process_name for event in events.events)
-              result = {
-                  "candidate": candidate,
-                  "low": low,
-                  "high": high,
-                  "deposits": deposits,
-                  "seed": seed,
-                  "steps": simulation.state.step_index,
-                  "start_population": start_pop.population_size,
-                  "mid_population": mid_pop.population_size,
-                  "final_population": final_pop.population_size,
-                  "start_trait_mean": start_pop.trait(candidate).summary.mean,
-                  "mid_trait_mean": mid_pop.trait(candidate).summary.mean,
-                  "final_trait_mean": final_pop.trait(candidate).summary.mean,
-                  "start_high_allele_frequency": start_gen.allele_frequency(high),
-                  "mid_high_allele_frequency": mid_gen.allele_frequency(high),
-                  "final_high_allele_frequency": final_gen.allele_frequency(high),
-                  "delta_high_mid": mid_gen.allele_frequency(high) - start_gen.allele_frequency(high),
-                  "delta_high_final": final_gen.allele_frequency(high) - start_gen.allele_frequency(high),
-                  "final_energy_mean": final_pop.energy.mean,
-                  "final_resources": final_pop.total_resources,
-                  "event_counts": dict(sorted(event_counts.items())),
-              }
-              print("M4_RESULT " + json.dumps(result, sort_keys=True))
-              return result
-
-          all_results = []
-          for candidate, low, high in CANDIDATES:
-              for deposits in RESOURCE_DEPOSITS:
-                  bucket = [run_one(candidate, low, high, deposits, seed) for seed in SEEDS]
-                  all_results.extend(bucket)
-                  mid_deltas = [row["delta_high_mid"] for row in bucket]
-                  final_deltas = [row["delta_high_final"] for row in bucket]
-                  summary = {
-                      "candidate": candidate,
-                      "low": low,
-                      "high": high,
-                      "deposits": deposits,
-                      "n": len(bucket),
-                      "mean_delta_high_mid": statistics.fmean(mid_deltas),
-                      "mean_delta_high_final": statistics.fmean(final_deltas),
-                      "median_delta_high_final": statistics.median(final_deltas),
-                      "positive_final": sum(delta > 0 for delta in final_deltas),
-                      "negative_final": sum(delta < 0 for delta in final_deltas),
-                      "zero_final": sum(delta == 0 for delta in final_deltas),
-                      "extinctions": sum(row["final_population"] == 0 for row in bucket),
-                      "mean_mid_population": statistics.fmean(row["mid_population"] for row in bucket),
-                      "mean_final_population": statistics.fmean(row["final_population"] for row in bucket),
-                      "mean_reproduction_events": statistics.fmean(row["event_counts"].get("Reproduction", 0) for row in bucket),
-                      "mean_starvation_events": statistics.fmean(row["event_counts"].get("Starvation", 0) for row in bucket),
-                  }
-                  print("M4_SUMMARY " + json.dumps(summary, sort_keys=True))
-          print(f"M4_COMPLETE runs={len(all_results)}")
+          for name,low,high in CANDIDATES:
+              for deposits in DEPOSITS:
+                  rows=[run_one(name,low,high,deposits,s) for s in SEEDS]
+                  for step in CHECKPOINTS:
+                      pts=[r["checkpoints"][CHECKPOINTS.index(step)] for r in rows]
+                      alive=[p for p in pts if p["population"]>0]
+                      freqs=[p["high_frequency"] for p in alive]
+                      print("M4_SUMMARY "+json.dumps({
+                          "candidate":name,"low":low,"high":high,"deposits":deposits,"step":step,
+                          "alive_runs":len(alive),"extinctions":len(rows)-len(alive),
+                          "mean_population":statistics.fmean(p["population"] for p in pts),
+                          "mean_high_frequency":statistics.fmean(freqs) if freqs else None,
+                          "positive_shift_runs":sum(f>0.5 for f in freqs),
+                          "negative_shift_runs":sum(f<0.5 for f in freqs),
+                          "unchanged_runs":sum(f==0.5 for f in freqs),
+                          "mean_reproduction_events":statistics.fmean(r["events"].get("Reproduction",0) for r in rows),
+                          "mean_predation_events":statistics.fmean(r["events"].get("Predation",0) for r in rows),
+                          "mean_starvation_events":statistics.fmean(r["events"].get("Starvation",0) for r in rows),
+                      },sort_keys=True))
           PY
