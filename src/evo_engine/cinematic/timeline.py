@@ -90,7 +90,9 @@ class PortfolioAnimationTimeline:
                     f"received {frame!r}."
                 )
             if previous_step is not None and frame.step_index <= previous_step:
-                raise ValueError("animation frames must have strictly increasing steps.")
+                raise ValueError(
+                    "animation frames must have strictly increasing steps."
+                )
             previous_step = frame.step_index
 
             frame_bounds = (frame.spatial.world_width, frame.spatial.world_height)
@@ -136,85 +138,132 @@ def build_portfolio_animation_timeline(
         TypeError: If history entries are not the expected committed value types.
         ValueError: If histories do not align, chronology is invalid, world bounds
             change, or population counts disagree with spatial snapshots.
-        KeyError: If a nonempty history lacks ``trait_name`` in a population
-            observation.
+        KeyError: If a history lacks ``trait_name`` in a population observation.
     """
-    validated_trait_name = validators.validate_str(trait_name, name="trait_name")
-    if not validated_trait_name.strip():
-        raise ValueError("trait_name must not be empty or whitespace-only.")
-
+    validated_trait_name = _validate_trait_name(trait_name)
     spatial_frames = tuple(spatial_history)
     population_frames = tuple(population_history)
-    if len(spatial_frames) != len(population_frames):
+    _validate_history_lengths(spatial_frames, population_frames)
+
+    frames = _build_animation_frames(
+        spatial_frames,
+        population_frames,
+        trait_name=validated_trait_name,
+    )
+    return PortfolioAnimationTimeline(
+        trait_name=validated_trait_name,
+        frames=frames,
+    )
+
+
+def _validate_trait_name(trait_name: str) -> str:
+    validated = validators.validate_str(trait_name, name="trait_name")
+    if not validated.strip():
+        raise ValueError("trait_name must not be empty or whitespace-only.")
+    return validated
+
+
+def _validate_history_lengths(
+    spatial_history: tuple[SpatialObservation, ...],
+    population_history: tuple[PopulationObservation, ...],
+) -> None:
+    if len(spatial_history) != len(population_history):
         raise ValueError(
             "spatial_history and population_history must contain the same number "
             "of committed steps."
         )
 
+
+def _build_animation_frames(
+    spatial_history: tuple[SpatialObservation, ...],
+    population_history: tuple[PopulationObservation, ...],
+    *,
+    trait_name: str,
+) -> tuple[PortfolioAnimationFrame, ...]:
     frames: list[PortfolioAnimationFrame] = []
     previous_ids: frozenset[int] | None = None
-    previous_step: int | None = None
-    world_bounds: tuple[int, int] | None = None
-
     for index, (spatial, population) in enumerate(
-        zip(spatial_frames, population_frames, strict=True)
+        zip(spatial_history, population_history, strict=True)
     ):
-        if not isinstance(spatial, SpatialObservation):
-            raise TypeError(
-                f"spatial_history[{index}] must be a SpatialObservation; "
-                f"received {spatial!r}."
-            )
-        if not isinstance(population, PopulationObservation):
-            raise TypeError(
-                f"population_history[{index}] must be a PopulationObservation; "
-                f"received {population!r}."
-            )
-        if spatial.step_index != population.step_index:
-            raise ValueError(
-                f"History step mismatch at index {index}: spatial step "
-                f"{spatial.step_index}, population step {population.step_index}."
-            )
-        if previous_step is not None and spatial.step_index <= previous_step:
-            raise ValueError("committed histories must have strictly increasing steps.")
-        previous_step = spatial.step_index
+        frame, previous_ids = _build_animation_frame(
+            index=index,
+            spatial=spatial,
+            population=population,
+            trait_name=trait_name,
+            previous_ids=previous_ids,
+        )
+        frames.append(frame)
+    return tuple(frames)
 
-        frame_bounds = (spatial.world_width, spatial.world_height)
-        if world_bounds is None:
-            world_bounds = frame_bounds
-        elif frame_bounds != world_bounds:
-            raise ValueError("committed spatial world dimensions must remain stable.")
 
-        organism_ids = tuple(snapshot.organism_id for snapshot in spatial.organisms)
-        if len(organism_ids) != population.population_size:
-            raise ValueError(
-                f"Population count mismatch at step {spatial.step_index}: spatial "
-                f"frame has {len(organism_ids)} organisms while population "
-                f"observation records {population.population_size}."
-            )
+def _build_animation_frame(
+    *,
+    index: int,
+    spatial: SpatialObservation,
+    population: PopulationObservation,
+    trait_name: str,
+    previous_ids: frozenset[int] | None,
+) -> tuple[PortfolioAnimationFrame, frozenset[int]]:
+    _validate_history_pair(index=index, spatial=spatial, population=population)
+    current_ids = frozenset(snapshot.organism_id for snapshot in spatial.organisms)
+    _validate_population_count(spatial=spatial, population=population, ids=current_ids)
+    born_ids, departed_ids = _identity_transitions(previous_ids, current_ids)
+    frame = PortfolioAnimationFrame(
+        spatial=spatial,
+        population=population,
+        born_organism_ids=born_ids,
+        departed_organism_ids=departed_ids,
+        trait_mean=population.trait(trait_name).summary.mean,
+    )
+    return frame, current_ids
 
-        current_ids = frozenset(organism_ids)
-        if previous_ids is None:
-            born_ids: tuple[int, ...] = ()
-            departed_ids: tuple[int, ...] = ()
-        else:
-            born_ids = tuple(sorted(current_ids - previous_ids))
-            departed_ids = tuple(sorted(previous_ids - current_ids))
-        previous_ids = current_ids
 
-        trait_mean = population.trait(validated_trait_name).summary.mean
-        frames.append(
-            PortfolioAnimationFrame(
-                spatial=spatial,
-                population=population,
-                born_organism_ids=born_ids,
-                departed_organism_ids=departed_ids,
-                trait_mean=trait_mean,
-            )
+def _validate_history_pair(
+    *,
+    index: int,
+    spatial: SpatialObservation,
+    population: PopulationObservation,
+) -> None:
+    if not isinstance(spatial, SpatialObservation):
+        raise TypeError(
+            f"spatial_history[{index}] must be a SpatialObservation; "
+            f"received {spatial!r}."
+        )
+    if not isinstance(population, PopulationObservation):
+        raise TypeError(
+            f"population_history[{index}] must be a PopulationObservation; "
+            f"received {population!r}."
+        )
+    if spatial.step_index != population.step_index:
+        raise ValueError(
+            f"History step mismatch at index {index}: spatial step "
+            f"{spatial.step_index}, population step {population.step_index}."
         )
 
-    return PortfolioAnimationTimeline(
-        trait_name=validated_trait_name,
-        frames=tuple(frames),
+
+def _validate_population_count(
+    *,
+    spatial: SpatialObservation,
+    population: PopulationObservation,
+    ids: frozenset[int],
+) -> None:
+    if len(ids) != population.population_size:
+        raise ValueError(
+            f"Population count mismatch at step {spatial.step_index}: spatial "
+            f"frame has {len(ids)} organisms while population observation records "
+            f"{population.population_size}."
+        )
+
+
+def _identity_transitions(
+    previous_ids: frozenset[int] | None,
+    current_ids: frozenset[int],
+) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    if previous_ids is None:
+        return (), ()
+    return (
+        tuple(sorted(current_ids - previous_ids)),
+        tuple(sorted(previous_ids - current_ids)),
     )
 
 
