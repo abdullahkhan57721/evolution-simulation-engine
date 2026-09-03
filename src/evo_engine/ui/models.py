@@ -6,7 +6,11 @@ from collections import Counter
 
 import attrs
 
-from evo_engine.experiments import ReferenceExperimentResult, run_reference_replicates
+from evo_engine.experiments import (
+    ReferenceExperimentResult,
+    run_flagship_max_intake_replicates,
+    run_reference_replicates,
+)
 from evo_engine.observation import (
     GeneticCompositionObservation,
     IndividualLifeHistory,
@@ -15,15 +19,21 @@ from evo_engine.observation import (
     SpatialRecorder,
 )
 from evo_engine.presets import (
+    ReferenceEcology,
     ReferenceEcologyConfig,
     ReferenceExplorationMovement,
     ReferenceGaussianMovement,
     ReferenceMooreMovement,
     ReferenceUniformMovement,
     ReferenceVonNeumannMovement,
+    build_flagship_max_intake_ecology,
+    build_flagship_max_intake_specification,
     build_reference_ecology,
 )
 from evo_engine.telemetry import StepTelemetry
+
+REFERENCE_SCENARIO = "reference_ecology"
+FLAGSHIP_MAX_INTAKE_SCENARIO = "flagship_max_intake"
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -43,6 +53,7 @@ class DashboardRun:
     spatial_history: tuple[SpatialObservation, ...]
     telemetry_steps: tuple[StepTelemetry, ...]
     life_histories: tuple[IndividualLifeHistory, ...]
+    scenario: str = REFERENCE_SCENARIO
 
     @property
     def final_population_size(self) -> int:
@@ -210,16 +221,44 @@ def run_dashboard_reference(config: ReferenceEcologyConfig) -> DashboardRun:
         config,
         additional_observers=(spatial,),
     )
-    ecology.engine.run(ecology.simulation)
+    return _run_dashboard_ecology(
+        ecology,
+        spatial=spatial,
+        scenario=REFERENCE_SCENARIO,
+    )
 
+
+def run_dashboard_flagship_max_intake() -> DashboardRun:
+    """Run the canonical flagship demo and return committed presentation data."""
+    specification = build_flagship_max_intake_specification()
+    spatial = SpatialRecorder(every_n_steps=1)
+    ecology = build_flagship_max_intake_ecology(
+        specification,
+        additional_observers=(spatial,),
+    )
+    return _run_dashboard_ecology(
+        ecology,
+        spatial=spatial,
+        scenario=FLAGSHIP_MAX_INTAKE_SCENARIO,
+    )
+
+
+def _run_dashboard_ecology(
+    ecology: ReferenceEcology,
+    *,
+    spatial: SpatialRecorder,
+    scenario: str,
+) -> DashboardRun:
+    ecology.engine.run(ecology.simulation)
     return DashboardRun(
-        config=config,
+        config=ecology.config,
         completed_steps=ecology.simulation.state.step_index,
         population_history=ecology.recorder.observations,
         genetic_history=ecology.genetic_recorder.observations,
         spatial_history=spatial.observations,
         telemetry_steps=ecology.event_recorder.steps,
         life_histories=ecology.pedigree_recorder.records,
+        scenario=scenario,
     )
 
 
@@ -227,11 +266,16 @@ def run_dashboard_experiment(
     config: ReferenceEcologyConfig,
     *,
     seeds: tuple[int, ...],
+    scenario: str = REFERENCE_SCENARIO,
 ) -> ReferenceExperimentResult:
-    """Run a multi-seed reference experiment through the existing experiment API."""
+    """Run a multi-seed experiment through the existing experiment APIs."""
     if not isinstance(config, ReferenceEcologyConfig):
         raise TypeError("config must be a ReferenceEcologyConfig.")
-    return run_reference_replicates(config, seeds=seeds)
+    if scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
+        return run_flagship_max_intake_replicates(seeds=seeds)
+    if scenario == REFERENCE_SCENARIO:
+        return run_reference_replicates(config, seeds=seeds)
+    raise ValueError(f"Unsupported dashboard scenario: {scenario!r}.")
 
 
 def parse_seed_list(value: str) -> tuple[int, ...]:
