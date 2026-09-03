@@ -36,6 +36,7 @@ from evo_engine.genetics.builtin_traits import (
     TEMPERATURE_TOLERANCE,
 )
 from evo_engine.genetics.chromosome import Chromosome
+from evo_engine.genetics.chromosome_association import ChromosomeAssociation
 from evo_engine.genetics.domains import (
     AlleleDomain,
     ChoiceAlleleDomain,
@@ -58,6 +59,10 @@ from evo_engine.genetics.genetic_architecture import (
 )
 from evo_engine.genetics.genetic_phenotype import GeneticPhenotype
 from evo_engine.genetics.genome import Genome
+from evo_engine.genetics.genome_structure import (
+    ChromosomeStructure,
+    GenomeStructure,
+)
 from evo_engine.genetics.inheritance import (
     ClonalInheritance,
     InheritanceModel,
@@ -71,6 +76,10 @@ from evo_engine.genetics.mutation import (
     UniformChoiceMutation,
     UniformIntegerMutation,
 )
+from evo_engine.genetics.pairing import (
+    ChromosomePairingModel,
+    SameNameBivalentPairing,
+)
 from evo_engine.genetics.recombination import (
     NoRecombination,
     RecombinationModel,
@@ -79,6 +88,10 @@ from evo_engine.genetics.recombination import (
 from evo_engine.genetics.requirements import (
     TraitRequirementProvider,
     collect_required_traits,
+)
+from evo_engine.genetics.segregation import (
+    BivalentSegregation,
+    ChromosomeSegregationModel,
 )
 from evo_engine.genetics.trait import Trait
 
@@ -114,8 +127,13 @@ __all__ = [
     "AdditiveIntegerExpression",
     "Allele",
     "AlleleDomain",
+    "BivalentSegregation",
     "ChoiceAlleleDomain",
     "Chromosome",
+    "ChromosomeAssociation",
+    "ChromosomePairingModel",
+    "ChromosomeSegregationModel",
+    "ChromosomeStructure",
     "ClonalInheritance",
     "CompleteDominanceExpression",
     "ExpressionModel",
@@ -125,6 +143,7 @@ __all__ = [
     "GeneticArchitecture",
     "GeneticPhenotype",
     "Genome",
+    "GenomeStructure",
     "InheritanceModel",
     "IntegerAlleleDomain",
     "Locus",
@@ -136,6 +155,7 @@ __all__ = [
     "PiecewiseLinkageMap",
     "RecombinationInterval",
     "RecombinationModel",
+    "SameNameBivalentPairing",
     "SexualInheritance",
     "SingleCrossoverRecombination",
     "Trait",
