@@ -196,7 +196,6 @@ forbidden_modules = [
     "evo_engine.biology",
     "evo_engine.characteristics",
     "evo_engine.configuration",
-    "evo_engine.departure",
     "evo_engine.development",
     "evo_engine.energetics",
     "evo_engine.engine",
