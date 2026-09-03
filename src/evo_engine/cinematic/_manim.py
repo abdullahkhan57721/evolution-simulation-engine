@@ -7,31 +7,32 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 
 from manim import (
     BLUE_C,
     DOWN,
-    FadeIn,
-    FadeOut,
     GREEN_C,
     GREY_B,
     LEFT,
-    Line,
     PURPLE_C,
     RED_C,
     RIGHT,
-    RoundedRectangle,
-    Scene,
-    Square,
     TEAL_C,
-    Text,
-    Transform,
     UP,
-    VGroup,
     WHITE,
     Axes,
     Dot,
+    FadeIn,
+    FadeOut,
+    Line,
     Rectangle,
+    RoundedRectangle,
+    Scene,
+    Square,
+    Text,
+    Transform,
+    VGroup,
     tempconfig,
 )
 
@@ -256,12 +257,14 @@ def render_timeline_with_manim(
             scene.render()
             rendered_path = _rendered_media_path(scene, output_format)
             if not rendered_path.exists():
-                raise RuntimeError(f"Manim did not produce expected media: {rendered_path}")
+                raise RuntimeError(
+                    f"Manim did not produce expected media: {rendered_path}"
+                )
             shutil.copy2(rendered_path, output_path)
     return output_path
 
 
-def _rendered_media_path(scene: object, output_format: str) -> Path:
+def _rendered_media_path(scene: Any, output_format: str) -> Path:
     writer = scene.renderer.file_writer
     if output_format == "gif":
         return Path(writer.gif_file_path)
@@ -316,7 +319,9 @@ def _grid_lines(layout: _WorldLayout) -> list[object]:
 
 
 def _resource_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> object:
-    return VGroup(*[_resource_marker(resource, layout) for resource in frame.spatial.resources])
+    return VGroup(
+        *[_resource_marker(resource, layout) for resource in frame.spatial.resources]
+    )
 
 
 def _resource_marker(resource: SpatialResourceSnapshot, layout: _WorldLayout) -> object:
@@ -330,17 +335,23 @@ def _resource_marker(resource: SpatialResourceSnapshot, layout: _WorldLayout) ->
 
 
 def _carcass_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> object:
-    return VGroup(*[_carcass_marker(carcass, layout) for carcass in frame.spatial.carcasses])
+    return VGroup(
+        *[_carcass_marker(carcass, layout) for carcass in frame.spatial.carcasses]
+    )
 
 
 def _carcass_marker(carcass: SpatialCarcassSnapshot, layout: _WorldLayout) -> object:
     side = 0.09 + min(carcass.resource_units, 12) * 0.004
-    return Square(
-        side_length=side,
-        color=GREY_B,
-        fill_opacity=0.35,
-        stroke_width=1.0,
-    ).rotate(0.7853981633974483).move_to(layout.point(carcass.x, carcass.y))
+    return (
+        Square(
+            side_length=side,
+            color=GREY_B,
+            fill_opacity=0.35,
+            stroke_width=1.0,
+        )
+        .rotate(0.7853981633974483)
+        .move_to(layout.point(carcass.x, carcass.y))
+    )
 
 
 def _organism_layer(
@@ -428,14 +439,22 @@ def _status_animations(
     trait_name: str,
 ) -> list[object]:
     return [
-        Transform(state.step_text, _replacement_text(state.step_text, _step_text(frame), 25)),
+        Transform(
+            state.step_text,
+            _replacement_text(state.step_text, _step_text(frame), 25),
+        ),
         Transform(
             state.population_text,
             _replacement_text(state.population_text, _population_text(frame), 25),
         ),
         Transform(
             state.trait_text,
-            _replacement_text(state.trait_text, _trait_text(trait_name, frame), 22, _MUTED),
+            _replacement_text(
+                state.trait_text,
+                _trait_text(trait_name, frame),
+                22,
+                _MUTED,
+            ),
         ),
         Transform(
             state.transition_text,
@@ -450,7 +469,7 @@ def _status_animations(
 
 
 def _replacement_text(
-    old: object,
+    old: Any,
     value: str,
     font_size: int,
     color: object = WHITE,
@@ -518,7 +537,11 @@ def _line_chart(
     axes = _chart_axes(steps, values)
     graph = _chart_graph(axes, steps, values, color)
     label = Text(title, font_size=22, color=_TEXT).next_to(axes, UP, buff=0.2)
-    step_label = Text("step", font_size=16, color=_MUTED).next_to(axes, DOWN, buff=0.12)
+    step_label = Text("step", font_size=16, color=_MUTED).next_to(
+        axes,
+        DOWN,
+        buff=0.12,
+    )
     return VGroup(axes, graph, label, step_label)
 
 
@@ -539,7 +562,7 @@ def _chart_axes(steps: list[int], values: list[float]) -> object:
 
 
 def _chart_graph(
-    axes: object,
+    axes: Any,
     steps: list[int],
     values: list[float],
     color: object,
