@@ -169,4 +169,5 @@ def test_m4_probe() -> None:
         )
         lines.append("  final_pop=" + ",".join(str(value) for value in populations))
 
+    # Intentional failure exposes the bounded experimental readout in CI.
     raise AssertionError("\n".join(lines))
