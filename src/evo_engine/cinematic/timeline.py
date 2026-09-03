@@ -7,7 +7,7 @@ from collections.abc import Sequence
 import attrs
 
 from evo_engine.observation import PopulationObservation, SpatialObservation
-from evo_engine.validation import validators
+from evo_engine.validation import attrs_validators, validators
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -73,11 +73,13 @@ class PortfolioAnimationTimeline:
         frames: Chronological presentation frames.
     """
 
-    trait_name: str = attrs.field(validator=attrs_validators.validate_nonempty_str)
+    trait_name: str = attrs.field(validator=attrs_validators.validate_str)
     frames: tuple[PortfolioAnimationFrame, ...] = attrs.field(factory=tuple)
 
     def __attrs_post_init__(self) -> None:
         """Validate frame types, chronology, and stable world dimensions."""
+        if not self.trait_name.strip():
+            raise ValueError("trait_name must not be empty or whitespace-only.")
         validators.validate_tuple(self.frames, name="frames")
         previous_step: int | None = None
         world_bounds: tuple[int, int] | None = None
