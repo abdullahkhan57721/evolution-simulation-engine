@@ -45,9 +45,7 @@ def make_two_locus_architecture() -> tuple[
     return (
         GeneticArchitecture(
             genome_structure=GenomeStructure(
-                chromosomes=(
-                    ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
-                )
+                chromosomes=(ChromosomeStructure(name="1", allowed_copy_counts=(2,)),)
             ),
             loci=(first, second),
             traits=(),
