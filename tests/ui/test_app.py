@@ -65,7 +65,9 @@ def test_dashboard_configuration_changes_do_not_run_automatically() -> None:
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
 
     steps = next(
-        number_input for number_input in app.number_input if number_input.label == "Steps"
+        number_input
+        for number_input in app.number_input
+        if number_input.label == "Steps"
     )
     steps.set_value(1)
     app.run(timeout=30)
@@ -117,9 +119,9 @@ def test_dashboard_runs_after_disabling_adaptive_branches() -> None:
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
 
     for label in ("Enable mutation", "Enable recombination"):
-        next(checkbox for checkbox in app.checkbox if checkbox.label == label).set_value(
-            False
-        )
+        next(
+            checkbox for checkbox in app.checkbox if checkbox.label == label
+        ).set_value(False)
         app.run(timeout=30)
 
     for label, value in (
