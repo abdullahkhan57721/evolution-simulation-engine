@@ -31,6 +31,14 @@ jobs:
           cache-dependency-path: |
             pyproject.toml
             requirements-animation.txt
+      - name: Install Manim system build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            libcairo2-dev \
+            libpango1.0-dev \
+            pkg-config
       - name: Install project and optional animation dependency
         shell: bash
         run: |
@@ -48,10 +56,20 @@ jobs:
           venv/bin/python - <<'PY'
           from pathlib import Path
 
+          import av
+
           output = Path("outputs/cinematic-smoke.mp4")
           assert output.is_file(), output
           assert output.stat().st_size > 1_000, output.stat().st_size
-          print(f"Verified {output} ({output.stat().st_size} bytes)")
+          with av.open(str(output)) as container:
+              video_streams = container.streams.video
+              assert video_streams, "Rendered output has no video stream."
+              frame = next(container.decode(video_streams[0]))
+              assert frame.width > 0 and frame.height > 0
+          print(
+              f"Verified {output} ({output.stat().st_size} bytes, "
+              f"{frame.width}x{frame.height} decoded frame)"
+          )
           PY
       - name: Upload smoke render
         uses: actions/upload-artifact@v4
