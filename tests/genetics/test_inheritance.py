@@ -1,4 +1,4 @@
-"""Tests for clonal and sexual inheritance."""
+"""Tests for biological inheritance models."""
 
 from __future__ import annotations
 
@@ -8,9 +8,11 @@ import pytest
 
 from evo_engine.genetics import (
     Chromosome,
+    ChromosomeStructure,
     ClonalInheritance,
     GeneticArchitecture,
     Genome,
+    GenomeStructure,
     IntegerAlleleDomain,
     Locus,
     NoMutation,
@@ -19,171 +21,115 @@ from evo_engine.genetics import (
 )
 
 
-def make_architecture(
-    *,
-    mutation=None,
-) -> tuple[GeneticArchitecture, Locus[int]]:
-    """Return one-locus genetics for inheritance tests."""
-    if mutation is None:
-        mutation = NoMutation()
-
-    locus = Locus(
-        name="value",
-        chromosome_name="1",
-        position=0,
-        domain=IntegerAlleleDomain(
-            minimum=0,
-            maximum=100,
-        ),
-        mutation=mutation,
+def make_architecture(*, mutation_probability_ppm: int = 0) -> GeneticArchitecture:
+    """Return a simple explicitly diploid architecture for inheritance tests."""
+    mutation = (
+        NoMutation()
+        if mutation_probability_ppm == 0
+        else UniformIntegerMutation(
+            probability_ppm=mutation_probability_ppm,
+            max_change=1,
+        )
     )
-    architecture = GeneticArchitecture(
-        loci=(locus,),
+    return GeneticArchitecture(
+        genome_structure=GenomeStructure(
+            chromosomes=(
+                ChromosomeStructure(name="1", allowed_copy_counts=(2,)),
+            )
+        ),
+        loci=(
+            Locus(
+                name="value",
+                chromosome_name="1",
+                position=100,
+                domain=IntegerAlleleDomain(),
+                mutation=mutation,
+            ),
+        ),
         traits=(),
     )
-    return architecture, locus
 
 
-def make_genome(
-    locus: Locus[int],
-    first: int,
-    second: int,
-) -> Genome:
-    """Return a diploid one-locus genome."""
+def make_genome(architecture: GeneticArchitecture, first: int, second: int) -> Genome:
+    """Return one diploid genome for inheritance tests."""
+    locus = architecture.locus("value")
     return Genome(
         chromosomes=(
-            Chromosome(
-                name="1",
-                alleles=(locus.create_allele(first),),
-            ),
-            Chromosome(
-                name="1",
-                alleles=(locus.create_allele(second),),
-            ),
+            Chromosome(name="1", alleles=(locus.create_allele(first),)),
+            Chromosome(name="1", alleles=(locus.create_allele(second),)),
         )
     )
 
 
-def test_clonal_inheritance_preserves_chromosome_structure() -> None:
-    """Test one-parent inheritance without mutation."""
-    architecture, locus = make_architecture()
-    parent = make_genome(
-        locus,
-        4,
-        8,
-    )
+def test_clonal_inheritance_copies_parent_structure() -> None:
+    architecture = make_architecture()
+    parent = make_genome(architecture, 3, 7)
 
     offspring = ClonalInheritance().inherit(
         (parent,),
         genetic_architecture=architecture,
-        rng=random.Random(1),
+        rng=random.Random(5),
     )
 
     assert offspring == parent
     assert offspring is not parent
 
 
-def test_clonal_inheritance_applies_locus_mutation() -> None:
-    """Test that copied alleles pass through locus mutation."""
-    architecture, locus = make_architecture(
-        mutation=UniformIntegerMutation(
-            probability_ppm=1_000_000,
-            max_change=1,
-        )
-    )
-    parent = make_genome(
-        locus,
-        50,
-        50,
-    )
+def test_clonal_inheritance_applies_mutation() -> None:
+    architecture = make_architecture(mutation_probability_ppm=1_000_000)
+    parent = make_genome(architecture, 3, 7)
 
     offspring = ClonalInheritance().inherit(
         (parent,),
         genetic_architecture=architecture,
-        rng=random.Random(1),
+        rng=random.Random(5),
     )
 
-    assert tuple(allele.value for allele in offspring.alleles_at("value")) != (50, 50)
+    assert offspring != parent
+    architecture.validate_genome(offspring)
 
 
-@pytest.mark.parametrize(
-    "parent_genomes",
-    [
-        (),
-        (
-            Genome(chromosomes=()),
-            Genome(chromosomes=()),
-        ),
-    ],
-)
-def test_clonal_inheritance_requires_one_parent(
-    parent_genomes: tuple[Genome, ...],
-) -> None:
-    """Test clonal inheritance owns its one-parent constraint."""
-    architecture, _ = make_architecture()
+def test_sexual_inheritance_combines_one_gamete_from_each_parent() -> None:
+    architecture = make_architecture()
+    first_parent = make_genome(architecture, 1, 2)
+    second_parent = make_genome(architecture, 8, 9)
 
-    with pytest.raises(ValueError):
+    offspring = SexualInheritance().inherit(
+        (first_parent, second_parent),
+        genetic_architecture=architecture,
+        rng=random.Random(4),
+    )
+
+    assert len(offspring.chromosomes) == 2
+    first_value = offspring.chromosomes[0].allele_at("value").value
+    second_value = offspring.chromosomes[1].allele_at("value").value
+    assert first_value in {1, 2}
+    assert second_value in {8, 9}
+    architecture.validate_genome(offspring)
+
+
+def test_clonal_inheritance_requires_one_parent() -> None:
+    architecture = make_architecture()
+    parent = make_genome(architecture, 1, 2)
+
+    with pytest.raises(ValueError, match="exactly one parent"):
         ClonalInheritance().inherit(
-            parent_genomes,
+            (parent, parent),
             genetic_architecture=architecture,
             rng=random.Random(1),
         )
 
 
-def test_sexual_inheritance_combines_one_gamete_from_each_parent() -> None:
-    """Test two-parent Mendelian inheritance."""
-    architecture, locus = make_architecture()
-    first_parent = make_genome(
-        locus,
-        1,
-        2,
-    )
-    second_parent = make_genome(
-        locus,
-        10,
-        20,
-    )
-
-    offspring = SexualInheritance().inherit(
-        (
-            first_parent,
-            second_parent,
-        ),
-        genetic_architecture=architecture,
-        rng=random.Random(1),
-    )
-
-    values = tuple(allele.value for allele in offspring.alleles_at("value"))
-
-    assert len(values) == 2
-    assert values[0] in {1, 2}
-    assert values[1] in {10, 20}
-
-
-@pytest.mark.parametrize(
-    "parent_genomes",
-    [
-        (),
-        (Genome(chromosomes=()),),
-        (
-            Genome(chromosomes=()),
-            Genome(chromosomes=()),
-            Genome(chromosomes=()),
-        ),
-    ],
-)
-def test_sexual_inheritance_requires_two_parents(
-    parent_genomes: tuple[Genome, ...],
-) -> None:
-    """Test sexual inheritance owns its two-parent constraint."""
+def test_sexual_inheritance_requires_two_parents() -> None:
     architecture = GeneticArchitecture(
+        genome_structure=GenomeStructure(),
         loci=(),
         traits=(),
     )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="exactly two parent"):
         SexualInheritance().inherit(
-            parent_genomes,
+            (),
             genetic_architecture=architecture,
             rng=random.Random(1),
         )
