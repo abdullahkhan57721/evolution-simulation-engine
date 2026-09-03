@@ -73,7 +73,9 @@ class MeioticGameteFormation:
         )
 
     @staticmethod
-    def _require_callable(component: object, method_name: str, *, component_name: str) -> None:
+    def _require_callable(
+        component: object, method_name: str, *, component_name: str
+    ) -> None:
         """Require a configured policy to expose its public operation."""
         try:
             method = getattr(component, method_name)
