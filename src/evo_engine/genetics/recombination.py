@@ -48,8 +48,7 @@ def _validate_recombination_inputs(
     """Validate inputs shared by current recombination implementations."""
     if not isinstance(association, ChromosomeAssociation):
         raise TypeError(
-            "association must be a ChromosomeAssociation; "
-            f"received {association!r}."
+            f"association must be a ChromosomeAssociation; received {association!r}."
         )
     if not isinstance(genetic_architecture, GeneticArchitecture):
         raise TypeError(
