@@ -7,13 +7,23 @@ from typing import Protocol
 
 import attrs
 
+from evo_engine.genetics.chromosome_association import ChromosomeAssociation
 from evo_engine.genetics.gamete import Gamete
 from evo_engine.genetics.genetic_architecture import GeneticArchitecture
 from evo_engine.genetics.genome import Genome
+from evo_engine.genetics.pairing import (
+    ChromosomePairingModel,
+    SameNameBivalentPairing,
+)
 from evo_engine.genetics.recombination import (
     NoRecombination,
     RecombinationModel,
 )
+from evo_engine.genetics.segregation import (
+    BivalentSegregation,
+    ChromosomeSegregationModel,
+)
+from evo_engine.validation import validators
 
 
 class GameteFormation(Protocol):
@@ -26,47 +36,55 @@ class GameteFormation(Protocol):
         genetic_architecture: GeneticArchitecture,
         rng: random.Random,
     ) -> Gamete:
-        """Form a gamete from a parent genome.
-
-        Args:
-            genome: Parent genome.
-            genetic_architecture: Shared genetic architecture.
-            rng: Simulation random-number generator.
-
-        Returns:
-            Formed gamete.
-        """
+        """Form a gamete from a parent genome."""
         ...
 
 
 @attrs.frozen(slots=True, kw_only=True)
 class MeioticGameteFormation:
-    """Form a gamete through recombination and chromosome segregation.
+    """Compose chromosome pairing, recombination, and segregation.
 
-    For each homologous chromosome group, the configured recombination model
-    first produces chromosome copies available for segregation. One resulting
-    copy is then selected uniformly at random. Chromosome groups assort
-    independently.
+    Pairing determines temporary chromosome associations. Recombination may
+    exchange material only within each selected association and must preserve its
+    copy cardinality. Segregation then determines which and how many resulting
+    chromosome copies enter the gamete.
 
-    Attributes:
-        recombination: Model governing exchange between homologous chromosomes.
+    The default composition preserves current simple Mendelian behavior for
+    singleton and diploid same-name chromosome groups without making that behavior
+    universal architecture.
     """
 
-    recombination: RecombinationModel = attrs.field(
-        factory=NoRecombination,
-    )
+    pairing: ChromosomePairingModel = attrs.field(factory=SameNameBivalentPairing)
+    recombination: RecombinationModel = attrs.field(factory=NoRecombination)
+    segregation: ChromosomeSegregationModel = attrs.field(factory=BivalentSegregation)
 
     def __attrs_post_init__(self) -> None:
-        """Validate gamete-formation configuration."""
+        """Validate gamete-formation policy configuration."""
+        self._require_callable(self.pairing, "pair", component_name="pairing")
+        self._require_callable(
+            self.recombination,
+            "recombine",
+            component_name="recombination",
+        )
+        self._require_callable(
+            self.segregation,
+            "segregate",
+            component_name="segregation",
+        )
+
+    @staticmethod
+    def _require_callable(component: object, method_name: str, *, component_name: str) -> None:
+        """Require a configured policy to expose its public operation."""
         try:
-            recombine = self.recombination.recombine
+            method = getattr(component, method_name)
         except AttributeError as error:
             raise TypeError(
-                "recombination must provide a callable recombine method."
+                f"{component_name} must provide a callable {method_name} method."
             ) from error
-
-        if not callable(recombine):
-            raise TypeError("recombination must provide a callable recombine method.")
+        if not callable(method):
+            raise TypeError(
+                f"{component_name} must provide a callable {method_name} method."
+            )
 
     def form_gamete(
         self,
@@ -75,7 +93,7 @@ class MeioticGameteFormation:
         genetic_architecture: GeneticArchitecture,
         rng: random.Random,
     ) -> Gamete:
-        """Form a gamete from a parent genome.
+        """Form a gamete from one structurally valid parent genome.
 
         Args:
             genome: Parent genome.
@@ -83,54 +101,59 @@ class MeioticGameteFormation:
             rng: Simulation random-number generator.
 
         Returns:
-            Gamete containing one segregated chromosome copy of each type.
+            Gamete containing the chromosome copies selected by segregation.
 
         Raises:
-            TypeError: If genome, genetic_architecture, or rng is invalid.
-            ValueError: If genetic or recombination structure is invalid.
+            TypeError: If inputs or policy outputs have invalid types.
+            ValueError: If the genome or configured transmission policy is
+                incompatible with the requested gamete formation.
         """
         if not isinstance(genome, Genome):
             raise TypeError("genome must be an instance of Genome.")
-
-        if not isinstance(
-            genetic_architecture,
-            GeneticArchitecture,
-        ):
+        if not isinstance(genetic_architecture, GeneticArchitecture):
             raise TypeError(
                 "genetic_architecture must be an instance of GeneticArchitecture."
             )
-
         if not isinstance(rng, random.Random):
             raise TypeError("rng must be an instance of random.Random.")
 
         genetic_architecture.validate_genome(genome)
-
-        # dict.fromkeys preserves first-seen chromosome order while
-        # collapsing homologous copies into one segregation group.
-        chromosome_names = tuple(
-            dict.fromkeys(chromosome.name for chromosome in genome.chromosomes)
+        associations = self.pairing.pair(
+            genome,
+            genetic_architecture=genetic_architecture,
+            rng=rng,
         )
+        validators.validate_tuple(associations, name="pairing result")
 
-        selected_chromosomes = []
+        recombined: list[ChromosomeAssociation] = []
+        for index, association in enumerate(associations):
+            if not isinstance(association, ChromosomeAssociation):
+                raise TypeError(
+                    f"pairing result[{index}] must be a ChromosomeAssociation; "
+                    f"received {association!r}."
+                )
 
-        for chromosome_name in chromosome_names:
-            homologs = genome.chromosomes_named(chromosome_name)
-
-            # Recombination acts within one homologous chromosome group.
-            # Segregation then transmits exactly one candidate copy.
-            segregation_candidates = self.recombination.recombine(
-                homologs,
+            recombined_association = self.recombination.recombine(
+                association,
                 genetic_architecture=genetic_architecture,
                 rng=rng,
             )
-
-            if not segregation_candidates:
-                raise ValueError(
-                    "recombination must return at least one chromosome candidate."
+            if not isinstance(recombined_association, ChromosomeAssociation):
+                raise TypeError(
+                    "recombination must return a ChromosomeAssociation; "
+                    f"received {recombined_association!r}."
                 )
+            if len(recombined_association.chromosomes) != len(association.chromosomes):
+                raise ValueError(
+                    "recombination must preserve chromosome-association copy "
+                    "cardinality."
+                )
+            recombined.append(recombined_association)
 
-            selected_chromosomes.append(rng.choice(segregation_candidates))
-
-        return Gamete(
-            chromosomes=tuple(selected_chromosomes),
+        chromosomes = self.segregation.segregate(
+            tuple(recombined),
+            genetic_architecture=genetic_architecture,
+            rng=rng,
         )
+        validators.validate_tuple(chromosomes, name="segregation result")
+        return Gamete(chromosomes=chromosomes)
