@@ -330,6 +330,14 @@ workflow changes, update its authoritative documentation in the same PR. Avoid
 copying the same detailed rule into multiple files; link to the authoritative
 source instead.
 
+After a milestone materially changes a stable architecture, simulation,
+evolution, biology, performance, or code-reading concept taught in
+`docs/learning/engine_guide/`, update the relevant textbook chapter in the same
+milestone/PR and keep it consistent with
+`docs/learning/engine_guide/guide_spec.md`. Do not churn the textbook for
+implementation details or refactors that do not change what a learner needs to
+understand.
+
 When a milestone materially changes current orientation or roadmap direction,
 update the corresponding development snapshot in the same PR. Do not churn those
 files for trivial maintenance or copy volatile GitHub state into them.
