@@ -86,6 +86,14 @@ def make_heterozygous_genome() -> tuple[GeneticArchitecture, Genome]:
     return architecture, genome
 
 
+def test_chromosome_association_rejects_same_copy_twice() -> None:
+    """Test an association cannot duplicate one physical chromosome copy."""
+    chromosome = Chromosome(name="1")
+
+    with pytest.raises(ValueError, match="unique chromosome-copy objects"):
+        ChromosomeAssociation(chromosomes=(chromosome, chromosome))
+
+
 def test_no_recombination_returns_same_association() -> None:
     """Test explicit preservation when recombination is disabled."""
     architecture, genome = make_heterozygous_genome()
@@ -145,7 +153,8 @@ def test_single_crossover_rejects_multivalent_association() -> None:
     """Test pairwise crossover rejects unsupported multivalent exchange."""
     architecture, genome = make_heterozygous_genome()
     homologs = genome.chromosomes_named("1")
-    association = ChromosomeAssociation(chromosomes=homologs + (homologs[0],))
+    third_copy = Chromosome(name="1", alleles=homologs[0].alleles)
+    association = ChromosomeAssociation(chromosomes=homologs + (third_copy,))
 
     with pytest.raises(ValueError, match="singleton or bivalent"):
         SingleCrossoverRecombination(
