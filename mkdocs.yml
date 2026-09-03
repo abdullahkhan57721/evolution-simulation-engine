@@ -7,24 +7,34 @@ nav:
   - Home: index.md
   - Learning Guide:
       - Start Here: learning/engine_guide/index.md
-      - Foundations:
+      - "Part I — Think Like a Software Engineer":
           - Software Architecture Primer: learning/engine_guide/architecture_primer.md
+          - Architecture Quality: learning/engine_guide/architecture_quality.md
+          - Computational Complexity and Performance: learning/engine_guide/computational_complexity.md
+      - "Part II — Think Like a Simulation Designer":
           - Simulation Fundamentals: learning/engine_guide/simulation_fundamentals.md
-      - Evolution:
+      - "Part III — Think Like an Evolution Modeler":
           - General Evolution: learning/engine_guide/general_evolution.md
           - Biological Specialization: learning/engine_guide/biological_specialization.md
-      - Kernel:
-          - Mental Model: learning/engine_guide/kernel_mental_model.md
-          - Public API: learning/engine_guide/kernel_public_api.md
-          - Runtime Walkthrough: learning/engine_guide/kernel_runtime.md
+      - "Part IV — Understand This Engine":
+          - Kernel Mental Model: learning/engine_guide/kernel_mental_model.md
+          - Kernel Public API: learning/engine_guide/kernel_public_api.md
+          - Kernel Runtime Walkthrough: learning/engine_guide/kernel_runtime.md
           - Design Rationale and Invariants: learning/engine_guide/kernel_design_rationale.md
           - How the Architecture Evolved: learning/engine_guide/architecture_evolution.md
-      - Worked Examples Across the Layers: learning/engine_guide/worked_examples.md
-      - Reading the Kernel Source: learning/engine_guide/source_code_walkthrough.md
-      - Practice:
+          - Engineering Anatomy of the Kernel: learning/engine_guide/kernel_engineering_anatomy.md
+          - Performance Case Studies: learning/engine_guide/performance_case_studies.md
+          - Worked Examples Across the Layers: learning/engine_guide/worked_examples.md
+          - Reading the Kernel Source: learning/engine_guide/source_code_walkthrough.md
+      - "Part V — Practice and Review":
           - Debugger Labs: learning/engine_guide/debugger_labs.md
-          - Exercises: learning/engine_guide/exercises.md
+          - Architecture and Kernel Exercises: learning/engine_guide/exercises.md
+          - Complexity and Performance Exercises: learning/engine_guide/complexity_exercises.md
+          - Reasoning About Proposed Changes: learning/engine_guide/change_reasoning.md
+          - Review Workflows and Worksheets: learning/engine_guide/review_workflows.md
+          - Capstone Challenges: learning/engine_guide/capstones.md
       - Reference:
+          - Architecture Smells and Healthy Counterpatterns: learning/engine_guide/design_smells_reference.md
           - Glossary: learning/engine_guide/glossary.md
           - Cheat Sheet: learning/engine_guide/cheatsheet.md
           - Guide Design and Maintenance: learning/engine_guide/guide_spec.md
@@ -40,6 +50,8 @@ nav:
           - "0004 — Readability before micro-optimization": decisions/0004-readability-before-micro-optimization.md
           - "0005 — Repository collaboration memory": decisions/0005-repository-collaboration-memory.md
           - "0006 — Concise orientation and roadmap": decisions/0006-concise-orientation-and-roadmap.md
+          - "0007 — Transmissible-state terminology": decisions/0007-transmissible-state-terminology.md
+          - "0008 — Explicit chromosome transmission semantics": decisions/0008-explicit-chromosome-transmission-semantics.md
   - Development Workflow:
       - Current Project State: development/current_state.md
       - Architectural Roadmap: development/roadmap.md

@@ -1,20 +1,19 @@
 # Learning the Evolution Simulation Engine
 
-This textbook explains the Evolution Simulation Engine as a set of ideas first and
-as Python code second. Its goal is not merely to tell you which method to call. It
-is to make the architecture understandable enough that you can open the source,
-recognize the responsibilities and invariants you are looking at, and reason about
-new design work without relying on memorized diagrams.
+This textbook teaches the Evolution Simulation Engine as a set of ideas first and
+as Python code second. The goal is not merely to know which method to call. The
+goal is to be able to open the repository, identify responsibilities and
+invariants, predict runtime behavior, analyze computational cost, and judge
+whether a proposed change belongs in the kernel, the general-evolution layer, or
+a biological specialization.
 
-> **This guide is pedagogical, not authoritative.** The executable repository,
+> **This guide is pedagogical, not authoritative.** Current code, tests,
 > [Simulation Kernel Contract](../../kernel_contract.md),
 > [General Evolution Framework](../../general_evolution_framework.md), architecture
-> docs, ADRs, and focused tests define the actual project. If this guide ever
-> disagrees with those sources, fix the guide.
+> documentation, and ADRs define the project. If this textbook disagrees with
+> them, fix the textbook.
 
 ## The central picture
-
-The engine separates three questions that are easy to mix together:
 
 ```text
                     BIOLOGICAL SPECIALIZATION
@@ -26,56 +25,101 @@ The engine separates three questions that are easy to mix together:
                            |
                            v
                   SIMULATION KERNEL
-          How do state transitions execute safely,
+          How do transitions execute safely,
           reproducibly, and transactionally?
 ```
 
-Architecturally, dependencies point upward from generic foundations toward richer
-domain meaning. Pedagogically, we will sometimes start with the scientific idea
-and then look downward to the machinery that executes it.
+The textbook adds a second axis that cuts across those layers:
 
-## Choose a learning path
+```text
+correctness -> semantics -> complexity -> measured performance
+            -> readability -> maintainability -> extensibility -> testability
+```
 
-### First time learning the architecture
+You should eventually be able to use both axes at once.
 
-Read in this order:
+## The five-part course
+
+### Part I — Think like a software engineer
 
 1. [Software Architecture Primer](architecture_primer.md)
-2. [Simulation Fundamentals](simulation_fundamentals.md)
-3. [General Evolution](general_evolution.md)
-4. [Biological Specialization](biological_specialization.md)
-5. [Kernel Mental Model](kernel_mental_model.md)
-6. [Kernel Public API](kernel_public_api.md)
-7. [Kernel Runtime](kernel_runtime.md)
-8. [Kernel Design Rationale and Invariants](kernel_design_rationale.md)
-9. [How the Architecture Evolved](architecture_evolution.md)
-10. [Worked Examples Across the Layers](worked_examples.md)
-11. [Reading the Kernel Source](source_code_walkthrough.md)
+2. [Architecture Quality](architecture_quality.md)
+3. [Computational Complexity and Performance Thinking](computational_complexity.md)
 
-Then use the [Debugger Labs](debugger_labs.md) and [Exercises](exercises.md) to
-turn recognition into working understanding.
+This part gives you the vocabulary and reasoning tools for abstraction,
+dependencies, state, transactions, complexity, memory, profiling, readability,
+and maintainability.
+
+### Part II — Think like a simulation designer
+
+4. [Simulation Fundamentals](simulation_fundamentals.md)
+
+This chapter derives stages, conflicts, simultaneity, stochasticity, committed
+versus working state, and observation from the needs of a general simulation.
+
+### Part III — Think like an evolution modeler
+
+5. [General Evolution](general_evolution.md)
+6. [Biological Specialization](biological_specialization.md)
+
+This part explains transmissible state, expression, realization, propagation,
+variation, linkage, production, persistence, selection, and how biology
+specializes those ideas.
+
+### Part IV — Understand this engine
+
+7. [Kernel Mental Model](kernel_mental_model.md)
+8. [Kernel Public API](kernel_public_api.md)
+9. [Kernel Runtime Walkthrough](kernel_runtime.md)
+10. [Kernel Design Rationale and Invariants](kernel_design_rationale.md)
+11. [How the Architecture Evolved](architecture_evolution.md)
+12. [Engineering Anatomy of the Kernel](kernel_engineering_anatomy.md)
+13. [Performance Case Studies](performance_case_studies.md)
+14. [Worked Examples Across the Layers](worked_examples.md)
+15. [Reading the Kernel Source](source_code_walkthrough.md)
+
+### Part V — Prove you understand it
+
+16. [Debugger Labs](debugger_labs.md)
+17. [Architecture and Kernel Exercises](exercises.md)
+18. [Complexity and Performance Exercises](complexity_exercises.md)
+19. [Reasoning About Proposed Changes](change_reasoning.md)
+20. [Review Workflows and Worksheets](review_workflows.md)
+21. [Capstone Challenges](capstones.md)
+
+Reference pages are available for [Architecture Smells and Healthy
+Counterpatterns](design_smells_reference.md), the [Glossary](glossary.md), and the
+[Cheat Sheet](cheatsheet.md).
+
+## Choose a shorter learning path
 
 ### I want to understand the kernel now
 
-Start with:
+Read:
 
 1. [Kernel Mental Model](kernel_mental_model.md)
-2. [Kernel Public API](kernel_public_api.md)
-3. [Kernel Runtime](kernel_runtime.md)
-4. [Kernel Design Rationale and Invariants](kernel_design_rationale.md)
-5. [Reading the Kernel Source](source_code_walkthrough.md)
+2. [Kernel Runtime Walkthrough](kernel_runtime.md)
+3. [Kernel Public API](kernel_public_api.md)
+4. [Reading the Kernel Source](source_code_walkthrough.md)
+5. [Engineering Anatomy of the Kernel](kernel_engineering_anatomy.md)
 
-Keep the [Cheat Sheet](cheatsheet.md) open beside the source.
+Keep the [Cheat Sheet](cheatsheet.md) open only after your first pass.
 
 ### I am reading code and I am lost
 
-Use this order:
+Use this sequence:
 
-1. [Cheat Sheet](cheatsheet.md) — identify the layer and responsibility.
-2. [Glossary](glossary.md) — disambiguate terminology.
-3. [Reading the Kernel Source](source_code_walkthrough.md) — find the recommended
-   file and reading order.
-4. [Kernel Runtime](kernel_runtime.md) — place the code in the call flow.
+```text
+identify the layer
+    -> identify the public responsibility
+    -> find the focused test
+    -> locate the top-level control flow
+    -> separate semantics from support plumbing
+    -> ask what is read, mutated, owned, and decided
+```
+
+Then use [Reading the Kernel Source](source_code_walkthrough.md) and
+[Review Workflows and Worksheets](review_workflows.md).
 
 ### I want to understand evolution or reproduction
 
@@ -85,7 +129,7 @@ Read:
 2. [Biological Specialization](biological_specialization.md)
 3. [Worked Examples Across the Layers](worked_examples.md)
 
-The important conceptual bridge is:
+Remember this abstraction ladder:
 
 ```text
 transmissible state -> genome
@@ -94,40 +138,40 @@ variation           -> mutation / recombination
 entity production   -> biological offspring production
 ```
 
-Those are **specializations**, not synonyms.
+Those are specializations, not synonyms.
 
-### I want to understand why the architecture is this complicated
+### I want to understand performance
 
 Read:
 
-1. [Kernel Design Rationale and Invariants](kernel_design_rationale.md)
-2. [How the Architecture Evolved](architecture_evolution.md)
-3. [Simulation Fundamentals](simulation_fundamentals.md)
+1. [Computational Complexity and Performance Thinking](computational_complexity.md)
+2. [Engineering Anatomy of the Kernel](kernel_engineering_anatomy.md)
+3. [Performance Case Studies](performance_case_studies.md)
+4. [Complexity and Performance Exercises](complexity_exercises.md)
 
-These chapters reconstruct the failure modes that forced the current abstractions.
+The central habit is:
 
-### I want to practice
+> **Reason about scaling early; optimize implementation details when evidence
+> justifies them.**
 
-Go to:
+### I want to review a future PR
 
-1. [Debugger Labs](debugger_labs.md)
-2. [Exercises](exercises.md)
-3. [Reading the Kernel Source](source_code_walkthrough.md)
+Use:
 
-The exercises emphasize prediction, comparison, implementation, and review rather
-than terminology recall.
+1. [Reasoning About Proposed Changes](change_reasoning.md)
+2. [Review Workflows and Worksheets](review_workflows.md)
+3. [Architecture Smells and Healthy Counterpatterns](design_smells_reference.md)
+4. [Capstone Challenges](capstones.md)
 
-## How to study this textbook
+## How to study the textbook
 
-A single front-to-back read is useful, but it is not the fastest route to durable
-understanding. Use three passes.
+Use three passes rather than one passive read.
 
 ### Pass 1 — Build the conceptual skeleton
 
-Read the architecture primer, simulation fundamentals, general evolution,
-biological specialization, and kernel mental model.
-
-Do not stop to memorize every class or helper. Your goal is to be able to redraw:
+Read the foundations, simulation fundamentals, general evolution, biological
+specialization, and kernel mental model. Your goal is to redraw these from
+memory:
 
 ```text
 three architectural layers
@@ -137,188 +181,136 @@ one-stage phase order
 general-evolution loop
 ```
 
-from memory.
+### Pass 2 — Connect concepts to production source
 
-### Pass 2 — Connect concepts to production code
-
-Read the public API, runtime walkthrough, examples, and source-code walkthrough.
-
-At every real snippet, practice two explanations:
+Read the API, runtime, examples, engineering anatomy, and source walkthrough.
+For every important line ask:
 
 ```text
 What does this Python execute?
 Why does this line exist architecturally?
 ```
 
-### Pass 3 — Retrieve and apply without the guide
-
-Use the debugger labs and exercises with the textbook closed whenever possible.
-Predict first. Open the guide only after you have committed to an answer.
-
-Good retrieval prompts include:
+Then add the engineering questions:
 
 ```text
-Draw the transaction from memory.
-Explain materialization without using the source.
-Name the four reproduction relationships and their timing.
-Explain why the resolver does not mutate.
-Trace inheritance through kernel -> general evolution -> biology.
+How often does it execute?
+How does cost scale?
+What is allocated and for how long?
+Is this actually measured hot?
+Would a faster alternative damage readability or semantics?
 ```
 
-### Revisit after spacing
+### Pass 3 — Retrieve and apply
 
-A few days later, use only the [Cheat Sheet](cheatsheet.md). Try to reconstruct the
-full explanation behind each compact line.
+Use the debugger labs, exercises, review worksheet, and capstones with the guide
+closed whenever possible. Predict first. Check afterward.
 
-If a cheat-sheet item feels like a fact you recognize but cannot explain, return
-to that chapter. This is more useful than rereading everything equally.
+A few days later, use only the [Cheat Sheet](cheatsheet.md). If you recognize a
+line but cannot reconstruct why it is true, return to the deeper chapter.
 
 ## Concept dependency graph
-
-The textbook is organized around dependencies among ideas rather than the order
-of Python files:
 
 ```text
 abstraction / contracts / composition
                 |
                 v
-state transitions and side effects
+state / mutation / side effects
                 |
-                v
-transactions + determinism + ownership
-                |
-                v
-stages + conflicts + observation
-                |
-                +-------------------------------+
-                |                               |
-                v                               v
-        simulation kernel               evolutionary semantics
-                                                |
-                                                v
-                         transmissible state / expression /
-                         propagation / variation / linkage /
-                         production / persistence / selection
-                                                |
-                                                v
-                                   biological specialization
+                +----------------------+
+                |                      |
+                v                      v
+transactions / determinism      complexity / memory
+                |                      |
+                v                      v
+stages / conflicts / observation   performance evidence
+                |                      |
+                +----------+-----------+
+                           |
+                           v
+                  simulation kernel
+                           |
+                           v
+                 general evolution
+                           |
+                           v
+             biological specialization
 ```
-
-You do not need every software-architecture term memorized before moving on. The
-guide deliberately revisits important ideas at increasing depth.
 
 ## Master architecture map
 
 ```text
-                                   COMPOSITION
-                       presets / experiments / interfaces
-                                     |
-                                     v
                               SimulationSpec
-                         generic preflight / compile
-                                     |
-                      +--------------+--------------+
-                      |                             |
-                      v                             v
-                 Simulation                  SimulationEngine
-                      |                             |
-                      |                             +-- stopping condition
-                      |                             +-- observers
-                      |                             +-- telemetry observers
-                      |                             |
-                      v                             v
-              SimulationState            SequentialStepCoordinator
-          +-----------+-----------+                  |
-          |           |           |                  v
-          v           v           v           StageCoordinator(s)
-     domain_state   context      RNG                   |
-          |                                              |
-          |                          +-------------------+-------------------+
-          |                          |                   |                   |
-          |                          v                   v                   v
-          |                      Processes           Resolver           telemetry
-          |                   propose / apply      choose events         records
-          |                   materialize?
-          |
-          +---------------------------------------------------------------+
-                                  domain mutation
+                         preflight / compilation
+                                  |
+                    +-------------+-------------+
+                    |                           |
+                    v                           v
+               Simulation                SimulationEngine
+                    |                           |
+                    v                           v
+            SimulationState          SequentialStepCoordinator
+       +------------+-----------+                |
+       |            |           |                v
+       v            v           v         StageCoordinator(s)
+  domain_state   context       RNG                |
+                                               +-- Process(es)
+                                               +-- Resolver
+                                               `-- telemetry
 ```
 
-The most important ownership fact is easy to miss:
+The most important ownership fact is:
 
 ```text
 Simulation owns the authoritative SimulationState.
-SimulationEngine does not.
+SimulationEngine orchestrates its replacement; it does not own the state.
 ```
 
-The engine asks the step coordinator for a completed transactional state and only
-then replaces `simulation.state`.
-
 ## The three-example ladder
-
-We will use the same architecture at three levels:
 
 ```text
 1. Counter
    kernel only
-   proves generic execution
 
 2. Information network
    kernel + general evolution
-   proves evolution without biology
 
 3. Biological simulation
    kernel + general evolution + biology
-   proves specialization
 ```
 
-When a concept feels complicated, ask which of those three levels actually needs
-it.
+When an abstraction feels complicated, ask which level actually needs it.
 
-## A reading habit to develop
+## Five levels of mastery
 
-When you encounter unfamiliar code, ask two questions rather than one:
+Use this progression for the major ideas:
 
-1. **What does this Python execute?**
-2. **Why does this line exist architecturally?**
-
-For example:
-
-```python
-working_state = simulation_state.copy()
+```text
+1. RECOGNIZE  — I know what I am looking at.
+2. EXPLAIN    — I can explain why it exists.
+3. PREDICT    — I can predict system behavior.
+4. DIAGNOSE   — I can find a violation or bad design.
+5. DESIGN     — I can choose the correct boundary and solution myself.
 ```
 
-At the syntax level, this calls `copy()`.
-
-At the architecture level, it establishes the transaction boundary: the step can
-mutate modeled state and consume randomness without touching the committed state
-unless the complete step succeeds.
-
-That second kind of reading is the main skill this textbook is designed to teach.
-
-## Authoritative companions
-
-Keep these nearby:
-
-- [Simulation Kernel Contract](../../kernel_contract.md)
-- [General Evolution Framework](../../general_evolution_framework.md)
-- [Architecture Overview](../../architecture/index.md)
-- [Architecture Decisions](../../decisions/README.md)
-- [`tests/engine/test_stage_coordinator.py`](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/tests/engine/test_stage_coordinator.py)
-- [`tests/engine/test_domain_neutral_kernel.py`](https://github.com/abdullahkhan57721/evolution-simulation-engine/blob/main/tests/engine/test_domain_neutral_kernel.py)
+The final capstones target level 5.
 
 ## What success looks like
 
-You do **not** need to memorize every class.
+You understand this engine when you can inspect unfamiliar code or a proposed
+feature and answer:
 
-You understand the engine when you can look at a proposed behavior and answer:
+- Which layer owns the meaning?
+- What state is visible at this phase?
+- Who decides, and who may mutate?
+- When may simulation RNG be consumed?
+- Which invariant is being protected?
+- What are the relevant scale variables?
+- What is the structural time and memory behavior, including memory lifetime?
+- Is the code actually hot or merely theoretically interesting?
+- Is the control flow readable and the change surface maintainable?
+- Which focused tests prove the behavior?
+- Can the existing frozen kernel already express the requirement?
 
-- Which layer owns its meaning?
-- What state does it need to read?
-- When is it allowed to consume randomness?
-- Does it propose, resolve, materialize, apply, or observe?
-- Who is allowed to mutate the domain?
-- What invariant would be violated by the obvious simpler implementation?
-- Which focused test should prove the behavior?
-
-If those questions become natural, the source code becomes much easier to read.
+If those questions become natural, you are no longer memorizing this codebase;
+you are reasoning about it.

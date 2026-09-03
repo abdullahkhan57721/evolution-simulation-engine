@@ -1,112 +1,103 @@
 # Evolution Simulation Engine Learning Textbook — Guide Specification
 
-This file is the durable design brief for the repository-native learning textbook.
-It records the intended audience, learning goals, pedagogy, structure, and
-maintenance rules so future revisions do not depend on chat history.
+This file is the durable design brief for the repository-native textbook. It
+exists so the guide's audience, pedagogy, scope, and maintenance rules survive
+chat/session boundaries.
 
-The textbook is **pedagogical, not authoritative**. When any explanation here or
-in the learning guide conflicts with current code, tests, architecture docs, or
-ADRs, repository truth wins. The canonical kernel contract is
-[`docs/kernel_contract.md`](../../kernel_contract.md), and the canonical general
-evolution overview is
+The textbook is **pedagogical, not authoritative**. Current code/tests/CI,
+`AGENTS.md`, authoritative architecture/subsystem documentation, and ADRs outrank
+this guide. The canonical kernel semantics live in
+[`docs/kernel_contract.md`](../../kernel_contract.md), and the canonical abstract
+evolution model lives in
 [`docs/general_evolution_framework.md`](../../general_evolution_framework.md).
 
-## Audience and assumptions
+## Audience
 
-The primary reader is technically comfortable with:
+Assume the reader already understands:
 
-- the basic Python object model;
-- modules, packages, imports, and ordinary project organization;
-- ordinary type annotations, interfaces, and the basic purpose of `Protocol`.
+- Python classes, instances, methods, properties, references, and mutation;
+- modules/packages/imports;
+- ordinary annotations, interfaces, and the basic purpose of `Protocol`.
 
-Do not turn the textbook into a beginner-Python course. Explain language features
-only where their use carries architectural meaning or is easy to misread. Useful
-examples include positional-only parameters, keyword-only parameters,
-`attrs.frozen`, covariance/contravariance when it clarifies a contract, and the
-difference between literal syntactic sugar and API/construction sugar.
+Do not turn the guide into a beginner Python course. Explain language features
+only when their architectural role is easy to misread: positional-only `/`,
+keyword-only `*`, `attrs.frozen`, variance when it materially clarifies a
+contract, decorators, and the distinction between literal syntactic sugar and
+API/construction convenience.
 
-## Learning goals
+## Final learning goal
 
-After completing the guide, the reader should be able to:
+After the textbook, the reader should be able to open unfamiliar engine code and:
 
-1. explain the separation among simulation mechanics, general evolutionary
-   semantics, and biological specialization;
-2. derive the need for stages, proposal simultaneity, resolvers,
-   materialization, transactional state/RNG, immutable context, telemetry, and
-   preflight from concrete failure modes rather than memorizing class names;
-3. explain the abstract evolution model independently of biology;
-4. map general concepts such as transmissible state, propagation, expression,
-   variation, linkage, and production onto biological genetics and reproduction;
-5. distinguish easy-to-conflate relationships such as propagation versus
-   production and reproductive participants versus investors, genetic
-   contributors, and production sources;
-6. assemble and run a small simulation through the public kernel API;
-7. open the kernel source and recognize the architectural purpose of each major
-   section;
-8. identify kernel invariants, the code that enforces them, and focused tests that
-   protect them;
-9. debug one simulation step while correctly distinguishing authoritative state,
-   transactional working state, committed telemetry, and domain mutation; and
-10. reason about a proposed change by asking which layer owns the concept and
-    whether a lower-level abstraction genuinely needs to change.
+1. identify the owning architectural layer and responsibility;
+2. explain why the abstraction exists and what failure mode it prevents;
+3. predict state visibility, mutation, RNG, commit, and observation semantics;
+4. identify the invariant and focused tests that protect it;
+5. reason about time complexity, memory growth, memory lifetime, and frequency;
+6. distinguish asymptotic reasoning from measured profiling/benchmark evidence;
+7. evaluate readability, maintainability, extensibility, testability, coupling,
+   and cohesion rather than reducing review to correctness alone; and
+8. decide whether a proposed change fits an existing contract or demonstrates a
+   genuine lower-layer deficiency.
+
+The desired capability ladder is:
+
+```text
+RECOGNIZE -> EXPLAIN -> PREDICT -> DIAGNOSE -> DESIGN
+```
 
 ## Core pedagogical sequence
 
-Use this sequence repeatedly:
+Use this pattern repeatedly:
 
 ```text
 problem
-  |
-  v
-naive/simple design
-  |
-  v
-failure mode
-  |
-  v
-abstraction we need
-  |
-  v
-public contract
-  |
-  v
-production implementation
-  |
-  v
-concrete domain example
+  -> naive design
+  -> failure mode
+  -> abstraction needed
+  -> public contract
+  -> production implementation
+  -> domain example
+  -> focused test/invariant
+  -> engineering analysis
 ```
 
-The goal is to make architecture feel *derived* rather than arbitrary.
+Architecture should feel derived from requirements rather than decorative.
 
-## Additional pedagogical principles
+## Teaching principles
+
+### Mental models before terminology
+
+Start with the problem and conceptual picture. Introduce formal vocabulary only
+after the reader has something meaningful to attach it to.
 
 ### Progressive disclosure
 
-Present important mechanisms in layers:
+Teach important mechanisms in layers:
 
-1. plain-language concept;
-2. tiny diagram or pseudocode;
-3. small real source snippet;
-4. complete production flow;
-5. validation, telemetry, typing, and performance plumbing.
+```text
+plain-language concept
+    -> pseudocode/diagram
+    -> small real source snippet
+    -> complete production flow
+    -> validation/typing/telemetry/performance plumbing
+```
 
 Do not let incidental implementation complexity hide the semantic core.
 
 ### Spiral learning
 
-Revisit central ideas at increasing depth. For example:
+Revisit major ideas at increasing depth rather than defining them once:
 
-- transaction: first as “work on a copy,” later as domain-state + RNG rollback;
-- simultaneity: first as avoiding order dependence, later as the exact
-  materialize-before-apply semantics;
-- propagation: first as state transfer, later as the abstraction specialized by
-  biological inheritance;
-- ownership: first as object containment, later as separate questions of
-  responsibility, authority, mutation rights, and randomness ownership.
+- transaction: work on a copy -> state + RNG rollback -> performance tradeoff;
+- simultaneity: avoid order dependence -> exact materialize-before-apply rule;
+- propagation: state transfer -> generic evolutionary contract -> inheritance;
+- ownership: containment -> responsibility -> authority -> mutation rights;
+- performance: Big-O -> frequency/memory -> profile evidence -> design tradeoff.
 
 ### Abstraction ladders
 
-Frequently show general-to-concrete ladders, for example:
+Frequently move from general to specialized to concrete:
 
 ```text
 state transition
@@ -116,20 +107,9 @@ state transition
                 -> one configured simulation
 ```
 
-and:
-
-```text
-entity
-    -> evolving entity (conceptual role)
-        -> organism
-            -> Organism instance #527
-```
-
 ### Concept-to-code and code-to-concept maps
 
-Teach both directions.
-
-Concept to code:
+Teach both directions. Examples:
 
 ```text
 transaction envelope -> SimulationState
@@ -137,266 +117,324 @@ stage simultaneity    -> StageCoordinator
 conflict policy       -> Resolver
 ```
 
-Code to concept:
+and:
 
 ```text
-simulation_state.copy()  -> transaction boundary
-resolve_events(...)      -> selection among candidate transitions, not mutation
-materialize_event(...)   -> accepted-only deferred consequence
-apply_event(...)         -> domain mutation owned by the process
+simulation_state.copy() -> transaction boundary
+resolve_events(...)     -> selection, not domain mutation
+materialize_event(...)  -> accepted-only deferred consequence
+apply_event(...)        -> process-owned domain mutation
 ```
 
-### Invariant-centered reading
+### Contrast learning and misconception checks
 
-For major invariants provide:
+Use paired comparisons for concepts that are easy to collapse mentally:
+
+- state vs context;
+- resolver vs process;
+- proposal vs resolved vs materialized event vs `AppliedEvent`;
+- propagation vs production;
+- genetic expression vs developmental realization vs current physiology;
+- participant vs investor vs genetic contributor vs production source;
+- selection vs a stored scalar named fitness;
+- Big-O vs profiling vs benchmarking;
+- architectural importance vs computational hotness.
+
+### Invariant-centered source reading
+
+For important invariants provide:
 
 ```text
 invariant
 why it exists
 implementation location
 focused test
-failure mode if violated
+failure if violated
 ```
 
 Teach the professional reading loop:
 
 ```text
-public contract -> focused test -> implementation
+public contract -> focused test -> semantic implementation -> support plumbing
 ```
 
-rather than always reading production files top-to-bottom.
+### Prediction, retrieval, and fading scaffolds
 
-### Misconception checks
+Readers should predict before running the debugger and commit to an answer before
+opening hints. Early source walkthroughs may be heavily annotated; later exercises
+remove scaffolding. The cheat sheet supports delayed retrieval, not passive
+replacement of deeper chapters.
 
-Explicitly contrast concepts readers are likely to merge mentally:
+### Wrong-but-plausible examples
 
-- syntax versus semantics;
-- literal syntactic sugar versus convenience/construction sugar;
-- abstraction versus generic implementation;
-- interface/contract versus implementation;
-- ownership versus responsibility versus authority;
-- state versus immutable configuration/context;
-- authoritative state versus transactional working state;
-- proposal versus resolved event versus materialized event versus `AppliedEvent`
-  telemetry;
-- resolver selection versus process mutation;
-- propagation versus entity production;
-- transmitted information versus expressed characteristics versus realized
-  phenotype/current physiological state;
-- selection versus a stored scalar named fitness;
-- reproductive participant versus investor versus genetic contributor versus
-  production source.
+Use designs a competent programmer might reasonably propose, then review them.
+Examples include resolver mutation, independent simulation RNGs, accepted-detail
+randomness during rejected proposals, observer-as-repair, domain fields on generic
+kernel state, and tiny optimization fast paths that duplicate semantic algorithms.
 
-### Prediction and comparison
+### Tests as teaching material
 
-Prefer exercises that ask the reader to predict observable semantics before
-running code, or compare two designs and identify consequences. Avoid relying on
-vocabulary recall alone.
+Tests are executable explanations. The textbook should connect concepts to the
+focused tests that establish observable semantics.
 
-### Retrieval practice, spacing, and fading scaffolds
+## Engineering-analysis framework
 
-The landing page should recommend multiple passes rather than one passive read:
+The textbook should analyze important code through all of these lenses:
 
 ```text
-pass 1: build conceptual skeleton
-pass 2: connect concepts to production source/tests
-pass 3: retrieve and apply with the guide closed
+correctness
+semantic fidelity
+time complexity
+memory size and lifetime
+execution frequency
+measured performance
+readability
+maintainability
+extensibility
+testability
+coupling/cohesion
 ```
 
-Encourage the reader to predict before using the debugger and to reconstruct key
-diagrams from memory. Early source examples may be heavily annotated; later
-exercises should deliberately remove hints so the reader practices independent
-code reading. A compact cheat sheet should support spaced review: recognition
-without explanation is a signal to revisit the deeper chapter.
+Do not put mechanical Big-O comments beside every line. Use structured review
+cards after meaningful algorithms.
 
-### Design history as problem narrative
+### Complexity discipline
 
-Include a selective architecture-evolution chapter that answers:
+Define scale variables before assigning a complexity class. Preserve delegated
+costs rather than hiding them. For example:
 
 ```text
-What limitation in the previous design forced the next abstraction?
+SimulationState.copy()
+time  = C_domain_copy(N) + fixed kernel overhead
+space = M_domain_copy(N) + fixed kernel overhead
 ```
 
-It should not become a changelog. Use stable milestones/ADRs to show the movement
-from a biology-shaped engine through domain-neutral transactions and general
-evolution to hardened biological specialization. Historical implementation
-specifics must remain subordinate to current contracts.
+and for a stage:
 
-### Mastery criteria
+```text
+kernel structural work
++ proposal algorithm costs
++ resolver cost
++ accepted materialization costs
++ application costs
++ telemetry/effect costs
+```
 
-End major chapters with “You understand this chapter if you can…” prompts that
-measure design-level competence.
+### Memory discipline
 
-## Architectural layer labels
+Record both growth and lifetime:
 
-Use consistent labels in prose and tables:
+```text
+persistent domain state       whole run
+transactional state copy      one step
+proposal/preparation buffers  one stage
+retained observation history  potentially whole experiment
+```
 
-- **[KERNEL]** — domain-neutral execution mechanics;
-- **[GENERAL EVOLUTION]** — evolutionary semantics that do not assume biology;
-- **[BIOLOGY]** — biological specialization;
-- **[COMPOSITION]** — presets, experiments, interfaces, and other high-level
-  assembly concerns.
+### Performance discipline
 
-The labels are pedagogical orientation aids, not import-linter declarations.
+Reason about scaling early, but optimize implementation details only with evidence.
+Distinguish:
+
+```text
+complexity analysis  -> scaling model
+profiling            -> where one run spent time
+benchmarking         -> controlled before/after speed
+tracemalloc          -> Python allocation/peak-memory evidence
+```
+
+Respect the project's measurement-first rule and ADR 0004: semantic correctness,
+readability, and maintainability are hard constraints on performance work.
+
+Classify optimizations by risk:
+
+```text
+structurally safe
+semantics-sensitive
+architecture-changing
+```
+
+The evidence bar rises across those categories.
+
+## Architecture-quality framework
+
+Readability should be discussed concretely through control-flow locality, naming,
+cognitive load, branching, hidden dependencies, cause/effect distance, and
+abstraction fit.
+
+Maintainability should be discussed through duplicate policy, parallel semantic
+paths, public change radius, explicit dependencies, test localization, and number
+of invariants future changes must preserve.
+
+Extensibility means demonstrated axes of variation can change behind stable
+contracts; it does **not** mean making every concept maximally generic.
+
+Testability is both a quality and an architecture signal: if a responsibility
+cannot be tested without constructing half the application, investigate whether
+it is overly entangled.
 
 ## Three-example progression
 
-Use three increasingly rich examples throughout:
+Use three levels throughout:
 
-1. **Counter** — kernel only. No evolution, no biology. Proves execution mechanics.
-2. **Information network** — kernel + general evolution. Persistent nodes carry
-   transmissible strategy tokens that spread horizontally. Proves the evolution
-   abstraction is not renamed biology.
-3. **Biological simulation** — kernel + general evolution + biology. Use the
-   repository's aging/reference examples and focused reproduction/genetics
-   discussion to show specialization.
+1. **Counter** — kernel only; proves generic execution mechanics.
+2. **Information network** — kernel + general evolution; proves evolution without
+   biology.
+3. **Biological simulation** — kernel + general evolution + biology; proves
+   specialization.
 
-This progression should be revisited across chapters rather than used only once.
+## Source-code strategy
 
-## Code presentation strategy
+Use small real snippets in conceptual chapters. Do not paste the entire kernel as
+one source dump.
 
-Use small real source snippets where a concept is introduced. Do not paste the
-entire kernel verbatim into one appendix.
+The source-reading chapter should cover essentially all semantically important
+kernel files in a human reading order. For each file explain:
 
-The source-reading chapter should nevertheless cover essentially all semantically
-important kernel code. For each important file explain:
-
-- the question the file answers;
-- what the reader should already understand;
-- public objects defined there;
+- the question it answers;
 - what to read first;
-- what can be ignored on a first pass;
-- architectural invariants the file protects;
-- essential semantics versus validation/typing/performance support;
-- how the file connects to the next file.
+- what to postpone;
+- invariants protected;
+- essential semantics vs validation/typing/performance support;
+- how it connects to the next file.
 
-Heavily annotate at least one small, important method as training wheels. The
-preferred target is `SequentialStepCoordinator.coordinate()` because it is short
-and exposes the transaction boundary directly.
-
-For `StageCoordinator`, explicitly separate:
+Fully annotate `SequentialStepCoordinator.coordinate()` as training wheels.
+For `StageCoordinator`, explicitly distinguish:
 
 ```text
 essential semantics
     propose -> resolve -> materialize-all -> apply
 
-implementation support
+support/optimization
     event dispatch cache
     cached materializer callable
-    qualified type-name cache
-    prepared-application tuple layout
+    type-name cache
+    prepared-application representation
     effect-journal plumbing
 ```
 
-Include a deliberately simplified pedagogical mini-kernel so the production
-implementation has a simple conceptual anchor.
+## Practice design
+
+Practice should emphasize prediction, comparison, review, and construction rather
+than trivia. Include:
+
+- debugger labs;
+- architecture/state/RNG exercises;
+- complexity and memory exercises;
+- a 100–150 line pedagogical mini-kernel;
+- tests written from invariants;
+- code/PR review exercises;
+- change-reasoning and performance-review worksheets;
+- delayed retrieval;
+- capstones requiring independent design judgment.
+
+The capstones should include:
+
+1. explain the kernel without class names;
+2. derive a minimal kernel from requirements;
+3. review a deliberately flawed feature across architecture, correctness,
+   complexity, memory, performance, and quality;
+4. review a performance proposal that targets the wrong layer.
+
+## Architecture smells and healthy counterpatterns
+
+The reference should include project-relevant smells such as biology leakage, god
+processes, hidden dependencies, order-dependent science, duplicated policy,
+boolean/special-case explosion, premature generalization, fast-path explosion,
+observer-as-repair, resolver mutation, hidden stochasticity, and telemetry-as-state.
+
+Smells are prompts to investigate, not automatic verdicts.
 
 ## Navigation and ergonomics
 
-The guide is a multi-page MkDocs textbook, not one giant document.
+The textbook is multi-page and searchable. The primary MkDocs sidebar should
+contain only canonical curriculum/reference pages, not design scratch notes.
 
-The landing page must support at least these entry paths:
+The landing page should support multiple entry paths: first-time course, kernel
+fast path, evolution/reproduction, performance, source-reading rescue, PR review,
+and practice.
 
-- **First time learning the architecture**;
-- **I want to understand the kernel now**;
-- **I am reading code and I am lost**;
-- **I want to understand reproduction/evolution**;
-- **I want to understand why the architecture is this complicated**;
-- **I want to practice**.
+Each major chapter should, where useful, follow this rhythm:
 
-Use descriptive headings that work well with MkDocs search. Cross-link related
-chapters, authoritative docs, source files, tests, and ADRs. At major transitions,
-include a compact “where you are in the architecture” diagram.
+```text
+where you are
+why it matters
+mental model
+problem / naive design
+concepts and contrasts
+pseudocode / real implementation
+tests and invariants
+engineering analysis
+prediction/retrieval prompt
+mastery criteria
+next chapter
+```
 
-Provide:
+Use compact tables and diagrams where they improve scanning. Avoid one enormous
+linear document.
 
-- a concept dependency graph;
-- a master architecture/ownership diagram;
-- terminology-family diagrams;
-- file reading-order and difficulty guidance;
-- a compact cheat sheet that remains useful months later.
+## Canonical chapter set
 
-Keep individual pages focused enough to scan. The guide should work both as a
-front-to-back course and as a reference manual.
+Keep the durable guide small enough to navigate. The canonical pages are:
 
-## Required textbook chapters
+- `index.md`
+- `architecture_primer.md`
+- `architecture_quality.md`
+- `computational_complexity.md`
+- `simulation_fundamentals.md`
+- `general_evolution.md`
+- `biological_specialization.md`
+- `kernel_mental_model.md`
+- `kernel_public_api.md`
+- `kernel_runtime.md`
+- `kernel_design_rationale.md`
+- `architecture_evolution.md`
+- `kernel_engineering_anatomy.md`
+- `performance_case_studies.md`
+- `worked_examples.md`
+- `source_code_walkthrough.md`
+- `debugger_labs.md`
+- `exercises.md`
+- `complexity_exercises.md`
+- `change_reasoning.md`
+- `review_workflows.md`
+- `capstones.md`
+- `design_smells_reference.md`
+- `glossary.md`
+- `cheatsheet.md`
+- this `guide_spec.md`
 
-The durable content plan is:
+Do not retain dozens of tiny design/checklist pages when their durable value can
+be represented in these canonical chapters.
 
-1. **Start Here** — learning paths, dependency graph, master architecture map,
-   source-of-truth warning, and recommended three-pass study cadence.
-2. **Software Architecture Primer** — abstraction, contracts/implementations,
-   specialization/generalization, generic vs abstract vs concrete, composition,
-   dependency direction/injection/inversion, layers/boundaries, coupling/cohesion,
-   separation of concerns, orchestration, policies/adapters/capabilities, state
-   vs configuration, mutability/transactions/determinism/side effects, telemetry,
-   preflight, and construction/syntactic sugar where relevant.
-3. **Simulation Fundamentals** — state-transition view, ordered stages,
-   simultaneity, conflicts, stochasticity, authoritative/working state, commit,
-   observation.
-4. **General Evolution** — evolving entities, transmissible state, expression,
-   realization, propagation, variation, linkage/co-transmission,
-   persistence/removal, entity production, interaction/competition, selection,
-   evolution.
-5. **Biological Specialization** — complete mapping from general evolution to
-   biology, including the participant/investor/genetic-contributor/production-
-   source distinctions.
-6. **Kernel Mental Model** — responsibilities/non-responsibilities,
-   ownership/authority, object graph, minimum pedagogical kernel.
-7. **Kernel Public API** — assembly/runtime API and extension protocols.
-8. **Kernel Runtime** — exact call flow, transactions/RNG, stage phases,
-   telemetry/effects, observers, commit semantics.
-9. **Kernel Design Rationale and Invariants** — why not simpler designs; invariant
-   catalog tied to tests and ADRs.
-10. **How the Architecture Evolved** — selective problem-driven design history,
-    not a changelog.
-11. **Worked Examples Across the Layers** — counter -> nonbiological evolution ->
-    biological example, with side-by-side comparison.
-12. **Reading the Kernel Source** — guided file order, heavily annotated method,
-    semantic vs optimization code, source-reading strategy.
-13. **Debugger Labs** — breakpoints and state/RNG/event inspection.
-14. **Exercises** — predictions, design comparisons, mini-kernel build, and
-    review-oriented practice.
-15. **Glossary** — project-specific architecture/evolution vocabulary.
-16. **Cheat Sheet** — printable quick-reference maps and invariants.
+## Stable architecture content
 
-Split or combine pages only when doing so improves navigation without removing
-substance.
+The textbook must remain accurate about:
 
-## Current architecture that must remain accurate
-
-The textbook must track stable current contracts, including:
-
-- the frozen domain-neutral kernel;
-- `SimulationState.domain_state` as an opaque copyable modeled payload;
-- immutable `SimulationContext` shared across transactional copies;
-- simulation-owned RNG stored in `SimulationState`;
-- failed/discarded transactions leaving committed state and RNG unchanged;
+- frozen domain-neutral kernel;
+- opaque copyable `SimulationState.domain_state`;
+- immutable shared `SimulationContext`;
+- simulation-owned transactional RNG in `SimulationState`;
+- failed/discarded transactions not advancing committed state or RNG;
 - same-stage proposal simultaneity;
-- `propose all -> resolve -> materialize all accepted -> apply`;
-- resolvers choosing transitions while processes own domain mutation;
-- unique process event types within one stage;
-- `SimulationSpec` as the generic preflight/compilation boundary;
-- committed `AppliedEvent` / `StepTelemetry` and optional opaque domain effects;
+- `propose -> resolve -> materialize-all-accepted -> apply`;
+- resolver chooses while process owns domain mutation;
+- unique process proposal event types per stage;
+- `SimulationSpec` as generic preflight/compilation boundary;
+- committed `AppliedEvent` / `StepTelemetry` and optional opaque effects;
 - non-mutating observation of committed state;
 - `transmissible state` as canonical general-evolution vocabulary;
-- expression, variation, propagation, linkage/co-transmission, production,
-  access/reference, admission, and departure as distinct responsibilities;
-- biological inheritance as a specialization of general propagation;
-- selection as generally emergent differential contribution rather than a
-  required intrinsic scalar;
-- biological reproduction separating reproductive participants, proposal-time
-  investors, materialization-time genetic contributors, and materialization-time
-  offspring-production sources, while current defaults may choose all
-  participants for each role.
+- expression, variation, propagation, linkage, production, access/reference,
+  admission, and departure as distinct generic responsibilities;
+- inheritance as a biological specialization of propagation;
+- selection as usually emergent differential future contribution;
+- reproduction separation among participants, proposal-time investors,
+  materialization-time genetic contributors, and materialization-time production
+  sources.
 
-Avoid volatile current ticket numbers or transient CI state in ordinary textbook
-prose unless needed in historical/rationale context.
+Avoid transient CI states and volatile commit SHAs in textbook prose.
 
 ## Authority and maintenance
-
-The textbook deliberately repeats authoritative material for teaching, but it
-must never become the source of truth for public semantics.
 
 Authority order remains:
 
@@ -405,33 +443,33 @@ Authority order remains:
 3. authoritative architecture/subsystem docs;
 4. ADRs;
 5. active Issue/PR for in-progress work;
-6. learning textbook.
+6. textbook.
 
-When a merged milestone materially changes a stable concept taught here, update
-the affected chapter in the same or a closely related documentation change.
-Do not churn the textbook for internal refactors that do not change what a learner
+Update the textbook when a merged milestone materially changes a stable concept it
+teaches. Do not churn it for internal refactors that do not alter what a learner
 needs to understand.
 
-Prefer links to authoritative docs/tests over duplicating precise low-level rules
-that are likely to evolve. Avoid volatile SHAs in the textbook.
+Markdown in the repository is canonical. DOCX/PDF editions may be derived later
+but should never become the maintenance source.
 
-## Binary editions
+## Scope boundary and stop rule
 
-Markdown in the repository is canonical for the textbook. DOCX or PDF editions
-may be produced as derived offline artifacts when useful, but should not replace
-the repository-native source or become the maintenance target.
+Do **not** expand this textbook into:
 
-## Quality checks
+- a full Python tutorial;
+- a full algorithms/data-structures course;
+- a comprehensive design-pattern catalog;
+- a CPython/CPU/cache performance manual;
+- a line-by-line dump of every source file;
+- a changelog of every historical PR.
 
-Documentation changes must pass the repository's strict MkDocs build. Manual
-review should verify:
+The pedagogical design is mature. Add future material only when repository changes
+or observed learner difficulty reveal a concrete gap.
 
-- learning paths are navigable;
-- internal links work;
-- diagrams remain readable in plain Markdown rendering;
-- code snippets match current `main`;
-- authoritative and pedagogical sources are clearly distinguished;
-- chapter mastery criteria actually test reasoning rather than trivia;
-- early chapters provide more scaffolding than later exercises; and
-- the cheat sheet supports delayed retrieval rather than becoming a replacement
-  for conceptual understanding.
+## Quality gate
+
+The textbook must pass the repository's strict MkDocs build and normal protected
+quality gate. Manual review should confirm navigation is coherent, internal/source
+links are useful, diagrams remain readable, snippets match current source, early
+chapters provide more scaffolding than later practice, and the cheat sheet supports
+retrieval rather than replacing understanding.

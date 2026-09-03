@@ -1,770 +1,629 @@
-# Software Architecture Primer for This Engine
+# Software Architecture Primer
 
-This chapter teaches the software-design ideas that make the Evolution Simulation
-Engine readable. It assumes you already understand ordinary Python objects,
-packages, type annotations, and the basic purpose of interfaces/`Protocol`.
+This chapter gives you the software-design ideas needed to understand why the
+Evolution Simulation Engine is arranged the way it is. It assumes you already
+know ordinary Python objects, modules, type annotations, and the basic idea of an
+interface.
 
-The goal is not to memorize software-engineering vocabulary. It is to learn a
-small set of questions that let you recognize **why code is shaped the way it is**.
+> **Mental model:** architecture is mostly about deciding **where knowledge and
+> responsibility are allowed to live** so future change does not force unrelated
+> parts of the system to change together.
 
-## Where you are in the architecture
+## Why architecture matters here
+
+A tiny biological simulation could be written as one loop:
+
+```python
+for organism in organisms:
+    organism.age += 1
+    organism.energy -= 5
+```
+
+That may be perfectly reasonable for a small one-off model. Our engine has harder
+requirements:
 
 ```text
-YOU ARE HERE
-    |
-    v
-software-design ideas
-    |
-    v
-simulation mechanics
-    |
-    v
-general evolution
-    |
-    v
-biology
+many modeled mechanisms
+competing simultaneous transitions
+stochastic outcomes
+rollback on failure
+reproducibility
+multiple evolutionary domains
+rich biological specialization
+observation and causal history
+future extension without kernel redesign
 ```
 
-Later chapters will reuse these ideas repeatedly.
+Architecture is the response to those pressures.
 
-## Syntax, semantics, and sugar
+# Family 1 — Modeling abstractions
 
-**Syntax** is how a program is written. **Semantics** is what the program means or
-does.
+## Abstraction
 
-For example:
+An **abstraction** keeps the structure that matters for a problem while hiding
+irrelevant detail.
 
-```python
-x += 1
-```
+A good abstraction is not merely “more generic.”
 
-and the simpler mental expansion
-
-```python
-x = x + 1
-```
-
-express almost the same intent. The compact spelling is convenient syntax.
-
-### Literal syntactic sugar
-
-In programming-language discussions, **syntactic sugar** usually means a nicer
-surface syntax for something that could be expressed more primitively.
-
-A decorator is a useful example:
-
-```python
-@decorate
-class Example:
-    ...
-```
-
-is conceptually similar to:
-
-```python
-class Example:
-    ...
-
-Example = decorate(Example)
-```
-
-The syntax changes; the underlying conceptual operation is still “pass this
-class through a decorator.”
-
-### Construction or API sugar
-
-The repository sometimes uses **sugar** more informally to mean a convenience API.
-For example, `Simulation` and `SimulationState` can accept named context values at
-construction time:
-
-```python
-simulation = Simulation(
-    initial_domain_state=world,
-    genetic_architecture=architecture,
-)
-```
-
-That does **not** mean the kernel dynamically creates
-`simulation.genetic_architecture`. The convenience keyword is normalized into an
-immutable `SimulationContext` and retrieved from there.
-
-So when the code says “construction sugar,” read:
-
-> A convenient spelling for constructing the real underlying representation.
-
-This distinction matters because convenient syntax must not trick you into the
-wrong ownership model.
-
-## Abstraction: preserve what matters, discard what does not
-
-An **abstraction** is not merely something vague or high level. A good abstraction
-keeps the structure that matters for a responsibility and intentionally ignores
-details that do not.
-
-Imagine two systems.
-
-Biological inheritance may involve:
+For the kernel, this:
 
 ```text
-organisms
-parental roles
-genomes
-gamete formation
-recombination
-offspring
+copyable mutable modeled state
 ```
 
-Horizontal cultural transmission may involve:
+is useful.
+
+This would not be:
 
 ```text
-speakers
-listeners
-ideas
-copying
-modification
+organism world containing genomes and energy
 ```
 
-A general state-propagation component may not need to know any of those nouns. It
-may only need:
+because those details are irrelevant to generic transactional execution.
 
-```text
-zero or more source states
-recipient
-immutable context
-RNG
-    |
-    v
-resulting propagated state
-```
-
-That preserved shape is the useful abstraction.
-
-The repository's `PropagationModel` is deliberately written at that level. Biology
-then gives the general slots stronger meanings such as contributor genomes and
-inheritance.
-
-### Abstraction is responsibility-relative
-
-There is no single “most abstract” description that is automatically best.
-
-For a renderer, an organism might be a drawable shape.
-For a pedigree recorder, it might be a lineage participant.
-For inheritance, it might be a carrier of a genome.
-For the kernel, it is not an organism at all: it is hidden inside opaque
-`domain_state`.
-
-A useful question is therefore:
-
-> **What does this component need to know to perform its own responsibility?**
-
-Everything else is a candidate to remain behind a boundary.
-
-## Abstract, generic, concrete, and specialized
-
-These words are related but not identical.
-
-### Abstract
-
-An **abstract concept** captures a meaningful idea independent of one particular
-implementation.
-
-Examples in this project:
+### Abstraction ladder
 
 ```text
 state transition
-transmissible state
-propagation
-variation
-conflict resolution
+    -> transmissible-state propagation
+        -> biological inheritance
+            -> Mendelian sexual inheritance
+                -> one configured model
 ```
 
-### Generic
-
-**Generic code** is implementation written to operate across multiple concrete
-cases.
-
-Examples:
-
-```text
-SimulationState
-StageCoordinator
-PropagationModel contract
-```
-
-An abstraction is mainly a modeling/design idea. Generic code is often an
-implementation of an abstraction.
-
-### Concrete
-
-A **concrete implementation** commits to specific behavior or domain meaning.
-
-Examples:
-
-```text
-Aging
-Genome
-WorldState
-AcceptAll
-```
-
-### Specialization
-
-A **specialization** gives a general concept stronger domain-specific meaning.
-
-```text
-transmissible state
-    -> genome
-
-propagation
-    -> biological inheritance
-
-entity production
-    -> biological offspring production
-```
-
-A specialization should use the richer vocabulary of its domain. We do not rename
-`Genome` to something vague merely because it participates in a generic contract.
+Each level adds meaning. Lower levels should not pretend to know details belonging
+to higher ones.
 
 ## Contract versus implementation
 
-A **contract** says what a role promises.
-An **implementation** says how one concrete object fulfills that promise.
+A **contract** says what behavior a collaborator must provide. An
+**implementation** supplies one concrete way to provide it.
 
-For a kernel process, the contract is roughly:
-
-```text
-own one proposal event type
-propose zero or more candidate transitions
-apply events belonging to the process
-optionally materialize accepted events
-```
-
-`Aging`, `Movement`, and a nonbiological token-propagation process can all fulfill
-that same role while doing completely different domain work.
-
-### Interface versus policy
-
-An **interface/contract** defines the shape of a role.
-A **policy** is an interchangeable choice about what decision should be made.
-
-For example:
-
-```text
-Resolver          -> contract/role
-AcceptAll         -> one concrete policy
-preference order  -> another policy
-```
-
-This distinction lets orchestration remain stable while decision rules vary.
-
-## Capability-oriented design
-
-A **capability** is a small behavior an object can provide without forcing it into
-a giant inheritance hierarchy.
-
-The general evolution layer no longer requires every evolving thing to implement
-one enormous `EvolutionaryEntity` interface. If an algorithm only needs
-transmissible state, it asks for the narrower capability:
-
-```text
-TransmissibleStateCarrier
-    .transmissible_state
-```
-
-This is useful because “evolving entity” is a conceptual category, while different
-algorithms need different operational capabilities.
-
-A reading question to develop:
-
-> Why does this caller need this Protocol? What is the *smallest capability* it is
-> trying to use?
-
-## Composition versus inheritance
-
-**Inheritance** says one class derives behavior/identity from another class.
-**Composition** assembles behavior by holding or receiving separate components.
-
-The engine strongly favors composition for simulation behavior.
-
-A stage is assembled from processes and a resolver:
+For example, conceptually:
 
 ```python
-StageCoordinator(
-    processes=(process_a, process_b),
-    resolver=resolver,
-)
+class Resolver(Protocol):
+    def resolve_events(self, simulation_state, proposed_events): ...
 ```
 
-The stage is not a subclass of `AgingStage`, `PredationStage`, or
-`ReproductionStage`. The domain composes those behaviors from smaller objects.
+The kernel needs a policy that selects compatible events. It does not need every
+resolver to inherit from one base class or use one algorithm.
 
-Why prefer composition here?
-
-- policies can be replaced independently;
-- responsibilities stay smaller;
-- tests can isolate one component;
-- new biology does not require redesigning an inheritance tree;
-- the same orchestration can host nonbiological behavior.
-
-This does not mean inheritance is always bad. It means the architecture should
-not use inheritance merely to create a taxonomy when explicit composition better
-matches how responsibilities vary.
-
-## Separation of concerns and single responsibility
-
-**Separation of concerns** means different kinds of decisions should not be mixed
-into one component when they can evolve independently.
-
-A naive reproduction function might:
+That distinction enables:
 
 ```text
-find partners
-choose who wins conflicts
-choose who pays energy
-choose genetic contributors
-perform inheritance
-create offspring
-choose placement
-mutate the world
-record statistics
+StageCoordinator
+    depends on resolver contract
+        |
+        +-- AcceptAll
+        +-- preference/capacity policy
+        `-- future conflict policy
 ```
 
-That may be concise initially, but every future mating system, genetics model, or
-placement rule must modify the same object.
+## Generalization and specialization
 
-The current architecture instead separates questions such as:
+**Generalization** asks what several concrete systems genuinely share.
+**Specialization** adds stronger domain meaning.
 
-```text
-who participates?
-who invests?
-which participant genomes contribute?
-how is transmissible state propagated?
-which participants provide production context?
-how is an entity produced?
-where is it admitted?
-what telemetry/observation records the result?
-```
-
-The point is not “more classes are always better.” The point is that **independent
-reasons to change deserve independent responsibilities** when the separation
-clarifies the model.
-
-## Coupling and cohesion
-
-**Coupling** describes how much one component depends on details of another.
-**Cohesion** describes how strongly the contents of one component belong to the
-same responsibility.
-
-Good architecture generally aims for:
+In this project:
 
 ```text
-low unnecessary coupling
-high responsibility cohesion
-```
-
-The domain-neutral kernel is a strong example. It does not import organisms,
-genomes, reproduction, or ecology. That reduces coupling between execution
-mechanics and modeled meaning.
-
-Meanwhile, `StageCoordinator` is cohesive around one responsibility: coordinating
-proposal, resolution, materialization, application, and telemetry for one stage.
-
-## Layers and boundaries
-
-A **layer** groups responsibilities at a similar conceptual level.
-A **boundary** is where one layer deliberately stops knowing details owned by
-another.
-
-For this project:
-
-```text
-[KERNEL]
-execution mechanics
-    |
-    | boundary: domain_state is opaque
-    v
-[GENERAL EVOLUTION]
-transmissible information and evolutionary semantics
+propagation             general evolution
     |
     v
-[BIOLOGY]
-genomes, organisms, inheritance, development, ecology
+biological inheritance  biology
 ```
 
-The expression
+Inheritance is not a synonym for generic propagation. It is a biologically
+stronger specialization.
 
-```python
-simulation_state.domain_state
-```
-
-is therefore more than a field access. It marks an important boundary.
-
-Inside generic kernel code, the payload is opaque.
-Once biological domain code deliberately unwraps it into `WorldState`, normal
-biological names such as `world`, `organism`, and `energy` are appropriate.
-
-### Boundary test
-
-Ask:
-
-> Could the lower layer still run if this domain were replaced with a completely
-> different one?
-
-The repository contains an executable nonbiological evolution example precisely
-because this is stronger evidence than merely claiming the boundary is generic.
-
-## Dependency direction
-
-A **dependency** exists when one component needs another component's contract or
-implementation.
-
-The architectural direction is broadly:
+Likewise:
 
 ```text
-generic foundations
-       |
-       v
-simulation kernel
-       |
-       v
-general evolution
-       |
-       v
-biology
-       |
-       v
-processes / presets / experiments
+transmissible state -> genome
+entity             -> organism
+linkage group      -> chromosome
 ```
 
-Higher/domain-rich layers may depend on lower/general layers. Lower layers should
-not reach upward to domain-specific implementations.
+The general layer remains useful to nonbiological systems.
 
-This prevents a biological convenience from silently becoming a generic kernel
-assumption.
+## Generic, abstract, and concrete
 
-### Dependency inversion
+These words overlap but answer different questions.
 
-**Dependency inversion** means high-level policy does not have to depend directly
-on one low-level concrete implementation. Both can meet a stable abstraction.
-
-In practical project terms, a process can depend on a general policy contract and
-receive a concrete implementation through composition rather than constructing
-that implementation internally.
-
-This creates replaceable decision points without making orchestration know every
-possible domain rule.
-
-### Dependency injection
-
-**Dependency injection** is the act of supplying a dependency from outside rather
-than having a component secretly construct or discover it.
-
-For example:
-
-```python
-StageCoordinator(
-    processes=(...),
-    resolver=AcceptAll(),
-)
-```
-
-The resolver is injected explicitly.
-
-`SimulationContext` provides another form of explicit dependency access for
-immutable configuration/services. A domain package defines the meaning of a
-context service; the kernel merely carries the context.
-
-Dependency injection is useful because ownership and configuration become visible
-at construction time.
-
-## Orchestration versus domain logic
-
-**Orchestration** determines which components run and in what sequence without
-owning the domain meaning of their work.
+- **abstract**: focuses on essential conceptual structure;
+- **generic**: code/contract can operate across multiple concrete types/domains;
+- **concrete**: a specific implementation or domain object.
 
 Examples:
 
 ```text
-SimulationEngine
-    orchestrates run / stop / observe
+abstract idea:     competing state transitions
 
-SequentialStepCoordinator
-    orchestrates ordered stages in one transaction
+generic contract: Resolver
 
-StageCoordinator
-    orchestrates propose / resolve / materialize / apply
+concrete policy:   AcceptAll
+
+concrete biology:  Organism / Genome
 ```
 
-A process, by contrast, owns domain-specific transition meaning and mutation.
+Do not judge an abstraction by how abstract its name sounds. Judge whether it
+captures a real shared responsibility.
 
-This is a powerful source-reading distinction:
+# Family 2 — Composition and dependency design
 
-> If a method mostly calls other components in a meaningful order, it may be
-> orchestration code. Read it for sequencing and invariants, not hidden biology.
+## Composition
 
-## Policy objects and adapters
+**Composition** builds a larger behavior from smaller collaborators.
 
-A **policy object** encapsulates a replaceable decision rule.
+A configured stage is composed from:
+
+```text
+StageCoordinator
+    + Process(es)
+    + Resolver
+```
+
+The coordinator does not need subclasses for every ecological stage. Different
+process/policy objects can be assembled instead.
+
+This is one reason the project favors composition over deep inheritance
+hierarchies.
+
+## Dependency
+
+A dependency exists when one component needs another component or contract to do
+its job.
+
+Example:
+
+```text
+StageCoordinator -> Resolver
+```
+
+The arrow means the coordinator needs resolver behavior.
+
+Architecture becomes easier to reason about when dependency direction follows the
+conceptual layers:
+
+```text
+kernel
+  ^
+  |
+general evolution
+  ^
+  |
+biology
+```
+
+Higher/domain-specific layers may use lower/generic layers. Lower layers must not
+reach upward and import biological meaning.
+
+## Dependency injection
+
+**Dependency injection** means a component receives a dependency rather than
+constructing or locating it secretly.
+
+Compare:
+
+```python
+stage = StageCoordinator(processes=processes, resolver=resolver)
+```
+
+with a hidden design where `StageCoordinator` internally decides which resolver to
+construct.
+
+Injected dependencies make variation, testing, and ownership explicit.
+
+## Dependency inversion
+
+The useful mental model is:
+
+> High-level orchestration should depend on the **capability it needs**, not on one
+> low-level concrete implementation.
+
+So:
+
+```text
+StageCoordinator -> Resolver contract <- AcceptAll
+```
+
+rather than:
+
+```text
+StageCoordinator -> AcceptAll specifically
+```
+
+This is why a small structural contract can be architecturally important even
+when the Python syntax is simple.
+
+# Family 3 — Responsibility design
+
+## Separation of concerns
+
+Different kinds of decisions should live in different places when they vary for
+different reasons.
+
+A stage separates:
+
+```text
+Process
+    what candidate transition means
+    how selected transition mutates domain
+
+Resolver
+    which candidates survive conflict
+
+StageCoordinator
+    when proposal/resolution/materialization/application happen
+```
+
+If one object owns all three, changing competition policy can accidentally change
+domain mutation or execution semantics.
+
+## Cohesion
+
+A component is **cohesive** when its responsibilities belong together.
+
+`SequentialStepCoordinator` is cohesive around one idea:
+
+> Execute one complete transactional step across ordered stages.
+
+It does not also decide biological inheritance or stopping rules.
+
+## Coupling
+
+**Coupling** measures how much one component needs to know about another.
+
+The kernel is deliberately weakly coupled to modeled domains:
+
+```text
+kernel knows:
+    domain_state is copyable
+
+kernel does not know:
+    organisms
+    genomes
+    energy
+    mating
+    coordinates
+```
+
+Weak coupling is valuable when the hidden details need to evolve independently.
+
+## Orchestration versus domain behavior
+
+**Orchestration** determines who runs, when, and in what sequence.
+
+**Domain behavior** determines what a transition means.
+
+```text
+SequentialStepCoordinator / StageCoordinator
+    orchestration
+
+Aging / Movement / Reproduction / other Process
+    domain behavior
+```
+
+This distinction is one of the most useful ways to read the repository.
+
+## Policy object
+
+A **policy object** packages a replaceable decision rule.
 
 Examples include:
 
-- resolver policies;
-- contributor-selection policies;
-- inheritance policies;
-- placement policies.
+```text
+resolver policy
+stopping condition
+inheritance model
+variation operator
+mating/group selection policy
+```
 
-An **adapter** translates between contracts or vocabularies while preserving the
-underlying responsibility.
+Use a policy abstraction when there is a real axis of variation. Do not invent
+layers merely because “strategy pattern” sounds sophisticated.
 
-For example, biological inheritance can adapt biological genome semantics to the
-general `PropagationModel` shape without forcing the general layer to learn about
-chromosomes or parents.
+## Capability-oriented design
 
-Use adapters when two layers should cooperate but should not collapse into one.
+A **capability** contract asks whether an object can provide one small behavior.
 
-## State versus configuration/context
+Examples in the broader engine include carrying transmissible state or providing
+optional event materialization.
+
+This avoids forcing every evolutionary object into one giant inheritance
+hierarchy.
+
+## Adapter
+
+An adapter lets one domain-specific concept satisfy a more general contract while
+retaining stronger domain vocabulary.
+
+Biological inheritance can satisfy general propagation semantics while the biology
+layer still speaks naturally about genomes and inheritance.
+
+# Family 4 — State and execution
+
+## State versus configuration
 
 This distinction is foundational.
 
-### Mutable state
-
-**State** is information that changes as the simulation evolves.
+| State | Configuration/context |
+| --- | --- |
+| changes as simulation runs | stable for a run |
+| transactionally isolated | safely shared when immutable |
+| modeled current facts | policies/services/parameters |
+| belongs in `domain_state` or kernel snapshot values | belongs in `SimulationContext` |
 
 Examples:
 
 ```text
-organism age
-energy
-positions
-current transmissible token
-population membership
-simulation step index
-RNG state
+current organism energy      state
+current world membership     state
+step index                   state
+RNG internal state           state
+
+genetic architecture policy configuration/service
+fixed domain model           configuration/service
 ```
 
-### Configuration/context
+Putting evolving facts in immutable context breaks the model. Putting fixed
+configuration into mutable transaction state creates needless copying and hidden
+mutation risk.
 
-**Configuration/context** is stable information or a stable service used while
-state changes.
+## Mutation and side effects
 
-Examples can include:
+A **side effect** is an externally visible change caused by executing code.
+
+In this kernel, process application is deliberately the domain-mutation phase:
 
 ```text
-genetic architecture
-model policies
-immutable lookup services
-fixed parameters
+proposal        reads, creates candidates
+resolution      chooses
+materialization determines deferred accepted details
+application     mutates working domain state
 ```
 
-The kernel carries immutable configuration through `SimulationContext` and
-transactional evolving information through `SimulationState`.
+Separating these phases makes state visibility predictable.
 
-A common design smell is hiding evolving state inside “configuration” or mutating
-shared configuration during a run. That breaks the very distinction that makes
-transactional reasoning manageable.
+## Transaction
 
-## Mutability and side effects
-
-A **side effect** is an observable change outside a function's returned value:
-mutating an object, consuming RNG state, writing telemetry storage, performing
-I/O, and so on.
-
-Side effects are not inherently bad. A simulation must eventually mutate modeled
-state. The architectural question is:
-
-> **Where is mutation allowed, and at what phase?**
-
-The kernel deliberately constrains this:
+A transaction gives us an all-or-nothing boundary.
 
 ```text
-proposal       -> read candidate state
-resolution     -> choose transitions, no domain mutation
-materialize    -> determine accepted deferred consequences
-application    -> process owns domain mutation
-observation    -> descriptive, no committed-state mutation
+committed state
+    |
+    v
+copy state + RNG
+    |
+    v
+working transaction
+    |
+  stages mutate
+    |
+ success? ---------------- no -> discard working state
+    |
+   yes
+    v
+replace committed state
 ```
 
-Making side effects phase-specific is one of the main reasons the runtime can be
-reasoned about.
+There is no complicated “undo every mutation” routine. Rollback works because the
+authoritative input was never mutated.
 
-## Transactions, commit, and rollback
+## Determinism and reproducibility
 
-A **transaction** is a unit of work that either becomes authoritative as a whole
-or is discarded.
+The simulation RNG lives inside `SimulationState` and is cloned with the modeled
+state. Therefore state and randomness commit or roll back together.
 
-The kernel's step transaction is conceptually:
+This avoids a subtle failure mode:
 
 ```text
-committed State(t)
-      |
-      v
-copy domain state + clone RNG
-      |
-      v
-working State(t)
-      |
-      v
-run all stages
-      |
-      +---- failure ----> discard working state
-      |
-      v
-return completed state
-      |
-      v
-replace simulation.state
-      |
-      v
-committed State(t+1)
+model state rolled back
+RNG secretly advanced
 ```
 
-There is no magical “undo every mutation” routine. Rollback is achieved by never
-mutating the authoritative input in the first place.
+which would make retry/failure behavior change the stochastic trajectory.
 
-This is why `SimulationState.copy()` is architecturally important rather than just
-a convenience method.
+## Immutability
 
-## Determinism and RNG ownership
+`SimulationContext` is immutable because transactional copies share it by
+reference.
 
-A stochastic simulation can still be **deterministic with respect to its seed and
-inputs**.
+If shared configuration were mutable, a failed working transaction could mutate a
+shared object and leak changes into the authoritative state even though the domain
+copy was discarded.
 
-For reproducibility, random decisions cannot come from invisible generators
-scattered across components. The simulation RNG therefore belongs to
-`SimulationState`.
+Immutability here is an architectural guarantee, not a style preference.
 
-When the state is copied transactionally, the complete RNG state is cloned too.
-If the working transaction fails, random draws made there disappear with it.
+# Interface versus policy versus mechanism
 
-The useful invariant is:
+These terms are easy to blend.
 
 ```text
-same initial state
-+ same immutable configuration
-+ same seed
-+ same component ordering
-= same kernel trajectory
+contract/interface
+    shape of collaboration
+
+policy
+    replaceable decision rule
+
+mechanism
+    machinery that performs a general operation
+
+implementation
+    concrete code realizing any of the above
 ```
 
-This is why “just create `random.Random()` inside the process” is not a harmless
-local implementation choice.
-
-## Ownership, responsibility, and authority are different
-
-These words are easy to use interchangeably, but separating them makes complex
-code much easier to read.
-
-Ask several questions:
+For example:
 
 ```text
-Who contains/owns the object?
+Resolver protocol   contract
+AcceptAll            policy implementation
+StageCoordinator     orchestration mechanism
+```
+
+# Ownership, responsibility, and authority are different
+
+When reading code, ask several separate questions:
+
+```text
+Who contains this object?
 Who is allowed to mutate it?
 Who decides whether a transition occurs?
-Who decides what the transition means?
-Who decides when the phase executes?
+Who defines what that transition means?
+Who decides when it executes?
 Who owns randomness?
 Who observes the result?
 ```
 
 In the kernel:
 
-| Question | Primary answer |
-| --- | --- |
-| Who owns authoritative run state? | `Simulation` |
-| Who owns modeled-state meaning? | the domain |
-| Who owns the simulation RNG? | `SimulationState` |
-| Who owns one transition's domain meaning/mutation? | its `Process` |
-| Who decides which competing proposals survive? | `Resolver` |
-| Who orders stage phases? | `StageCoordinator` |
-| Who orders stages in a transaction? | `SequentialStepCoordinator` |
-| Who decides when the run stops? | `StoppingCondition` |
-| Who reads committed domain state? | `Observer` |
-| Who reads committed event history? | telemetry observers |
-
-Notice that `SimulationEngine` orchestrates execution but does **not** own the
-simulation's authoritative state.
-
-## Telemetry versus observation
-
-Both are descriptive, but they answer different questions.
-
-**Observation** asks:
-
-> What does committed domain state look like now?
-
-**Telemetry** asks:
-
-> Which materialized transitions actually committed, through which process/stage,
-> and what opaque domain effects were captured?
-
-A population recorder may tell you that abundance changed. Event telemetry can
-help tell you which committed events caused that change.
-
-Neither belongs in conflict resolution, and neither should mutate committed
-simulation state as a side effect of observing it.
-
-## Preflight versus runtime validation
-
-Some facts can be checked before a simulation starts:
-
 ```text
-Does this component graph provide required capabilities?
-Does this object satisfy the expected structural contract?
+Simulation
+    owns authoritative SimulationState
+
+SimulationState
+    owns transaction envelope + RNG
+
+StageCoordinator
+    owns phase ordering
+
+Resolver
+    owns acceptance/order policy
+
+Process
+    owns transition meaning + application mutation
+
+Observer
+    reads committed results
 ```
 
-Those belong at configuration/compilation boundaries such as `SimulationSpec`.
+The answers intentionally differ.
 
-Other facts only exist because state evolves:
+# Syntax, semantics, and “sugar”
 
-```text
-Is this particular entity still present?
-Can this particular candidate afford an action now?
+## Syntax versus semantics
+
+Syntax is how something is written. Semantics is what it means.
+
+```python
+working_state = simulation_state.copy()
 ```
 
-Those are runtime facts.
+Syntax-level reading:
 
-The architecture tries not to repeatedly rediscover static configuration errors in
-the middle of a run.
+> Call `copy()` and assign the result.
 
-## A compact reading checklist
+Architecture-level semantic reading:
 
-When you open an unfamiliar file, ask:
+> Begin a transaction whose modeled state and RNG can advance independently of the
+> committed snapshot.
 
-1. Which layer am I in: kernel, general evolution, biology, or composition?
-2. Is this file defining a contract, a policy, domain state, or orchestration?
-3. What responsibility does it own?
-4. What details does it deliberately *not* know?
-5. Which objects are injected into it?
-6. What may it mutate?
-7. Can it consume simulation RNG?
-8. Which invariant would break if I moved this responsibility elsewhere?
-9. Is this line essential semantics, validation, diagnostics, or optimization?
-10. Which focused test demonstrates the intended behavior?
+The textbook trains both levels, especially the second.
 
-## Misconception check
+## Literal syntactic sugar
 
-**“More abstract” does not mean “better.”**
+Syntactic sugar is alternate language syntax for an operation expressible more
+explicitly.
 
-The kernel should not learn about genomes because genomes are irrelevant to its
-responsibility. Biology *should* use the word genome because that specificity is
-valuable once the domain boundary has been crossed.
+For teaching purposes:
 
-The goal is not maximum genericity. The goal is **the right knowledge at the right
-layer**.
+```python
+x += 1
+```
 
-## You understand this chapter if you can…
+is a compact syntax for updating `x` through augmented assignment semantics.
 
-- explain abstraction as preserving responsibility-relevant structure rather than
-  merely “making things generic”;
-- distinguish contract, policy, implementation, adapter, and orchestration using
-  examples from this repository;
-- explain why `simulation_state.domain_state` is an architectural boundary;
-- distinguish state from immutable configuration/context;
-- explain how a transaction can roll back without running an undo procedure;
-- distinguish ownership, mutation rights, decision authority, and observation;
-- look at `resolver.resolve_events(...)` and say “selection among candidates, not
-  domain mutation”; and
-- explain why explicit composition/dependency injection makes domain policies
-  replaceable without changing kernel orchestration.
+## Construction/API sugar
 
-Next: [Simulation Fundamentals](simulation_fundamentals.md).
+Repository prose may also use **construction sugar** more informally: a convenient
+API that normalizes into the canonical representation.
+
+For example, named context values accepted during construction are normalized into
+`SimulationContext`; they do not become magical dynamic state fields.
+
+That is API convenience, not a new architecture concept.
+
+## Decorators
+
+A decorator modifies/replaces the object produced by a class/function definition.
+In this project decorators such as `@attrs.frozen(...)` matter because they help
+encode properties like immutability and generated data-model behavior.
+
+Focus first on the architectural guarantee, then on the decorator mechanics.
+
+## Positional-only `/` and keyword-only `*`
+
+In a signature:
+
+```python
+def apply_event(self, simulation_state, event, /) -> None: ...
+```
+
+`/` says preceding parameters are positional-only.
+
+This can matter at generic contract boundaries because specializations remain free
+to use more domain-specific local parameter names without promising those names as
+part of keyword-call compatibility.
+
+Keyword-only `*` does the inverse for parameters after it, making call sites more
+explicit where that improves clarity.
+
+# Wrong-but-plausible architecture
+
+Suppose a resolver does this:
+
+```python
+class PredatorResolver:
+    def resolve_events(self, simulation_state, proposed_events):
+        winner = choose_winner(proposed_events)
+        simulation_state.domain_state.remove_prey(winner.prey_id)
+        return [winner]
+```
+
+It looks convenient, but it merges two responsibilities:
+
+```text
+select transition
++
+apply domain mutation
+```
+
+That makes phase semantics and testing harder and violates the resolver/process
+boundary. The healthier design returns the selected event and lets its owning
+process apply it.
+
+# Architecture quality preview
+
+A design is not “good” merely because it uses abstractions. Ask:
+
+```text
+Does each abstraction isolate a real responsibility or variation?
+Can the important control flow be seen directly?
+Are dependencies explicit?
+Is domain knowledge kept in the correct layer?
+Can invariants be tested locally?
+Does the design add fewer concepts than the problem requires?
+```
+
+Continue to [Architecture Quality](architecture_quality.md) for a systematic
+framework.
+
+# You understand this chapter if you can...
+
+- explain abstraction as preserving relevant structure rather than maximizing
+  genericity;
+- distinguish contract, policy, mechanism, and implementation;
+- explain dependency injection and inversion using this project;
+- separate orchestration from modeled-domain behavior;
+- distinguish ownership, authority, and mutation rights;
+- explain why mutable state and immutable context are separate;
+- derive transaction/RNG semantics from failure/reproducibility needs;
+- identify a biology leak or god-object responsibility collapse; and
+- interpret important Python syntax by its architectural role rather than only its
+  mechanics.
+
+## Next
+
+Read [Architecture Quality](architecture_quality.md), then
+[Computational Complexity and Performance Thinking](computational_complexity.md).
