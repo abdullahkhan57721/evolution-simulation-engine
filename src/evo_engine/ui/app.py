@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from evo_engine.experiments import ReferenceExperimentResult
+from evo_engine.presets import ReferenceEcologyConfig
 from evo_engine.ui.charts import (
     allele_frequency_figure,
     environment_figure,
@@ -50,7 +51,7 @@ def main() -> None:
         "experiments, and exports."
     )
 
-    submitted_config = _configuration_form()
+    submitted_config = _configuration_controls()
     if submitted_config is not None:
         try:
             with st.spinner("Running reference ecology…"):
@@ -91,77 +92,132 @@ def main() -> None:
         _render_experiments(run)
 
 
-def _configuration_form():
+def _configuration_controls() -> ReferenceEcologyConfig | None:
     st.sidebar.header("Reference ecology")
     st.sidebar.caption(
-        "A curated subset of validated model parameters. Percent controls are "
-        "translated to the engine's existing parts-per-million contracts."
+        "A curated subset of validated model parameters. High-level choices "
+        "show only controls that affect the active configuration."
     )
-    with st.sidebar.form("reference-configuration"):
-        seed = int(st.number_input("Seed", value=42, step=1))
-        max_steps = int(
-            st.number_input("Steps", min_value=1, max_value=500, value=30, step=1)
+
+    seed = int(st.sidebar.number_input("Seed", value=42, step=1))
+    max_steps = int(
+        st.sidebar.number_input(
+            "Steps",
+            min_value=1,
+            max_value=500,
+            value=30,
+            step=1,
         )
-        initial_population = int(
-            st.number_input(
-                "Founder population",
-                min_value=1,
-                max_value=500,
-                value=20,
-                step=1,
-            )
+    )
+    initial_population = int(
+        st.sidebar.number_input(
+            "Founder population",
+            min_value=1,
+            max_value=500,
+            value=20,
+            step=1,
         )
-        width = int(
-            st.number_input("World width", min_value=1, max_value=50, value=12, step=1)
+    )
+    width = int(
+        st.sidebar.number_input(
+            "World width",
+            min_value=1,
+            max_value=50,
+            value=12,
+            step=1,
         )
-        height = int(
-            st.number_input("World height", min_value=1, max_value=50, value=12, step=1)
+    )
+    height = int(
+        st.sidebar.number_input(
+            "World height",
+            min_value=1,
+            max_value=50,
+            value=12,
+            step=1,
         )
-        initial_energy = int(
-            st.number_input(
-                "Founder energy", min_value=0, max_value=500, value=30, step=1
-            )
+    )
+    initial_energy = int(
+        st.sidebar.number_input(
+            "Founder energy",
+            min_value=0,
+            max_value=500,
+            value=30,
+            step=1,
         )
-        mutation_percent = st.slider(
+    )
+
+    st.sidebar.markdown("**Evolutionary variation**")
+    mutation_enabled = st.sidebar.checkbox(
+        "Enable mutation",
+        value=True,
+        help="When disabled, mutation probability and maximum change are normalized to zero.",
+    )
+    mutation_percent: int | None = None
+    mutation_max_change: int | None = None
+    if mutation_enabled:
+        mutation_percent = st.sidebar.slider(
             "Mutation probability (%)",
             min_value=0,
             max_value=100,
             value=1,
             step=1,
         )
-        recombination_percent = st.slider(
+        mutation_max_change = int(
+            st.sidebar.number_input(
+                "Maximum mutation step",
+                min_value=0,
+                max_value=20,
+                value=1,
+                step=1,
+            )
+        )
+
+    recombination_enabled = st.sidebar.checkbox(
+        "Enable recombination",
+        value=True,
+        help="When disabled, the configured crossover probability is normalized to zero.",
+    )
+    recombination_percent: int | None = None
+    if recombination_enabled:
+        recombination_percent = st.sidebar.slider(
             "Recombination probability (%)",
             min_value=0,
             max_value=100,
             value=50,
             step=1,
         )
-        resource_generation_amount = int(
-            st.number_input(
-                "Resource units per deposit",
-                min_value=1,
-                max_value=100,
-                value=6,
-                step=1,
-            )
-        )
-        resource_deposits_per_step = int(
-            st.number_input(
-                "Resource deposits per step",
-                min_value=1,
-                max_value=100,
-                value=8,
-                step=1,
-            )
-        )
-        growth_rate = st.slider(
-            "Founder growth rate",
-            min_value=0,
-            max_value=4,
-            value=1,
+
+    st.sidebar.markdown("**Ecology and founder traits**")
+    resource_generation_amount = int(
+        st.sidebar.number_input(
+            "Resource units per deposit",
+            min_value=1,
+            max_value=100,
+            value=6,
             step=1,
         )
-        submitted = st.form_submit_button("Run simulation", type="primary")
+    )
+    resource_deposits_per_step = int(
+        st.sidebar.number_input(
+            "Resource deposits per step",
+            min_value=1,
+            max_value=100,
+            value=8,
+            step=1,
+        )
+    )
+    growth_rate = st.sidebar.slider(
+        "Founder growth rate",
+        min_value=0,
+        max_value=4,
+        value=1,
+        step=1,
+    )
+    submitted = st.sidebar.button(
+        "Run simulation",
+        type="primary",
+        use_container_width=True,
+    )
 
     if not submitted:
         return None
@@ -174,7 +230,10 @@ def _configuration_form():
             width=width,
             height=height,
             initial_energy=initial_energy,
+            mutation_enabled=mutation_enabled,
             mutation_percent=mutation_percent,
+            mutation_max_change=mutation_max_change,
+            recombination_enabled=recombination_enabled,
             recombination_percent=recombination_percent,
             resource_generation_amount=resource_generation_amount,
             resource_deposits_per_step=resource_deposits_per_step,

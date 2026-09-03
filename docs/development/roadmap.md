@@ -64,7 +64,16 @@ committed spatial observation boundary
 portfolio reference-ecology dashboard
         |
         v
-v0.1 portfolio release polish / verification
+M2 adaptive curated configuration
+        |
+        v
+M3 renderer-neutral cinematic proof
+        |
+        v
+M4 flagship evolutionary demonstration
+        |
+        v
+M5 v0.1 release hardening / verification
         |
         +-----------------------+-----------------------+
         |                       |                       |
@@ -73,6 +82,11 @@ richer genetics          richer mating systems    richer development /
                                                   evolutionary ecology
 ```
 
+A future native execution backend is a separate evidence-driven architectural
+front after the portfolio release. Near-term UI work should preserve static typed
+configuration and committed result boundaries that would make such a backend
+possible without redesigning the kernel or `SimulationSpec` speculatively.
+
 Richer genetic-expression and development/G×E models remain valid post-v0.1
 fronts once their own public responsibilities are clear; they do not block the
 portfolio release.
@@ -80,7 +94,9 @@ portfolio release.
 ## Portfolio release front — Interactive reference ecology
 
 **Status:** committed spatial presentation boundary completed by Issue #106 /
-PR #107; dashboard implemented by Issue #108 / PR #109.
+PR #107; dashboard implemented by Issue #108 / PR #109. Adaptive configuration is
+the next presentation capability, followed by a downstream cinematic-rendering
+proof, a flagship demonstration, and final v0.1 hardening.
 
 **Goal:** expose the strength of the existing engine through a polished,
 reproducible end-to-end experience without creating a second simulation
@@ -94,26 +110,57 @@ simulation/domain layers
         v
 committed observation / experiment values
         |
-        v
-presentation transforms
-        |
-        v
-UI / visualization
+        +-----------------------+
+        |                       |
+        v                       v
+interactive presentation   cinematic presentation
+(Streamlit / Plotly)       (future Manim)
 ```
 
-`SpatialRecorder` supplies the missing opt-in immutable spatial history needed for
-interactive world playback. The Streamlit/Plotly dashboard consumes that boundary
-plus the existing population, genetic-composition, event, pedigree/life-history,
-experiment, and export contracts. It retains completed immutable presentation
-values rather than mutable worlds or engines.
+Renderers remain downstream consumers. Committed observation/result values should
+not contain Plotly, Streamlit, Manim, animation-frame, or other renderer-owned
+concepts. Do not introduce a generic replay framework unless implementation finds
+a concrete reusable-data gap that forces renderer-specific assumptions into
+committed simulation results.
+
+`SpatialRecorder` supplies the opt-in immutable spatial history needed for world
+playback. The Streamlit/Plotly dashboard consumes that boundary plus the existing
+population, genetic-composition, event, pedigree/life-history, experiment, and
+export contracts. It retains completed immutable presentation values rather than
+mutable worlds or engines.
+
+Curated configuration should evolve through real supported model choices rather
+than a dump of every internal field. Conditional visibility belongs to the UI,
+while selected values must normalize into actual typed configuration before the
+engine runs. Hidden or stale UI state must never become implicit simulation
+configuration, and adding adaptive forms does not authorize fabricating model
+modes the preset does not support.
+
+The remaining v0.1 presentation sequence is deliberately narrow:
+
+1. **M2 — adaptive curated configuration:** prove conditional configuration using
+   supported reference-ecology controls while preserving typed validation and an
+   explicit run action;
+2. **M3 — renderer-neutral cinematic proof:** consume existing committed values
+   from a downstream Manim renderer without making the renderer a simulation
+   owner or introducing speculative replay architecture;
+3. **M4 — flagship evolutionary demonstration:** compose existing simulation,
+   observation, interactive, and cinematic capabilities into one reproducible
+   portfolio story rather than broadening biology merely for visual drama;
+4. **M5 — v0.1 release hardening:** perform browser-level visual QA,
+   deployment/discoverability work, README/media polish, release tagging, and
+   final reproducibility/CI verification.
 
 The v0.1 release should prioritize:
 
-- curated reference-ecology configuration and understandable validation errors;
+- adaptive but curated reference-ecology configuration and understandable
+  validation errors;
 - committed spatial playback;
 - population/ecological, heritable-trait, genetic, event, and life-history views;
 - reproducible multi-seed experiment comparison;
 - existing JSON/CSV exports;
+- renderer-neutral committed evidence reusable by interactive and cinematic
+  presentation;
 - concise portfolio-oriented README/release instructions;
 - reliable headless UI and full protected-CI verification;
 - deployment/discoverability polish only where it materially improves portfolio
@@ -121,10 +168,14 @@ The v0.1 release should prioritize:
 
 **Non-goals before v0.1:** richer recombination, richer mating systems, new
 biology subsystems, kernel redesign, live mutable-engine browser ownership,
-checkpoint upload/resume UI, databases, or a custom frontend/backend stack.
+checkpoint upload/resume UI, databases, a custom frontend/backend stack, native
+Rust/C++ execution, or speculative `SimulationReplay`/backend-neutral-plan
+frameworks.
 
 After v0.1, the modeled-domain milestones below resume against their settled
-contracts.
+contracts. Any native-backend milestone should begin from measured requirements
+and preserve the distinction between Python modeling/configuration, a possible
+future static compiled plan, backend execution, and committed result values.
 
 ## Milestone 1 — General-evolution contract normalization
 

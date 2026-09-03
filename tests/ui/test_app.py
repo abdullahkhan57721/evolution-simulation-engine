@@ -19,14 +19,80 @@ def test_dashboard_launches_without_running_a_simulation() -> None:
     assert app.info
 
 
-def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
-    """Test one meaningful form interaction produces committed result metrics."""
+def test_adaptive_controls_hide_inactive_mutation_and_recombination_fields() -> None:
+    """Test high-level choices immediately control dependent field visibility."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
 
-    app.number_input[1].set_value(1)
-    app.number_input[2].set_value(4)
-    app.number_input[3].set_value(4)
-    app.number_input[4].set_value(4)
+    assert "Mutation probability (%)" in {slider.label for slider in app.slider}
+    assert "Maximum mutation step" in {
+        number_input.label for number_input in app.number_input
+    }
+    assert "Recombination probability (%)" in {slider.label for slider in app.slider}
+
+    mutation = next(
+        checkbox for checkbox in app.checkbox if checkbox.label == "Enable mutation"
+    )
+    mutation.set_value(False)
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert "Mutation probability (%)" not in {slider.label for slider in app.slider}
+    assert "Maximum mutation step" not in {
+        number_input.label for number_input in app.number_input
+    }
+    assert "Recombination probability (%)" in {slider.label for slider in app.slider}
+    assert app.info
+    assert not app.metric
+
+    recombination = next(
+        checkbox
+        for checkbox in app.checkbox
+        if checkbox.label == "Enable recombination"
+    )
+    recombination.set_value(False)
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert "Recombination probability (%)" not in {
+        slider.label for slider in app.slider
+    }
+    assert app.info
+    assert not app.metric
+
+
+def test_dashboard_configuration_changes_do_not_run_automatically() -> None:
+    """Test editing configuration still requires the explicit run action."""
+    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+
+    steps = next(
+        number_input
+        for number_input in app.number_input
+        if number_input.label == "Steps"
+    )
+    steps.set_value(1)
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert app.info
+    assert not app.metric
+
+
+def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
+    """Test one meaningful interaction produces committed result metrics."""
+    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+
+    for label, value in (
+        ("Steps", 1),
+        ("Founder population", 4),
+        ("World width", 4),
+        ("World height", 4),
+    ):
+        next(
+            number_input
+            for number_input in app.number_input
+            if number_input.label == label
+        ).set_value(value)
+
     run_button = next(
         button for button in app.button if button.label == "Run simulation"
     )
@@ -48,13 +114,53 @@ def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
     assert completed.value == "1"
 
 
+def test_dashboard_runs_after_disabling_adaptive_branches() -> None:
+    """Test inactive variation branches still produce a valid real simulation."""
+    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+
+    for label in ("Enable mutation", "Enable recombination"):
+        next(
+            checkbox for checkbox in app.checkbox if checkbox.label == label
+        ).set_value(False)
+        app.run(timeout=30)
+
+    for label, value in (
+        ("Steps", 1),
+        ("Founder population", 4),
+        ("World width", 4),
+        ("World height", 4),
+    ):
+        next(
+            number_input
+            for number_input in app.number_input
+            if number_input.label == label
+        ).set_value(value)
+
+    next(button for button in app.button if button.label == "Run simulation").click()
+    app.run(timeout=60)
+
+    assert not app.exception
+    completed = next(
+        metric for metric in app.metric if metric.label == "Completed steps"
+    )
+    assert completed.value == "1"
+
+
 def test_dashboard_surfaces_cross_field_configuration_errors() -> None:
     """Test expected reference validation errors are presented to the user."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
 
-    app.number_input[2].set_value(5)
-    app.number_input[3].set_value(2)
-    app.number_input[4].set_value(2)
+    for label, value in (
+        ("Founder population", 5),
+        ("World width", 2),
+        ("World height", 2),
+    ):
+        next(
+            number_input
+            for number_input in app.number_input
+            if number_input.label == label
+        ).set_value(value)
+
     run_button = next(
         button for button in app.button if button.label == "Run simulation"
     )

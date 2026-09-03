@@ -24,6 +24,7 @@ def test_build_curated_config_reuses_reference_validation_contracts() -> None:
         height=4,
         initial_energy=25,
         mutation_percent=2,
+        mutation_max_change=3,
         recombination_percent=60,
         resource_generation_amount=9,
         resource_deposits_per_step=3,
@@ -37,6 +38,7 @@ def test_build_curated_config_reuses_reference_validation_contracts() -> None:
     assert config.height == 4
     assert config.initial_energy == 25
     assert config.mutation_probability_ppm == 20_000
+    assert config.mutation_max_change == 3
     assert config.recombination_probability_ppm == 600_000
     assert config.resource_generation_amount == 9
     assert config.resource_deposits_per_step == 3
@@ -46,6 +48,31 @@ def test_build_curated_config_reuses_reference_validation_contracts() -> None:
         build_curated_config(initial_population=5, width=2, height=2)
     with pytest.raises(ValueError, match="mutation_percent"):
         build_curated_config(mutation_percent=101)
+    with pytest.raises(ValueError, match="mutation_max_change"):
+        build_curated_config(mutation_max_change=-1)
+
+
+def test_disabled_adaptive_branches_ignore_stale_dependent_values() -> None:
+    """Test hidden mutation/recombination values cannot leak into model config."""
+    config = build_curated_config(
+        mutation_enabled=False,
+        mutation_percent=83,
+        mutation_max_change=19,
+        recombination_enabled=False,
+        recombination_percent=77,
+    )
+
+    assert config.mutation_probability_ppm == 0
+    assert config.mutation_max_change == 0
+    assert config.recombination_probability_ppm == 0
+
+
+def test_adaptive_branch_flags_are_explicit_booleans() -> None:
+    """Test branch activation cannot be supplied through truthy non-Booleans."""
+    with pytest.raises(TypeError, match="mutation_enabled"):
+        build_curated_config(mutation_enabled=1)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="recombination_enabled"):
+        build_curated_config(recombination_enabled=1)  # type: ignore[arg-type]
 
 
 def test_dashboard_run_contains_only_immutable_completed_result_values() -> None:
@@ -88,6 +115,28 @@ def test_dashboard_run_contains_only_immutable_completed_result_values() -> None
     assert not hasattr(result, "simulation")
     assert not hasattr(result, "world")
     assert not hasattr(result, "recorder")
+
+
+def test_dashboard_reference_runs_with_adaptive_branches_disabled() -> None:
+    """Test canonical disabled branches execute through the real reference preset."""
+    config = build_curated_config(
+        max_steps=1,
+        initial_population=4,
+        width=4,
+        height=4,
+        mutation_enabled=False,
+        mutation_percent=91,
+        mutation_max_change=17,
+        recombination_enabled=False,
+        recombination_percent=88,
+    )
+
+    result = run_dashboard_reference(config)
+
+    assert result.completed_steps == 1
+    assert result.config.mutation_probability_ppm == 0
+    assert result.config.mutation_max_change == 0
+    assert result.config.recombination_probability_ppm == 0
 
 
 def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None:
