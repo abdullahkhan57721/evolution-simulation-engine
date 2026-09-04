@@ -5,15 +5,21 @@ from __future__ import annotations
 import attrs
 import pytest
 
+from evo_engine.ecology import PatchyResourcePlacement
 from evo_engine.genetics import MAX_INTAKE_RATE, MAX_SPEED
 from evo_engine.ui.models import (
     FLAGSHIP_MAX_INTAKE_SCENARIO,
+    SCIENCE_AWARE_HIGH_SPEED,
+    SCIENCE_AWARE_LOW_SPEED,
+    SCIENCE_AWARE_MAX_SPEED_SCENARIO,
+    SCIENCE_AWARE_MAX_SPEED_SEED,
     DashboardRun,
     build_curated_config,
     parse_seed_list,
     run_dashboard_experiment,
     run_dashboard_flagship_max_intake,
     run_dashboard_reference,
+    run_dashboard_science_aware_max_speed,
 )
 
 
@@ -209,6 +215,44 @@ def test_dashboard_flagship_can_opt_into_selected_individual_evidence() -> None:
     assert len(result.individual_trait_history) == len(result.spatial_history)
     assert result.individual_trait_history[0].trait_names == (MAX_INTAKE_RATE,)
     assert result.individual_trait_history[0].trait_value(0, MAX_INTAKE_RATE) in (2, 8)
+
+
+def test_science_aware_speed_preview_combines_real_b1_b2_evidence() -> None:
+    """Test the preview is committed B1/B2 evidence, not renderer reconstruction."""
+    result = run_dashboard_science_aware_max_speed()
+
+    assert result.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO
+    assert result.config.seed == SCIENCE_AWARE_MAX_SPEED_SEED
+    assert result.config.mutation_probability_ppm == 0
+    assert isinstance(result.config.resource_placement_model, PatchyResourcePlacement)
+    assert result.completed_steps == 30
+    assert len(result.individual_trait_history) == len(result.spatial_history) == 31
+    founder_traits = result.individual_trait_history[0]
+    assert founder_traits.trait_names == (MAX_SPEED,)
+    assert {
+        founder_traits.trait_value(item.organism_id, MAX_SPEED)
+        for item in founder_traits.individuals
+    } == {SCIENCE_AWARE_LOW_SPEED, SCIENCE_AWARE_HIGH_SPEED}
+
+    patches = result.config.resource_placement_model.patches
+    for frame, traits in zip(
+        result.spatial_history,
+        result.individual_trait_history,
+        strict=True,
+    ):
+        assert frame.step_index == traits.step_index
+        assert tuple(item.organism_id for item in frame.organisms) == tuple(
+            item.organism_id for item in traits.individuals
+        )
+        assert all(
+            any(
+                (resource.x - patch.center_x) ** 2
+                + (resource.y - patch.center_y) ** 2
+                <= patch.radius**2
+                for patch in patches
+            )
+            for resource in frame.resources
+        )
 
 
 def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None:
