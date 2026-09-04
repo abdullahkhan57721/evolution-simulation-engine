@@ -83,6 +83,7 @@ nav:
   - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md
   - Flagship Evolution Demo: flagship_evolution_demo.md
+  - B3 Flagship Cinematic: cinematic_flagship.md
   - Development Log: development_log.md
   - API Reference:
       - Validators: references/validators.md
