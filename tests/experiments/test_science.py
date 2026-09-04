@@ -108,36 +108,36 @@ def test_scientific_provenance_rejects_invalid_treatment_json_shape() -> None:
 
 
 def test_fixed_horizon_time_to_event_keeps_right_censoring_explicit() -> None:
-    """Test an unobserved event is censored rather than assigned a false time."""
+    """Test an unobserved outcome is censored rather than assigned a false time."""
     outcome = FixedHorizonTimeToEvent(
         start_step_index=5,
         horizon_step_index=30,
     )
 
-    assert outcome.event_step_index is None
+    assert outcome.observed_step_index is None
     assert outcome.right_censored is True
     assert outcome.exposure_steps == 25
 
 
 def test_fixed_horizon_time_to_event_preserves_late_entry_exposure() -> None:
-    """Test observed exposure starts at the declared entry state."""
+    """Test observed exposure starts at the declared committed-state entry."""
     outcome = FixedHorizonTimeToEvent(
         start_step_index=8,
         horizon_step_index=30,
-        event_step_index=19,
+        observed_step_index=19,
     )
 
     assert outcome.right_censored is False
     assert outcome.exposure_steps == 11
 
 
-def test_fixed_horizon_time_to_event_rejects_event_beyond_horizon() -> None:
-    """Test fixed-horizon comparison cannot record a later event as observed."""
+def test_fixed_horizon_time_to_event_rejects_observation_beyond_horizon() -> None:
+    """Test fixed-horizon comparison cannot record a later observed outcome."""
     with pytest.raises(ValueError, match="must not exceed horizon_step_index"):
         FixedHorizonTimeToEvent(
             start_step_index=8,
             horizon_step_index=30,
-            event_step_index=31,
+            observed_step_index=31,
         )
 
 
@@ -151,6 +151,8 @@ def test_treatment_specification_validation_stays_small_and_json_only() -> None:
         )
     with pytest.raises(TypeError, match="JSON-serializable"):
         canonical_treatment_specification({"unsupported": object()})
+    with pytest.raises(ValueError, match="finite JSON numeric values"):
+        canonical_treatment_specification({"unsupported": float("nan")})
 
 
 def test_treatment_integrity_accepts_only_the_declared_normalized_difference() -> None:
