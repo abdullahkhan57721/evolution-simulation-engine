@@ -461,7 +461,7 @@ def run_e4_replicate(
             values = mechanism_values[speed]
             values["movement_count"] += 1
             values["realized_distance"] += measurement.realized_distance
-            values["locomotion_energy"] += measurement.energy_expenditure
+            values["locomotion_energy"] += measurement.locomotion_energy_expenditure
         elif isinstance(event, ResourceConsumption.Event):
             speed = _event_actor_speed(
                 step_index=event.step_index,
