@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import attrs
 import streamlit as st
 
-from evo_engine.presets import ReferenceEcologyConfig
 from evo_engine.ui.models import (
     DashboardRun,
     build_curated_config,
@@ -118,8 +119,8 @@ def _render_custom_experiment() -> ConfigurationOutcome:
     return ConfigurationOutcome(completed_run=candidate)
 
 
-def _custom_controls() -> dict[str, object]:
-    values: dict[str, object] = {}
+def _custom_controls() -> dict[str, Any]:
+    values: dict[str, Any] = {}
     with st.expander("Simulation & reproducibility", expanded=True):
         values["seed"] = int(st.number_input("Seed", value=42, step=1))
         values["max_steps"] = int(
@@ -208,7 +209,7 @@ def _custom_controls() -> dict[str, object]:
     return values
 
 
-def _genetics_controls(values: dict[str, object]) -> None:
+def _genetics_controls(values: dict[str, Any]) -> None:
     with st.expander("Genetics", expanded=True):
         mutation_enabled = st.checkbox("Enable mutation", value=True)
         values["mutation_enabled"] = mutation_enabled
