@@ -56,6 +56,4 @@ class ContinuousTraitEncoding:
                 f"value {validated} must lie within "
                 f"[{self.lower_bound}, {self.upper_bound}]."
             )
-        return (validated - self.lower_bound) / (
-            self.upper_bound - self.lower_bound
-        )
+        return (validated - self.lower_bound) / (self.upper_bound - self.lower_bound)
