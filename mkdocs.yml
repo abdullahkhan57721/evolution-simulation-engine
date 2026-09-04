@@ -81,6 +81,7 @@ nav:
   - Reproducible Experiments and Export: experiments.md
   - Experimental Science Standard: experimental_science.md
   - Controlled Clonal Locomotion: controlled_locomotion.md
+  - E3 Ecological Performance Landscape: e3_ecological_performance.md
   - Exact Checkpoint and Resume: checkpointing.md
   - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md
