@@ -7,26 +7,34 @@ import json
 from importlib.metadata import version
 from pathlib import Path
 
+import attrs
+
 from evo_engine.cinematic import (
     build_cinematic_render_manifest,
     build_portfolio_animation_timeline,
     render_portfolio_animation,
 )
 from evo_engine.ecology import PatchyResourcePlacement, ResourcePatch
-from evo_engine.genetics import MAX_SPEED
+from evo_engine.engine import Simulation
+from evo_engine.genetics import GENETIC_ARCHITECTURE, MAX_SPEED
 from evo_engine.observation import IndividualGeneticTraitRecorder, SpatialRecorder
 from evo_engine.presentation import ContinuousTraitEncoding
 from evo_engine.presets.reference_ecology.config import (
     REFERENCE_TRAIT_DOMAINS,
     ReferenceEcologyConfig,
 )
+from evo_engine.presets.reference_ecology.genetics import (
+    build_balanced_reference_trait_world,
+)
 from evo_engine.presets.reference_ecology.observable import build_reference_ecology
 
 _SCENARIO_LABEL = "b1-b2-science-aware-smoke"
+_LOW_SPEED = 1
+_HIGH_SPEED = 4
 
 
 def main() -> None:
-    """Run a tiny patchy reference ecology, then render committed focal evidence."""
+    """Run a tiny patchy speed-varied ecology, then render committed evidence."""
     arguments = _parse_arguments()
     config = ReferenceEcologyConfig(
         width=6,
@@ -34,6 +42,7 @@ def main() -> None:
         initial_population=4,
         max_steps=2,
         seed=17,
+        mutation_probability_ppm=0,
         resource_deposits_per_step=2,
         resource_placement_model=PatchyResourcePlacement(
             patches=(
@@ -48,6 +57,19 @@ def main() -> None:
         config,
         additional_observers=(spatial_recorder, trait_recorder),
     )
+    genetic_architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
+    founder_world = build_balanced_reference_trait_world(
+        genetic_architecture,
+        trait_name=MAX_SPEED,
+        variant_values=(_LOW_SPEED, _HIGH_SPEED),
+        config=config,
+    )
+    simulation = Simulation(
+        initial_domain_state=founder_world,
+        seed=config.seed,
+        context=ecology.simulation.context,
+    )
+    ecology = attrs.evolve(ecology, simulation=simulation)
     ecology.engine.run(ecology.simulation)
 
     lower_bound, upper_bound = REFERENCE_TRAIT_DOMAINS[MAX_SPEED]
@@ -64,6 +86,14 @@ def main() -> None:
             upper_bound=upper_bound,
         ),
     )
+    initial_focal_values = {
+        organism.focal_value for organism in timeline.frames[0].organisms
+    }
+    if initial_focal_values != {_LOW_SPEED, _HIGH_SPEED}:
+        raise RuntimeError(
+            "Science-aware smoke must retain deterministic low/high speed founders."
+        )
+
     output_path = render_portfolio_animation(
         timeline,
         arguments.output,
@@ -88,8 +118,8 @@ def main() -> None:
 def _parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run a tiny B1 patchy / B2 max-speed reference ecology and render "
-            "only its committed scientific evidence."
+            "Run a tiny B1 patchy / B2 speed-1-speed-4 reference ecology and "
+            "render only its committed scientific evidence."
         )
     )
     parser.add_argument(
