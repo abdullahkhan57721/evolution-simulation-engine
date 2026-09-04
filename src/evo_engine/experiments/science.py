@@ -107,19 +107,20 @@ class ScientificRunProvenance:
 class FixedHorizonTimeToEvent:
     """Represent one observed or explicitly right-censored time-to-event value.
 
-    ``event_step_index=None`` means the event was not observed by the fixed
-    horizon. The value remains right-censored rather than being converted to a
-    made-up event time.
+    ``observed_step_index=None`` means the outcome was not observed by the fixed
+    committed-state horizon. The value remains right-censored rather than being
+    converted to a made-up event time.
 
     Attributes:
         start_step_index: First committed-state index contributing exposure time.
         horizon_step_index: Fixed final committed-state index for comparison.
-        event_step_index: Observed event index, or ``None`` when right-censored.
+        observed_step_index: Committed-state index where the outcome was first
+            observed, or ``None`` when right-censored.
     """
 
     start_step_index: int
     horizon_step_index: int
-    event_step_index: int | None = None
+    observed_step_index: int | None = None
 
     def __attrs_post_init__(self) -> None:
         """Validate exposure and censoring boundaries."""
@@ -133,27 +134,29 @@ class FixedHorizonTimeToEvent:
             bound=self.start_step_index,
             name="horizon_step_index",
         )
-        if self.event_step_index is not None:
+        if self.observed_step_index is not None:
             validators.validate_int_ge(
-                self.event_step_index,
+                self.observed_step_index,
                 bound=self.start_step_index,
-                name="event_step_index",
+                name="observed_step_index",
             )
-            if self.event_step_index > self.horizon_step_index:
-                raise ValueError("event_step_index must not exceed horizon_step_index.")
+            if self.observed_step_index > self.horizon_step_index:
+                raise ValueError(
+                    "observed_step_index must not exceed horizon_step_index."
+                )
 
     @property
     def right_censored(self) -> bool:
-        """Return whether the event was unobserved at the fixed horizon."""
-        return self.event_step_index is None
+        """Return whether the outcome was unobserved at the fixed horizon."""
+        return self.observed_step_index is None
 
     @property
     def exposure_steps(self) -> int:
-        """Return observed exposure through event or censoring."""
+        """Return observed exposure through outcome or censoring."""
         end_step_index = (
             self.horizon_step_index
-            if self.event_step_index is None
-            else self.event_step_index
+            if self.observed_step_index is None
+            else self.observed_step_index
         )
         return end_step_index - self.start_step_index
 
@@ -169,6 +172,10 @@ def canonical_treatment_specification(
 
     Returns:
         Stable compact JSON with sorted keys.
+
+    Raises:
+        TypeError: If the specification cannot be represented as JSON values.
+        ValueError: If it contains non-finite numeric values forbidden by JSON.
     """
     if not isinstance(specification, Mapping):
         raise TypeError("specification must be a mapping.")
@@ -180,10 +187,15 @@ def canonical_treatment_specification(
             sort_keys=True,
             separators=(",", ":"),
             ensure_ascii=False,
+            allow_nan=False,
         )
-    except (TypeError, ValueError) as error:
+    except TypeError as error:
         raise TypeError(
             "specification must contain JSON-serializable values."
+        ) from error
+    except ValueError as error:
+        raise ValueError(
+            "specification must contain finite JSON numeric values."
         ) from error
 
 
