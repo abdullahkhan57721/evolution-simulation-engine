@@ -21,7 +21,7 @@ from evo_engine.experiments.science import (
     validate_declared_treatment_difference,
 )
 from evo_engine.genetics import MAX_SPEED
-from evo_engine.observation import EventRecorder, PopulationRecorder
+from evo_engine.observation import EventRecorder, PopulationObservation, PopulationRecorder
 from evo_engine.presets.controlled_locomotion import (
     ControlledLocomotionConfig,
     ControlledLocomotionFounder,
@@ -32,9 +32,7 @@ from evo_engine.processes import Movement, Reproduction, ResourceConsumption
 from evo_engine.validation import attrs_validators, validators
 
 E3Environment = Literal["local_resource", "separated_corridor"]
-_E3_ENVIRONMENTS: frozenset[str] = frozenset(
-    {"local_resource", "separated_corridor"}
-)
+_E3_ENVIRONMENTS: frozenset[str] = frozenset({"local_resource", "separated_corridor"})
 
 E3_SPEED_GRID: tuple[int, ...] = tuple(range(1, 11))
 E3_DISCOVERY_SEEDS: tuple[int, ...] = (3, 11, 23)
@@ -68,14 +66,7 @@ _SEPARATED_CORRIDOR_DEPOSITS: tuple[tuple[int, int, int], ...] = (
 
 @attrs.frozen(slots=True, kw_only=True)
 class E3TreatmentSpecification:
-    """Define one scientifically relevant E3 speed/environment treatment.
-
-    Attributes:
-        environment: Controlled resource geography identifier.
-        max_speed: Monomorphic inherited locomotor capacity.
-        locomotion_cost_coefficient: Locomotion-use cost coefficient.
-        resource_deposits: Immutable ``(x, y, amount)`` initial resource deposits.
-    """
+    """Define one scientifically relevant E3 speed/environment treatment."""
 
     environment: E3Environment
     max_speed: int = attrs.field(
@@ -109,13 +100,19 @@ class E3TreatmentSpecification:
                     f"resource_deposits[{index}] must be a three-integer tuple."
                 )
             x = validators.validate_int_ge(
-                deposit[0], bound=0, name=f"resource_deposits[{index}][0]"
+                deposit[0],
+                bound=0,
+                name=f"resource_deposits[{index}][0]",
             )
             y = validators.validate_int_ge(
-                deposit[1], bound=0, name=f"resource_deposits[{index}][1]"
+                deposit[1],
+                bound=0,
+                name=f"resource_deposits[{index}][1]",
             )
             amount = validators.validate_int_gt(
-                deposit[2], bound=0, name=f"resource_deposits[{index}][2]"
+                deposit[2],
+                bound=0,
+                name=f"resource_deposits[{index}][2]",
             )
             if x >= E3_WIDTH or y >= E3_HEIGHT:
                 raise ValueError(
@@ -141,14 +138,7 @@ class E3TreatmentSpecification:
         )
 
     def to_config(self, *, seed: int) -> ControlledLocomotionConfig:
-        """Build the E2 controlled-locomotion configuration for one replicate.
-
-        Args:
-            seed: Simulation RNG seed identifying the replicate.
-
-        Returns:
-            E2 controlled-locomotion configuration with E3-fixed nonfocal biology.
-        """
+        """Build the E2 controlled-locomotion configuration for one replicate."""
         validators.validate_int(seed, name="seed")
         return ControlledLocomotionConfig(
             width=E3_WIDTH,
@@ -411,8 +401,9 @@ def run_e3_replicate(
         if isinstance(applied.event, ResourceConsumption.Event)
     )
     cumulative_birth_count = sum(
-        isinstance(applied.event, Reproduction.Event)
+        1
         for applied in event_recorder.events
+        if isinstance(applied.event, Reproduction.Event)
     )
 
     observations = population_recorder.observations
@@ -519,7 +510,9 @@ def summarize_e3_treatment(
             )
             / count
         ),
-        extinction_count=sum(not outcome.extinction.right_censored for outcome in values),
+        extinction_count=sum(
+            not outcome.extinction.right_censored for outcome in values
+        ),
     )
 
 
@@ -553,13 +546,11 @@ def _treatment_provenance_mapping(
 
 
 def _validate_monomorphic_trait_history(
-    observations: Sequence[object],
+    observations: Sequence[PopulationObservation],
     *,
     max_speed: int,
 ) -> None:
-    for index, observation in enumerate(observations):
-        if not hasattr(observation, "trait"):
-            raise TypeError(f"observations[{index}] must provide trait().")
+    for observation in observations:
         trait_summary = observation.trait(MAX_SPEED)
         unexpected = tuple(
             (value, count)
