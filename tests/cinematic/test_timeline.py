@@ -1,4 +1,4 @@
-"""Tests for deterministic cinematic timeline preparation."""
+"""Tests for deterministic science-aware cinematic timeline preparation."""
 
 from __future__ import annotations
 
@@ -9,14 +9,20 @@ import pytest
 from evo_engine.cinematic import build_portfolio_animation_timeline
 from evo_engine.observation import (
     CategoryCounts,
+    IndividualGeneticTraitObservation,
+    IndividualGeneticTraitSnapshot,
     IntegerSummary,
     IntegerTraitSummary,
     PopulationObservation,
     SpatialObservation,
     SpatialOrganismSnapshot,
+    SpatialResourceSnapshot,
 )
+from evo_engine.presentation import ContinuousTraitEncoding
+from evo_engine.telemetry import AppliedEvent, StepTelemetry
 
 _TRAIT_NAME = "growth_rate"
+_FOCAL_TRAIT = "max_speed"
 
 
 def test_timeline_aligns_authoritative_values_and_identity_transitions() -> None:
@@ -39,16 +45,127 @@ def test_timeline_aligns_authoritative_values_and_identity_transitions() -> None
 
     assert timeline.world_bounds == (4, 4)
     assert tuple(frame.step_index for frame in timeline.frames) == (0, 1, 2)
-    assert timeline.frames[0].born_organism_ids == ()
+    assert timeline.frames[0].appeared_organism_ids == ()
     assert timeline.frames[0].departed_organism_ids == ()
-    assert timeline.frames[1].born_organism_ids == (3,)
+    assert timeline.frames[1].appeared_organism_ids == (3,)
     assert timeline.frames[1].departed_organism_ids == (1,)
-    assert timeline.frames[2].born_organism_ids == ()
+    assert timeline.frames[2].appeared_organism_ids == ()
     assert timeline.frames[2].departed_organism_ids == (2, 3)
     assert timeline.frames[0].trait_mean == 1.5
     assert timeline.frames[1].trait_mean == 3.0
     assert timeline.frames[2].trait_mean is None
-    assert timeline.frames[2].population.population_size == 0
+    assert tuple(item.organism_id for item in timeline.frames[0].organisms) == (1, 2)
+    assert all(item.focal_value is None for item in timeline.frames[0].organisms)
+
+
+def test_timeline_joins_committed_individual_trait_values() -> None:
+    encoding = _encoding()
+    timeline = build_portfolio_animation_timeline(
+        spatial_history=(_spatial(step=0, organism_ids=(1, 2)),),
+        population_history=(_population(step=0, trait_values=(1, 2)),),
+        trait_name=_TRAIT_NAME,
+        individual_trait_history=(_individual_traits(step=0, values=((1, 1), (2, 5))),),
+        focal_encoding=encoding,
+    )
+
+    first = timeline.frames[0]
+    assert first.organism(1).focal_value == 1
+    assert first.organism(1).focal_normalized == 0.0
+    assert first.organism(2).focal_value == 5
+    assert first.organism(2).focal_normalized == 1.0
+    assert timeline.focal_encoding is encoding
+
+
+def test_timeline_rejects_missing_or_misaligned_focal_evidence() -> None:
+    encoding = _encoding()
+    spatial = (_spatial(step=0, organism_ids=(1, 2)),)
+    population = (_population(step=0, trait_values=(1, 2)),)
+
+    with pytest.raises(ValueError, match="requires committed"):
+        build_portfolio_animation_timeline(
+            spatial_history=spatial,
+            population_history=population,
+            trait_name=_TRAIT_NAME,
+            focal_encoding=encoding,
+        )
+
+    with pytest.raises(ValueError, match="organism IDs"):
+        build_portfolio_animation_timeline(
+            spatial_history=spatial,
+            population_history=population,
+            trait_name=_TRAIT_NAME,
+            individual_trait_history=(_individual_traits(step=0, values=((1, 1),)),),
+            focal_encoding=encoding,
+        )
+
+
+def test_timeline_attaches_authoritative_events_in_commit_order() -> None:
+    first_event = _event(step=0, stage=0, event_type="FeedingEvent")
+    second_event = _event(step=0, stage=1, event_type="MovementEvent")
+    third_event = _event(step=1, stage=0, event_type="DeathEvent")
+    timeline = build_portfolio_animation_timeline(
+        spatial_history=(
+            _spatial(step=0, organism_ids=(1,)),
+            _spatial(step=1, organism_ids=(1,)),
+            _spatial(step=2, organism_ids=()),
+        ),
+        population_history=(
+            _population(step=0, trait_values=(1,)),
+            _population(step=1, trait_values=(1,)),
+            _population(step=2, trait_values=()),
+        ),
+        trait_name=_TRAIT_NAME,
+        event_history=(
+            StepTelemetry(
+                completed_step_index=1,
+                events=(first_event, second_event),
+            ),
+            StepTelemetry(
+                completed_step_index=2,
+                events=(third_event,),
+            ),
+        ),
+    )
+
+    assert timeline.frames[0].applied_events == ()
+    assert timeline.frames[1].applied_events == (first_event, second_event)
+    assert timeline.frames[2].applied_events == (third_event,)
+    assert timeline.frames[2].departed_organism_ids == (1,)
+
+
+def test_identity_transition_is_not_reclassified_as_authoritative_event() -> None:
+    timeline = build_portfolio_animation_timeline(
+        spatial_history=(
+            _spatial(step=0, organism_ids=(1,)),
+            _spatial(step=1, organism_ids=(1, 2)),
+        ),
+        population_history=(
+            _population(step=0, trait_values=(1,)),
+            _population(step=1, trait_values=(1, 2)),
+        ),
+        trait_name=_TRAIT_NAME,
+    )
+
+    assert timeline.frames[1].appeared_organism_ids == (2,)
+    assert timeline.frames[1].applied_events == ()
+
+
+def test_timeline_preserves_actual_resource_deposits() -> None:
+    spatial = _spatial(
+        step=0,
+        organism_ids=(1,),
+        resources=(
+            SpatialResourceSnapshot(x=0, y=0, amount=3),
+            SpatialResourceSnapshot(x=3, y=3, amount=7),
+        ),
+    )
+    timeline = build_portfolio_animation_timeline(
+        spatial_history=(spatial,),
+        population_history=(_population(step=0, trait_values=(1,)),),
+        trait_name=_TRAIT_NAME,
+    )
+
+    assert timeline.frames[0].spatial.resources == spatial.resources
 
 
 def test_empty_histories_produce_empty_renderer_owned_timeline() -> None:
@@ -105,7 +222,7 @@ def test_timeline_rejects_population_count_mismatch() -> None:
         )
 
 
-def test_timeline_rejects_missing_selected_trait() -> None:
+def test_timeline_rejects_missing_selected_population_trait() -> None:
     population = _population(step=0, trait_values=(1,))
     population_without_traits = PopulationObservation(
         step_index=population.step_index,
@@ -127,12 +244,50 @@ def test_timeline_rejects_missing_selected_trait() -> None:
         )
 
 
+def _encoding() -> ContinuousTraitEncoding:
+    return ContinuousTraitEncoding(
+        trait_name=_FOCAL_TRAIT,
+        label="Maximum speed",
+        lower_bound=1,
+        upper_bound=5,
+    )
+
+
+def _individual_traits(
+    *,
+    step: int,
+    values: tuple[tuple[int, int], ...],
+) -> IndividualGeneticTraitObservation:
+    return IndividualGeneticTraitObservation(
+        step_index=step,
+        trait_names=(_FOCAL_TRAIT,),
+        individuals=tuple(
+            IndividualGeneticTraitSnapshot(
+                organism_id=organism_id,
+                trait_values=(value,),
+            )
+            for organism_id, value in values
+        ),
+    )
+
+
+def _event(*, step: int, stage: int, event_type: str) -> AppliedEvent:
+    return AppliedEvent(
+        event_step_index=step,
+        stage_index=stage,
+        process_type="tests.Process",
+        event_type=f"tests.{event_type}",
+        event=object(),
+    )
+
+
 def _spatial(
     *,
     step: int,
     organism_ids: tuple[int, ...],
     width: int = 4,
     height: int = 4,
+    resources: tuple[SpatialResourceSnapshot, ...] = (),
 ) -> SpatialObservation:
     organisms = tuple(
         SpatialOrganismSnapshot(
@@ -151,6 +306,7 @@ def _spatial(
         world_width=width,
         world_height=height,
         organisms=organisms,
+        resources=resources,
     )
 
 

@@ -1,0 +1,141 @@
+"""Render a short B1/B2 science-aware cinematic proof from committed evidence."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from importlib.metadata import version
+from pathlib import Path
+
+import attrs
+
+from evo_engine.cinematic import (
+    build_cinematic_render_manifest,
+    build_portfolio_animation_timeline,
+    render_portfolio_animation,
+)
+from evo_engine.ecology import PatchyResourcePlacement, ResourcePatch
+from evo_engine.engine import Simulation
+from evo_engine.genetics import GENETIC_ARCHITECTURE, MAX_SPEED
+from evo_engine.observation import IndividualGeneticTraitRecorder, SpatialRecorder
+from evo_engine.presentation import ContinuousTraitEncoding
+from evo_engine.presets.reference_ecology.config import (
+    REFERENCE_TRAIT_DOMAINS,
+    ReferenceEcologyConfig,
+)
+from evo_engine.presets.reference_ecology.genetics import (
+    build_balanced_reference_trait_world,
+)
+from evo_engine.presets.reference_ecology.observable import build_reference_ecology
+
+_SCENARIO_LABEL = "b1-b2-science-aware-smoke"
+_LOW_SPEED = 1
+_HIGH_SPEED = 4
+
+
+def main() -> None:
+    """Run a tiny patchy speed-varied ecology, then render committed evidence."""
+    arguments = _parse_arguments()
+    config = ReferenceEcologyConfig(
+        width=6,
+        height=6,
+        initial_population=4,
+        max_steps=2,
+        seed=17,
+        mutation_probability_ppm=0,
+        resource_deposits_per_step=8,
+        resource_placement_model=PatchyResourcePlacement(
+            patches=(
+                ResourcePatch(center_x=1, center_y=1, radius=1),
+                ResourcePatch(center_x=4, center_y=4, radius=1),
+            )
+        ),
+    )
+    spatial_recorder = SpatialRecorder()
+    trait_recorder = IndividualGeneticTraitRecorder(trait_names=(MAX_SPEED,))
+    ecology = build_reference_ecology(
+        config,
+        additional_observers=(spatial_recorder, trait_recorder),
+    )
+    genetic_architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
+    founder_world = build_balanced_reference_trait_world(
+        genetic_architecture,
+        trait_name=MAX_SPEED,
+        variant_values=(_LOW_SPEED, _HIGH_SPEED),
+        config=config,
+    )
+    simulation = Simulation(
+        initial_domain_state=founder_world,
+        seed=config.seed,
+        context=ecology.simulation.context,
+    )
+    ecology = attrs.evolve(ecology, simulation=simulation)
+    ecology.engine.run(ecology.simulation)
+
+    lower_bound, upper_bound = REFERENCE_TRAIT_DOMAINS[MAX_SPEED]
+    timeline = build_portfolio_animation_timeline(
+        spatial_history=spatial_recorder.observations,
+        population_history=ecology.recorder.observations,
+        trait_name=MAX_SPEED,
+        individual_trait_history=trait_recorder.observations,
+        event_history=ecology.event_recorder.steps,
+        focal_encoding=ContinuousTraitEncoding(
+            trait_name=MAX_SPEED,
+            label="Maximum speed",
+            lower_bound=lower_bound,
+            upper_bound=upper_bound,
+        ),
+    )
+    initial_focal_values = {
+        organism.focal_value for organism in timeline.frames[0].organisms
+    }
+    if initial_focal_values != {_LOW_SPEED, _HIGH_SPEED}:
+        raise RuntimeError(
+            "Science-aware smoke must retain deterministic low/high speed founders."
+        )
+
+    output_path = render_portfolio_animation(
+        timeline,
+        arguments.output,
+        quality=arguments.quality,
+    )
+    manifest = build_cinematic_render_manifest(
+        timeline,
+        scenario_label=_SCENARIO_LABEL,
+        seed=config.seed,
+        renderer_version=version("manim"),
+        quality=arguments.quality,
+    )
+    manifest_path = output_path.with_suffix(".manifest.json")
+    manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    print(f"Rendered science-aware cinematic smoke: {output_path}")
+    print(f"Recorded cinematic manifest: {manifest_path}")
+
+
+def _parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run a tiny B1 patchy / B2 speed-1-speed-4 reference ecology and "
+            "render only its committed scientific evidence."
+        )
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("outputs/science-aware-cinematic-smoke.mp4"),
+        help="Destination .mp4 or .gif path.",
+    )
+    parser.add_argument(
+        "--quality",
+        choices=("low", "medium", "high"),
+        default="low",
+        help="Manim render quality preset.",
+    )
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    main()
