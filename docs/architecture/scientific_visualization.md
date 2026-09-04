@@ -257,6 +257,54 @@ genetic-phenotype values. It does not record full genomes or generalize across
 developmental, physiological, environmental, and arbitrary callable sources
 without a future concrete requirement.
 
+## Current cinematic preparation contract
+
+The cinematic path now has a concrete renderer-owned preparation layer over the
+shared evidence boundary. Its responsibility is deliberately narrower than a
+generic replay or film-description system:
+
+```text
+SpatialObservation
++ IndividualGeneticTraitObservation when requested
++ StepTelemetry
+        |
+        v
+small renderer-neutral scientific encoding values
+        |
+        v
+cinematic prepared primitives / timeline
+        |
+        v
+cinematic renderer and later scenario-specific director
+```
+
+`ContinuousTraitEncoding` is the first shared scientific-encoding value justified
+by real interactive/cinematic consumers. It records only the committed trait name,
+human-readable label, and fixed numeric bounds/normalization. It contains no
+renderer colors, materials, widgets, camera, timing, easing, or scene order.
+
+Cinematic preparation joins individual focal evidence to spatial replay by
+`(step_index, organism_id)` and fails loudly when the committed histories do not
+align. Prepared organism values copy authoritative committed position, body mass,
+secondary category, and the optional focal scientific value; they do not retain
+live organisms, genomes, phenotypes, worlds, or recorders.
+
+Committed `StepTelemetry` is attached separately from renderer-owned identity
+continuity. Appearance and departure are useful for fade/interpolation bookkeeping,
+but they are not birth/death evidence. Cinematic event selection therefore uses
+actual committed `AppliedEvent` values and preserves commit order rather than
+inferring causal events from identity changes or spatial proximity.
+
+Position interpolation is renderer-owned presentation geometry. Its committed
+endpoints are exact, intermediate values are not simulation states, and the
+interpolation result is never an input to scientific analysis.
+
+The generic cinematic mode remains valid without a focal scientific encoding. A
+scenario-directed flagship film is a later choreography concern: representative
+episodes, comparison framing, camera movement, act structure, and final claims
+must come from the scenario's authoritative scientific storyboard rather than from
+this preparation layer.
+
 ## Renderer independence
 
 Interactive and cinematic technologies may change independently. The durable
