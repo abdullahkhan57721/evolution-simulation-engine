@@ -252,7 +252,9 @@ def test_science_aware_speed_preview_combines_real_b1_b2_evidence() -> None:
         for applied in step.events_for_process("ResourceGeneration")
     )
     assert generation_events
-    assert all(isinstance(event, ResourceGeneration.Event) for event in generation_events)
+    assert all(
+        isinstance(event, ResourceGeneration.Event) for event in generation_events
+    )
     assert all(
         any(
             (event.x - patch.center_x) ** 2 + (event.y - patch.center_y) ** 2
