@@ -86,9 +86,8 @@ def _world_and_headline_science(run: DashboardRun) -> None:
     with world_column:
         st.subheader("World")
         st.caption(
-            "Committed spatial observations are authoritative. This Plotly surface "
-            "is the migration-stage world renderer for I1; the later V2 primitive "
-            "ticket owns the renderer upgrade."
+            "Every displayed frame comes from committed spatial observations; "
+            "presentation never reconstructs scientific history from live mutable state."
         )
         st.plotly_chart(
             spatial_world_figure(run.spatial_history),
@@ -107,8 +106,9 @@ def _world_and_headline_science(run: DashboardRun) -> None:
 
 def _final_mean_energy(run: DashboardRun) -> str:
     if not run.population_history:
-        return "0.0"
-    return f"{run.population_history[-1].energy.mean:.1f}"
+        return "—"
+    mean = run.population_history[-1].energy.mean
+    return "—" if mean is None else f"{mean:.1f}"
 
 
 def _analysis_tabs(run: DashboardRun, *, experiment_key: str) -> None:
