@@ -7,7 +7,11 @@ from collections.abc import Sequence
 import attrs
 
 from evo_engine.cinematic.primitives import CinematicOrganismPrimitive
-from evo_engine.observation import PopulationObservation, SpatialObservation
+from evo_engine.observation import (
+    PopulationObservation,
+    SpatialObservation,
+    SpatialOrganismSnapshot,
+)
 from evo_engine.observation.individual_traits import IndividualGeneticTraitObservation
 from evo_engine.presentation import ContinuousTraitEncoding
 from evo_engine.telemetry import AppliedEvent, StepTelemetry
@@ -220,11 +224,7 @@ def _validate_timeline_frames(
         previous_step = frame.step_index
 
 
-def _validate_timeline_frame_type(
-    frame: object,
-    *,
-    index: int,
-) -> None:
+def _validate_timeline_frame_type(frame: object, *, index: int) -> None:
     if not isinstance(frame, PortfolioAnimationFrame):
         raise TypeError(
             f"frames[{index}] must be a PortfolioAnimationFrame; received {frame!r}."
@@ -499,18 +499,17 @@ def _prepare_organisms(
 
 def _prepare_organism(
     *,
-    snapshot: object,
+    snapshot: SpatialOrganismSnapshot,
     individual: IndividualGeneticTraitObservation | None,
     focal_encoding: ContinuousTraitEncoding | None,
 ) -> CinematicOrganismPrimitive:
-    organism_id = snapshot.organism_id
     focal_value, focal_normalized = _focal_values(
-        organism_id=organism_id,
+        organism_id=snapshot.organism_id,
         individual=individual,
         focal_encoding=focal_encoding,
     )
     return CinematicOrganismPrimitive(
-        organism_id=organism_id,
+        organism_id=snapshot.organism_id,
         x=snapshot.x,
         y=snapshot.y,
         body_mass=snapshot.body_mass,
