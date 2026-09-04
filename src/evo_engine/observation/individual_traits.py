@@ -248,8 +248,7 @@ def _validate_trait_names(trait_names: object) -> tuple[str, ...]:
             )
         if validated_name in seen:
             raise ValueError(
-                "trait_names must not contain duplicates; "
-                f"received {validated_name!r}."
+                f"trait_names must not contain duplicates; received {validated_name!r}."
             )
         seen.add(validated_name)
     return validated
