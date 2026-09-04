@@ -6,6 +6,13 @@ import plotly.graph_objects as go
 
 from evo_engine.ui.world_presentation import WorldPresentationFrame
 
+_NEUTRAL_ORGANISM_COLOR = "#64748B"
+_RESOURCE_COLOR = "#2E8B57"
+_CARCASS_COLOR = "#8C564B"
+_TRAIL_COLOR = "rgba(100, 116, 139, 0.55)"
+_DEFAULT_OUTLINE_COLOR = "#475569"
+_SELECTED_OUTLINE_COLOR = "#111827"
+
 
 def world_presentation_figure(
     frame: WorldPresentationFrame,
@@ -54,7 +61,7 @@ def _add_trails(figure: go.Figure, frame: WorldPresentationFrame) -> None:
                 legendgroup="movement-trails",
                 showlegend=first,
                 hoverinfo="skip",
-                line={"width": 2, "dash": "dot"},
+                line={"width": 2, "dash": "dot", "color": _TRAIL_COLOR},
             )
         )
         first = False
@@ -72,6 +79,7 @@ def _add_resources(figure: go.Figure, frame: WorldPresentationFrame) -> None:
             marker={
                 "size": [max(8, min(30, 6 + item.amount)) for item in frame.resources],
                 "symbol": "square",
+                "color": _RESOURCE_COLOR,
             },
             customdata=[[item.amount] for item in frame.resources],
             hovertemplate=(
@@ -91,7 +99,7 @@ def _add_carcasses(figure: go.Figure, frame: WorldPresentationFrame) -> None:
             y=[item.y for item in frame.carcasses],
             mode="markers",
             name="Carcasses",
-            marker={"size": 12, "symbol": "x"},
+            marker={"size": 12, "symbol": "x", "color": _CARCASS_COLOR},
             customdata=[
                 [item.carcass_id, item.resource_units] for item in frame.carcasses
             ],
@@ -123,8 +131,15 @@ def _add_organisms(
             marker={
                 "size": [item.marker_size for item in frame.organisms],
                 "symbol": "circle",
+                "color": _NEUTRAL_ORGANISM_COLOR,
                 "line": {
                     "width": [4 if item.selected else 1 for item in frame.organisms],
+                    "color": [
+                        _SELECTED_OUTLINE_COLOR
+                        if item.selected
+                        else _DEFAULT_OUTLINE_COLOR
+                        for item in frame.organisms
+                    ],
                 },
             },
             customdata=[
