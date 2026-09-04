@@ -116,12 +116,14 @@ Resource consumption occurs at the organism's committed endpoint after the
 movement stage. There is no path-integrated feeding: crossing a coordinate does
 not itself consume resources.
 
-When multiple organisms request the same limited resource, the controlled
-composition uses the existing random-order allocation resolver. This avoids a
-permanent proposal-order/low-ID winner for indivisible scarce resources, while
-making the winner seed-dependent. The canonical single-organism mechanics assay
-contains no resource competition; multi-organism allocation is diagnostic evidence
-and later experiments must preserve the run/seed as the replicate.
+The world permits organisms to occupy the same coordinate, so converging movement
+requests do not create a collision winner or a hidden organism-ID priority. When
+multiple co-located organisms then request the same limited resource, the
+controlled composition uses the existing random-order allocation resolver. This
+avoids a permanent proposal-order/low-ID winner for indivisible scarce resources,
+while making the winner seed-dependent. The canonical single-organism mechanics
+assay contains no resource competition; multi-organism allocation is diagnostic
+evidence and later experiments must preserve the run/seed as the replicate.
 
 ## Clonal propagation
 

@@ -83,17 +83,17 @@ def test_maximum_capacity_mechanics_case_is_not_energy_limited() -> None:
 
 
 def test_scarce_resource_winner_is_seed_randomized_not_fixed_to_low_id() -> None:
-    """Test competition ordering does not encode a permanent organism-ID winner."""
+    """Test co-location is allowed and scarce-resource priority is not fixed by ID."""
     winners: set[int] = set()
     for seed in range(20):
         config = ControlledLocomotionConfig(
-            width=10,
-            height=10,
+            width=11,
+            height=11,
             max_steps=1,
             seed=seed,
             founders=(
-                ControlledLocomotionFounder(max_speed=0, x=5, y=5),
-                ControlledLocomotionFounder(max_speed=0, x=5, y=5),
+                ControlledLocomotionFounder(max_speed=5, x=0, y=5),
+                ControlledLocomotionFounder(max_speed=5, x=10, y=5),
             ),
             resource_deposits=(ControlledResourceDeposit(x=5, y=5, amount=1),),
             resource_request_amount=1,
@@ -106,6 +106,10 @@ def test_scarce_resource_winner_is_seed_randomized_not_fixed_to_low_id() -> None
         )
         compiled = spec.compile()
         compiled.engine.run(compiled.simulation)
+        world = compiled.simulation.state.domain_state
+        assert (world.organisms[0].x, world.organisms[0].y) == (5, 5)
+        assert (world.organisms[1].x, world.organisms[1].y) == (5, 5)
+
         feeding: list[ResourceConsumption.Event] = []
         for applied in recorder.events:
             event = applied.event
