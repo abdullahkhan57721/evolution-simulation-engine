@@ -534,19 +534,37 @@ def _trait_text(trait_name: str, frame: PortfolioAnimationFrame) -> str:
 
 
 def _evidence_text(frame: PortfolioAnimationFrame) -> str:
-    identity = (
-        f"Appeared +{len(frame.appeared_organism_ids)}  "
-        f"Departed −{len(frame.departed_organism_ids)}"
-    )
+    lines: list[str] = []
+    if frame.appeared_organism_ids or frame.departed_organism_ids:
+        lines.append(
+            f"Appeared +{len(frame.appeared_organism_ids)}  "
+            f"Departed −{len(frame.departed_organism_ids)}"
+        )
     if not frame.applied_events:
-        return f"{identity}  |  committed events 0"
+        lines.append("Committed events 0")
+        return "\n".join(lines)
 
     counts: dict[str, int] = {}
     for event in frame.applied_events:
         counts[event.process_name] = counts.get(event.process_name, 0) + 1
-    leading = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:2]
-    event_summary = ", ".join(f"{name} ×{count}" for name, count in leading)
-    return f"{identity}  |  {event_summary}"
+    process_name, count = min(
+        counts.items(),
+        key=lambda item: (-item[1], item[0]),
+    )
+    lines.append(
+        f"Events {len(frame.applied_events)}  "
+        f"{_display_process_name(process_name)} ×{count}"
+    )
+    return "\n".join(lines)
+
+
+def _display_process_name(process_name: str) -> str:
+    characters: list[str] = []
+    for index, character in enumerate(process_name):
+        if index > 0 and character.isupper():
+            characters.append(" ")
+        characters.append(character.lower() if index > 0 else character)
+    return "".join(characters)
 
 
 def _population_chart(timeline: PortfolioAnimationTimeline) -> object:
