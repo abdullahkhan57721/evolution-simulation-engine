@@ -73,7 +73,7 @@ def _render_curated_scenario() -> ConfigurationOutcome:
     st.caption(
         "A fixed-seed illustrative scenario with balanced standing variation in "
         "maximum intake rate, mutation disabled, predation isolated, and renewable "
-        "resources. B3 may replace this curated scenario after its science handoff."
+        "resources."
     )
     st.markdown(
         "**Use this path for the current reproducible portfolio story rather than a "
