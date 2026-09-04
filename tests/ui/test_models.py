@@ -5,7 +5,7 @@ from __future__ import annotations
 import attrs
 import pytest
 
-from evo_engine.genetics import MAX_INTAKE_RATE
+from evo_engine.genetics import MAX_INTAKE_RATE, MAX_SPEED
 from evo_engine.ui.models import (
     FLAGSHIP_MAX_INTAKE_SCENARIO,
     DashboardRun,
@@ -97,6 +97,7 @@ def test_dashboard_run_contains_only_immutable_completed_result_values() -> None
     assert result.spatial_history[-1].step_index == 2
     assert result.genetic_history[-1].step_index == 2
     assert len(result.population_history) == len(result.spatial_history) == 3
+    assert result.individual_trait_history == ()
     assert result.final_population_size == result.population_history[-1].population_size
     assert result.final_total_resources == result.population_history[-1].total_resources
     assert result.total_births == sum(
@@ -113,12 +114,55 @@ def test_dashboard_run_contains_only_immutable_completed_result_values() -> None
         "spatial_history",
         "telemetry_steps",
         "life_histories",
+        "individual_trait_history",
         "scenario",
     )
     assert not hasattr(result, "engine")
     assert not hasattr(result, "simulation")
     assert not hasattr(result, "world")
     assert not hasattr(result, "recorder")
+
+
+def test_dashboard_reference_records_only_requested_individual_traits() -> None:
+    """Test focal replay evidence is opt-in committed scalar history only."""
+    config = build_curated_config(
+        seed=23,
+        max_steps=2,
+        initial_population=4,
+        width=4,
+        height=4,
+        resource_deposits_per_step=2,
+    )
+
+    result = run_dashboard_reference(
+        config,
+        individual_trait_names=(MAX_SPEED,),
+    )
+
+    assert len(result.individual_trait_history) == len(result.spatial_history) == 3
+    assert all(
+        observation.trait_names == (MAX_SPEED,)
+        for observation in result.individual_trait_history
+    )
+    for spatial, traits in zip(
+        result.spatial_history,
+        result.individual_trait_history,
+        strict=True,
+    ):
+        assert traits.step_index == spatial.step_index
+        assert tuple(item.organism_id for item in traits.individuals) == tuple(
+            item.organism_id for item in spatial.organisms
+        )
+        assert all(
+            isinstance(traits.trait_value(item.organism_id, MAX_SPEED), int)
+            for item in spatial.organisms
+        )
+
+    with pytest.raises(TypeError, match="individual_trait_names"):
+        run_dashboard_reference(
+            config,
+            individual_trait_names=[MAX_SPEED],  # type: ignore[arg-type]
+        )
 
 
 def test_dashboard_reference_runs_with_adaptive_branches_disabled() -> None:
@@ -154,6 +198,17 @@ def test_dashboard_flagship_uses_committed_canonical_evidence() -> None:
     assert result.genetic_history[0].locus(MAX_INTAKE_RATE).allele_frequency(8) == 0.5
     assert result.genetic_history[30].locus(MAX_INTAKE_RATE).allele_frequency(8) > 0.85
     assert dict(result.event_counts).get("Predation", 0) == 0
+
+
+def test_dashboard_flagship_can_opt_into_selected_individual_evidence() -> None:
+    """Test curated runs can request one committed focal trait without live owners."""
+    result = run_dashboard_flagship_max_intake(
+        individual_trait_names=(MAX_INTAKE_RATE,),
+    )
+
+    assert len(result.individual_trait_history) == len(result.spatial_history)
+    assert result.individual_trait_history[0].trait_names == (MAX_INTAKE_RATE,)
+    assert result.individual_trait_history[0].trait_value(0, MAX_INTAKE_RATE) in (2, 8)
 
 
 def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None:
