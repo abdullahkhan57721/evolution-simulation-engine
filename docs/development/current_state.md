@@ -41,14 +41,17 @@ validation / context / generic foundations
        presets / experiments / interfaces
 ```
 
-Presentation remains separately downstream:
+Scientific measurement and presentation remain downstream of committed evidence:
 
 ```text
-committed scientific evidence
-        |
-        v
-scenario-specific scientific meaning
-        |
+modeled system
+        ↓
+committed state / committed events
+        ↓
+pure scientific measurement
+        ↓
+scenario / experiment meaning
+        ↓
         +-------------------------+
         |                         |
         v                         v
@@ -119,9 +122,9 @@ Committed evidence is a first-class layer. Available evidence includes:
 `SpatialObservation`, allowing presentation to join scientific values to replay by
 committed `(step_index, organism_id)` identity without broadening spatial snapshots.
 
-The experimental-science foundation now makes the downstream measurement boundary
+The experimental-science foundation makes the downstream measurement boundary
 explicit. One simulation run/seed is the experimental replicate; organisms within
-that run are not independent replicates; event step `t` aligns to committed state
+that run are not independent replicates. Event step `t` aligns to committed state
 `t + 1`; denominators and right-censoring remain explicit; discovery,
 confirmation, and representative roles stay distinct; and concrete experiments may
 audit their one declared treatment difference without a generic configuration-diff
@@ -146,7 +149,7 @@ Interactive and cinematic consumers independently own layout, interaction,
 interpolation, camera, timing, and storytelling. Presentation interpolation is
 never scientific evidence.
 
-### Interactive and cinematic foundations
+### Interactive and cinematic presentation
 
 The interactive application has a full-window configuration → completed-run
 world-workspace flow. It owns immutable presentation/run values and view state,
@@ -155,20 +158,36 @@ selection/inspection, environmental layers, trails, labels, neutral generic
 organism encoding, and optional focal-trait encoding from committed scientific
 evidence.
 
-The cinematic package prepares renderer-owned timelines from committed spatial,
-population, selective focal-trait, and event evidence. Generic and focal modes
-remain available without turning Manim or any future renderer into a simulation
-contract.
+The cinematic package retains its generic V3 I1 renderer-owned timeline path and
+also has a concrete B3 flagship director above that foundation. The B3 path consumes
+the frozen scientific handoff rather than rediscovering scenario meaning:
 
-V2 and V3 have the science-aware infrastructure needed to consume a scenario
-handoff; they should not invent B3 treatment/control semantics independently.
+```text
+B3 committed evidence
+        ↓
+B3 renderer-neutral scientific handoff
+        ↓
+B3-specific director preparation
+        ↓
+existing cinematic timelines / prepared values
+        ↓
+Manim-only camera, timing, focus, and charts
+```
+
+The B3 director uses the shared fixed `max_speed` scale, B3-declared representative
+seed and episodes, run-level confirmation evidence, founder reproductive
+contribution, radius-2 sensitivity, and the bounded B3 claim. Organism fill remains
+focal `max_speed`; body size remains authoritative body mass; focus uses a separate
+halo/camera channel. Identity appearance/departure remains continuity metadata and
+is never promoted to birth/death evidence.
+
+Routine CI renders generic, science-aware, and reduced real-B3 cinematic smokes.
+The full high-quality B3 film is a deliberate reproducible artifact path rather
+than an every-commit quality gate. See `docs/cinematic_flagship.md`.
 
 ## Confirmed B3 scientific flagship
 
-B3 has now identified and independently confirmed the primary scientific flagship
-for the next presentation generation.
-
-The question is:
+The current scientific flagship asks:
 
 > Does compact spatial resource geography change selection on existing heritable
 > `max_speed` standing variation relative to a matched uniform-resource
@@ -213,37 +232,31 @@ compact-vs-uniform effect in both tested confirmation seeds.
 The representative storytelling run is confirmation seed **5**, chosen by the
 predeclared median-effect/legible-episode rule rather than by visual convenience.
 Its real committed movement/resource-consumption episodes are documented in
-`docs/flagship_evolution_demo.md`.
+`docs/flagship_evolution_demo.md` and are consumed directly by the cinematic
+director.
 
 The bounded claim is environment-dependent: under this tested reference-ecology
 configuration, compact radius-1 resource geography favors the high-speed strategy
-relative to matched uniform controls, while uniform favors the lower-speed
-strategy in aggregate. Do not generalize this to universal optimal speed, generic
-patchiness, species-calibrated prediction, or isolated locomotion-cost causality.
+relative to matched uniform controls, while uniform favors the lower-speed strategy
+in aggregate. Do not generalize this to universal optimal speed, generic patchiness,
+species-calibrated prediction, or isolated locomotion-cost causality.
 
 The original v0.1 `max_intake_rate` flagship remains a secondary historical
-regression/integration example. Its existing helper and presentation entry points
-remain for compatibility until the V2/V3 B3-specific presentation work replaces
-the public story.
+regression/integration example.
 
 ## Current development front
 
-The key integration uncertainty that motivated B1/B2/B3 is resolved: the project
-now has a confirmed environment-dependent selection scenario and a renderer-neutral
-scientific handoff. The experimental-science foundation also establishes the
-measurement semantics needed to begin a deliberately simpler causal experiment
-track without changing the richer B3 flagship.
-
-Two fronts can therefore proceed independently:
+The B3 science and cinematic explanatory path are settled. Two independent fronts
+remain important:
 
 ```text
-confirmed B3 scientific evidence/storyboard
+confirmed B3 evidence/storyboard
         |
         +-------------------------+
         |                         |
         v                         v
-interactive B3 comparison     cinematic B3 director
-(V2 continuation)             (V3 continuation)
+interactive B3 comparison     B3 flagship cinematic
+(V2 continuation)             (implemented V3 path)
 
 experimental-science foundation (E1)
         |
@@ -257,20 +270,20 @@ controlled ecological performance landscape (E3)
 standing-variation selection test (E4)
 ```
 
-The presentation media should consume the B3 treatment/control semantics, fixed
-`max_speed` scale, matched comparison, representative seed/episodes, evidence
-hierarchy, and claim boundaries from `docs/flagship_evolution_demo.md`. They remain
-free to make renderer-specific choices without changing scientific meaning.
+The interactive continuation should consume the same B3 treatment/control
+semantics, fixed `max_speed` scale, matched comparison, representative seed and
+episodes, evidence hierarchy, and claim boundaries as the cinematic path. It should
+not infer B3 meaning independently in UI code.
 
 The E2–E4 experimental track is intentionally separate from B3. It should isolate
-locomotor mechanics first, measure phenotype-to-performance without focal
-evolution second, and only then ask whether standing inherited variation changes
-in the independently predicted direction. E2 may compose new controlled biology
-above the frozen kernel but must not simplify general genetics or redesign B3.
+locomotor mechanics first, measure phenotype-to-performance without focal evolution
+second, and only then ask whether standing inherited variation changes in the
+independently predicted direction. E2 may compose new controlled biology above the
+frozen kernel but must not simplify general genetics or redesign B3.
 
 All fronts should preserve:
 
-- common scientific trait scales across matched arms where comparison requires it;
+- common scientific scales across matched arms where comparison requires them;
 - committed timestep semantics;
 - authoritative committed event/state evidence;
 - separation of configured treatment context from committed state and events;
@@ -279,12 +292,7 @@ All fronts should preserve:
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-Those fronts need not serialize behind presentation or E2 when their public
-boundaries are already settled.
-
 A native Rust/C++ backend remains a separate evidence-driven future concern.
-Python continues to own high-level modeling/configuration until measured workloads
-show that a compiled execution plan/backend is justified.
 
 See `docs/development/roadmap.md` for milestone-level sequencing.
 
@@ -306,11 +314,10 @@ integrated reference-ecology flagship.
 
 ### Public presentation naming still contains v0.1 history
 
-Some existing dashboard/cinematic entry points and helper names still call the
-older `max_intake_rate` demonstration the flagship. B3 intentionally does not
-rewrite renderer choreography. V2/V3 should migrate the public presentation story
-to the confirmed B3 scenario while preserving compatibility or making any API
-rename deliberate.
+Some existing dashboard/helper names still call the older `max_intake_rate`
+demonstration the flagship. The B3 cinematic path does not require renaming those
+compatibility surfaces. V2 should migrate the interactive public story to the
+confirmed B3 scenario deliberately rather than through broad compatibility churn.
 
 ## Collaboration model
 
@@ -326,6 +333,12 @@ independently parallelizable repository iteration.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **B3 flagship cinematic director:** turns the confirmed renderer-neutral B3
+  storyboard into a deterministic explanatory Manim film with matched
+  treatment/control framing, authoritative representative episodes, repeated
+  interaction, founder reproductive contribution, population genetic evidence,
+  independent confirmation, radius-2 sensitivity, fixed scientific scales, and a
+  reproducibility manifest while preserving the generic V3 I1 path.
 - **Experimental science foundation:** established exact committed event/state
   alignment, run-level replicate and treatment provenance, explicit fixed-horizon
   censoring semantics, thin normalization/equality treatment-integrity checking,
