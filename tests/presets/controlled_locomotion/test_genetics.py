@@ -25,7 +25,7 @@ def test_controlled_architecture_contains_only_inherited_max_speed() -> None:
 
     phenotype = architecture.express(genome)
 
-    assert architecture.trait_names == (MAX_SPEED,)
+    assert architecture.trait_names == frozenset({MAX_SPEED})
     assert phenotype.int_value(MAX_SPEED) == 7
 
 

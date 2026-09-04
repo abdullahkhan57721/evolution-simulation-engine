@@ -12,6 +12,8 @@ from evo_engine.presets.controlled_locomotion import (
     build_controlled_locomotion_spec,
 )
 from evo_engine.processes import Movement, Reproduction, ResourceConsumption
+from evo_engine.telemetry import AppliedEvent
+from evo_engine.world import WorldState
 
 
 def _run_one_step(
@@ -22,7 +24,7 @@ def _run_one_step(
     start_x: int = 5,
     start_y: int = 5,
     seed: int = 17,
-) -> tuple[ControlledLocomotionConfig, object, tuple[object, ...]]:
+) -> tuple[ControlledLocomotionConfig, WorldState, tuple[AppliedEvent, ...]]:
     config = ControlledLocomotionConfig(
         width=31,
         height=31,
@@ -53,7 +55,7 @@ def test_controlled_locomotion_spec_compiles_with_only_focal_genetic_trait() -> 
     compiled = spec.compile()
 
     assert compiled.dependency_report.is_valid
-    assert spec.genetic_architecture.trait_names == (MAX_SPEED,)
+    assert spec.genetic_architecture.trait_names == frozenset({MAX_SPEED})
 
 
 def test_higher_capacity_permits_greater_target_directed_displacement() -> None:
@@ -61,8 +63,12 @@ def test_higher_capacity_permits_greater_target_directed_displacement() -> None:
     _, _, slow_events = _run_one_step(max_speed=2, target_x=25, target_y=5)
     _, _, fast_events = _run_one_step(max_speed=5, target_x=25, target_y=5)
 
-    slow_event = next(event for event in slow_events if isinstance(event.event, Movement.Event))
-    fast_event = next(event for event in fast_events if isinstance(event.event, Movement.Event))
+    slow_event = next(
+        event for event in slow_events if isinstance(event.event, Movement.Event)
+    )
+    fast_event = next(
+        event for event in fast_events if isinstance(event.event, Movement.Event)
+    )
     slow = measure_applied_movement(slow_event)
     fast = measure_applied_movement(fast_event)
 
@@ -78,7 +84,9 @@ def test_target_within_capacity_is_reached_without_overshoot_and_consumed_locall
     """Test endpoint feeding follows exact target arrival rather than path traversal."""
     _, world, events = _run_one_step(max_speed=10, target_x=8, target_y=9)
 
-    movement = next(event for event in events if isinstance(event.event, Movement.Event))
+    movement = next(
+        event for event in events if isinstance(event.event, Movement.Event)
+    )
     feeding = next(
         event for event in events if isinstance(event.event, ResourceConsumption.Event)
     )
@@ -140,7 +148,9 @@ def test_single_parent_reproduction_clones_capacity_without_mate_search() -> Non
     reproduction = next(
         event for event in recorder.events if isinstance(event.event, Reproduction.Event)
     )
-    movement = next(event for event in recorder.events if isinstance(event.event, Movement.Event))
+    movement = next(
+        event for event in recorder.events if isinstance(event.event, Movement.Event)
+    )
     world = compiled.simulation.state.domain_state
 
     assert reproduction.event.parent_ids == (0,)

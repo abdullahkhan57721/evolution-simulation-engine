@@ -17,7 +17,13 @@ from evo_engine.behavior import (
 from evo_engine.biology import BiologicalSimulationSpec
 from evo_engine.characteristics import GeneticPhenotypeCharacteristics
 from evo_engine.energetics import PowerLawLocomotionCost, SpendToZero
-from evo_engine.engine import MaxSteps, Observer, SequentialStepCoordinator, StageCoordinator
+from evo_engine.engine import (
+    MaxSteps,
+    Observer,
+    Process,
+    SequentialStepCoordinator,
+    StageCoordinator,
+)
 from evo_engine.feeding import FullAssimilation
 from evo_engine.genetics import ClonalInheritance
 from evo_engine.observation import EventRecorder
@@ -170,7 +176,7 @@ def build_controlled_locomotion_event_recorder_spec(
     )
 
 
-def _accept_all_stage(*processes: object) -> StageCoordinator:
+def _accept_all_stage(*processes: Process) -> StageCoordinator:
     return StageCoordinator(
         processes=processes,
         resolver=AcceptAll(),
