@@ -102,7 +102,7 @@ toward the same target, while the ordinary physiological-maintenance model impos
 higher ongoing energetic cost. Existing sexual inheritance transmits the standing
 variation. No generic strategy or scalar-fitness abstraction was added.
 
-### Observation and experiments
+### Observation, experiments, and scientific measurement
 
 Committed evidence is a first-class layer. Available evidence includes:
 
@@ -118,6 +118,22 @@ Committed evidence is a first-class layer. Available evidence includes:
 `IndividualGeneticTraitRecorder` remains opt-in and intentionally separate from
 `SpatialObservation`, allowing presentation to join scientific values to replay by
 committed `(step_index, organism_id)` identity without broadening spatial snapshots.
+
+The experimental-science foundation now makes the downstream measurement boundary
+explicit. One simulation run/seed is the experimental replicate; organisms within
+that run are not independent replicates; event step `t` aligns to committed state
+`t + 1`; denominators and right-censoring remain explicit; discovery,
+confirmation, and representative roles stay distinct; and concrete experiments may
+audit their one declared treatment difference without a generic configuration-diff
+language.
+
+`ScientificRunProvenance` carries treatment-aware scientific identity without
+changing legacy/reference `RunMetadata`. `FixedHorizonTimeToEvent` preserves
+observed versus right-censored outcomes. The first concrete measurement consumer
+derives attempted displacement, realized displacement, and locomotion-energy
+expenditure from authoritative committed movement evidence, with applied movement
+as the explicit denominator. Simulation/domain code remains independent of this
+analysis layer, and no universal metric/statistics framework has been introduced.
 
 ### Scientific visualization boundary
 
@@ -214,9 +230,11 @@ the public story.
 
 The key integration uncertainty that motivated B1/B2/B3 is resolved: the project
 now has a confirmed environment-dependent selection scenario and a renderer-neutral
-scientific handoff.
+scientific handoff. The experimental-science foundation also establishes the
+measurement semantics needed to begin a deliberately simpler causal experiment
+track without changing the richer B3 flagship.
 
-The immediate front is therefore:
+Two fronts can therefore proceed independently:
 
 ```text
 confirmed B3 scientific evidence/storyboard
@@ -226,26 +244,43 @@ confirmed B3 scientific evidence/storyboard
         v                         v
 interactive B3 comparison     cinematic B3 director
 (V2 continuation)             (V3 continuation)
+
+experimental-science foundation (E1)
+        |
+        v
+minimal clonal locomotion mechanics (E2)
+        |
+        v
+controlled ecological performance landscape (E3)
+        |
+        v
+standing-variation selection test (E4)
 ```
 
-Both media should consume the B3 treatment/control semantics, fixed `max_speed`
-scale, matched comparison, representative seed/episodes, evidence hierarchy, and
-claim boundaries from `docs/flagship_evolution_demo.md`. They remain free to make
-renderer-specific choices without changing scientific meaning.
+The presentation media should consume the B3 treatment/control semantics, fixed
+`max_speed` scale, matched comparison, representative seed/episodes, evidence
+hierarchy, and claim boundaries from `docs/flagship_evolution_demo.md`. They remain
+free to make renderer-specific choices without changing scientific meaning.
 
-Presentation work should preserve:
+The E2–E4 experimental track is intentionally separate from B3. It should isolate
+locomotor mechanics first, measure phenotype-to-performance without focal
+evolution second, and only then ask whether standing inherited variation changes
+in the independently predicted direction. E2 may compose new controlled biology
+above the frozen kernel but must not simplify general genetics or redesign B3.
 
-- common scientific trait scales across matched arms;
+All fronts should preserve:
+
+- common scientific trait scales across matched arms where comparison requires it;
 - committed timestep semantics;
 - authoritative committed event/state evidence;
-- separation of renewable-generation provenance from total world resource state;
+- separation of configured treatment context from committed state and events;
 - representative-run storytelling versus multi-seed robustness evidence;
 - explicit claim/nonclaim boundaries.
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-Those fronts need not serialize behind presentation when their public boundaries
-are already settled.
+Those fronts need not serialize behind presentation or E2 when their public
+boundaries are already settled.
 
 A native Rust/C++ backend remains a separate evidence-driven future concern.
 Python continues to own high-level modeling/configuration until measured workloads
@@ -266,7 +301,7 @@ of concrete policies, not a structural ambiguity in `Genome` or
 
 The reference ecology and B3 flagship are evidence-backed software/modeling
 demonstrations. They are not species-calibrated or predictive ecological models.
-The later isolated experimental-evolution program should remain distinct from this
+The isolated E2–E4 experimental-evolution program remains distinct from this
 integrated reference-ecology flagship.
 
 ### Public presentation naming still contains v0.1 history
@@ -291,6 +326,11 @@ independently parallelizable repository iteration.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Experimental science foundation:** established exact committed event/state
+  alignment, run-level replicate and treatment provenance, explicit fixed-horizon
+  censoring semantics, thin normalization/equality treatment-integrity checking,
+  and pure locomotion measurement from authoritative applied movement effects and
+  energy evidence without introducing a statistics DSL or simulation dependency.
 - **Confirmed B3 environment-dependent selection:** froze the matched
   uniform-versus-compact `max_speed` scenario before confirmation, executed a
   disjoint eight-seed confirmation set without filtering, confirmed the step-30

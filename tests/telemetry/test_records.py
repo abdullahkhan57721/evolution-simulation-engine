@@ -44,6 +44,7 @@ def test_applied_event_exposes_metadata_and_opaque_domain_effects() -> None:
     assert applied.event_name == "ExampleEvent"
     assert applied.event is event
     assert applied.effects == (effect,)
+    assert applied.completed_step_index == 3
 
 
 def test_applied_event_public_constructor_still_validates_metadata() -> None:
@@ -131,6 +132,23 @@ def test_step_telemetry_public_constructor_still_validates_events() -> None:
         )
 
 
+def test_step_telemetry_rejects_misaligned_event_step() -> None:
+    """Test an event must correspond to the telemetry envelope's committed state."""
+    applied = AppliedEvent(
+        event_step_index=0,
+        stage_index=0,
+        process_type="pkg.Dispatch",
+        event_type="pkg.Dispatch.Event",
+        event=ExampleEvent(step_index=0, amount=1),
+    )
+
+    with pytest.raises(ValueError, match="does not align"):
+        StepTelemetry(
+            completed_step_index=2,
+            events=(applied,),
+        )
+
+
 def test_step_telemetry_kernel_construction_matches_validated_record() -> None:
     """Test kernel construction preserves the immutable step telemetry record."""
     applied = AppliedEvent(
@@ -158,4 +176,21 @@ def test_step_telemetry_kernel_construction_validates_completed_index() -> None:
         StepTelemetry._from_kernel_values(
             completed_step_index=0,
             events=(),
+        )
+
+
+def test_step_telemetry_kernel_construction_rejects_misaligned_event_step() -> None:
+    """Test trusted construction enforces event-to-committed-state alignment."""
+    applied = AppliedEvent(
+        event_step_index=0,
+        stage_index=0,
+        process_type="pkg.Dispatch",
+        event_type="pkg.Dispatch.Event",
+        event=ExampleEvent(step_index=0, amount=1),
+    )
+
+    with pytest.raises(ValueError, match="does not align"):
+        StepTelemetry._from_kernel_values(
+            completed_step_index=2,
+            events=(applied,),
         )

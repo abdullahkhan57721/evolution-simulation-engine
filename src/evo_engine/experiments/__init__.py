@@ -9,8 +9,15 @@ from evo_engine.experiments.checkpoint import (
 )
 from evo_engine.experiments.export import (
     write_experiment_json,
+    write_locomotion_measurements_json,
     write_population_history_csv,
     write_replicate_summary_csv,
+)
+from evo_engine.experiments.locomotion import (
+    AppliedMovementMeasurement,
+    LocomotionReplicateMeasurements,
+    measure_applied_movement,
+    summarize_locomotion_replicate,
 )
 from evo_engine.experiments.performance import (
     REFERENCE_CORE_BASELINE,
@@ -29,10 +36,19 @@ from evo_engine.experiments.reference import (
     run_flagship_max_intake_replicates,
     run_reference_replicates,
 )
+from evo_engine.experiments.science import (
+    FixedHorizonTimeToEvent,
+    ScientificRunProvenance,
+    canonical_treatment_specification,
+    validate_declared_treatment_difference,
+)
 
 __all__ = [
     "REFERENCE_CORE_BASELINE",
     "REFERENCE_OBSERVED_BASELINE",
+    "AppliedMovementMeasurement",
+    "FixedHorizonTimeToEvent",
+    "LocomotionReplicateMeasurements",
     "ReferenceBenchmarkResult",
     "ReferenceCheckpointManifest",
     "ReferenceExperimentResult",
@@ -41,14 +57,20 @@ __all__ = [
     "ReferenceReplicateResult",
     "ReferenceRunOutcome",
     "RunMetadata",
+    "ScientificRunProvenance",
     "benchmark_reference_scenario",
+    "canonical_treatment_specification",
     "load_reference_checkpoint",
+    "measure_applied_movement",
     "profile_reference_scenario",
     "read_reference_checkpoint_manifest",
     "resume_reference_checkpoint",
     "run_flagship_max_intake_replicates",
     "run_reference_replicates",
+    "summarize_locomotion_replicate",
+    "validate_declared_treatment_difference",
     "write_experiment_json",
+    "write_locomotion_measurements_json",
     "write_population_history_csv",
     "write_reference_checkpoint",
     "write_replicate_summary_csv",
