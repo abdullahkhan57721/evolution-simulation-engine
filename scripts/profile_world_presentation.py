@@ -9,8 +9,6 @@ from pathlib import Path
 from statistics import median
 from time import perf_counter
 
-import attrs
-
 from evo_engine.ecology import PatchyResourcePlacement, ResourcePatch
 from evo_engine.engine import Simulation
 from evo_engine.genetics import GENETIC_ARCHITECTURE, MAX_SPEED
@@ -20,7 +18,10 @@ from evo_engine.presets import (
     build_balanced_reference_trait_world,
     build_reference_ecology,
 )
-from evo_engine.ui.world_presentation import build_world_presentation
+from evo_engine.ui.world_presentation import (
+    WorldPresentationFrame,
+    build_world_presentation,
+)
 from evo_engine.ui.world_renderer import world_presentation_figure
 
 
@@ -29,18 +30,25 @@ def main() -> None:
     args = _parse_args()
     results = (
         _measure_history("b1-patchy-resources", _patchy_history(), repeats=args.repeats),
-        _measure_history("b2-speed-tradeoff", _speed_tradeoff_history(), repeats=args.repeats),
+        _measure_history(
+            "b2-speed-tradeoff",
+            _speed_tradeoff_history(),
+            repeats=args.repeats,
+        ),
     )
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(results, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    output.write_text(
+        json.dumps(results, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
     for result in results:
         print(f"\n=== {result['scenario']} ===")
-        print(f"committed frames:          {result['frames']}")
-        print(f"max active organisms:      {result['max_active_organisms']}")
-        print(f"max resource deposits:     {result['max_resource_deposits']}")
-        print(f"prep median / frame (ms):  {result['prep_median_ms_per_frame']:.4f}")
+        print(f"committed frames:           {result['frames']}")
+        print(f"max active organisms:       {result['max_active_organisms']}")
+        print(f"max resource deposits:      {result['max_resource_deposits']}")
+        print(f"prep median / frame (ms):   {result['prep_median_ms_per_frame']:.4f}")
         print(f"Plotly median / frame (ms): {result['plotly_median_ms_per_frame']:.4f}")
     print(f"\nbenchmark JSON: {output}")
 
@@ -127,9 +135,7 @@ def _measure_history(
         )
         for frame in history
     )
-    prep_durations = tuple(
-        _time_presentation_pass(history) for _ in range(repeats)
-    )
+    prep_durations = tuple(_time_presentation_pass(history) for _ in range(repeats))
     plotly_durations = tuple(
         _time_plotly_pass(presentations) for _ in range(repeats)
     )
@@ -157,11 +163,10 @@ def _time_presentation_pass(history: tuple[SpatialObservation, ...]) -> float:
     return perf_counter() - started
 
 
-def _time_plotly_pass(presentations: tuple[object, ...]) -> float:
+def _time_plotly_pass(presentations: tuple[WorldPresentationFrame, ...]) -> float:
     started = perf_counter()
     for presentation in presentations:
-        figure = world_presentation_figure(presentation)  # type: ignore[arg-type]
-        figure.to_plotly_json()
+        world_presentation_figure(presentation).to_plotly_json()
     return perf_counter() - started
 
 
