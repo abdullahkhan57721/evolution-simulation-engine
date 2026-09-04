@@ -7,6 +7,7 @@ import pytest
 
 from evo_engine.ecology import PatchyResourcePlacement
 from evo_engine.genetics import MAX_INTAKE_RATE, MAX_SPEED
+from evo_engine.processes import ResourceGeneration
 from evo_engine.ui.models import (
     FLAGSHIP_MAX_INTAKE_SCENARIO,
     SCIENCE_AWARE_HIGH_SPEED,
@@ -234,7 +235,6 @@ def test_science_aware_speed_preview_combines_real_b1_b2_evidence() -> None:
         for item in founder_traits.individuals
     } == {SCIENCE_AWARE_LOW_SPEED, SCIENCE_AWARE_HIGH_SPEED}
 
-    patches = result.config.resource_placement_model.patches
     for frame, traits in zip(
         result.spatial_history,
         result.individual_trait_history,
@@ -244,15 +244,24 @@ def test_science_aware_speed_preview_combines_real_b1_b2_evidence() -> None:
         assert tuple(item.organism_id for item in frame.organisms) == tuple(
             item.organism_id for item in traits.individuals
         )
-        assert all(
-            any(
-                (resource.x - patch.center_x) ** 2
-                + (resource.y - patch.center_y) ** 2
-                <= patch.radius**2
-                for patch in patches
-            )
-            for resource in frame.resources
+
+    patches = result.config.resource_placement_model.patches
+    generation_events = tuple(
+        applied.event
+        for step in result.telemetry_steps
+        for applied in step.events_for_process("ResourceGeneration")
+    )
+    assert generation_events
+    assert all(isinstance(event, ResourceGeneration.Event) for event in generation_events)
+    assert all(
+        any(
+            (event.x - patch.center_x) ** 2 + (event.y - patch.center_y) ** 2
+            <= patch.radius**2
+            for patch in patches
         )
+        for event in generation_events
+        if isinstance(event, ResourceGeneration.Event)
+    )
 
 
 def test_dashboard_experiment_delegates_to_existing_replicate_contract() -> None:
