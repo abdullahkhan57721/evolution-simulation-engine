@@ -1,0 +1,30 @@
+name: B3 Analysis Only
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  b3-analysis:
+    if: ${{ github.head_ref == 'analysis/b3-scenario-search' }}
+    name: B3 scenario search
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run bounded B3 scenario search
+        run: |
+          venv/bin/python scripts/b3_scenario_search.py \
+            --output outputs/b3-analysis/b3-scenario-search.json
+      - name: Upload B3 analysis evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: b3-scenario-search-${{ github.run_id }}
+          path: outputs/b3-analysis/b3-scenario-search.json
+          retention-days: 14
+          if-no-files-found: error
