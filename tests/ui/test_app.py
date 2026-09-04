@@ -6,7 +6,11 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+from evo_engine.genetics import MAX_SPEED
+from evo_engine.ui.models import SCIENCE_AWARE_MAX_SPEED_SCENARIO
+
 _APP_PATH = Path(__file__).parents[2] / "src" / "evo_engine" / "ui" / "app.py"
+_MAX_SPEED_PREVIEW = "B1/B2 mechanism preview · maximum speed"
 
 
 def _custom_configuration(app: AppTest) -> AppTest:
@@ -34,6 +38,19 @@ def _run_small_custom_simulation() -> AppTest:
     app = _custom_configuration(app)
     _set_small_valid_configuration(app)
     next(button for button in app.button if button.label == "Run simulation").click()
+    return app.run(timeout=60)
+
+
+def _run_max_speed_preview() -> AppTest:
+    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+    scenario = next(radio for radio in app.radio if radio.label == "Curated scenario")
+    scenario.set_value(_MAX_SPEED_PREVIEW)
+    app.run(timeout=30)
+    next(
+        button
+        for button in app.button
+        if button.label == "Run max-speed mechanism preview"
+    ).click()
     return app.run(timeout=60)
 
 
@@ -268,6 +285,42 @@ def test_featured_scenario_transitions_to_same_workspace() -> None:
     assert any(
         selectbox.label == "Inspect locus" and selectbox.value == "max_intake_rate"
         for selectbox in app.selectbox
+    )
+
+
+def test_max_speed_preview_uses_committed_focal_science_without_b3_experiment() -> None:
+    """Test the preview exposes focal evidence but does not fabricate B3 comparison."""
+    app = _run_max_speed_preview()
+    run = app.session_state["portfolio_dashboard_run"]
+
+    assert not app.exception
+    assert run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO
+    assert run.individual_trait_history
+    assert _committed_step_metric(app).value == "0"
+    assert any(
+        selectbox.label == "Inspect heritable trait" and selectbox.value == MAX_SPEED
+        for selectbox in app.selectbox
+    )
+    assert any(
+        selectbox.label == "Inspect locus" and selectbox.value == MAX_SPEED
+        for selectbox in app.selectbox
+    )
+    assert "Run experiment" not in {button.label for button in app.button}
+    assert any("B3 owns" in info.value for info in app.info)
+
+    organism = next(
+        selectbox
+        for selectbox in app.selectbox
+        if selectbox.label == "Selected organism"
+    )
+    organism.set_value(0)
+    app.run(timeout=30)
+
+    expected = run.individual_trait_history[0].trait_value(0, MAX_SPEED)
+    assert not app.exception
+    assert any(
+        markdown.value == f"**Maximum speed:** {expected}"
+        for markdown in app.markdown
     )
 
 
