@@ -13,23 +13,44 @@ permissions:
   contents: read
 
 jobs:
-  validate-e3:
-    name: Bounded E3 discovery
+  confirm-e3:
+    name: Independent E3 confirmation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-quality
-      - name: Run predeclared discovery matrix
+      - name: Run frozen unseen-seed confirmation matrix
         run: |
           venv/bin/python scripts/e3_landscape.py \
-            --mode discovery \
-            --output outputs/e3-validation/e3-discovery.json
-      - name: Upload E3 discovery evidence
+            --mode confirmation \
+            --output outputs/e3-validation/e3-confirmation.json
+      - name: Upload E3 confirmation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e3-discovery-${{ github.run_id }}
-          path: outputs/e3-validation/e3-discovery.json
+          name: e3-confirmation-${{ github.run_id }}
+          path: outputs/e3-validation/e3-confirmation.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  sensitivity-e3:
+    name: E3 zero-cost mechanism sensitivity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run bounded locomotion-cost sensitivity
+        run: |
+          venv/bin/python scripts/e3_landscape.py \
+            --mode sensitivity \
+            --output outputs/e3-validation/e3-sensitivity.json
+      - name: Upload E3 sensitivity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e3-sensitivity-${{ github.run_id }}
+          path: outputs/e3-validation/e3-sensitivity.json
           retention-days: 30
           if-no-files-found: warn
