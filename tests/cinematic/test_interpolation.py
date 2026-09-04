@@ -10,8 +10,11 @@ def test_interpolation_preserves_committed_endpoints_exactly() -> None:
     start = _organism(organism_id=7, x=1, y=2)
     end = _organism(organism_id=7, x=5, y=6)
 
-    assert interpolate_organism_position(start, end, fraction=0.0) == (1.0, 2.0)
-    assert interpolate_organism_position(start, end, fraction=1.0) == (5.0, 6.0)
+    start_position = interpolate_organism_position(start, end, fraction=0.0)
+    end_position = interpolate_organism_position(start, end, fraction=1.0)
+
+    assert (start_position.x, start_position.y) == (1.0, 2.0)
+    assert (end_position.x, end_position.y) == (5.0, 6.0)
 
 
 def test_interpolation_uses_linear_presentation_geometry() -> None:
