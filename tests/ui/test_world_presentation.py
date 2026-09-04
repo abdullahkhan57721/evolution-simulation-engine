@@ -100,8 +100,9 @@ def test_selected_step_uses_exact_committed_frame_and_resource_snapshot() -> Non
         (2, 2, 7),
     )
     assert tuple(item.carcass_id for item in presentation.carcasses) == (10,)
-    assert presentation.selected_organism() is not None
-    assert presentation.selected_organism().organism_id == 1
+    selected = presentation.selected_organism()
+    assert selected is not None
+    assert selected.organism_id == 1
     assert [item.selected for item in presentation.organisms] == [False, True, False]
 
 
