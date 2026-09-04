@@ -90,9 +90,10 @@ def run_locomotion_mechanics_case(
     """Run one deterministic target-directed E2 mechanics case.
 
     The founder is padded away from every world edge, the target is guaranteed
-    in bounds, reproduction is disabled by an unreachable energy threshold, and
-    one committed step is recorded. The returned displacement and cost are then
-    derived through E1's authoritative applied-movement measurement path.
+    in bounds, movement energy is nonlimiting across the declared capacity domain,
+    reproduction is disabled by an unreachable energy threshold, and one committed
+    step is recorded. The returned displacement and cost are then derived through
+    E1's authoritative applied-movement measurement path.
 
     Args:
         case: Predeclared capacity and target-bearing case.
@@ -125,6 +126,7 @@ def run_locomotion_mechanics_case(
         resource_deposits=(
             ControlledResourceDeposit(x=target_x, y=target_y, amount=100),
         ),
+        initial_energy=1_000,
         reproduction_minimum_energy=10_000,
     )
     recorder = EventRecorder()

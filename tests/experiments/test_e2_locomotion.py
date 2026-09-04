@@ -71,6 +71,17 @@ def test_short_target_is_reached_exactly_even_when_capacity_is_higher() -> None:
     assert outcome.measurement.realized_distance == 5.0
 
 
+def test_maximum_capacity_mechanics_case_is_not_energy_limited() -> None:
+    """Test the mechanics assay can exercise the full declared speed domain."""
+    outcome = run_locomotion_mechanics_case(
+        LocomotionMechanicsCase(max_speed=20, target_dx=50, target_dy=0)
+    )
+
+    assert outcome.measurement.realized_distance == 20.0
+    assert outcome.measurement.locomotion_energy_expenditure == 400
+    assert not outcome.target_reached
+
+
 def test_scarce_resource_winner_is_seed_randomized_not_fixed_to_low_id() -> None:
     """Test competition ordering does not encode a permanent organism-ID winner."""
     winners: set[int] = set()

@@ -44,11 +44,12 @@ target-directed movement decision
 actual committed displacement
 ```
 
-In E2, deterministic development means inherited and operative capacity have the
-same numerical value, but they remain different scientific concepts. Actual
-movement can be shorter than capacity because the target is close or because an
-integer grid cannot represent the continuous capacity boundary exactly at a given
-bearing.
+E2 deliberately has no development stage. `GeneticPhenotypeCharacteristics` reads
+operative `max_speed` directly from raw genetic expression, so inherited and
+operative values are numerically equal in this composition while remaining
+scientifically distinct concepts. Actual movement can be shorter than capacity
+because the target is close or because an integer grid cannot represent the
+continuous capacity boundary exactly at a given bearing.
 
 The E1 measurement layer remains authoritative for actual displacement. It derives
 realized distance from committed `OrganismMoved` evidence rather than renaming an
@@ -103,6 +104,11 @@ world edge. Because target-directed movement follows the segment between two
 in-bounds points and never overshoots the target, boundary clamping should not
 change the attempted displacement in that assay. Tests require attempted and
 committed distances to agree.
+
+The mechanics assay also supplies nonlimiting one-step energy across the complete
+E2 `max_speed` domain, so starvation cannot censor the measurement being validated.
+That assay-only choice does not change the reusable controlled composition's
+ordinary energy accounting.
 
 ## Feeding and competition
 
