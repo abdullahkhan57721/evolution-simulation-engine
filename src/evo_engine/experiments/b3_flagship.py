@@ -445,19 +445,22 @@ def _movement_episode(
     consumed = consumption.get((completed_step, event.organism_id), 0)
     if consumed <= 0:
         return None
+    previous_observation = spatial_by_step.get(completed_step - 1)
+    start = _spatial_position(previous_observation, event.organism_id)
+    if start is None:
+        return None
+    end = (event.new_x, event.new_y)
     return B3MovementConsumptionEpisode(
         completed_step_index=completed_step,
         organism_id=event.organism_id,
         max_speed_capacity=speed_by_id[event.organism_id],
-        start=(event.new_x - event.dx, event.new_y - event.dy),
-        end=(event.new_x, event.new_y),
+        start=start,
+        end=end,
         target=(event.target_x, event.target_y),
-        realized_displacement=math.hypot(event.dx, event.dy),
+        realized_displacement=math.hypot(end[0] - start[0], end[1] - start[1]),
         movement_energy_cost=event.energy_cost,
         resource_consumed_same_step=consumed,
-        energy_before_step=_spatial_energy(
-            spatial_by_step.get(completed_step - 1), event.organism_id
-        ),
+        energy_before_step=_spatial_energy(previous_observation, event.organism_id),
         energy_after_step=_spatial_energy(
             spatial_by_step.get(completed_step), event.organism_id
         ),
@@ -483,6 +486,18 @@ def _mechanism_episodes(
         for applied in evidence.events
     )
     return tuple(episode for episode in episodes if episode is not None)
+
+
+def _spatial_position(
+    observation: SpatialObservation | None,
+    organism_id: int,
+) -> tuple[int, int] | None:
+    if observation is None:
+        return None
+    for organism in observation.organisms:
+        if organism.organism_id == organism_id:
+            return (organism.x, organism.y)
+    return None
 
 
 def _spatial_energy(
