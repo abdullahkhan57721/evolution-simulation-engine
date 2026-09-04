@@ -2,7 +2,9 @@
 
 from evo_engine.cinematic.events import (
     select_authoritative_events,
+    select_authoritative_events_for_process,
     select_first_authoritative_event,
+    select_first_authoritative_event_for_process,
 )
 from evo_engine.cinematic.timeline import (
     PortfolioAnimationFrame,
@@ -40,6 +42,40 @@ def test_event_selection_preserves_actual_commit_order() -> None:
     )
 
 
+def test_process_selection_handles_generic_nested_event_class_names() -> None:
+    first = _event(
+        event_type="tests.ResourceGeneration.Event",
+        process_type="tests.ResourceGeneration",
+        stage=2,
+    )
+    other = _event(
+        event_type="tests.Movement.Event",
+        process_type="tests.Movement",
+        stage=3,
+    )
+    second = _event(
+        event_type="tests.ResourceGeneration.Event",
+        process_type="tests.ResourceGeneration",
+        stage=4,
+    )
+    timeline = PortfolioAnimationTimeline(
+        trait_name="max_speed",
+        frames=(_frame(events=(first, other, second)),),
+    )
+
+    assert select_authoritative_events_for_process(
+        timeline,
+        process_name="ResourceGeneration",
+    ) == (first, second)
+    assert (
+        select_first_authoritative_event_for_process(
+            timeline,
+            process_name="ResourceGeneration",
+        )
+        is first
+    )
+
+
 def test_identity_change_does_not_create_authoritative_event() -> None:
     timeline = PortfolioAnimationTimeline(
         trait_name="max_speed",
@@ -59,13 +95,25 @@ def test_identity_change_does_not_create_authoritative_event() -> None:
         )
         is None
     )
+    assert (
+        select_first_authoritative_event_for_process(
+            timeline,
+            process_name="Reproduction",
+        )
+        is None
+    )
 
 
-def _event(*, event_type: str, stage: int) -> AppliedEvent:
+def _event(
+    *,
+    event_type: str,
+    stage: int,
+    process_type: str = "tests.Process",
+) -> AppliedEvent:
     return AppliedEvent(
         event_step_index=0,
         stage_index=stage,
-        process_type="tests.Process",
+        process_type=process_type,
         event_type=event_type,
         event=object(),
     )
