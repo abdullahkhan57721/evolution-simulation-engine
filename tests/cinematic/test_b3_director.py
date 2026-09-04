@@ -168,13 +168,19 @@ def test_wrong_representative_seed_fails_before_direction(
     representative_evidence: tuple[B3RunEvidence, B3RunEvidence],
 ) -> None:
     control, treatment = representative_evidence
-    wrong_specification = attrs.evolve(control.specification, seed=17)
-    wrong_control = attrs.evolve(control, specification=wrong_specification)
+    wrong_control = attrs.evolve(
+        control,
+        specification=attrs.evolve(control.specification, seed=17),
+    )
+    wrong_treatment = attrs.evolve(
+        treatment,
+        specification=attrs.evolve(treatment.specification, seed=17),
+    )
 
     with pytest.raises(ValueError, match="representative seed 5"):
         prepare_b3_flagship_director(
             control_evidence=wrong_control,
-            treatment_evidence=treatment,
+            treatment_evidence=wrong_treatment,
         )
 
 
