@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from evo_engine.experiments.locomotion import measure_applied_movement
 from evo_engine.genetics import MAX_SPEED
+from evo_engine.observation import EventRecorder
 from evo_engine.presets.controlled_locomotion import (
     ControlledLocomotionConfig,
     ControlledLocomotionFounder,
     ControlledResourceDeposit,
-    build_controlled_locomotion_event_recorder_spec,
     build_controlled_locomotion_spec,
 )
 from evo_engine.processes import Movement, Reproduction, ResourceConsumption
@@ -42,7 +42,11 @@ def _run_one_step(
         ),
         reproduction_minimum_energy=10_000,
     )
-    spec, recorder = build_controlled_locomotion_event_recorder_spec(config)
+    recorder = EventRecorder()
+    spec = build_controlled_locomotion_spec(
+        config,
+        telemetry_observers=(recorder,),
+    )
     compiled = spec.compile()
     compiled.engine.run(compiled.simulation)
     return config, compiled.simulation.state.domain_state, recorder.events
@@ -112,7 +116,11 @@ def test_no_resource_target_produces_stationary_fallback_not_blind_travel() -> N
         resource_request_amount=1,
         reproduction_minimum_energy=10_000,
     )
-    spec, recorder = build_controlled_locomotion_event_recorder_spec(config)
+    recorder = EventRecorder()
+    spec = build_controlled_locomotion_spec(
+        config,
+        telemetry_observers=(recorder,),
+    )
     compiled = spec.compile()
 
     compiled.engine.run(compiled.simulation)
@@ -140,7 +148,11 @@ def test_single_parent_reproduction_clones_capacity_without_mate_search() -> Non
         reproduction_minimum_energy=100,
         reproduction_energy_investment=20,
     )
-    spec, recorder = build_controlled_locomotion_event_recorder_spec(config)
+    recorder = EventRecorder()
+    spec = build_controlled_locomotion_spec(
+        config,
+        telemetry_observers=(recorder,),
+    )
     compiled = spec.compile()
 
     compiled.engine.run(compiled.simulation)

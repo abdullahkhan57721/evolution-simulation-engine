@@ -26,7 +26,6 @@ from evo_engine.engine import (
 )
 from evo_engine.feeding import FullAssimilation
 from evo_engine.genetics import ClonalInheritance
-from evo_engine.observation import EventRecorder
 from evo_engine.presets.controlled_locomotion.config import ControlledLocomotionConfig
 from evo_engine.presets.controlled_locomotion.genetics import (
     build_controlled_locomotion_genetic_architecture,
@@ -152,27 +151,6 @@ def build_controlled_locomotion_spec(
         behavior_selection_model=UnrestrictedBehavior(),
         observers=tuple(observers),
         telemetry_observers=tuple(telemetry_observers),
-    )
-
-
-def build_controlled_locomotion_event_recorder_spec(
-    config: ControlledLocomotionConfig | None = None,
-) -> tuple[BiologicalSimulationSpec, EventRecorder]:
-    """Build a controlled locomotion spec with authoritative event recording.
-
-    Args:
-        config: Controlled E2 configuration. Defaults to canonical values.
-
-    Returns:
-        Simulation specification and its attached event recorder.
-    """
-    recorder = EventRecorder()
-    return (
-        build_controlled_locomotion_spec(
-            config,
-            telemetry_observers=(recorder,),
-        ),
-        recorder,
     )
 
 

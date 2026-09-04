@@ -8,11 +8,13 @@ from evo_engine.experiments.locomotion import (
     AppliedMovementMeasurement,
     measure_applied_movement,
 )
+from evo_engine.observation import EventRecorder
 from evo_engine.presets.controlled_locomotion import (
+    CONTROLLED_MAX_SPEED_MAXIMUM,
     ControlledLocomotionConfig,
     ControlledLocomotionFounder,
     ControlledResourceDeposit,
-    build_controlled_locomotion_event_recorder_spec,
+    build_controlled_locomotion_spec,
 )
 from evo_engine.processes import Movement
 from evo_engine.validation import attrs_validators, validators
@@ -32,7 +34,10 @@ class LocomotionMechanicsCase:
     """
 
     max_speed: int = attrs.field(
-        validator=attrs_validators.validate_int_in_range(0, 20),
+        validator=attrs_validators.validate_int_in_range(
+            0,
+            CONTROLLED_MAX_SPEED_MAXIMUM,
+        ),
     )
     target_dx: int = attrs.field(validator=attrs_validators.validate_int)
     target_dy: int = attrs.field(validator=attrs_validators.validate_int)
@@ -122,7 +127,11 @@ def run_locomotion_mechanics_case(
         ),
         reproduction_minimum_energy=10_000,
     )
-    spec, recorder = build_controlled_locomotion_event_recorder_spec(config)
+    recorder = EventRecorder()
+    spec = build_controlled_locomotion_spec(
+        config,
+        telemetry_observers=(recorder,),
+    )
     compiled = spec.compile()
     compiled.engine.run(compiled.simulation)
 

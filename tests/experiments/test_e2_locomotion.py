@@ -9,11 +9,12 @@ from evo_engine.experiments.e2_locomotion import (
     run_locomotion_bearing_assay,
     run_locomotion_mechanics_case,
 )
+from evo_engine.observation import EventRecorder
 from evo_engine.presets.controlled_locomotion import (
     ControlledLocomotionConfig,
     ControlledLocomotionFounder,
     ControlledResourceDeposit,
-    build_controlled_locomotion_event_recorder_spec,
+    build_controlled_locomotion_spec,
 )
 from evo_engine.processes import ResourceConsumption
 
@@ -89,7 +90,11 @@ def test_scarce_resource_winner_is_seed_randomized_not_fixed_to_low_id() -> None
             resource_request_amount=1,
             reproduction_minimum_energy=10_000,
         )
-        spec, recorder = build_controlled_locomotion_event_recorder_spec(config)
+        recorder = EventRecorder()
+        spec = build_controlled_locomotion_spec(
+            config,
+            telemetry_observers=(recorder,),
+        )
         compiled = spec.compile()
         compiled.engine.run(compiled.simulation)
         feeding = tuple(
