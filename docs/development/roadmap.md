@@ -55,8 +55,8 @@ Presentation interpolation is never scientific evidence.
 
 ## Completed post-v0.1 integration sequence
 
-The first post-v0.1 scenario/presentation sequence has now crossed its scientific
-integration gate:
+The first post-v0.1 scenario/presentation sequence has now crossed both its
+scientific and cinematic integration gates:
 
 ```text
 v0.1.0 portfolio baseline
@@ -79,13 +79,18 @@ frozen disjoint confirmation
         |
         v
 confirmed renderer-neutral B3 scientific handoff
+        |
+        v
+concrete B3 flagship cinematic director
 ```
 
 B1 established immutable ecological resource-placement policy. B2 demonstrated
 an inherited `max_speed` benefit/cost axis using existing movement, maintenance,
-and sexual inheritance. B3 has now confirmed that the two mechanisms compose into
-a robust environment-dependent selection demonstration without kernel changes or a
-generic fitness abstraction.
+and sexual inheritance. B3 confirmed that the two mechanisms compose into a
+robust environment-dependent selection demonstration without kernel changes or a
+generic fitness abstraction. V3 then turned that frozen scientific handoff into a
+reproducible explanatory film without moving camera/timing concerns into the
+domain model.
 
 ## Confirmed B3 scientific contract
 
@@ -124,8 +129,9 @@ regression/integration example rather than the primary scientific flagship.
 
 ## Immediate next integration front
 
-The next step is no longer scenario discovery. It is to make both presentation
-media consume the confirmed B3 scientific handoff faithfully:
+The B3 cinematic continuation is complete as a concrete sibling renderer path.
+The remaining presentation front is therefore the interactive B3 matched
+comparison:
 
 ```text
 confirmed B3 evidence/storyboard
@@ -133,12 +139,9 @@ confirmed B3 evidence/storyboard
         +-------------------------+
         |                         |
         v                         v
-V2 interactive B3            V3 cinematic B3
-comparison/director          comparison/director
+V2 interactive B3            V3 B3 flagship film
+comparison                   implemented
 ```
-
-These presentation continuations may proceed in parallel because the consequential
-scientific contract is settled.
 
 ### Interactive continuation
 
@@ -160,15 +163,26 @@ The presentation should preserve:
 Renderer-specific controls, layout, charts, animation rate, accessibility, and
 interaction remain UI responsibility.
 
-### Cinematic continuation
+### Cinematic baseline to preserve
 
-The cinematic director should consume the same B3 scientific meaning while
-remaining a sibling renderer concern. It may use seed 5's real committed episodes
-for causal storytelling, but must not fabricate pairwise encounters or substitute
-cinematic interpolation for evidence.
+The B3 cinematic director is intentionally concrete rather than a universal film
+DSL. Its durable lessons are:
 
-Camera, composition, timing, shot order, labels, palette, easing, and transitions
-belong entirely to the cinematic layer.
+- B3 science is consumed from the renderer-neutral handoff and committed evidence;
+- fixed scientific scales are shared across matched arms;
+- representative organisms/events are selected by B3, not by the renderer;
+- focus is a presentation channel independent of scientific fill and body size;
+- committed events support causal labels, while identity continuity remains
+  non-causal;
+- representative-run episodes explain mechanism, while run-level confirmation
+  supports robustness;
+- camera, shot timing, temporal compression, and evidence-chart choreography remain
+  renderer-only concerns;
+- the full portfolio film is a deliberate reproducible artifact, while routine CI
+  retains short generic/science-aware/B3 smokes.
+
+Do not generalize this into a broad camera DSL or scenario-presentation schema
+without multiple future films demonstrating a genuinely repeated contract.
 
 ## Later experimental-evolution program
 
