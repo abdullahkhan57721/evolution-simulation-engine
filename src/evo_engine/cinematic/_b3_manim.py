@@ -33,6 +33,7 @@ from manim import (
     FadeOut,
     Line,
     MovingCameraScene,
+    Restore,
     RoundedRectangle,
     Square,
     Text,
@@ -45,7 +46,6 @@ from manim import (
 from evo_engine.cinematic.api import AnimationQuality
 from evo_engine.cinematic.b3_director import (
     B3_CONTROL_LABEL,
-    B3_REPRESENTATIVE_SEED,
     B3_TREATMENT_LABEL,
     B3DirectorAct,
     B3FlagshipDirectorPlan,
@@ -332,8 +332,8 @@ class _B3FlagshipScene(MovingCameraScene):
         )
         steps = (5, 10, 15, 20, 25, 30)
         self.play(FadeIn(heading), run_time=0.35)
-        current: object | None = None
-        current_label: object | None = None
+        current: Any | None = None
+        current_label: Any | None = None
         for step in steps:
             frame = _frame_for_step(self._plan.treatment, step)
             snapshot = _world_snapshot(
@@ -438,10 +438,7 @@ class _B3FlagshipScene(MovingCameraScene):
             axis_config={"color": GREY_B, "stroke_width": 1.2},
             tips=False,
         ).shift(DOWN * 0.25)
-        steps = [
-            point.step_index
-            for point in self._plan.representative_genetic_trajectory
-        ]
+        steps = [point.step_index for point in self._plan.representative_genetic_trajectory]
         control = [
             point.control_high_speed_frequency
             for point in self._plan.representative_genetic_trajectory
@@ -474,16 +471,20 @@ class _B3FlagshipScene(MovingCameraScene):
             color=YELLOW_C,
             stroke_opacity=0.65,
         )
-        labels = _multiline_text(
-            (
-                "Blue = Uniform",
-                "Red = Compact radius-1",
-                "Horizontal dash = founder baseline 0.50",
-                "Yellow dash = predeclared step 30",
-            ),
-            font_size=16,
-            color=_MUTED,
-        ).to_edge(RIGHT, buff=0.25).shift(UP * 1.15)
+        labels = (
+            _multiline_text(
+                (
+                    "Blue = Uniform",
+                    "Red = Compact radius-1",
+                    "Horizontal dash = founder baseline 0.50",
+                    "Yellow dash = predeclared step 30",
+                ),
+                font_size=16,
+                color=_MUTED,
+            )
+            .to_edge(RIGHT, buff=0.25)
+            .shift(UP * 1.15)
+        )
         primary_point = next(
             point
             for point in self._plan.representative_genetic_trajectory
@@ -613,12 +614,16 @@ def _rendered_media_path(scene: Any, output_format: str) -> Path:
     return Path(writer.movie_file_path)
 
 
-def _act_heading(title: str, subtitle: str) -> object:
+def _act_heading(title: str, subtitle: str) -> Any:
     title_text = Text(title, font_size=31, weight="BOLD", color=_TEXT)
     subtitle_text = Text(subtitle, font_size=16, color=_MUTED)
-    return VGroup(title_text, subtitle_text).arrange(DOWN, buff=0.1).to_edge(
-        UP,
-        buff=0.18,
+    return (
+        VGroup(title_text, subtitle_text)
+        .arrange(DOWN, buff=0.1)
+        .to_edge(
+            UP,
+            buff=0.18,
+        )
     )
 
 
@@ -627,7 +632,7 @@ def _multiline_text(
     *,
     font_size: int,
     color: object,
-) -> object:
+) -> Any:
     return VGroup(
         *(Text(line, font_size=font_size, color=color) for line in lines)
     ).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
@@ -639,12 +644,9 @@ def _centered_multiline_text(
     font_size: int,
     color: object,
     weight: str | None = None,
-) -> object:
+) -> Any:
     return VGroup(
-        *(
-            Text(line, font_size=font_size, color=color, weight=weight)
-            for line in lines
-        )
+        *(Text(line, font_size=font_size, color=color, weight=weight) for line in lines)
     ).arrange(DOWN, buff=0.08)
 
 
@@ -654,7 +656,7 @@ def _wrapped_text(
     width: int,
     font_size: int,
     color: object,
-) -> object:
+) -> Any:
     lines = tuple(textwrap.wrap(value, width=width))
     return _multiline_text(lines, font_size=font_size, color=color)
 
@@ -672,12 +674,12 @@ def _world_snapshot(
     *,
     label: str,
     include_legend: bool = True,
-) -> object:
+) -> Any:
     shell = _world_shell(layout, label=label)
     resources = _resource_layer(frame, layout)
     carcasses = _carcass_layer(frame, layout)
     organisms = _organism_layer(frame, layout)
-    items: list[object] = [shell, resources, carcasses, organisms]
+    items: list[Any] = [shell, resources, carcasses, organisms]
     if include_legend:
         legend = _speed_legend()
         legend.next_to(shell, DOWN, buff=0.12)
@@ -685,7 +687,7 @@ def _world_snapshot(
     return VGroup(*items)
 
 
-def _world_shell(layout: _WorldLayout, *, label: str) -> object:
+def _world_shell(layout: _WorldLayout, *, label: str) -> Any:
     border = RoundedRectangle(
         width=layout.display_width + 0.16,
         height=layout.display_height + 0.16,
@@ -700,12 +702,12 @@ def _world_shell(layout: _WorldLayout, *, label: str) -> object:
     return VGroup(border, grid, title)
 
 
-def _grid_lines(layout: _WorldLayout) -> tuple[object, ...]:
+def _grid_lines(layout: _WorldLayout) -> tuple[Any, ...]:
     left = layout.center_x - layout.display_width / 2
     right = layout.center_x + layout.display_width / 2
     bottom = layout.center_y - layout.display_height / 2
     top = layout.center_y + layout.display_height / 2
-    lines: list[object] = []
+    lines: list[Any] = []
     for x in range(1, layout.width):
         scene_x = left + x * layout.display_width / layout.width
         lines.append(
@@ -731,13 +733,13 @@ def _grid_lines(layout: _WorldLayout) -> tuple[object, ...]:
     return tuple(lines)
 
 
-def _resource_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> object:
+def _resource_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> Any:
     return VGroup(
         *(_resource_marker(resource, layout) for resource in frame.spatial.resources)
     )
 
 
-def _resource_marker(resource: SpatialResourceSnapshot, layout: _WorldLayout) -> object:
+def _resource_marker(resource: SpatialResourceSnapshot, layout: _WorldLayout) -> Any:
     side = 0.065 + min(resource.amount, 14) * 0.005
     return Square(
         side_length=side,
@@ -747,13 +749,13 @@ def _resource_marker(resource: SpatialResourceSnapshot, layout: _WorldLayout) ->
     ).move_to(layout.point(resource.x, resource.y))
 
 
-def _carcass_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> object:
+def _carcass_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> Any:
     return VGroup(
         *(_carcass_marker(carcass, layout) for carcass in frame.spatial.carcasses)
     )
 
 
-def _carcass_marker(carcass: SpatialCarcassSnapshot, layout: _WorldLayout) -> object:
+def _carcass_marker(carcass: SpatialCarcassSnapshot, layout: _WorldLayout) -> Any:
     side = 0.08 + min(carcass.resource_units, 12) * 0.0035
     return (
         Square(
@@ -773,7 +775,7 @@ def _organism_layer(
     *,
     excluded_id: int | None = None,
     opacity: float = 0.95,
-) -> object:
+) -> Any:
     return VGroup(
         *(
             _organism_marker(organism, layout, opacity=opacity)
@@ -788,7 +790,7 @@ def _organism_marker(
     layout: _WorldLayout,
     *,
     opacity: float,
-) -> object:
+) -> Any:
     radius = 0.06 + min(organism.body_mass, 30) * 0.0018
     return Circle(
         radius=radius,
@@ -800,13 +802,13 @@ def _organism_marker(
     ).move_to(layout.point(organism.x, organism.y))
 
 
-def _organism_fill(organism: CinematicOrganismPrimitive) -> object:
+def _organism_fill(organism: CinematicOrganismPrimitive) -> Any:
     if organism.focal_normalized is None:
         return TEAL_C
     return interpolate_color(BLUE_C, RED_C, organism.focal_normalized)
 
 
-def _focus_halo(organism: CinematicOrganismPrimitive, layout: _WorldLayout) -> object:
+def _focus_halo(organism: CinematicOrganismPrimitive, layout: _WorldLayout) -> Any:
     radius = 0.105 + min(organism.body_mass, 30) * 0.0018
     return Circle(
         radius=radius,
@@ -816,7 +818,7 @@ def _focus_halo(organism: CinematicOrganismPrimitive, layout: _WorldLayout) -> o
     ).move_to(layout.point(organism.x, organism.y))
 
 
-def _speed_legend() -> object:
+def _speed_legend() -> Any:
     low = Dot(radius=0.045, color=BLUE_C)
     high = Dot(radius=0.045, color=RED_C)
     return VGroup(
@@ -830,7 +832,7 @@ def _speed_legend() -> object:
     ).arrange(DOWN, buff=0.05)
 
 
-def _episode_annotation(focus: B3RepresentativeFocus) -> object:
+def _episode_annotation(focus: B3RepresentativeFocus) -> Any:
     episode = focus.episode
     text = _multiline_text(
         (
@@ -893,7 +895,7 @@ def _difference_plot(
     center_x: float,
     bound: float,
     point_color: object,
-) -> object:
+) -> Any:
     axes = Axes(
         x_range=[0, 9, 1],
         y_range=[-bound, bound, bound / 2],
@@ -923,7 +925,7 @@ def _difference_plot(
     return VGroup(axes, zero, dots, label, axis_label)
 
 
-def _confirmation_plot(plan: B3FlagshipDirectorPlan) -> object:
+def _confirmation_plot(plan: B3FlagshipDirectorPlan) -> Any:
     axes = Axes(
         x_range=[0, 9, 1],
         y_range=[0, 1.0, 0.25],
@@ -932,7 +934,7 @@ def _confirmation_plot(plan: B3FlagshipDirectorPlan) -> object:
         axis_config={"color": GREY_B, "stroke_width": 1.1},
         tips=False,
     ).shift(DOWN * 0.25)
-    items: list[object] = [axes]
+    items: list[Any] = [axes]
     for index, point in enumerate(plan.confirmation_points, start=1):
         control = axes.c2p(index, point.control_high_speed_frequency)
         treatment = axes.c2p(index, point.treatment_high_speed_frequency)
@@ -969,7 +971,7 @@ def _confirmation_plot(plan: B3FlagshipDirectorPlan) -> object:
     return VGroup(*items)
 
 
-def _sensitivity_plot(plan: B3FlagshipDirectorPlan) -> object:
+def _sensitivity_plot(plan: B3FlagshipDirectorPlan) -> Any:
     mean_uniform = sum(
         point.control_high_speed_frequency for point in plan.confirmation_points
     ) / len(plan.confirmation_points)
@@ -992,7 +994,7 @@ def _sensitivity_plot(plan: B3FlagshipDirectorPlan) -> object:
         (2, mean_compact, RED_C, "Compact r=1"),
         (3, broad, ORANGE, "Compact r=2"),
     )
-    marks: list[object] = [axes]
+    marks: list[Any] = [axes]
     for x, value, color, label in values:
         base = axes.c2p(x, 0)
         point = axes.c2p(x, value)
