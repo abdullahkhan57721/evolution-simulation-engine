@@ -8,6 +8,11 @@ from evo_engine.observation.genetic_composition import (
     GenotypeFrequency,
     LocusComposition,
 )
+from evo_engine.observation.individual_traits import (
+    IndividualGeneticTraitObservation,
+    IndividualGeneticTraitRecorder,
+    IndividualGeneticTraitSnapshot,
+)
 from evo_engine.observation.pedigree import IndividualLifeHistory, PedigreeRecorder
 from evo_engine.observation.population import PopulationRecorder
 from evo_engine.observation.records import (
@@ -31,6 +36,9 @@ __all__ = [
     "GeneticCompositionObservation",
     "GeneticCompositionRecorder",
     "GenotypeFrequency",
+    "IndividualGeneticTraitObservation",
+    "IndividualGeneticTraitRecorder",
+    "IndividualGeneticTraitSnapshot",
     "IndividualLifeHistory",
     "IntegerSummary",
     "IntegerTraitSummary",

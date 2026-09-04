@@ -155,6 +155,36 @@ Read:
 - [Event Telemetry and Causal History](../event_telemetry.md)
 - [Evolution Observability](../observability.md)
 
+Population summaries, spatial state, selected per-individual genetic-phenotype
+traits, genetic composition, events, and pedigree/life-history evidence remain
+separate committed observation concerns that downstream consumers can compose.
+Spatial frames are not universal presentation snapshots.
+
+## Scientific visualization
+
+Scientific presentation remains downstream of committed evidence. Scenario-level
+scientific meaning is shared across presentation media, while concrete graphics,
+interaction, camera, timing, and choreography belong to each renderer.
+
+Read:
+
+- [Scientific Visualization Architecture](scientific_visualization.md)
+- [ADR 0009 — Separate scientific encoding from renderer choreography](../decisions/0009-separate-scientific-encoding-from-renderer-choreography.md)
+
+The durable responsibility split is:
+
+```text
+committed scientific evidence
+        ↓
+scenario-specific scientific encoding
+        ↓
+renderer-specific primitives and choreography
+```
+
+Do not put renderer metadata into modeled entities or committed scientific records,
+and do not introduce a universal scene/replay abstraction merely because multiple
+renderers share a conceptual visual vocabulary.
+
 ## Performance boundary
 
 Use synthetic domain-neutral kernel benchmarks for claims about generic kernel
