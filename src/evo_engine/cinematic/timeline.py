@@ -626,8 +626,7 @@ def _validate_applied_events(events: tuple[AppliedEvent, ...]) -> None:
     for index, event in enumerate(events):
         if not isinstance(event, AppliedEvent):
             raise TypeError(
-                f"applied_events[{index}] must be an AppliedEvent; "
-                f"received {event!r}."
+                f"applied_events[{index}] must be an AppliedEvent; received {event!r}."
             )
 
 
