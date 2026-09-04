@@ -9,7 +9,11 @@ import attrs
 import pytest
 
 from evo_engine.ecology import PatchyResourcePlacement, UniformResourcePlacement
-from evo_engine.experiments.b3_flagship import run_b3_matched_pair
+from evo_engine.experiments.b3_flagship import (
+    run_b3_flagship,
+    run_b3_matched_pair,
+    summarize_b3_run,
+)
 from evo_engine.genetics import MAX_SPEED
 from evo_engine.presets.reference_ecology.b3_flagship import (
     B3_CONFIRMATION_SEEDS,
@@ -150,6 +154,19 @@ def test_b3_swapped_assignment_changes_speed_labels_not_founder_structure() -> N
             assert standard_organism.genetic_phenotype.int_value(trait_name) == (
                 swapped_organism.genetic_phenotype.int_value(trait_name)
             )
+
+
+def test_b3_identical_specification_reruns_are_deterministic() -> None:
+    """Test identical B3 specification and seed produce identical summaries."""
+    specification = build_b3_flagship_specification(
+        seed=5,
+        environment="compact_patch",
+    )
+
+    first = summarize_b3_run(run_b3_flagship(specification))
+    second = summarize_b3_run(run_b3_flagship(specification))
+
+    assert first == second
 
 
 def test_b3_canonical_seed_exercises_committed_evidence_and_manipulation() -> None:
