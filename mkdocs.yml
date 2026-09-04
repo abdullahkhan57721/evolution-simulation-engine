@@ -40,6 +40,7 @@ nav:
           - Guide Design and Maintenance: learning/engine_guide/guide_spec.md
   - Architecture:
       - Overview: architecture/index.md
+      - Scientific Visualization: architecture/scientific_visualization.md
       - Simulation Kernel Contract: kernel_contract.md
       - Decisions:
           - ADR Guide: decisions/README.md
@@ -52,6 +53,7 @@ nav:
           - "0006 — Concise orientation and roadmap": decisions/0006-concise-orientation-and-roadmap.md
           - "0007 — Transmissible-state terminology": decisions/0007-transmissible-state-terminology.md
           - "0008 — Explicit chromosome transmission semantics": decisions/0008-explicit-chromosome-transmission-semantics.md
+          - "0009 — Scientific encoding and renderer choreography": decisions/0009-separate-scientific-encoding-from-renderer-choreography.md
   - Development Workflow:
       - Current Project State: development/current_state.md
       - Architectural Roadmap: development/roadmap.md
