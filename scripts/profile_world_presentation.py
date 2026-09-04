@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from statistics import median
 from time import perf_counter
+from typing import TypedDict
 
 from evo_engine.ecology import PatchyResourcePlacement, ResourcePatch
 from evo_engine.engine import Simulation
@@ -23,6 +24,18 @@ from evo_engine.ui.world_presentation import (
     build_world_presentation,
 )
 from evo_engine.ui.world_renderer import world_presentation_figure
+
+
+class WorldPresentationMeasurement(TypedDict):
+    """Record one deterministic presentation benchmark result."""
+
+    scenario: str
+    frames: int
+    max_active_organisms: int
+    max_resource_deposits: int
+    repeats: int
+    prep_median_ms_per_frame: float
+    plotly_median_ms_per_frame: float
 
 
 def main() -> None:
@@ -120,7 +133,7 @@ def _measure_history(
     history: tuple[SpatialObservation, ...],
     *,
     repeats: int,
-) -> dict[str, int | float | str]:
+) -> WorldPresentationMeasurement:
     if repeats < 1:
         raise ValueError("repeats must be at least 1.")
     if not history:
@@ -140,15 +153,15 @@ def _measure_history(
         _time_plotly_pass(presentations) for _ in range(repeats)
     )
     frame_count = len(history)
-    return {
-        "scenario": scenario,
-        "frames": frame_count,
-        "max_active_organisms": max(len(frame.organisms) for frame in history),
-        "max_resource_deposits": max(len(frame.resources) for frame in history),
-        "repeats": repeats,
-        "prep_median_ms_per_frame": 1000.0 * median(prep_durations) / frame_count,
-        "plotly_median_ms_per_frame": 1000.0 * median(plotly_durations) / frame_count,
-    }
+    return WorldPresentationMeasurement(
+        scenario=scenario,
+        frames=frame_count,
+        max_active_organisms=max(len(frame.organisms) for frame in history),
+        max_resource_deposits=max(len(frame.resources) for frame in history),
+        repeats=repeats,
+        prep_median_ms_per_frame=1000.0 * median(prep_durations) / frame_count,
+        plotly_median_ms_per_frame=1000.0 * median(plotly_durations) / frame_count,
+    )
 
 
 def _time_presentation_pass(history: tuple[SpatialObservation, ...]) -> float:
