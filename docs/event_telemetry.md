@@ -32,12 +32,34 @@ If any stage raises, the working state and its telemetry are discarded together.
 `TelemetryObserver` implementations therefore never receive events from failed
 steps.
 
+An applied event carries the pre-step event index `t`. After the successful
+transaction increments and commits the state, that event corresponds exactly to
+committed state `t + 1`. `AppliedEvent.completed_step_index` exposes this relation,
+and `StepTelemetry` validates that every contained event resolves to its own
+`completed_step_index` through both public construction and the trusted kernel
+construction path.
+
+Scientific consumers should therefore align event and state evidence as:
+
+```text
+AppliedEvent.event_step_index = t
+        ↓
+successful transaction commits
+        ↓
+AppliedEvent.completed_step_index = t + 1
+        ↓
+committed state observation.step_index = t + 1
+```
+
+A simulation timestep remains an update index; this temporal relationship does not
+make a timestep a biological generation.
+
 ## Applied events
 
 Each `AppliedEvent` records:
 
 - the materialized domain event itself;
-- its event step index;
+- its event step index and corresponding completed-state index;
 - its zero-based update-stage index;
 - the fully qualified process and event types;
 - opaque domain effects caused by that event, in occurrence order.
@@ -122,6 +144,7 @@ observation
     → domain-specific interpretation of event + effect objects
 ```
 
-This lets the same commit/rollback and causal-history machinery support domains
-that do not contain organisms, carcasses, spatial resources, or biological
-mortality.
+Experiment analysis may consume those committed envelopes and domain effects, but
+telemetry does not depend back on experiment semantics. This lets the same
+commit/rollback and causal-history machinery support domains that do not contain
+organisms, carcasses, spatial resources, or biological mortality.

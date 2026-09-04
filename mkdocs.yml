@@ -79,6 +79,7 @@ nav:
   - Pedigree and Lifetime Fitness: pedigree_fitness.md
   - Allele and Genotype Frequencies: genetic_composition.md
   - Reproducible Experiments and Export: experiments.md
+  - Experimental Science Standard: experimental_science.md
   - Exact Checkpoint and Resume: checkpointing.md
   - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md

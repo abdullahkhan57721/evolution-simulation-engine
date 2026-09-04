@@ -32,6 +32,17 @@ configurations have a stable textual representation. The baseline
 `ReferenceEcologyConfig` remains immutable; only its `seed` field is evolved for
 each replicate.
 
+Controlled scientific experiments may additionally use
+`ScientificRunProvenance` when the result needs treatment-aware provenance. It
+keeps experiment, scenario, and treatment identity; canonical scientifically
+relevant treatment specification; seed; fixed horizon; observation cadence;
+focal variables; and discovery/confirmation/representative role together without
+adding renderer metadata to scientific results.
+
+The durable experimental-unit, temporal-alignment, denominator, censoring,
+treatment-integrity, and evidence-role rules are defined once in
+[Experimental Science Standard](experimental_science.md).
+
 ## Recorded results
 
 A replicate stores final population, carcass, and environmental-resource totals
@@ -45,6 +56,25 @@ rather than from generic world removals. This preserves the mortality semantics
 established by the observation stack: future migration or non-mortality removals
 do not become deaths merely because an organism leaves the active world.
 
+## Concrete scientific measurements
+
+Experiment measurements remain pure consumers of committed evidence rather than
+simulation responsibilities. The first concrete consumer is locomotion:
+
+- `measure_applied_movement()` derives attempted displacement from the applied
+  `Movement.Event`, realized displacement from its committed `OrganismMoved`
+  effect, and locomotion-energy expenditure from the event's recorded cost;
+- an applied movement with no coordinate mutation has realized displacement zero
+  and remains in the applied-movement denominator;
+- `summarize_locomotion_replicate()` produces one run/seed result with explicit
+  names including `mean_realized_distance_per_applied_movement` and
+  `mean_locomotion_energy_expenditure_per_applied_movement`;
+- if no movement was applied, those means are undefined (`None`) rather than
+  silently reported as zero.
+
+This is intentionally a concrete measurement path, not a metric registry or
+universal analysis framework.
+
 ## Export
 
 The package intentionally does not require pandas for core experiment export.
@@ -53,6 +83,7 @@ Standard-library writers provide:
 ```python
 from evo_engine.experiments import (
     write_experiment_json,
+    write_locomotion_measurements_json,
     write_population_history_csv,
     write_replicate_summary_csv,
 )
@@ -62,8 +93,11 @@ write_replicate_summary_csv(result, "outputs/replicates.csv")
 write_population_history_csv(result, "outputs/population_history.csv")
 ```
 
-The JSON export retains the rich nested observation structures, including
-`mating_type_counts` in each population observation.
+`write_locomotion_measurements_json()` provides the same durable JSON path for a
+`LocomotionReplicateMeasurements` value and preserves its scientific provenance.
+
+The reference-experiment JSON export retains the rich nested observation
+structures, including `mating_type_counts` in each population observation.
 
 The replicate-summary CSV contains one row per seed. In addition to the fixed
 run/final-state fields, it emits:
@@ -91,5 +125,6 @@ straightforward to analyze in ordinary tabular tools.
 
 `evo_engine.experiments` is a top-level consumer. It may compose presets and
 observation results, but production simulation packages must not import the
-experiment runner. Import Linter enforces this direction so reusable biological
-and engine domains remain independent of research-workflow orchestration.
+experiment runner or scientific-analysis helpers. Import Linter enforces this
+direction so reusable biological and engine domains remain independent of
+research-workflow orchestration.

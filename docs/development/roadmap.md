@@ -122,10 +122,84 @@ renderer-neutral storyboard live in `docs/flagship_evolution_demo.md`.
 The old `max_intake_rate` v0.1 demonstration is now a secondary historical
 regression/integration example rather than the primary scientific flagship.
 
-## Immediate next integration front
+## Experimental-science foundation and controlled sequence
 
-The next step is no longer scenario discovery. It is to make both presentation
-media consume the confirmed B3 scientific handoff faithfully:
+E1 establishes a durable but deliberately thin scientific-analysis boundary above
+committed evidence:
+
+```text
+modeled system
+        ↓
+committed state / committed events
+        ↓
+pure scientific measurement
+        ↓
+replicate outcome
+        ↓
+treatment comparison
+        ↓
+experiment-level reporting/export
+        ↓
+presentation
+```
+
+The experimental unit is one simulation run/seed rather than one organism. Event
+step `t` aligns exactly to committed state `t + 1`; denominators, extinction,
+exposure, and right-censoring remain explicit; same-seed comparisons are blocking
+rather than an automatic perfect-common-random-number claim; and discovery,
+confirmation, and representative storytelling retain different roles.
+
+E1 adds treatment-aware scientific provenance, fixed-horizon censoring semantics,
+a thin equality-after-experiment-specific-normalization treatment audit, and the
+first pure locomotion measurement derived from committed movement evidence. It
+does not add a metric registry, universal analysis plan, statistics DSL, or new
+statistics dependency.
+
+The controlled experimental-evolution sequence is now:
+
+```text
+E1 experimental-science foundation
+        |
+        v
+E2 minimal clonal locomotion system
+   + mechanics validation
+        |
+        v
+E3 ecological performance landscape
+   with focal evolution disabled
+        |
+        v
+E4 standing variation +
+   environment-dependent selection
+```
+
+E2 should isolate one inherited locomotor-capacity trait in a deliberately simple
+clonal composition, validate target-directed displacement and locomotion-use cost,
+and avoid the mating/predation/nonfocal genetic pathways of the richer reference
+ecology. It must not redesign the frozen kernel or general genetics around
+cloning.
+
+E3 should then measure the `max_speed` capacity → realized movement → movement
+energy → resource/energy/survival/reproduction causal ladder across controlled,
+monomorphic speed treatments. Focal evolution remains off, and the resulting
+replicate-level performance landscape should produce a predeclared prediction for
+E4 rather than forcing a desired optimum.
+
+E4 should finally introduce known standing inherited speed variation with mutation
+still off and ask whether strategy/focal-trait frequencies move in the direction
+predicted independently by E3. Founder positions/labels must be counterbalanced,
+and disagreement with E3 is a scientific result to investigate rather than tune
+away.
+
+This sequence is intentionally separate from B3. B3 remains the richer integrated
+reference-ecology flagship; E2–E4 are controlled causal experiments that may reuse
+general contracts without retroactively simplifying or rewriting B3.
+
+## Presentation integration front
+
+The presentation step is no longer scenario discovery. Both media can consume the
+confirmed B3 scientific handoff faithfully while the E2–E4 controlled experiment
+track proceeds independently:
 
 ```text
 confirmed B3 evidence/storyboard
@@ -169,23 +243,6 @@ cinematic interpolation for evidence.
 
 Camera, composition, timing, shot order, labels, palette, easing, and transitions
 belong entirely to the cinematic layer.
-
-## Later experimental-evolution program
-
-B3 is an **integrated reference-ecology flagship**, not the final experimental
-methodology for isolating biological mechanisms.
-
-Later scientific milestones may build deliberately simpler experimental systems to
-answer questions such as:
-
-- isolated locomotor cost/benefit under controlled resource geometry;
-- stronger causal decomposition of sensing, movement, feeding, and mating effects;
-- temporal environmental change and fluctuating selection;
-- richer selection regimes that motivate new genetics, development, or mating
-  policies.
-
-Those experiments should not retroactively distort B3. New experiments earn new
-model capabilities when a concrete question demonstrates the need.
 
 ## Front A — Richer genetic expression
 
@@ -275,17 +332,20 @@ not from a kernel-owned scalar `fitness` field.
 
 ## Observation and statistical analysis
 
-B3 deliberately used thin scenario-specific summaries rather than creating a broad
-statistics DSL. Future repeated experimental patterns may justify reusable
-statistical contracts, but only after concrete consumers establish what actually
-repeats.
+E1 now defines the durable scientific-measurement semantics needed by the current
+controlled experiment sequence while deliberately stopping short of a broad
+statistics framework. Future repeated experimental patterns may justify additional
+reusable statistical contracts, but only after concrete consumers establish what
+actually repeats.
 
 Preserve the distinction among:
 
 ```text
 committed state/events
         ↓
-scenario-specific derived scientific summaries
+pure scenario-specific scientific measurements
+        ↓
+replicate outcomes / treatment comparisons
         ↓
 experiment-level inference/reporting
         ↓
@@ -293,7 +353,8 @@ presentation
 ```
 
 Do not put arbitrary metric/property bags into the simulation or observation
-layers.
+layers. Undefined post-extinction quantities remain undefined rather than becoming
+zero, and presentation remains a consumer rather than an authoritative calculator.
 
 ## Future native execution backend
 
@@ -335,13 +396,17 @@ the stable subset worth compiling.
   separate.
 - Keep chromosome structure, pairing, recombination, and segregation separate.
 - Keep genetic expression, development, and current state separate.
-- Keep presentation downstream of committed evidence.
+- Keep scientific measurement downstream of committed evidence and upstream of
+  experiment-level reporting/presentation.
+- Keep presentation downstream of committed evidence and scientific meaning.
 - Share scenario-level scientific meaning across media without forcing renderer
   mechanics into a universal scene/runtime abstraction.
 - Keep spatial observation focused; add selective sibling scientific records when
   a real per-individual data need appears.
 - Distinguish configured treatment context, committed state, committed events,
-  derived statistics, representative examples, and robustness evidence.
+  derived measurements, representative examples, and robustness evidence.
+- Preserve run/seed as the experimental replicate for stochastic treatment
+  comparisons unless a later concrete design justifies another experimental unit.
 - Prefer readable maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 
