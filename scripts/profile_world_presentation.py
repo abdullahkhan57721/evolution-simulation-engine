@@ -42,7 +42,9 @@ def main() -> None:
     """Measure B1- and B2-representative committed histories without gating speed."""
     args = _parse_args()
     results = (
-        _measure_history("b1-patchy-resources", _patchy_history(), repeats=args.repeats),
+        _measure_history(
+            "b1-patchy-resources", _patchy_history(), repeats=args.repeats
+        ),
         _measure_history(
             "b2-speed-tradeoff",
             _speed_tradeoff_history(),
@@ -149,9 +151,7 @@ def _measure_history(
         for frame in history
     )
     prep_durations = tuple(_time_presentation_pass(history) for _ in range(repeats))
-    plotly_durations = tuple(
-        _time_plotly_pass(presentations) for _ in range(repeats)
-    )
+    plotly_durations = tuple(_time_plotly_pass(presentations) for _ in range(repeats))
     frame_count = len(history)
     return WorldPresentationMeasurement(
         scenario=scenario,
