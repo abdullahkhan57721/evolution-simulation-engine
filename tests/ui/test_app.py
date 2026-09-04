@@ -37,6 +37,10 @@ def _run_small_custom_simulation() -> AppTest:
     return app.run(timeout=60)
 
 
+def _committed_step_metric(app: AppTest):  # type: ignore[no-untyped-def]
+    return next(metric for metric in app.metric if metric.label == "Committed step")
+
+
 def test_app_launches_in_full_configuration_mode() -> None:
     """Test initial launch shows configuration without result workspace state."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
@@ -92,34 +96,64 @@ def test_configuration_edits_do_not_run_implicitly() -> None:
     assert "Run simulation" in {button.label for button in app.button}
 
 
-def test_valid_custom_run_transitions_to_world_workspace() -> None:
-    """Test a successful run replaces configuration with the result workspace."""
+def test_valid_custom_run_transitions_to_selected_step_world_workspace() -> None:
+    """Test a successful run opens the committed founder frame first."""
     app = _run_small_custom_simulation()
 
     assert not app.exception
     labels = {metric.label for metric in app.metric}
     assert {
-        "Completed steps",
+        "Committed step",
         "Population",
         "Resources",
         "Mean energy",
-        "Births",
-        "Deaths",
+        "Mean body mass",
+        "Carcasses",
     } <= labels
-    completed = next(
-        metric for metric in app.metric if metric.label == "Completed steps"
-    )
-    assert completed.value == "1"
+    assert _committed_step_metric(app).value == "0"
     assert "Steps" not in {item.label for item in app.number_input}
     assert {
         "Edit configuration",
         "Rerun",
         "New simulation",
+        "Next",
+        "Play",
     } <= {button.label for button in app.button}
+    assert "Committed step" in {slider.label for slider in app.select_slider}
+    assert "Selected organism" in {selectbox.label for selectbox in app.selectbox}
+
+
+def test_next_step_updates_world_context_without_replacing_completed_run() -> None:
+    """Test timeline navigation changes presentation state only."""
+    app = _run_small_custom_simulation()
+    completed_run = app.session_state["portfolio_dashboard_run"]
+
+    next(button for button in app.button if button.label == "Next").click()
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert _committed_step_metric(app).value == "1"
+    assert app.session_state["portfolio_dashboard_run"] == completed_run
+
+
+def test_view_controls_do_not_replace_completed_run() -> None:
+    """Test resource visibility is display state rather than simulation state."""
+    app = _run_small_custom_simulation()
+    completed_run = app.session_state["portfolio_dashboard_run"]
+
+    resource_toggle = next(
+        checkbox for checkbox in app.checkbox if checkbox.label == "Resources"
+    )
+    resource_toggle.set_value(False)
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["portfolio_dashboard_run"] == completed_run
+    assert app.session_state["v2_world_show_resources"] is False
 
 
 def test_featured_scenario_transitions_to_same_workspace() -> None:
-    """Test the current curated scenario uses the V2 workspace shell."""
+    """Test the current curated scenario uses the V2 interactive workspace."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
     next(
         button for button in app.button if button.label == "Run flagship evolution demo"
@@ -127,10 +161,7 @@ def test_featured_scenario_transitions_to_same_workspace() -> None:
     app.run(timeout=60)
 
     assert not app.exception
-    completed = next(
-        metric for metric in app.metric if metric.label == "Completed steps"
-    )
-    assert completed.value == "40"
+    assert _committed_step_metric(app).value == "0"
     assert "Edit configuration" in {button.label for button in app.button}
     assert any(
         selectbox.label == "Inspect heritable trait"
@@ -175,25 +206,23 @@ def test_edit_configuration_keeps_completed_run_until_new_run_succeeds() -> None
         button for button in app.button if button.label == "Back to current run"
     ).click()
     app.run(timeout=30)
-    completed = next(
-        metric for metric in app.metric if metric.label == "Completed steps"
-    )
-    assert completed.value == "1"
+    assert _committed_step_metric(app).value == "0"
 
 
-def test_rerun_and_new_simulation_are_explicit_workspace_actions() -> None:
-    """Test workspace actions do not blur simulation and configuration state."""
+def test_rerun_resets_world_presentation_and_new_simulation_clears_run() -> None:
+    """Test completed-run replacement resets timeline while New removes the run."""
     app = _run_small_custom_simulation()
+    next(button for button in app.button if button.label == "Next").click()
+    app.run(timeout=30)
+    assert _committed_step_metric(app).value == "1"
 
     next(button for button in app.button if button.label == "Rerun").click()
     app.run(timeout=60)
-    completed = next(
-        metric for metric in app.metric if metric.label == "Completed steps"
-    )
-    assert completed.value == "1"
+    assert _committed_step_metric(app).value == "0"
 
     next(button for button in app.button if button.label == "New simulation").click()
     app.run(timeout=30)
     assert not app.metric
     assert "Configuration path" in {radio.label for radio in app.radio}
     assert "Back to current run" not in {button.label for button in app.button}
+    assert "v2_world_step" not in app.session_state
