@@ -222,6 +222,7 @@ def _world_controls(run: DashboardRun, steps: tuple[int, ...]) -> None:
         st.session_state[_WORLD_STEP_KEY] = selected_step
         st.session_state[_WORLD_PLAYING_KEY] = False
         st.session_state.pop(_WORLD_NEXT_ADVANCE_KEY, None)
+        st.rerun(scope="app")
 
     with st.expander("View configuration", expanded=False):
         view_columns = st.columns(4)
