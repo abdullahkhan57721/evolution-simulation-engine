@@ -1,32 +1,19 @@
 """Focused tests for completed-result workspace presentation helpers."""
 
-from evo_engine.observation import CategoryCounts, IntegerSummary, PopulationObservation
-from evo_engine.presets import ReferenceEcologyConfig
-from evo_engine.ui.models import DashboardRun
-from evo_engine.ui.workspace import _final_mean_energy
+from evo_engine.ui.workspace import _next_step, _previous_step, _summary_mean
 
 
-def test_final_mean_energy_handles_extinct_population() -> None:
-    """Test an authoritative empty final population renders without formatting errors."""
-    empty_summary = IntegerSummary(count=0, total=0)
-    observation = PopulationObservation(
-        step_index=1,
-        population_size=0,
-        carcass_count=0,
-        total_resources=10,
-        age=empty_summary,
-        energy=empty_summary,
-        body_mass=empty_summary,
-        mating_type_counts=CategoryCounts(),
-    )
-    run = DashboardRun(
-        config=ReferenceEcologyConfig(),
-        completed_steps=1,
-        population_history=(observation,),
-        genetic_history=(),
-        spatial_history=(),
-        telemetry_steps=(),
-        life_histories=(),
-    )
+def test_summary_mean_handles_empty_authoritative_population() -> None:
+    """Test an absent authoritative mean renders without formatting errors."""
+    assert _summary_mean(None) == "—"
+    assert _summary_mean(3.25) == "3.2"
 
-    assert _final_mean_energy(run) == "—"
+
+def test_previous_and_next_step_follow_recorded_committed_order() -> None:
+    """Test playback navigation uses recorded step order rather than assumptions."""
+    steps = (0, 2, 5)
+
+    assert _previous_step(steps, 0) == 0
+    assert _previous_step(steps, 5) == 2
+    assert _next_step(steps, 0) == 2
+    assert _next_step(steps, 5) == 5
