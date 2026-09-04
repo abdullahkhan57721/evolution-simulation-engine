@@ -365,9 +365,7 @@ def _resource_geography(
         if observation.step_index != 0
         for resource in observation.resources
     ]
-    compact_count = sum(
-        coordinate in compact_support for coordinate in all_coordinates
-    )
+    compact_count = sum(coordinate in compact_support for coordinate in all_coordinates)
     total = len(all_coordinates)
     return B3ResourceGeography(
         resource_cell_observations=total,
@@ -436,7 +434,9 @@ def _movement_episode(
     consumption: dict[tuple[int, int], int],
     spatial_by_step: dict[int, SpatialObservation],
 ) -> B3MovementConsumptionEpisode | None:
-    if applied.process_name != "Movement" or not isinstance(applied.event, Movement.Event):
+    if applied.process_name != "Movement" or not isinstance(
+        applied.event, Movement.Event
+    ):
         return None
     event = applied.event
     if event.target_x is None or event.target_y is None:
