@@ -1,0 +1,35 @@
+name: B3 Confirmation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/presets/reference_ecology/b3_flagship.py"
+      - "src/evo_engine/experiments/b3_flagship.py"
+      - "scripts/b3_confirmation.py"
+      - "tests/presets/test_b3_flagship.py"
+      - ".github/workflows/b3-confirmation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  confirm-b3:
+    name: Independent B3 confirmation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run frozen unseen-seed confirmation
+        run: |
+          venv/bin/python scripts/b3_confirmation.py \
+            --output outputs/b3-confirmation/b3-confirmation.json
+      - name: Upload confirmation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: b3-confirmation-${{ github.run_id }}
+          path: outputs/b3-confirmation/b3-confirmation.json
+          retention-days: 30
+          if-no-files-found: warn
