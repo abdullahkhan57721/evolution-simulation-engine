@@ -551,10 +551,8 @@ def _evidence_text(frame: PortfolioAnimationFrame) -> str:
         counts.items(),
         key=lambda item: (-item[1], item[0]),
     )
-    lines.append(
-        f"Events {len(frame.applied_events)}  "
-        f"{_display_process_name(process_name)} ×{count}"
-    )
+    lines.append(f"Committed events {len(frame.applied_events)}")
+    lines.append(f"{_display_process_name(process_name)} ×{count}")
     return "\n".join(lines)
 
 
