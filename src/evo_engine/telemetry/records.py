@@ -92,10 +92,40 @@ class AppliedEvent:
         """Return the unqualified event class name."""
         return self.event_type.rsplit(".", 1)[-1]
 
+    @property
+    def completed_step_index(self) -> int:
+        """Return the committed-state step reached by this applied event."""
+        return self.event_step_index + 1
+
+
+def _validate_step_events(
+    events: tuple[AppliedEvent, ...],
+    *,
+    completed_step_index: int,
+) -> None:
+    validators.validate_tuple(
+        events,
+        name="events",
+    )
+    for index, event in enumerate(events):
+        if not isinstance(event, AppliedEvent):
+            raise TypeError(
+                f"events[{index}] must be an AppliedEvent; received {event!r}."
+            )
+        if event.completed_step_index != completed_step_index:
+            raise ValueError(
+                f"events[{index}] completed step {event.completed_step_index} does not "
+                "align with StepTelemetry.completed_step_index="
+                f"{completed_step_index}."
+            )
+
 
 @attrs.frozen(slots=True, kw_only=True)
 class StepTelemetry:
     """Record all materialized events committed by one completed step.
+
+    Every contained ``AppliedEvent`` must correspond to the same committed state:
+    ``event.event_step_index + 1 == completed_step_index``.
 
     Attributes:
         completed_step_index: Authoritative state index after the step commits.
@@ -110,16 +140,11 @@ class StepTelemetry:
     )
 
     def __attrs_post_init__(self) -> None:
-        """Validate event collection contents."""
-        validators.validate_tuple(
+        """Validate event collection contents and committed-step alignment."""
+        _validate_step_events(
             self.events,
-            name="events",
+            completed_step_index=self.completed_step_index,
         )
-        for index, event in enumerate(self.events):
-            if not isinstance(event, AppliedEvent):
-                raise TypeError(
-                    f"events[{index}] must be an AppliedEvent; received {event!r}."
-                )
 
     @classmethod
     def _from_kernel_values(
@@ -129,15 +154,26 @@ class StepTelemetry:
         events: tuple[AppliedEvent, ...],
     ) -> Self:
         """Construct from kernel-owned events and validate the committed index."""
-        if type(completed_step_index) is not int or completed_step_index < 1:
-            completed_step_index = validators.validate_int_ge(
+        if type(completed_step_index) is int and completed_step_index >= 1:
+            validated_completed_step_index = completed_step_index
+        else:
+            validated_completed_step_index = validators.validate_int_ge(
                 value=completed_step_index,
                 bound=1,
                 name="StepTelemetry.completed_step_index",
             )
 
+        _validate_step_events(
+            events,
+            completed_step_index=validated_completed_step_index,
+        )
+
         instance = object.__new__(cls)
-        object.__setattr__(instance, "completed_step_index", completed_step_index)
+        object.__setattr__(
+            instance,
+            "completed_step_index",
+            validated_completed_step_index,
+        )
         object.__setattr__(instance, "events", events)
         return instance
 
