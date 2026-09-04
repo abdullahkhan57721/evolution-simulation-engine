@@ -9,6 +9,7 @@ from typing import Any
 
 import attrs
 
+from evo_engine.experiments.locomotion import LocomotionReplicateMeasurements
 from evo_engine.experiments.reference import ReferenceExperimentResult
 from evo_engine.observation import CategoryCounts, PopulationObservation
 
@@ -31,17 +32,28 @@ def write_experiment_json(
     """
     if not isinstance(result, ReferenceExperimentResult):
         raise TypeError("result must be a ReferenceExperimentResult.")
-    destination = _prepare_destination(path)
-    with destination.open("w", encoding="utf-8") as stream:
-        json.dump(
-            _to_jsonable(result),
-            stream,
-            indent=2,
-            sort_keys=True,
-            ensure_ascii=False,
-        )
-        stream.write("\n")
-    return destination
+    return _write_json(result, path)
+
+
+def write_locomotion_measurements_json(
+    result: LocomotionReplicateMeasurements,
+    path: str | Path,
+) -> Path:
+    """Write one concrete locomotion replicate measurement result as JSON.
+
+    Args:
+        result: Locomotion measurements with scientific run provenance.
+        path: Destination JSON path.
+
+    Returns:
+        Resolved destination path.
+
+    Raises:
+        TypeError: If result is not a LocomotionReplicateMeasurements value.
+    """
+    if not isinstance(result, LocomotionReplicateMeasurements):
+        raise TypeError("result must be a LocomotionReplicateMeasurements.")
+    return _write_json(result, path)
 
 
 def write_replicate_summary_csv(
@@ -190,6 +202,20 @@ def _validate_result(result: ReferenceExperimentResult) -> None:
 def _prepare_destination(path: str | Path) -> Path:
     destination = Path(path).expanduser().resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
+    return destination
+
+
+def _write_json(value: object, path: str | Path) -> Path:
+    destination = _prepare_destination(path)
+    with destination.open("w", encoding="utf-8") as stream:
+        json.dump(
+            _to_jsonable(value),
+            stream,
+            indent=2,
+            sort_keys=True,
+            ensure_ascii=False,
+        )
+        stream.write("\n")
     return destination
 
 
