@@ -6,7 +6,9 @@ on:
       - "pyproject.toml"
       - "requirements-animation.txt"
       - "src/evo_engine/cinematic/**"
+      - "src/evo_engine/presentation/**"
       - "examples/render_portfolio_animation.py"
+      - "examples/render_science_aware_cinematic_smoke.py"
       - ".github/workflows/cinematic-smoke.yml"
   workflow_dispatch:
 
@@ -19,7 +21,7 @@ concurrency:
 
 jobs:
   render:
-    name: Low-quality Manim render
+    name: Low-quality Manim renders
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -47,35 +49,44 @@ jobs:
           venv/bin/python -m pip install --upgrade pip
           venv/bin/python -m pip install -e .
           venv/bin/python -m pip install -r requirements-animation.txt
-      - name: Render deterministic smoke animation
+      - name: Render deterministic generic and science-aware smoke animations
         shell: bash
         run: |
           venv/bin/python examples/render_portfolio_animation.py \
             --quality low \
             --max-steps 2 \
             --output outputs/cinematic-smoke.mp4
+          venv/bin/python examples/render_science_aware_cinematic_smoke.py \
+            --quality low \
+            --output outputs/science-aware-cinematic-smoke.mp4
           venv/bin/python - <<'PY'
           from pathlib import Path
 
           import av
 
-          output = Path("outputs/cinematic-smoke.mp4")
-          assert output.is_file(), output
-          assert output.stat().st_size > 1_000, output.stat().st_size
-          with av.open(str(output)) as container:
-              video_streams = container.streams.video
-              assert video_streams, "Rendered output has no video stream."
-              frame = next(container.decode(video_streams[0]))
-              assert frame.width > 0 and frame.height > 0
-          print(
-              f"Verified {output} ({output.stat().st_size} bytes, "
-              f"{frame.width}x{frame.height} decoded frame)"
+          outputs = (
+              Path("outputs/cinematic-smoke.mp4"),
+              Path("outputs/science-aware-cinematic-smoke.mp4"),
           )
+          for output in outputs:
+              assert output.is_file(), output
+              assert output.stat().st_size > 1_000, output.stat().st_size
+              with av.open(str(output)) as container:
+                  video_streams = container.streams.video
+                  assert video_streams, f"{output} has no video stream."
+                  frame = next(container.decode(video_streams[0]))
+                  assert frame.width > 0 and frame.height > 0
+              print(
+                  f"Verified {output} ({output.stat().st_size} bytes, "
+                  f"{frame.width}x{frame.height} decoded frame)"
+              )
           PY
-      - name: Upload smoke render
+      - name: Upload smoke renders
         uses: actions/upload-artifact@v4
         with:
           name: cinematic-smoke-${{ github.run_id }}
-          path: outputs/cinematic-smoke.mp4
+          path: |
+            outputs/cinematic-smoke.mp4
+            outputs/science-aware-cinematic-smoke.mp4
           retention-days: 14
           if-no-files-found: error
