@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import json
+from importlib.metadata import version
 from pathlib import Path
 
 from evo_engine.cinematic import (
+    build_cinematic_render_manifest,
     build_portfolio_animation_timeline,
     render_portfolio_animation,
 )
@@ -18,6 +21,8 @@ from evo_engine.presets.reference_ecology.config import (
     ReferenceEcologyConfig,
 )
 from evo_engine.presets.reference_ecology.observable import build_reference_ecology
+
+_SCENARIO_LABEL = "b1-b2-science-aware-smoke"
 
 
 def main() -> None:
@@ -64,7 +69,20 @@ def main() -> None:
         arguments.output,
         quality=arguments.quality,
     )
+    manifest = build_cinematic_render_manifest(
+        timeline,
+        scenario_label=_SCENARIO_LABEL,
+        seed=config.seed,
+        renderer_version=version("manim"),
+        quality=arguments.quality,
+    )
+    manifest_path = output_path.with_suffix(".manifest.json")
+    manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
     print(f"Rendered science-aware cinematic smoke: {output_path}")
+    print(f"Recorded cinematic manifest: {manifest_path}")
 
 
 def _parse_arguments() -> argparse.Namespace:
