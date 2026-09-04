@@ -238,12 +238,17 @@ fields that genuinely repeat.
 ### Portfolio interfaces
 
 `evo_engine.ui` remains the current optional top-level Streamlit/Plotly consumer.
-Its current shell uses an explicit full-window configuration mode followed by a
-run action and a world-centered simulation workspace. The existing curated typed
-reference-ecology controls, spatial playback, evolutionary/genetic analytics,
-event/life-history views, experiment comparison, and export remain downstream of
-completed immutable results. Hidden UI state is not implicit engine configuration;
-selected values normalize into typed configuration before execution.
+Its application flow separates full-window configuration from a completed-run,
+world-centered workspace. Session state owns immutable `DashboardRun` values plus
+view/navigation state rather than live simulation objects. The generic interactive
+world has first-class committed-step selection, scrub/previous/next/playback
+controls, view-only resource/carcass/trail/label controls, stable neutral organism
+encoding, body-mass sizing, selection through a reserved outline channel, and an
+authoritative selected-organism inspector. Recent movement trails and optional
+position interpolation are presentation-derived from committed spatial history and
+never become scientific or exported values. Existing evolutionary/genetic
+analytics, life-history views, experiment comparison, and export remain downstream
+of the same completed evidence.
 
 `evo_engine.cinematic` remains the current optional sibling Manim consumer. Its
 `PortfolioAnimationTimeline` is renderer-owned presentation ordering over committed
@@ -309,18 +314,21 @@ Post-v0.1 development has **two coordinated parallel fronts**:
    resource heterogeneity and heritable speed performance/cost mechanisms into a
    robust environment-dependent selection scenario without changing the frozen
    kernel; and
-2. **presentation refinement** — build a world-centered interactive and cinematic
-   experience above committed evidence while sharing scientific meaning rather
+2. **presentation refinement** — build world-centered interactive and cinematic
+   experiences above committed evidence while sharing scientific meaning rather
    than renderer mechanics.
 
 The immediate integration question is no longer whether patchy resources, a
-heritable performance tradeoff, or renderer-neutral focal-trait replay exist: all
-three now have concrete implementations and evidence. B3 scenario discovery must
-still determine the simplest robust causal demonstration and provide its durable
-scientific storyboard. In parallel, the interactive front has its configuration →
-run → world-workspace shell, and the cinematic front has a science-aware committed-
-evidence preparation/rendering foundation. The next scenario-specific presentation
-work should consume B3's final meaning rather than infer or invent it.
+heritable performance tradeoff, a generic interactive world, or renderer-neutral
+focal-trait cinematic replay exist: all now have concrete implementations and
+evidence. B3 scenario discovery must still determine the simplest robust causal
+demonstration and provide its durable scientific storyboard. The interactive front
+can proceed from generic world primitives toward scenario-specific scientific
+encoding, legends/accessibility, matched comparison, and deeper analysis while
+consuming the selective per-organism trait observation seam. The cinematic front
+now has science-aware committed-evidence preparation/rendering and should consume
+B3's final scientific meaning rather than infer or invent it. The two media remain
+sibling renderer concerns rather than one shared scene runtime.
 
 Other longer-term modeled fronts remain:
 
@@ -385,9 +393,11 @@ Newest first; this is a capability summary, not a changelog.
   preparation; added a minimal shared continuous-trait encoding, authoritative
   event selection, presentation-only interpolation, reproducibility metadata, and
   generic/focal Manim rendering without live simulation ownership.
-- **World-centered interactive shell:** established explicit full-window
-  configuration → run → world-workspace mode switching while preserving completed
-  immutable result ownership and the existing scientific-presentation boundary.
+- **Interactive world presentation foundation:** established immutable UI-only
+  world primitives over committed spatial evidence, first-class committed-step
+  playback/scrubbing, view-only environmental layers and movement trails, stable
+  generic visual channels, selection/inspection semantics, and display-only
+  position interpolation without creating a shared cinematic scene runtime.
 - **Scientific visualization evidence boundary:** added selective committed
   per-organism genetic-phenotype trait observation and formalized the separation
   among scientific evidence, scenario-specific visual meaning, and renderer-owned
