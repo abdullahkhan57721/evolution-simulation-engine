@@ -6,11 +6,14 @@ from collections import Counter
 
 import attrs
 
+from evo_engine.ecology import PatchyResourcePlacement, ResourcePatch
+from evo_engine.engine import Simulation
 from evo_engine.experiments import (
     ReferenceExperimentResult,
     run_flagship_max_intake_replicates,
     run_reference_replicates,
 )
+from evo_engine.genetics import GENETIC_ARCHITECTURE, MAX_SPEED
 from evo_engine.observation import (
     GeneticCompositionObservation,
     IndividualGeneticTraitObservation,
@@ -32,10 +35,17 @@ from evo_engine.presets import (
     build_flagship_max_intake_specification,
     build_reference_ecology,
 )
+from evo_engine.presets.reference_ecology.genetics import (
+    build_balanced_reference_trait_world,
+)
 from evo_engine.telemetry import StepTelemetry
 
 REFERENCE_SCENARIO = "reference_ecology"
 FLAGSHIP_MAX_INTAKE_SCENARIO = "flagship_max_intake"
+SCIENCE_AWARE_MAX_SPEED_SCENARIO = "science_aware_max_speed"
+SCIENCE_AWARE_MAX_SPEED_SEED = 17
+SCIENCE_AWARE_LOW_SPEED = 1
+SCIENCE_AWARE_HIGH_SPEED = 4
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -271,6 +281,67 @@ def run_dashboard_flagship_max_intake(
         spatial=spatial,
         individual_traits=individual_traits,
         scenario=FLAGSHIP_MAX_INTAKE_SCENARIO,
+    )
+
+
+def run_dashboard_science_aware_max_speed() -> DashboardRun:
+    """Run a deterministic B1/B2 mechanism preview for interactive encoding.
+
+    This is a presentation integration proof, not the final B3 treatment/control
+    scenario. It composes existing patchy resources with balanced standing
+    variation at the already-established speed-1/speed-4 performance tradeoff.
+    """
+    baseline = ReferenceEcologyConfig()
+    config = attrs.evolve(
+        baseline,
+        width=12,
+        height=12,
+        initial_population=20,
+        initial_energy=30,
+        max_steps=30,
+        seed=SCIENCE_AWARE_MAX_SPEED_SEED,
+        mutation_probability_ppm=0,
+        resource_generation_amount=6,
+        resource_deposits_per_step=16,
+        resource_placement_model=PatchyResourcePlacement(
+            patches=(
+                ResourcePatch(center_x=2, center_y=2, radius=2),
+                ResourcePatch(center_x=9, center_y=9, radius=2),
+            )
+        ),
+        mating_radius=1,
+        traits=attrs.evolve(
+            baseline.traits,
+            attack_strength=0,
+            defense=1,
+        ),
+    )
+    spatial = SpatialRecorder(every_n_steps=1)
+    individual_traits = IndividualGeneticTraitRecorder(trait_names=(MAX_SPEED,))
+    ecology = build_reference_ecology(
+        config,
+        additional_observers=(spatial, individual_traits),
+    )
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
+    founder_world = build_balanced_reference_trait_world(
+        architecture,
+        trait_name=MAX_SPEED,
+        variant_values=(SCIENCE_AWARE_LOW_SPEED, SCIENCE_AWARE_HIGH_SPEED),
+        config=config,
+    )
+    ecology = attrs.evolve(
+        ecology,
+        simulation=Simulation(
+            initial_domain_state=founder_world,
+            seed=config.seed,
+            context=ecology.simulation.context,
+        ),
+    )
+    return _run_dashboard_ecology(
+        ecology,
+        spatial=spatial,
+        individual_traits=individual_traits,
+        scenario=SCIENCE_AWARE_MAX_SPEED_SCENARIO,
     )
 
 
