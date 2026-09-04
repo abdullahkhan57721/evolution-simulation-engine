@@ -80,6 +80,7 @@ class LocomotionReplicateMeasurements:
     total_realized_distance: float
     mean_realized_distance_per_applied_movement: float | None
     total_locomotion_energy_expenditure: int
+    mean_locomotion_energy_expenditure_per_applied_movement: float | None
 
     def __attrs_post_init__(self) -> None:
         """Validate replicate measurement denominators and totals."""
@@ -98,26 +99,20 @@ class LocomotionReplicateMeasurements:
             self.total_realized_distance,
             name="total_realized_distance",
         )
-        if self.mean_realized_distance_per_applied_movement is None:
-            if self.applied_movement_count != 0:
-                raise ValueError(
-                    "mean_realized_distance_per_applied_movement may be None only "
-                    "when applied_movement_count is zero."
-                )
-        else:
-            _validate_nonnegative_finite_float(
-                self.mean_realized_distance_per_applied_movement,
-                name="mean_realized_distance_per_applied_movement",
-            )
-            if self.applied_movement_count == 0:
-                raise ValueError(
-                    "mean_realized_distance_per_applied_movement must be None "
-                    "when applied_movement_count is zero."
-                )
+        _validate_optional_per_movement_mean(
+            self.mean_realized_distance_per_applied_movement,
+            applied_movement_count=self.applied_movement_count,
+            name="mean_realized_distance_per_applied_movement",
+        )
         validators.validate_int_ge(
             self.total_locomotion_energy_expenditure,
             bound=0,
             name="total_locomotion_energy_expenditure",
+        )
+        _validate_optional_per_movement_mean(
+            self.mean_locomotion_energy_expenditure_per_applied_movement,
+            applied_movement_count=self.applied_movement_count,
+            name="mean_locomotion_energy_expenditure_per_applied_movement",
         )
 
 
@@ -181,16 +176,16 @@ def summarize_locomotion_replicate(
 ) -> LocomotionReplicateMeasurements:
     """Summarize committed movement evidence for exactly one simulation replicate.
 
-    The denominator of ``mean_realized_distance_per_applied_movement`` is the
-    number of successfully applied ``Movement.Event`` records. A run with no
-    applied movement has an undefined mean represented by ``None``, not zero.
+    Both per-movement means use the number of successfully applied
+    ``Movement.Event`` records as their denominator. A run with no applied
+    movement has undefined means represented by ``None``, not zero.
 
     Args:
         provenance: Scientific identity of the one run/seed being summarized.
         events: Committed applied-event evidence from that run.
 
     Returns:
-        Locomotion totals and explicit-denominator mean for the replicate.
+        Locomotion totals and explicit-denominator means for the replicate.
     """
     if not isinstance(provenance, ScientificRunProvenance):
         raise TypeError("provenance must be a ScientificRunProvenance.")
@@ -209,6 +204,9 @@ def summarize_locomotion_replicate(
     total_realized_distance = sum(
         measurement.realized_distance for measurement in measurements
     )
+    total_locomotion_energy_expenditure = sum(
+        measurement.locomotion_energy_expenditure for measurement in measurements
+    )
     return LocomotionReplicateMeasurements(
         provenance=provenance,
         applied_movement_count=count,
@@ -219,11 +217,31 @@ def summarize_locomotion_replicate(
         mean_realized_distance_per_applied_movement=(
             total_realized_distance / count if count else None
         ),
-        total_locomotion_energy_expenditure=sum(
-            measurement.locomotion_energy_expenditure
-            for measurement in measurements
+        total_locomotion_energy_expenditure=total_locomotion_energy_expenditure,
+        mean_locomotion_energy_expenditure_per_applied_movement=(
+            total_locomotion_energy_expenditure / count if count else None
         ),
     )
+
+
+def _validate_optional_per_movement_mean(
+    value: float | None,
+    *,
+    applied_movement_count: int,
+    name: str,
+) -> None:
+    if value is None:
+        if applied_movement_count != 0:
+            raise ValueError(
+                f"{name} may be None only when applied_movement_count is zero."
+            )
+        return
+
+    _validate_nonnegative_finite_float(value, name=name)
+    if applied_movement_count == 0:
+        raise ValueError(
+            f"{name} must be None when applied_movement_count is zero."
+        )
 
 
 def _validate_nonnegative_finite_float(value: object, *, name: str) -> float:

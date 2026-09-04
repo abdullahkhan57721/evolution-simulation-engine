@@ -115,7 +115,7 @@ def test_applied_movement_rejects_inconsistent_committed_endpoint() -> None:
 
 
 def test_locomotion_summary_uses_applied_movement_as_explicit_denominator() -> None:
-    """Test the replicate mean denominator is the committed movement count."""
+    """Test replicate means use the committed applied-movement denominator."""
     first = _movement_event()
     second = _movement_event(
         step_index=4,
@@ -137,10 +137,11 @@ def test_locomotion_summary_uses_applied_movement_as_explicit_denominator() -> N
     assert result.total_realized_distance == 5.0
     assert result.mean_realized_distance_per_applied_movement == 2.5
     assert result.total_locomotion_energy_expenditure == 26
+    assert result.mean_locomotion_energy_expenditure_per_applied_movement == 13.0
 
 
 def test_locomotion_summary_keeps_empty_denominator_undefined() -> None:
-    """Test no applied movements produces None rather than a false zero mean."""
+    """Test no applied movements produces None rather than false zero means."""
     result = summarize_locomotion_replicate(
         provenance=_provenance(),
         events=(),
@@ -149,6 +150,7 @@ def test_locomotion_summary_keeps_empty_denominator_undefined() -> None:
     assert result.applied_movement_count == 0
     assert result.total_realized_distance == 0.0
     assert result.mean_realized_distance_per_applied_movement is None
+    assert result.mean_locomotion_energy_expenditure_per_applied_movement is None
 
 
 def test_locomotion_export_preserves_scientific_provenance(tmp_path: Path) -> None:
@@ -171,3 +173,7 @@ def test_locomotion_export_preserves_scientific_provenance(tmp_path: Path) -> No
     assert payload["provenance"]["observation_every_n_steps"] == 1
     assert payload["provenance"]["run_role"] == "confirmation"
     assert payload["mean_realized_distance_per_applied_movement"] == 5.0
+    assert (
+        payload["mean_locomotion_energy_expenditure_per_applied_movement"]
+        == 25.0
+    )

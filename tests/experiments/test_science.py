@@ -11,6 +11,9 @@ from evo_engine.experiments.science import (
     canonical_treatment_specification,
     validate_declared_treatment_difference,
 )
+from evo_engine.presets.reference_ecology.b3_flagship import (
+    build_b3_flagship_specification,
+)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -128,4 +131,50 @@ def test_treatment_integrity_rejects_an_unintended_second_difference() -> None:
             control=control,
             normalized_treatment=normalized,
             declared_difference="max_speed",
+        )
+
+
+def test_treatment_integrity_helper_supports_real_b3_normalization() -> None:
+    """Test the thin helper preserves B3's one-declared-difference pattern."""
+    control = build_b3_flagship_specification(seed=5, environment="uniform")
+    treatment = build_b3_flagship_specification(
+        seed=5,
+        environment="compact_patch",
+    )
+    normalized = attrs.evolve(
+        treatment,
+        environment="uniform",
+        config=attrs.evolve(
+            treatment.config,
+            resource_placement_model=control.config.resource_placement_model,
+        ),
+    )
+
+    validate_declared_treatment_difference(
+        control=control,
+        normalized_treatment=normalized,
+        declared_difference="resource placement",
+    )
+
+    invalid_treatment = attrs.evolve(
+        treatment,
+        config=attrs.evolve(
+            treatment.config,
+            resource_request_amount=treatment.config.resource_request_amount + 1,
+        ),
+    )
+    invalid_normalized = attrs.evolve(
+        invalid_treatment,
+        environment="uniform",
+        config=attrs.evolve(
+            invalid_treatment.config,
+            resource_placement_model=control.config.resource_placement_model,
+        ),
+    )
+
+    with pytest.raises(ValueError, match="outside resource placement"):
+        validate_declared_treatment_difference(
+            control=control,
+            normalized_treatment=invalid_normalized,
+            declared_difference="resource placement",
         )
