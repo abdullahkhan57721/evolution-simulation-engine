@@ -188,6 +188,46 @@ Downstream Plotly, Streamlit, notebook, video, or other presentation code should
 consume these immutable records rather than reach back into historical mutable
 simulation internals.
 
+## IndividualGeneticTraitRecorder
+
+`IndividualGeneticTraitRecorder` is an opt-in sibling observation layer for cases
+that need selected genetic-phenotype values associated with stable organism IDs.
+It does not broaden `SpatialOrganismSnapshot` into a universal biological snapshot.
+Instead, downstream consumers can join spatial and individual scientific records
+on the shared committed `(step_index, organism_id)` identity.
+
+```python
+from evo_engine.genetics import MAX_SPEED
+from evo_engine.observation import (
+    IndividualGeneticTraitRecorder,
+    SpatialRecorder,
+)
+from evo_engine.presets import build_reference_ecology
+
+spatial = SpatialRecorder(every_n_steps=1)
+individual_traits = IndividualGeneticTraitRecorder(
+    trait_names=(MAX_SPEED,),
+    every_n_steps=1,
+)
+ecology = build_reference_ecology(
+    additional_observers=(spatial, individual_traits),
+)
+ecology.engine.run(ecology.simulation)
+
+for observation in individual_traits.observations:
+    for individual in observation.individuals:
+        speed = observation.trait_value(individual.organism_id, MAX_SPEED)
+        print(observation.step_index, individual.organism_id, speed)
+```
+
+The recorder stores only explicitly configured **integer genetic-phenotype**
+traits, in configured name order, and exposes them through `required_traits` so
+normal preflight validates the dependency. It does not record full genomes,
+developmental targets, arbitrary renderer properties, or live entity references.
+A future need for a different scientific source, such as realized developmental
+characteristics, should establish its own concrete requirement before this
+contract is generalized.
+
 ## Observation scheduling
 
 Scheduling belongs to the observer rather than `SimulationEngine`.
@@ -242,6 +282,10 @@ SpatialRecorder
     → immutable spatial world frames
     → organism/resource/carcass positions and selected scalar state
 
+IndividualGeneticTraitRecorder
+    → selected per-organism genetic-phenotype integer traits
+    → stable joins with spatial replay by step and organism ID
+
 GeneticCompositionRecorder
     → allele frequencies
     → genotype frequencies
@@ -258,5 +302,5 @@ PedigreeRecorder
 The experiment layer composes the non-spatial analysis records across seeds and
 exports them without moving analytics responsibilities back into simulation
 processes. Plotting, animation, and higher-level statistical analysis remain
-downstream consumers of immutable records; callers opt into spatial history only
-when a presentation or analysis requires it.
+downstream consumers of immutable records; callers opt into larger observation
+histories only when a presentation or analysis requires them.
