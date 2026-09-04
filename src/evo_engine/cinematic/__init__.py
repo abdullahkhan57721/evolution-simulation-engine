@@ -3,7 +3,9 @@
 from evo_engine.cinematic.api import AnimationQuality, render_portfolio_animation
 from evo_engine.cinematic.events import (
     select_authoritative_events,
+    select_authoritative_events_for_process,
     select_first_authoritative_event,
+    select_first_authoritative_event_for_process,
 )
 from evo_engine.cinematic.interpolation import (
     CinematicPosition,
@@ -32,5 +34,7 @@ __all__ = [
     "interpolate_organism_position",
     "render_portfolio_animation",
     "select_authoritative_events",
+    "select_authoritative_events_for_process",
     "select_first_authoritative_event",
+    "select_first_authoritative_event_for_process",
 ]
