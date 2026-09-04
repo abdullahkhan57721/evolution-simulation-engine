@@ -31,10 +31,13 @@ def test_event_selection_preserves_actual_commit_order() -> None:
         timeline,
         event_name="FeedingEvent",
     ) == (first, second)
-    assert select_first_authoritative_event(
-        timeline,
-        event_name="FeedingEvent",
-    ) is first
+    assert (
+        select_first_authoritative_event(
+            timeline,
+            event_name="FeedingEvent",
+        )
+        is first
+    )
 
 
 def test_identity_change_does_not_create_authoritative_event() -> None:
@@ -49,10 +52,13 @@ def test_identity_change_does_not_create_authoritative_event() -> None:
     )
 
     assert select_authoritative_events(timeline, event_name="BirthEvent") == ()
-    assert select_first_authoritative_event(
-        timeline,
-        event_name="BirthEvent",
-    ) is None
+    assert (
+        select_first_authoritative_event(
+            timeline,
+            event_name="BirthEvent",
+        )
+        is None
+    )
 
 
 def _event(*, event_type: str, stage: int) -> AppliedEvent:
