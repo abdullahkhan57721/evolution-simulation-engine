@@ -246,7 +246,4 @@ def test_locomotion_export_preserves_scientific_provenance(tmp_path: Path) -> No
     assert payload["provenance"]["observation_include_step_zero"] is True
     assert payload["provenance"]["run_role"] == "confirmation"
     assert payload["mean_realized_distance_per_applied_movement"] == 5.0
-    assert (
-        payload["mean_locomotion_energy_expenditure_per_applied_movement"]
-        == 25.0
-    )
+    assert payload["mean_locomotion_energy_expenditure_per_applied_movement"] == 25.0
