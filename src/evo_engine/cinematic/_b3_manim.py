@@ -438,7 +438,9 @@ class _B3FlagshipScene(MovingCameraScene):
             axis_config={"color": GREY_B, "stroke_width": 1.2},
             tips=False,
         ).shift(DOWN * 0.25)
-        steps = [point.step_index for point in self._plan.representative_genetic_trajectory]
+        steps = [
+            point.step_index for point in self._plan.representative_genetic_trajectory
+        ]
         control = [
             point.control_high_speed_frequency
             for point in self._plan.representative_genetic_trajectory
