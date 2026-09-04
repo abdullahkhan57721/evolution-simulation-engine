@@ -13,6 +13,8 @@ from evo_engine.experiments import (
 )
 from evo_engine.observation import (
     GeneticCompositionObservation,
+    IndividualGeneticTraitObservation,
+    IndividualGeneticTraitRecorder,
     IndividualLifeHistory,
     PopulationObservation,
     SpatialObservation,
@@ -53,6 +55,9 @@ class DashboardRun:
     spatial_history: tuple[SpatialObservation, ...]
     telemetry_steps: tuple[StepTelemetry, ...]
     life_histories: tuple[IndividualLifeHistory, ...]
+    individual_trait_history: tuple[IndividualGeneticTraitObservation, ...] = (
+        attrs.field(factory=tuple)
+    )
     scenario: str = REFERENCE_SCENARIO
 
     @property
@@ -211,42 +216,89 @@ def _normalize_exploration_movement(
     )
 
 
-def run_dashboard_reference(config: ReferenceEcologyConfig) -> DashboardRun:
-    """Run the existing reference ecology and return committed presentation data."""
+def run_dashboard_reference(
+    config: ReferenceEcologyConfig,
+    *,
+    individual_trait_names: tuple[str, ...] = (),
+) -> DashboardRun:
+    """Run the reference ecology and return immutable committed presentation data.
+
+    Args:
+        config: Validated reference-ecology configuration.
+        individual_trait_names: Optional explicitly selected integer genetic-
+            phenotype traits to record for active organisms at each committed step.
+
+    Returns:
+        Completed immutable dashboard result.
+    """
     if not isinstance(config, ReferenceEcologyConfig):
         raise TypeError("config must be a ReferenceEcologyConfig.")
 
     spatial = SpatialRecorder(every_n_steps=1)
+    individual_traits = _individual_trait_recorder(individual_trait_names)
     ecology = build_reference_ecology(
         config,
-        additional_observers=(spatial,),
+        additional_observers=_dashboard_observers(
+            spatial=spatial,
+            individual_traits=individual_traits,
+        ),
     )
     return _run_dashboard_ecology(
         ecology,
         spatial=spatial,
+        individual_traits=individual_traits,
         scenario=REFERENCE_SCENARIO,
     )
 
 
-def run_dashboard_flagship_max_intake() -> DashboardRun:
+def run_dashboard_flagship_max_intake(
+    *,
+    individual_trait_names: tuple[str, ...] = (),
+) -> DashboardRun:
     """Run the canonical flagship demo and return committed presentation data."""
     specification = build_flagship_max_intake_specification()
     spatial = SpatialRecorder(every_n_steps=1)
+    individual_traits = _individual_trait_recorder(individual_trait_names)
     ecology = build_flagship_max_intake_ecology(
         specification,
-        additional_observers=(spatial,),
+        additional_observers=_dashboard_observers(
+            spatial=spatial,
+            individual_traits=individual_traits,
+        ),
     )
     return _run_dashboard_ecology(
         ecology,
         spatial=spatial,
+        individual_traits=individual_traits,
         scenario=FLAGSHIP_MAX_INTAKE_SCENARIO,
     )
+
+
+def _individual_trait_recorder(
+    trait_names: tuple[str, ...],
+) -> IndividualGeneticTraitRecorder | None:
+    if not isinstance(trait_names, tuple):
+        raise TypeError("individual_trait_names must be a tuple of trait names.")
+    if not trait_names:
+        return None
+    return IndividualGeneticTraitRecorder(trait_names=trait_names)
+
+
+def _dashboard_observers(
+    *,
+    spatial: SpatialRecorder,
+    individual_traits: IndividualGeneticTraitRecorder | None,
+) -> tuple[SpatialRecorder | IndividualGeneticTraitRecorder, ...]:
+    if individual_traits is None:
+        return (spatial,)
+    return (spatial, individual_traits)
 
 
 def _run_dashboard_ecology(
     ecology: ReferenceEcology,
     *,
     spatial: SpatialRecorder,
+    individual_traits: IndividualGeneticTraitRecorder | None,
     scenario: str,
 ) -> DashboardRun:
     ecology.engine.run(ecology.simulation)
@@ -258,6 +310,9 @@ def _run_dashboard_ecology(
         spatial_history=spatial.observations,
         telemetry_steps=ecology.event_recorder.steps,
         life_histories=ecology.pedigree_recorder.records,
+        individual_trait_history=(
+            () if individual_traits is None else individual_traits.observations
+        ),
         scenario=scenario,
     )
 
