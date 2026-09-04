@@ -438,8 +438,17 @@ def _frame_animations(
     timeline: PortfolioAnimationTimeline,
 ) -> list[object]:
     animations = _organism_animations(state, frame)
-    animations.append(Transform(state.resources, _resource_layer(frame, state.layout)))
-    animations.append(Transform(state.carcasses, _carcass_layer(frame, state.layout)))
+
+    previous_resources = state.resources
+    next_resources = _resource_layer(frame, state.layout)
+    state.resources = next_resources
+    animations.extend((FadeOut(previous_resources), FadeIn(next_resources)))
+
+    previous_carcasses = state.carcasses
+    next_carcasses = _carcass_layer(frame, state.layout)
+    state.carcasses = next_carcasses
+    animations.extend((FadeOut(previous_carcasses), FadeIn(next_carcasses)))
+
     animations.extend(_status_animations(state, frame, timeline.trait_name))
     return animations
 
