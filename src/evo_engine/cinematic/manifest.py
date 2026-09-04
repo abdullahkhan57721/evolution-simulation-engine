@@ -139,20 +139,28 @@ def _validate_step_range(first_step: int | None, last_step: int | None) -> None:
 
 
 def _validate_focal_manifest(manifest: CinematicRenderManifest) -> None:
-    values = (
-        manifest.focal_trait_name,
-        manifest.focal_label,
-        manifest.focal_lower_bound,
-        manifest.focal_upper_bound,
-    )
-    if all(value is None for value in values):
+    trait_name = manifest.focal_trait_name
+    label = manifest.focal_label
+    lower_bound = manifest.focal_lower_bound
+    upper_bound = manifest.focal_upper_bound
+    if (
+        trait_name is None
+        and label is None
+        and lower_bound is None
+        and upper_bound is None
+    ):
         return
-    if any(value is None for value in values):
+    if (
+        trait_name is None
+        or label is None
+        or lower_bound is None
+        or upper_bound is None
+    ):
         raise ValueError("focal manifest fields must be supplied together.")
-    _validate_required_label(manifest.focal_trait_name, name="focal_trait_name")
-    _validate_required_label(manifest.focal_label, name="focal_label")
-    lower = validators.validate_int(manifest.focal_lower_bound, name="focal_lower_bound")
-    upper = validators.validate_int(manifest.focal_upper_bound, name="focal_upper_bound")
+    _validate_required_label(trait_name, name="focal_trait_name")
+    _validate_required_label(label, name="focal_label")
+    lower = validators.validate_int(lower_bound, name="focal_lower_bound")
+    upper = validators.validate_int(upper_bound, name="focal_upper_bound")
     if upper <= lower:
         raise ValueError("focal_upper_bound must be greater than focal_lower_bound.")
 
