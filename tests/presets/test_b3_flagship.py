@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from collections import Counter
+from typing import cast
 
 import attrs
 import pytest
 
 from evo_engine.ecology import PatchyResourcePlacement, UniformResourcePlacement
+from evo_engine.experiments.b3_flagship import run_b3_matched_pair
 from evo_engine.genetics import MAX_SPEED
 from evo_engine.presets.reference_ecology.b3_flagship import (
     B3_CONFIRMATION_SEEDS,
@@ -35,10 +37,16 @@ def _founder_snapshot(world):
             organism.age,
             organism.energy,
             organism.body_mass,
-            tuple(sorted(organism.genetic_phenotype.as_mapping().items())),
+            tuple(sorted(organism.genetic_phenotype.items())),
         )
         for organism in world.organisms.values()
     )
+
+
+def _integer_allele_value(value: object) -> int:
+    if type(value) is not int:
+        raise TypeError("Expected integer B3 max_speed allele value.")
+    return cast(int, value)
 
 
 def test_b3_seed_sets_and_primary_step_are_frozen() -> None:
@@ -58,8 +66,12 @@ def test_b3_canonical_pair_differs_only_in_resource_placement() -> None:
 
     validate_b3_treatment_integrity(control, treatment)
 
-    assert isinstance(control.config.resource_placement_model, UniformResourcePlacement)
-    assert isinstance(treatment.config.resource_placement_model, PatchyResourcePlacement)
+    assert isinstance(
+        control.config.resource_placement_model, UniformResourcePlacement
+    )
+    assert isinstance(
+        treatment.config.resource_placement_model, PatchyResourcePlacement
+    )
     assert treatment.config.resource_deposits_per_step == 32
     assert treatment.config.resource_generation_amount == 6
     assert treatment.config.mutation_probability_ppm == 0
@@ -99,7 +111,8 @@ def test_b3_founders_are_balanced_and_matched_across_environments() -> None:
         speed = organism.genetic_phenotype.int_value(MAX_SPEED)
         counts[(speed, organism.mating_type)] += 1
         allele_copies.extend(
-            int(allele.value) for allele in organism.genome.alleles_at(MAX_SPEED)
+            _integer_allele_value(allele.value)
+            for allele in organism.genome.alleles_at(MAX_SPEED)
         )
 
     assert counts[(B3_LOW_MAX_SPEED, "type_a")] == 5
@@ -139,3 +152,33 @@ def test_b3_swapped_assignment_changes_speed_labels_not_founder_structure() -> N
             assert standard_organism.genetic_phenotype.int_value(trait_name) == (
                 swapped_organism.genetic_phenotype.int_value(trait_name)
             )
+
+
+def test_b3_canonical_seed_exercises_committed_evidence_and_manipulation() -> None:
+    """Test one confirmed seed through the durable B3 evidence path."""
+    pair = run_b3_matched_pair(seed=5)
+
+    assert pair.primary_effect is not None
+    assert pair.primary_effect > 0
+    assert pair.control.primary_high_speed_frequency is not None
+    assert pair.treatment.primary_high_speed_frequency is not None
+    assert pair.control.primary_high_speed_frequency < 0.5
+    assert pair.treatment.primary_high_speed_frequency > 0.5
+
+    control_generation = pair.control.resource_generation_audit
+    treatment_generation = pair.treatment.resource_generation_audit
+    assert control_generation.generation_event_count == 32 * 50
+    assert treatment_generation.generation_event_count == 32 * 50
+    assert control_generation.total_generated_amount == 32 * 50 * 6
+    assert treatment_generation.total_generated_amount == 32 * 50 * 6
+    assert control_generation.compact_support_fraction is not None
+    assert control_generation.compact_support_fraction < 1.0
+    assert treatment_generation.compact_support_fraction == 1.0
+
+    assert pair.control.resource_geography.compact_support_fraction is not None
+    assert pair.treatment.resource_geography.compact_support_fraction is not None
+    assert (
+        pair.treatment.resource_geography.compact_support_fraction
+        > pair.control.resource_geography.compact_support_fraction
+    )
+    assert pair.treatment.mechanism_episodes

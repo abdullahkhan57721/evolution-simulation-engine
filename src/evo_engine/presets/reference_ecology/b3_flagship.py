@@ -12,7 +12,7 @@ from evo_engine.ecology import (
     ResourcePlacementModel,
     UniformResourcePlacement,
 )
-from evo_engine.genetics import GeneticArchitecture, MAX_SPEED
+from evo_engine.genetics import MAX_SPEED, GeneticArchitecture
 from evo_engine.presets.reference_ecology.config import (
     ReferenceEcologyConfig,
     ReferencePhysiologicalTradeoffs,
@@ -206,7 +206,9 @@ def validate_b3_treatment_integrity(
     """
     if control.environment != "uniform":
         raise ValueError("B3 control environment must be 'uniform'.")
-    if not isinstance(control.config.resource_placement_model, UniformResourcePlacement):
+    if not isinstance(
+        control.config.resource_placement_model, UniformResourcePlacement
+    ):
         raise ValueError("B3 control must use UniformResourcePlacement.")
 
     expected_treatment_placement = _patchy_resource_placement(
@@ -278,6 +280,7 @@ __all__ = [
     "B3_RESOURCE_DEPOSITS_PER_STEP",
     "B3_RESOURCE_GENERATION_AMOUNT",
     "B3FlagshipSpecification",
+    "B3FounderAssignment",
     "build_b3_flagship_specification",
     "build_b3_flagship_world",
     "validate_b3_treatment_integrity",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import cast
 
 import attrs
 
@@ -23,11 +24,13 @@ from evo_engine.presets.reference_ecology.b3_flagship import (
     B3_PATCH_CENTERS,
     B3_PRIMARY_STEP,
     B3FlagshipSpecification,
+    B3FounderAssignment,
     build_b3_flagship_specification,
     build_b3_flagship_world,
     validate_b3_treatment_integrity,
 )
 from evo_engine.presets.reference_ecology.observable import build_reference_ecology
+from evo_engine.processes import Movement, ResourceConsumption, ResourceGeneration
 from evo_engine.telemetry import AppliedEvent
 
 
@@ -64,12 +67,23 @@ class B3FounderReproductiveSuccess:
 
 @attrs.frozen(slots=True, kw_only=True)
 class B3ResourceGeography:
-    """Summarize committed resource-cell occupancy relative to compact support."""
+    """Summarize total committed resource-state occupancy near compact patches."""
 
     resource_cell_observations: int
     compact_support_cell_observations: int
     compact_support_fraction: float | None
     unique_resource_cells: int
+
+
+@attrs.frozen(slots=True, kw_only=True)
+class B3ResourceGenerationAudit:
+    """Summarize provenance-safe committed renewable-resource generation events."""
+
+    generation_event_count: int
+    total_generated_amount: int
+    compact_support_event_count: int
+    compact_support_fraction: float | None
+    unique_generation_cells: int
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -114,6 +128,7 @@ class B3RunSummary:
     population_trajectory: tuple[B3PopulationPoint, ...]
     founder_reproductive_success: B3FounderReproductiveSuccess
     resource_geography: B3ResourceGeography
+    resource_generation_audit: B3ResourceGenerationAudit
     mechanism_episodes: tuple[B3MovementConsumptionEpisode, ...]
 
     def high_speed_frequency_at(self, step_index: int) -> float | None:
@@ -217,6 +232,7 @@ def summarize_b3_run(evidence: B3RunEvidence) -> B3RunSummary:
             founder_speed=founder_speed,
         ),
         resource_geography=_resource_geography(evidence.spatial_observations),
+        resource_generation_audit=_resource_generation_audit(evidence.events),
         mechanism_episodes=_mechanism_episodes(evidence),
     )
 
@@ -224,18 +240,18 @@ def summarize_b3_run(evidence: B3RunEvidence) -> B3RunSummary:
 def run_b3_matched_pair(
     *,
     seed: int,
-    founder_assignment: str = "standard",
+    founder_assignment: B3FounderAssignment = "standard",
 ) -> B3MatchedPairSummary:
     """Run one predeclared same-seed uniform/compact B3 matched comparison."""
     control = build_b3_flagship_specification(
         seed=seed,
         environment="uniform",
-        founder_assignment=founder_assignment,  # type: ignore[arg-type]
+        founder_assignment=founder_assignment,
     )
     treatment = build_b3_flagship_specification(
         seed=seed,
         environment="compact_patch",
-        founder_assignment=founder_assignment,  # type: ignore[arg-type]
+        founder_assignment=founder_assignment,
     )
     validate_b3_treatment_integrity(control, treatment)
     return B3MatchedPairSummary(
@@ -253,24 +269,36 @@ def _genetic_point(observation: GeneticCompositionObservation) -> B3GeneticPoint
         if observation.population_size == 0
         else locus.allele_frequency(B3_HIGH_MAX_SPEED)
     )
-    genotype_frequencies: list[tuple[tuple[int, ...], float]] = []
-    for genotype in locus.genotypes:
-        values = tuple(int(value) for value in genotype.allele_values)
-        genotype_frequencies.append((values, genotype.frequency))
+    genotype_frequencies = tuple(
+        (_integer_allele_values(genotype.allele_values), genotype.frequency)
+        for genotype in locus.genotypes
+    )
     return B3GeneticPoint(
         step_index=observation.step_index,
         population_size=observation.population_size,
         high_speed_allele_frequency=high_frequency,
-        genotype_frequencies=tuple(genotype_frequencies),
+        genotype_frequencies=genotype_frequencies,
     )
 
 
+def _integer_allele_values(values: tuple[object, ...]) -> tuple[int, ...]:
+    converted: list[int] = []
+    for value in values:
+        if type(value) is not int:
+            raise TypeError("B3 max_speed genotype alleles must be integers.")
+        converted.append(cast(int, value))
+    return tuple(converted)
+
+
 def _population_point(observation: PopulationObservation) -> B3PopulationPoint:
-    mean_max_speed = None
-    for trait in observation.traits:
-        if trait.trait_name == MAX_SPEED:
-            mean_max_speed = trait.summary.mean
-            break
+    mean_max_speed = next(
+        (
+            trait.summary.mean
+            for trait in observation.traits
+            if trait.trait_name == MAX_SPEED
+        ),
+        None,
+    )
     return B3PopulationPoint(
         step_index=observation.step_index,
         population_size=observation.population_size,
@@ -317,26 +345,29 @@ def _founder_reproductive_success(
     )
 
 
-def _resource_geography(
-    observations: tuple[SpatialObservation, ...],
-) -> B3ResourceGeography:
-    compact_support = {
+def _compact_support() -> frozenset[tuple[int, int]]:
+    return frozenset(
         (x, y)
         for center_x, center_y in B3_PATCH_CENTERS
         for y in range(center_y - 1, center_y + 2)
         for x in range(center_x - 1, center_x + 2)
         if (x - center_x) ** 2 + (y - center_y) ** 2 <= 1
-    }
-    all_coordinates: list[tuple[int, int]] = []
-    compact_count = 0
-    for observation in observations:
-        if observation.step_index == 0:
-            continue
-        for resource in observation.resources:
-            coordinate = (resource.x, resource.y)
-            all_coordinates.append(coordinate)
-            if coordinate in compact_support:
-                compact_count += 1
+    )
+
+
+def _resource_geography(
+    observations: tuple[SpatialObservation, ...],
+) -> B3ResourceGeography:
+    compact_support = _compact_support()
+    all_coordinates = [
+        (resource.x, resource.y)
+        for observation in observations
+        if observation.step_index != 0
+        for resource in observation.resources
+    ]
+    compact_count = sum(
+        coordinate in compact_support for coordinate in all_coordinates
+    )
     total = len(all_coordinates)
     return B3ResourceGeography(
         resource_cell_observations=total,
@@ -346,71 +377,112 @@ def _resource_geography(
     )
 
 
-def _mechanism_episodes(evidence: B3RunEvidence) -> tuple[B3MovementConsumptionEpisode, ...]:
+def _resource_generation_audit(
+    events: tuple[AppliedEvent, ...],
+) -> B3ResourceGenerationAudit:
+    compact_support = _compact_support()
+    generation_events = tuple(
+        applied.event
+        for applied in events
+        if applied.process_name == "ResourceGeneration"
+        and isinstance(applied.event, ResourceGeneration.Event)
+    )
+    coordinates = tuple((event.x, event.y) for event in generation_events)
+    compact_count = sum(coordinate in compact_support for coordinate in coordinates)
+    event_count = len(generation_events)
+    return B3ResourceGenerationAudit(
+        generation_event_count=event_count,
+        total_generated_amount=sum(event.amount for event in generation_events),
+        compact_support_event_count=compact_count,
+        compact_support_fraction=(compact_count / event_count if event_count else None),
+        unique_generation_cells=len(set(coordinates)),
+    )
+
+
+def _speed_by_id(
+    observations: tuple[IndividualGeneticTraitObservation, ...],
+) -> dict[int, int]:
     speed_by_id: dict[int, int] = {}
-    for observation in evidence.individual_trait_observations:
+    for observation in observations:
         for individual in observation.individuals:
             speed_by_id[individual.organism_id] = observation.trait_value(
                 individual.organism_id,
                 MAX_SPEED,
             )
+    return speed_by_id
 
-    spatial_by_step = {
-        observation.step_index: observation for observation in evidence.spatial_observations
-    }
+
+def _consumption_by_completed_step(
+    events: tuple[AppliedEvent, ...],
+) -> dict[tuple[int, int], int]:
     consumption: dict[tuple[int, int], int] = {}
-    for applied in evidence.events:
-        if applied.process_name != "ResourceConsumption":
+    for applied in events:
+        if applied.process_name != "ResourceConsumption" or not isinstance(
+            applied.event, ResourceConsumption.Event
+        ):
             continue
         event = applied.event
-        organism_id = getattr(event, "organism_id", None)
-        amount = getattr(event, "amount", None)
-        if type(organism_id) is int and type(amount) is int and amount > 0:
-            key = (applied.event_step_index + 1, organism_id)
-            consumption[key] = consumption.get(key, 0) + amount
+        if event.amount <= 0:
+            continue
+        key = (applied.event_step_index + 1, event.organism_id)
+        consumption[key] = consumption.get(key, 0) + event.amount
+    return consumption
 
-    episodes: list[B3MovementConsumptionEpisode] = []
-    for applied in evidence.events:
-        if applied.process_name != "Movement":
-            continue
-        event = applied.event
-        organism_id = getattr(event, "organism_id", None)
-        target_x = getattr(event, "target_x", None)
-        target_y = getattr(event, "target_y", None)
-        if type(organism_id) is not int or target_x is None or target_y is None:
-            continue
-        completed_step = applied.event_step_index + 1
-        consumed = consumption.get((completed_step, organism_id), 0)
-        if consumed <= 0:
-            continue
-        dx = getattr(event, "dx")
-        dy = getattr(event, "dy")
-        new_x = getattr(event, "new_x")
-        new_y = getattr(event, "new_y")
-        before = _spatial_energy(
-            spatial_by_step.get(completed_step - 1),
-            organism_id,
+
+def _movement_episode(
+    *,
+    applied: AppliedEvent,
+    speed_by_id: dict[int, int],
+    consumption: dict[tuple[int, int], int],
+    spatial_by_step: dict[int, SpatialObservation],
+) -> B3MovementConsumptionEpisode | None:
+    if applied.process_name != "Movement" or not isinstance(applied.event, Movement.Event):
+        return None
+    event = applied.event
+    if event.target_x is None or event.target_y is None:
+        return None
+    completed_step = applied.event_step_index + 1
+    consumed = consumption.get((completed_step, event.organism_id), 0)
+    if consumed <= 0:
+        return None
+    return B3MovementConsumptionEpisode(
+        completed_step_index=completed_step,
+        organism_id=event.organism_id,
+        max_speed_capacity=speed_by_id[event.organism_id],
+        start=(event.new_x - event.dx, event.new_y - event.dy),
+        end=(event.new_x, event.new_y),
+        target=(event.target_x, event.target_y),
+        realized_displacement=math.hypot(event.dx, event.dy),
+        movement_energy_cost=event.energy_cost,
+        resource_consumed_same_step=consumed,
+        energy_before_step=_spatial_energy(
+            spatial_by_step.get(completed_step - 1), event.organism_id
+        ),
+        energy_after_step=_spatial_energy(
+            spatial_by_step.get(completed_step), event.organism_id
+        ),
+    )
+
+
+def _mechanism_episodes(
+    evidence: B3RunEvidence,
+) -> tuple[B3MovementConsumptionEpisode, ...]:
+    speed_by_id = _speed_by_id(evidence.individual_trait_observations)
+    consumption = _consumption_by_completed_step(evidence.events)
+    spatial_by_step = {
+        observation.step_index: observation
+        for observation in evidence.spatial_observations
+    }
+    episodes = (
+        _movement_episode(
+            applied=applied,
+            speed_by_id=speed_by_id,
+            consumption=consumption,
+            spatial_by_step=spatial_by_step,
         )
-        after = _spatial_energy(
-            spatial_by_step.get(completed_step),
-            organism_id,
-        )
-        episodes.append(
-            B3MovementConsumptionEpisode(
-                completed_step_index=completed_step,
-                organism_id=organism_id,
-                max_speed_capacity=speed_by_id[organism_id],
-                start=(new_x - dx, new_y - dy),
-                end=(new_x, new_y),
-                target=(target_x, target_y),
-                realized_displacement=math.hypot(dx, dy),
-                movement_energy_cost=getattr(event, "energy_cost"),
-                resource_consumed_same_step=consumed,
-                energy_before_step=before,
-                energy_after_step=after,
-            )
-        )
-    return tuple(episodes)
+        for applied in evidence.events
+    )
+    return tuple(episode for episode in episodes if episode is not None)
 
 
 def _spatial_energy(
@@ -431,6 +503,7 @@ __all__ = [
     "B3MatchedPairSummary",
     "B3MovementConsumptionEpisode",
     "B3PopulationPoint",
+    "B3ResourceGenerationAudit",
     "B3ResourceGeography",
     "B3RunEvidence",
     "B3RunSummary",
