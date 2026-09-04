@@ -232,8 +232,12 @@ def test_max_speed_records_join_spatial_history_by_step_and_organism() -> None:
         traits.observations,
         strict=True,
     ):
-        spatial_ids = tuple(organism.organism_id for organism in spatial_frame.organisms)
-        trait_ids = tuple(individual.organism_id for individual in trait_frame.individuals)
+        spatial_ids = tuple(
+            organism.organism_id for organism in spatial_frame.organisms
+        )
+        trait_ids = tuple(
+            individual.organism_id for individual in trait_frame.individuals
+        )
         assert spatial_ids == trait_ids
         assert {
             organism_id: trait_frame.trait_value(organism_id, MAX_SPEED)
