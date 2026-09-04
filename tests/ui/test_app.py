@@ -223,6 +223,9 @@ def test_view_controls_do_not_replace_completed_run() -> None:
         if slider.label == "Trail length (committed frames)"
     )
     trail_length.set_value(7)
+    app.run(timeout=30)
+    assert app.session_state["v2_world_trail_length"] == 7
+
     next(
         checkbox for checkbox in app.checkbox if checkbox.label == "Resources"
     ).set_value(False)
