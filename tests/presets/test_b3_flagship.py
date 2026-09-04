@@ -66,9 +66,7 @@ def test_b3_canonical_pair_differs_only_in_resource_placement() -> None:
 
     validate_b3_treatment_integrity(control, treatment)
 
-    assert isinstance(
-        control.config.resource_placement_model, UniformResourcePlacement
-    )
+    assert isinstance(control.config.resource_placement_model, UniformResourcePlacement)
     assert isinstance(
         treatment.config.resource_placement_model, PatchyResourcePlacement
     )
