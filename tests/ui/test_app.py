@@ -153,7 +153,9 @@ def test_scrubber_previous_and_selection_share_one_committed_step() -> None:
     assert _committed_step_metric(app).value == "0"
 
     organism = next(
-        selectbox for selectbox in app.selectbox if selectbox.label == "Selected organism"
+        selectbox
+        for selectbox in app.selectbox
+        if selectbox.label == "Selected organism"
     )
     organism.set_value(0)
     app.run(timeout=30)
@@ -216,15 +218,17 @@ def test_view_controls_do_not_replace_completed_run() -> None:
     completed_run = app.session_state["portfolio_dashboard_run"]
 
     trail_length = next(
-        slider for slider in app.slider if slider.label == "Trail length (committed frames)"
+        slider
+        for slider in app.slider
+        if slider.label == "Trail length (committed frames)"
     )
     trail_length.set_value(7)
-    next(checkbox for checkbox in app.checkbox if checkbox.label == "Resources").set_value(
-        False
-    )
-    next(checkbox for checkbox in app.checkbox if checkbox.label == "Carcasses").set_value(
-        False
-    )
+    next(
+        checkbox for checkbox in app.checkbox if checkbox.label == "Resources"
+    ).set_value(False)
+    next(
+        checkbox for checkbox in app.checkbox if checkbox.label == "Carcasses"
+    ).set_value(False)
     next(
         checkbox for checkbox in app.checkbox if checkbox.label == "Movement trails"
     ).set_value(False)
