@@ -159,6 +159,30 @@ def test_body_mass_size_mapping_is_bounded_and_monotonic() -> None:
     assert max(sizes) <= 26
 
 
+def test_world_presentation_rejects_invalid_view_inputs() -> None:
+    """Test display controls cannot smuggle malformed state into presentation."""
+    history = _history()
+
+    with pytest.raises(TypeError, match="trail_length"):
+        build_world_presentation(history, step_index=0, trail_length=2.5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="at least 1"):
+        build_world_presentation(history, step_index=0, trail_length=0)
+    with pytest.raises(TypeError, match="selected_organism_id"):
+        build_world_presentation(  # type: ignore[arg-type]
+            history,
+            step_index=0,
+            selected_organism_id="0",
+        )
+
+
+def test_marker_size_rejects_nonphysical_inputs() -> None:
+    """Test body-mass display sizing retains its physical input contract."""
+    with pytest.raises(TypeError, match="body_mass"):
+        organism_marker_size(1.5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="at least 1"):
+        organism_marker_size(0)
+
+
 def test_interpolation_has_exact_endpoints_for_persistent_organisms_only() -> None:
     """Test display interpolation never fabricates births or retained deaths."""
     history = _history()
@@ -177,12 +201,18 @@ def test_interpolation_has_exact_endpoints_for_persistent_organisms_only() -> No
     assert all(item.organism_id != 2 for item in midpoint)
 
 
-def test_interpolation_rejects_invalid_alpha() -> None:
-    """Test display interpolation fraction remains an explicit bounded value."""
+def test_interpolation_rejects_invalid_alpha_and_world_bounds() -> None:
+    """Test interpolation remains bounded and local to one shared world geometry."""
     history = _history()
 
+    with pytest.raises(TypeError, match="real number"):
+        interpolate_organism_positions(history[0], history[1], alpha=True)
     with pytest.raises(ValueError, match="between 0 and 1"):
         interpolate_organism_positions(history[0], history[1], alpha=1.1)
+
+    mismatched = SpatialObservation(step_index=1, world_width=7, world_height=5)
+    with pytest.raises(ValueError, match="identical world bounds"):
+        interpolate_organism_positions(history[0], mismatched, alpha=0.5)
 
 
 def test_missing_selected_step_is_rejected() -> None:
