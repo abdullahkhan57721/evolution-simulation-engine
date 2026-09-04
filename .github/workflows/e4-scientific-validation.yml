@@ -1,0 +1,39 @@
+name: E4 Scientific Validation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/experiments/e4_selection.py"
+      - "src/evo_engine/experiments/__init__.py"
+      - "scripts/e4_selection.py"
+      - "tests/experiments/test_e4_selection.py"
+      - "docs/e4_standing_variation.md"
+      - "docs/development/current_state.md"
+      - "mkdocs.yml"
+      - ".github/workflows/e4-scientific-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discovery-e4:
+    name: E4 bounded discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run predeclared discovery matrix only
+        run: |
+          venv/bin/python scripts/e4_selection.py \
+            --mode discovery \
+            --output outputs/e4-validation/e4-discovery.json
+      - name: Upload E4 discovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e4-discovery-${{ github.run_id }}
+          path: outputs/e4-validation/e4-discovery.json
+          retention-days: 30
+          if-no-files-found: warn
