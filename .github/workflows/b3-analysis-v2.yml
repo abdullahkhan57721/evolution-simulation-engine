@@ -1,0 +1,30 @@
+name: B3 Analysis V2 Only
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  b3-analysis-v2:
+    if: ${{ github.head_ref == 'analysis/b3-scenario-search-v2' }}
+    name: B3 narrowed scenario search
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run narrowed B3 scenario search
+        run: |
+          venv/bin/python scripts/b3_scenario_search_v2.py \
+            --output outputs/b3-analysis/b3-scenario-search-v2.json
+      - name: Upload B3 narrowed evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: b3-scenario-search-v2-${{ github.run_id }}
+          path: outputs/b3-analysis/b3-scenario-search-v2.json
+          retention-days: 14
+          if-no-files-found: error
