@@ -19,7 +19,7 @@ full PR history here.
 
 ## v0.1.0 baseline
 
-The repository is now organized around a **v0.1.0 portfolio baseline**: a stable
+The repository is organized around a **v0.1.0 portfolio baseline**: a stable
 simulation architecture plus one reproducible end-to-end evolutionary
 demonstration and two downstream presentation paths.
 
@@ -44,19 +44,18 @@ validation / context / generic foundations
        presets / experiments / interfaces
 ```
 
-The presentation direction is separately downstream:
+Presentation is separately downstream:
 
 ```text
 simulation/domain layers
         |
         v
-committed observation / experiment values
+committed scientific evidence
         |
         +-------------------------+
         |                         |
         v                         v
-Streamlit / Plotly             Manim
-interactive exploration       cinematic replay
+interactive presentation     cinematic presentation
 ```
 
 Neither presentation path is a second simulation architecture.
@@ -142,8 +141,7 @@ built-in policies intentionally preserve simple singleton/diploid Mendelian
 behavior; richer higher-copy biology should be added as explicit policies against
 these settled interfaces.
 
-Spatial resource generation now has a similarly explicit ecological responsibility
-split:
+Spatial resource generation has an explicit ecological responsibility split:
 
 ```text
 ResourceGeneration
@@ -164,12 +162,23 @@ grid sampling. Placement models are immutable ecological configuration; resource
 mutation remains owned by `WorldState`, and committed spatial observations reveal
 the resulting real resource geography without renderer metadata.
 
+The existing reference biology also has an evidence-backed heritable performance
+tradeoff at `max_speed`. Balanced founder standing variation can be constructed for
+an existing reference integer trait. Under the ordinary reference mechanisms,
+higher realized speed reaches farther toward the same target but the speed-4
+background incurs one additional maintenance-energy unit per timestep relative to
+speed 1. Existing sexual inheritance transmits the speed variants. This establishes
+a concrete benefit/cost axis without adding a generic strategy or scalar-fitness
+abstraction; integrated long-run environment-dependent selection remains a
+scenario/experiment concern above these mechanisms.
+
 ### Reproducibility, observation, and experiments
 
 Committed evidence is a first-class architectural layer. The repository includes:
 
 - population/evolution observations;
 - immutable spatial observations;
+- selective per-organism genetic-phenotype integer-trait observations;
 - allele and genotype composition records;
 - pedigree and lifetime reproductive-contribution records;
 - committed causal event/effect telemetry;
@@ -178,22 +187,60 @@ Committed evidence is a first-class architectural layer. The repository includes
 - reproducible multi-seed experiments;
 - JSON and CSV experiment export.
 
+`IndividualGeneticTraitRecorder` is opt-in and records only explicitly selected
+integer genetic-phenotype traits for active organisms. It remains separate from
+`SpatialObservation`, allowing downstream presentation to join scientific values
+to spatial replay through committed `(step_index, organism_id)` identity without
+recording full genomes or renderer metadata.
+
 Observers receive only authoritative committed states. Presentation code consumes
 immutable completed values rather than retaining a live mutable simulation owner.
 
+### Scientific visualization boundary
+
+Scientific presentation follows a durable three-layer responsibility split:
+
+```text
+committed scientific evidence
+        |
+        v
+scenario-specific scientific encoding
+        |
+        v
+renderer-specific primitives and choreography
+```
+
+Visual primitives are a shared conceptual vocabulary, not a universal runtime
+scene graph. Scenario-specific encoding determines what scientific variables and
+comparisons mean visually without containing CSS, Plotly traces, Blender materials,
+camera timing, or other renderer implementation. Interactive and cinematic media
+independently own interaction, layout, camera, timing, interpolation, and
+storytelling.
+
+Presentation interpolation is never scientific evidence. Configuration context,
+committed state, committed events, derived statistics, interpolation, and authored
+annotations remain conceptually distinct. A broad shared scenario-presentation
+schema should be introduced only after repeated concrete consumers establish the
+fields that genuinely repeat.
+
 ### Portfolio interfaces
 
-`evo_engine.ui` is an optional top-level Streamlit/Plotly consumer. It provides
-curated typed reference-ecology configuration, conditional mutation/recombination
-controls, spatial playback, evolutionary/genetic analytics, event/life-history
-views, experiment comparison, and export. Hidden UI state is not implicit engine
-configuration; selected values normalize into typed configuration before execution.
+`evo_engine.ui` remains the current optional top-level Streamlit/Plotly consumer.
+It provides curated typed reference-ecology configuration, conditional
+mutation/recombination controls, spatial playback, evolutionary/genetic analytics,
+event/life-history views, experiment comparison, and export. Hidden UI state is
+not implicit engine configuration; selected values normalize into typed
+configuration before execution.
 
-`evo_engine.cinematic` is an optional sibling Manim consumer. Its
+`evo_engine.cinematic` remains the current optional sibling Manim consumer. Its
 `PortfolioAnimationTimeline` is renderer-owned ordering/interpolation state over
 committed `SpatialObservation` and `PopulationObservation` values, not a generic
 replay contract. Rendering occurs only after simulation completion and the heavy
 Manim dependency remains outside the core/default runtime.
+
+The next presentation generation may replace renderer implementations, but it must
+preserve the committed-evidence and scientific-encoding boundaries rather than
+moving visualization semantics into the simulation.
 
 ### Flagship evolutionary demonstration
 
@@ -231,22 +278,22 @@ not become a core dependency.
 
 ## Current development front
 
-Post-v0.1 development now has **two coordinated parallel fronts** rather than one
-release-only sequence:
+Post-v0.1 development has **two coordinated parallel fronts**:
 
-1. **modeled-domain enrichment** — add concrete ecological and biological
-   capabilities that create more consequential selection pressures while keeping
-   the kernel frozen; and
-2. **presentation refinement** — improve configuration, world visualization, and
-   analytical presentation strictly as downstream consumers of settled simulation,
-   observation, experiment, and export contracts.
+1. **modeled-domain/scenario enrichment** — compose the now-available static
+   resource heterogeneity and heritable speed performance/cost mechanisms into a
+   robust environment-dependent selection scenario without changing the frozen
+   kernel; and
+2. **presentation refinement** — build a world-centered interactive and cinematic
+   experience above committed evidence while sharing scientific meaning rather
+   than renderer mechanics.
 
-The first ecological enrichment seam is static spatial resource heterogeneity:
-resource-generation quantity/cadence is separate from uniform or patchy placement.
-Near-term domain work may build on this with explicit heritable performance
-tradeoffs and, later, temporal change in spatial resource structure. Temporal
-landscape behavior should remain a separate composition concern rather than being
-folded into static placement prematurely.
+The immediate integration question is no longer whether patchy resources or a
+heritable performance tradeoff exist: both have concrete implementations and
+evidence. Scenario discovery can now test whether their composition yields a
+simple, robust, causally legible evolutionary demonstration. Presentation can
+advance in parallel on generic world/replay capabilities, while scenario-specific
+individual encoding consumes the selective per-organism trait observation seam.
 
 Other longer-term modeled fronts remain:
 
@@ -284,9 +331,10 @@ in `Genome` or `GeneticArchitecture`.
 
 ### Scientific scope remains intentionally illustrative
 
-The reference ecology is an integration baseline, and the flagship scenario is an
-evidence-backed software demonstration. Neither should be described as a
-species-calibrated or predictive ecological model without future empirical work.
+The reference ecology is an integration baseline, and the current flagship
+scenario is an evidence-backed software demonstration. Neither should be described
+as a species-calibrated or predictive ecological model without future empirical
+work.
 
 ## Collaboration model
 
@@ -305,10 +353,18 @@ cycle time, architectural correctness, recoverability, and user attention.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Scientific visualization evidence boundary:** added selective committed
+  per-organism genetic-phenotype trait observation and formalized the separation
+  among scientific evidence, scenario-specific visual meaning, and renderer-owned
+  primitives/choreography.
 - **Spatial resource landscapes:** separated renewable-resource generation amount
   and cadence from immutable ecology-owned placement, preserving exact uniform
   default RNG behavior while adding opt-in static weighted patch placement that is
   naturally visible through committed spatial observations.
+- **Heritable speed tradeoff:** added reusable balanced standing variation for
+  existing reference integer traits and verified `max_speed` as an inherited
+  benefit/cost axis using existing movement, maintenance, and inheritance
+  mechanisms.
 - **v0.1 portfolio baseline:** integrated release-facing documentation,
   installation/release metadata, dashboard, experiments/export, cinematic replay,
   flagship demonstration, and protected verification into one reviewer-facing
@@ -346,10 +402,12 @@ For a fresh session:
 2. This file — concise current orientation.
 3. `docs/development/roadmap.md` — rolling milestone direction.
 4. `docs/architecture/index.md` — subsystem map and reading order.
-5. `docs/kernel_contract.md` and `docs/general_evolution_framework.md` — core
+5. `docs/architecture/scientific_visualization.md` for the presentation truth and
+   responsibility model.
+6. `docs/kernel_contract.md` and `docs/general_evolution_framework.md` — core
    contracts.
-6. Relevant ADRs in `docs/decisions/`.
-7. The active GitHub Issue and PR for exact live work.
+7. Relevant ADRs in `docs/decisions/`.
+8. The active GitHub Issue and PR for exact live work.
 
 ## Maintenance rule
 
