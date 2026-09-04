@@ -136,20 +136,110 @@ def test_next_step_updates_world_context_without_replacing_completed_run() -> No
     assert app.session_state["portfolio_dashboard_run"] == completed_run
 
 
-def test_view_controls_do_not_replace_completed_run() -> None:
-    """Test resource visibility is display state rather than simulation state."""
+def test_scrubber_previous_and_selection_share_one_committed_step() -> None:
+    """Test timeline and inspector focus stay in application presentation state."""
     app = _run_small_custom_simulation()
     completed_run = app.session_state["portfolio_dashboard_run"]
 
-    resource_toggle = next(
-        checkbox for checkbox in app.checkbox if checkbox.label == "Resources"
+    scrubber = next(
+        slider for slider in app.select_slider if slider.label == "Committed step"
     )
-    resource_toggle.set_value(False)
+    scrubber.set_value(1)
+    app.run(timeout=30)
+    assert _committed_step_metric(app).value == "1"
+
+    next(button for button in app.button if button.label == "Previous").click()
+    app.run(timeout=30)
+    assert _committed_step_metric(app).value == "0"
+
+    organism = next(
+        selectbox for selectbox in app.selectbox if selectbox.label == "Selected organism"
+    )
+    organism.set_value(0)
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert app.session_state["v2_world_selected_organism"] == 0
+    assert app.session_state["portfolio_dashboard_run"] == completed_run
+    assert any(markdown.value == "**ID:** 0" for markdown in app.markdown)
+
+
+def test_playback_speed_pause_and_due_advance_never_rerun_simulation() -> None:
+    """Test fragment playback advances committed presentation frames only."""
+    app = _run_small_custom_simulation()
+    completed_run = app.session_state["portfolio_dashboard_run"]
+
+    next(button for button in app.button if button.label == "Play").click()
+    app.run(timeout=30)
+    assert app.session_state["v2_world_playing"] is True
+
+    speed = next(
+        selectbox for selectbox in app.selectbox if selectbox.label == "Playback speed"
+    )
+    speed.set_value(2.0)
+    app.run(timeout=30)
+    assert app.session_state["v2_world_speed"] == 2.0
+    assert app.session_state["v2_world_playing"] is True
+
+    next(button for button in app.button if button.label == "Pause").click()
+    app.run(timeout=30)
+    assert app.session_state["v2_world_playing"] is False
+
+    next(button for button in app.button if button.label == "Play").click()
+    app.run(timeout=30)
+    app.session_state["v2_world_next_advance"] = 0.0
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert _committed_step_metric(app).value == "1"
+    assert app.session_state["v2_world_playing"] is False
+    assert app.session_state["portfolio_dashboard_run"] == completed_run
+
+
+def test_invalid_world_view_state_recovers_to_recorded_values() -> None:
+    """Test stale display state cannot select nonexistent scientific records."""
+    app = _run_small_custom_simulation()
+
+    app.session_state["v2_world_step"] = 999
+    app.session_state["v2_world_selected_organism"] = 999
+    app.run(timeout=30)
+
+    assert not app.exception
+    assert _committed_step_metric(app).value == "0"
+    assert app.session_state["v2_world_step"] == 0
+    assert app.session_state["v2_world_selected_organism"] is None
+
+
+def test_view_controls_do_not_replace_completed_run() -> None:
+    """Test environmental visibility and labels are view-only state."""
+    app = _run_small_custom_simulation()
+    completed_run = app.session_state["portfolio_dashboard_run"]
+
+    trail_length = next(
+        slider for slider in app.slider if slider.label == "Trail length (committed frames)"
+    )
+    trail_length.set_value(7)
+    next(checkbox for checkbox in app.checkbox if checkbox.label == "Resources").set_value(
+        False
+    )
+    next(checkbox for checkbox in app.checkbox if checkbox.label == "Carcasses").set_value(
+        False
+    )
+    next(
+        checkbox for checkbox in app.checkbox if checkbox.label == "Movement trails"
+    ).set_value(False)
+    next(
+        checkbox for checkbox in app.checkbox if checkbox.label == "Organism labels"
+    ).set_value(True)
     app.run(timeout=30)
 
     assert not app.exception
     assert app.session_state["portfolio_dashboard_run"] == completed_run
     assert app.session_state["v2_world_show_resources"] is False
+    assert app.session_state["v2_world_show_carcasses"] is False
+    assert app.session_state["v2_world_show_trails"] is False
+    assert app.session_state["v2_world_show_labels"] is True
+    assert app.session_state["v2_world_trail_length"] == 7
 
 
 def test_featured_scenario_transitions_to_same_workspace() -> None:
