@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from importlib import import_module
 from pathlib import Path
-from typing import Protocol, cast
+from typing import Any, Protocol, cast
 
 from evo_engine.cinematic.api import AnimationQuality
 from evo_engine.cinematic.b3_director import B3FlagshipDirectorPlan
@@ -42,10 +42,7 @@ def render_b3_flagship_cinematic(
     destination.parent.mkdir(parents=True, exist_ok=True)
 
     try:
-        renderer = cast(
-            _B3ManimRendererModule,
-            import_module("evo_engine.cinematic._b3_manim"),
-        )
+        renderer_module = import_module("evo_engine.cinematic._b3_manim")
     except ModuleNotFoundError as exc:
         if exc.name == "manim" or (
             exc.name is not None and exc.name.startswith("manim.")
@@ -57,11 +54,37 @@ def render_b3_flagship_cinematic(
             ) from exc
         raise
 
+    _install_moving_camera_overlay_compat(renderer_module)
+    renderer = cast(_B3ManimRendererModule, renderer_module)
     return renderer.render_b3_flagship_with_manim(
         plan,
         destination,
         quality=quality,
     )
+
+
+def _install_moving_camera_overlay_compat(renderer_module: Any) -> None:
+    """Bridge the small Manim 0.21 moving-camera overlay API difference.
+
+    ``MovingCameraScene`` in the repository's supported Manim 0.21 line does not
+    expose ``add_fixed_in_frame_mobjects`` / ``remove_fixed_in_frame_mobjects``.
+    The B3 scene uses those calls only for explanatory heading/annotation objects;
+    on this renderer version they may safely remain ordinary scene mobjects while
+    the camera performs its short focal move. Scientific glyph values and camera
+    targets are unchanged.
+    """
+    scene_type = getattr(renderer_module, "_B3FlagshipScene", None)
+    if scene_type is None or hasattr(scene_type, "add_fixed_in_frame_mobjects"):
+        return
+
+    def add_overlay(self: Any, *mobjects: object) -> None:
+        self.add(*mobjects)
+
+    def remove_overlay(self: Any, *mobjects: object) -> None:
+        self.remove(*mobjects)
+
+    setattr(scene_type, "add_fixed_in_frame_mobjects", add_overlay)
+    setattr(scene_type, "remove_fixed_in_frame_mobjects", remove_overlay)
 
 
 __all__ = ["render_b3_flagship_cinematic"]
