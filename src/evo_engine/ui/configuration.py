@@ -12,11 +12,18 @@ from evo_engine.ui.models import (
     build_curated_config,
     run_dashboard_flagship_max_intake,
     run_dashboard_reference,
+    run_dashboard_science_aware_max_speed,
 )
 
 _CURATED_PATH = "Curated scenario"
 _CUSTOM_PATH = "Custom experiment"
 _CONFIGURATION_PATH_KEY = "v2_configuration_path"
+_FLAGSHIP_CURATED_SCENARIO = "v0.1 flagship · maximum intake rate"
+_MAX_SPEED_PREVIEW_SCENARIO = "B1/B2 mechanism preview · maximum speed"
+_CURATED_SCENARIOS = (
+    _FLAGSHIP_CURATED_SCENARIO,
+    _MAX_SPEED_PREVIEW_SCENARIO,
+)
 _EXPLORATION_MOVEMENT_OPTIONS = {
     "Adjacent random (Moore)": "moore",
     "Orthogonal random (Von Neumann)": "von_neumann",
@@ -69,6 +76,22 @@ def render_configuration_mode(
 
 
 def _render_curated_scenario() -> ConfigurationOutcome:
+    scenario = st.radio(
+        "Curated scenario",
+        _CURATED_SCENARIOS,
+        horizontal=True,
+        help=(
+            "The v0.1 flagship is the existing portfolio demonstration. The B1/B2 "
+            "preview exists to inspect committed maximum-speed evidence and patchy "
+            "resource geography; it is not the final B3 treatment/control scenario."
+        ),
+    )
+    if scenario == _MAX_SPEED_PREVIEW_SCENARIO:
+        return _render_max_speed_preview()
+    return _render_flagship_scenario()
+
+
+def _render_flagship_scenario() -> ConfigurationOutcome:
     st.subheader("v0.1 flagship evolutionary demonstration")
     st.caption(
         "A fixed-seed illustrative scenario with balanced standing variation in "
@@ -91,6 +114,34 @@ def _render_curated_scenario() -> ConfigurationOutcome:
             candidate = run_dashboard_flagship_max_intake()
     except (TypeError, ValueError) as exc:
         st.error(f"Flagship demonstration could not be run: {exc}")
+        return ConfigurationOutcome()
+    return ConfigurationOutcome(completed_run=candidate)
+
+
+def _render_max_speed_preview() -> ConfigurationOutcome:
+    st.subheader("B1/B2 maximum-speed mechanism preview")
+    st.caption(
+        "A deterministic presentation proof combining real patchy resource placement "
+        "with balanced speed-1/speed-4 standing variation and committed per-organism "
+        "maximum-speed observations."
+    )
+    st.info(
+        "This preview demonstrates the science-aware visualization path. It does not "
+        "claim B3's final environment-dependent selection result or treatment/control "
+        "comparison."
+    )
+    if not st.button(
+        "Run max-speed mechanism preview",
+        type="primary",
+        use_container_width=True,
+    ):
+        return ConfigurationOutcome()
+
+    try:
+        with st.spinner("Running B1/B2 mechanism preview…"):
+            candidate = run_dashboard_science_aware_max_speed()
+    except (TypeError, ValueError) as exc:
+        st.error(f"Maximum-speed preview could not be run: {exc}")
         return ConfigurationOutcome()
     return ConfigurationOutcome(completed_run=candidate)
 
