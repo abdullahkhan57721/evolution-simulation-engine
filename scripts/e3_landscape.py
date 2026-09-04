@@ -111,12 +111,12 @@ def _run_sensitivity() -> dict[str, Any]:
         control_outcomes = run_e3_replicates(
             control,
             seeds=E3_SENSITIVITY_SEEDS,
-            run_role="confirmation",
+            run_role=None,
         )
         sensitivity_outcomes = run_e3_replicates(
             sensitivity,
             seeds=E3_SENSITIVITY_SEEDS,
-            run_role="confirmation",
+            run_role=None,
         )
         canonical.append(
             {
