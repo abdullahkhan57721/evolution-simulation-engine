@@ -572,9 +572,7 @@ def _measure_mechanisms(
     events: Sequence[AppliedEvent],
     traits_by_step: TraitLookup,
 ) -> tuple[tuple[E4StrategyMechanismEvidence, ...], int]:
-    accumulators = {
-        speed: _MutableStrategyMechanism() for speed in E4_FOCAL_SPEEDS
-    }
+    accumulators = {speed: _MutableStrategyMechanism() for speed in E4_FOCAL_SPEEDS}
     clipping_count = 0
     for applied in events:
         clipping_count += _measure_applied_event(
@@ -670,7 +668,9 @@ def _measure_reproduction_event(
         traits_by_step=traits_by_step,
     )
     if parent_speed != offspring_speed:
-        raise RuntimeError("E4 clonal offspring max_speed differs from its genetic parent.")
+        raise RuntimeError(
+            "E4 clonal offspring max_speed differs from its genetic parent."
+        )
     accumulators[offspring_speed].birth_count += 1
 
 
@@ -722,11 +722,7 @@ def _extinction_outcome(
     focal_trajectory: Sequence[E4FocalCompositionPoint],
 ) -> FixedHorizonTimeToEvent:
     extinction_step = next(
-        (
-            point.step_index
-            for point in focal_trajectory
-            if point.population_size == 0
-        ),
+        (point.step_index for point in focal_trajectory if point.population_size == 0),
         None,
     )
     return FixedHorizonTimeToEvent(
@@ -866,24 +862,24 @@ def _mean_frequency_change(
 
 
 def _mean_births(values: Sequence[E4ReplicateOutcome], speed: int) -> float:
-    return sum(outcome.mechanism(speed).cumulative_birth_count for outcome in values) / len(
-        values
-    )
+    return sum(
+        outcome.mechanism(speed).cumulative_birth_count for outcome in values
+    ) / len(values)
 
 
 def _mean_resources(values: Sequence[E4ReplicateOutcome], speed: int) -> float:
-    return sum(outcome.mechanism(speed).total_resource_consumed for outcome in values) / len(
-        values
-    )
+    return sum(
+        outcome.mechanism(speed).total_resource_consumed for outcome in values
+    ) / len(values)
 
 
 def _mean_realized_distance(
     values: Sequence[E4ReplicateOutcome],
     speed: int,
 ) -> float:
-    return sum(outcome.mechanism(speed).total_realized_distance for outcome in values) / len(
-        values
-    )
+    return sum(
+        outcome.mechanism(speed).total_realized_distance for outcome in values
+    ) / len(values)
 
 
 def _mean_locomotion_energy(

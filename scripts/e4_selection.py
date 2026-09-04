@@ -58,8 +58,13 @@ def _run_canonical(mode: Literal["discovery", "confirmation"]) -> dict[str, Any]
                 founder_speed_order=order,
             ),
         )
-        if local[index].provenance.seed != seed or corridor[index].provenance.seed != seed:
-            raise RuntimeError("E4 paired environment evidence lost declared seed order.")
+        if (
+            local[index].provenance.seed != seed
+            or corridor[index].provenance.seed != seed
+        ):
+            raise RuntimeError(
+                "E4 paired environment evidence lost declared seed order."
+            )
 
     local_summary = summarize_e4_environment(local)
     corridor_summary = summarize_e4_environment(corridor)

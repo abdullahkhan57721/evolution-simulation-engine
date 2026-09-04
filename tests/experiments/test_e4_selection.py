@@ -89,7 +89,10 @@ def test_e4_local_replicate_preserves_full_composition_and_closes_energy() -> No
     assert outcome.final_composition.population_size > 0
     assert outcome.boundary_clipping_event_count == 0
     assert outcome.energy_budget_residual == 0
-    assert sum(outcome.final_composition.counts) == outcome.final_composition.population_size
+    assert (
+        sum(outcome.final_composition.counts)
+        == outcome.final_composition.population_size
+    )
     assert all(
         point.population_size == sum(point.counts) for point in outcome.focal_trajectory
     )
