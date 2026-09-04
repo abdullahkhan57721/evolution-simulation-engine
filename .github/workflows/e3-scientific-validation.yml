@@ -1,0 +1,35 @@
+name: E3 Scientific Validation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/experiments/e3_performance.py"
+      - "scripts/e3_landscape.py"
+      - "tests/experiments/test_e3_performance.py"
+      - ".github/workflows/e3-scientific-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-e3:
+    name: Bounded E3 discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run predeclared discovery matrix
+        run: |
+          venv/bin/python scripts/e3_landscape.py \
+            --mode discovery \
+            --output outputs/e3-validation/e3-discovery.json
+      - name: Upload E3 discovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e3-discovery-${{ github.run_id }}
+          path: outputs/e3-validation/e3-discovery.json
+          retention-days: 30
+          if-no-files-found: warn
