@@ -65,37 +65,41 @@ reproducible flagship evolutionary demonstration
 v0.1.0 release baseline
 ```
 
-The settled presentation boundary is:
+The durable presentation boundary is broader than the current renderer choices:
 
 ```text
 simulation/domain layers
         |
         v
-committed observation / experiment values
+committed scientific evidence
+        |
+        v
+scenario-specific scientific encoding
         |
         +-------------------------+
         |                         |
         v                         v
-Streamlit / Plotly             Manim
-interactive exploration       cinematic replay
+interactive presentation     cinematic presentation
 ```
 
-Renderers remain downstream consumers. Committed observation/result contracts do
-not contain Plotly, Streamlit, Manim, frame, timing, interpolation, or other
-renderer-owned concepts. Do not introduce a generic replay framework unless a
-concrete future renderer exposes a real reusable-data gap.
+Current Streamlit/Plotly and Manim implementations remain valid baseline
+consumers, but future presentation work may replace renderer technologies without
+moving scientific truth or modeled behavior into the renderer. Committed
+observation/result contracts do not contain Plotly, Streamlit, Manim, Blender,
+frame, timing, interpolation, camera, or other renderer-owned concepts.
 
-The dashboard remains the primary interactive exploration interface. Manim remains
-a deterministic explanatory/portfolio renderer. The flagship `max_intake_rate`
-scenario remains an illustrative evidence-backed demonstration, not a calibrated
-ecological prediction.
+Visual primitives are a shared conceptual vocabulary rather than a requirement for
+a universal runtime scene graph. Scenario-specific scientific encoding may become
+a small shared immutable value once repeated concrete scenarios establish stable
+fields; do not create a broad speculative presentation schema first.
 
-The v0.1 release is therefore a stable baseline to build **from**, not a reason to
-keep adding presentation frameworks.
+The flagship `max_intake_rate` scenario remains an illustrative evidence-backed
+demonstration, not a calibrated ecological prediction.
 
 ## Post-v0.1 dependency shape
 
-The next phase has **two coordinated but architecturally separate tracks**:
+The current phase has two coordinated but architecturally separate fronts, now
+joined by concrete scenario evidence rather than hypothetical capability work:
 
 ```text
                          v0.1.0 baseline
@@ -103,54 +107,109 @@ The next phase has **two coordinated but architecturally separate tracks**:
              +-----------------+-----------------+
              |                                   |
              v                                   v
-  modeled-domain enrichment              presentation refinement
+      modeled-domain/scenario             presentation refinement
              |                                   |
-             v                                   |
-spatial ecology / biological tradeoffs           |
-             |                                   |
-             v                                   |
-richer environment dynamics                      |
-             |                                   |
-             +---------------+-------------------+
-                             |
-                             v
-                  settled committed evidence
+      +------+-------+                           |
+      |              |                           |
+      v              v                           |
+B1 patchy        B2 heritable                     |
+resources        max_speed tradeoff               |
+      |              |                           |
+      +-------+------+                           |
+              |                                  |
+              v                                  |
+       B3 scenario discovery                     |
+              |                                  |
+              +---------------+------------------+
+                              |
+                              v
+                   committed scientific evidence
+                              |
+                    +---------+---------+
+                    |                   |
+                    v                   v
+             interactive V2       cinematic V3
 ```
+
+A selective per-organism genetic-phenotype observation seam supports focal-trait
+replay without broadening spatial snapshots. B3 can specify which scientific
+variables matter; V2 and V3 consume the same committed evidence and scientific
+meaning while independently implementing interaction, layout, camera, timing,
+and choreography.
 
 Presentation work may proceed in parallel when it consumes already-settled
 configuration, observation, experiment, or export contracts. It must not invent
 simulation semantics merely to improve rendering. When presentation exposes a
-real shared-data gap, the domain/observation contract should be settled at the
-appropriate lower layer before renderer-specific use.
+real shared-data gap, settle the smallest scientifically named observation/domain
+contract before renderer-specific use.
 
 The modeled-domain fronts are also intentionally partially independent. Richer
 genetic expression, mating systems, chromosome transmission, development/G×E,
 and ecology need not serialize behind one another when their public boundaries are
 already settled.
 
-Near-term ecological development should prefer concrete discriminating pressures
-over taxonomies of environment models. The current direction is roughly:
+## Near-term integrated evolutionary scenario
+
+Static spatial resource heterogeneity and a concrete heritable performance/cost
+axis are now available separately:
 
 ```text
-static spatial resource heterogeneity
-        |
-        +--------------------+
-        |                    |
-        v                    v
-heritable performance    presentation consumes
-tradeoffs                real spatial evidence
+B1
+uniform or weighted patchy resource placement
+        +
+B2
+balanced standing variation at existing max_speed
+with farther target reach and higher maintenance cost
         |
         v
-later temporal change in spatial resource structure
+B3
+find the simplest robust environment-dependent selection scenario
 ```
 
-Static placement and temporal change remain separate responsibilities. Temporal
-or seasonal landscape behavior should be added only after a concrete scenario
-shows what composition is actually needed.
+B3 should determine whether those mechanisms compose into a causally legible,
+reproducible evolutionary demonstration. It should prefer the simplest successful
+scenario and validate fixed-seed visual legibility separately from multi-seed
+robustness.
 
-Richer chromosome pairing/recombination can advance when a concrete genetic or
-ecological use case requires it. It does not need to block every other
-post-v0.1 domain milestone.
+The scenario layer owns scientific questions, treatment/control semantics, focal
+variables, relevant events, key metrics, canonical runs, robustness evidence, and
+claim boundaries. It does not own renderer colors, materials, camera paths, or UI
+layout.
+
+Static placement and temporal change remain separate responsibilities. Temporal
+or seasonal landscape behavior should be added only if B3 or a later concrete
+scenario demonstrates that static heterogeneity cannot answer the intended
+question.
+
+## Near-term presentation refinement
+
+Presentation refinement should proceed from a world-first product experience while
+preserving the evidence boundary.
+
+The generic interactive front may develop configuration/workspace mode switching,
+world playback, selection, timelines, and scientific inspection before the final
+B3 handoff. B3-specific individual encoding should consume the selective
+per-organism genetic-trait observation rather than live organisms or enlarged
+spatial snapshots.
+
+The cinematic front may independently test a higher-quality renderer against the
+current Manim baseline. Any replacement must remain deterministic, scriptable,
+reproducible from committed data, and independent of interactive renderer
+implementation.
+
+For both media, scientific presentation follows:
+
+```text
+committed evidence
+        ↓
+scenario-specific scientific meaning
+        ↓
+renderer-owned primitives/choreography
+```
+
+Matched experimental comparisons must preserve scientific channel mappings,
+trait scales, legends, time conventions, and geometry/camera scale where
+appropriate. Presentation interpolation never becomes scientific evidence.
 
 ## Front A — Richer genetic expression
 
@@ -253,12 +312,16 @@ phenotype merely to accommodate plasticity.
 selection pressures and interactions while keeping ecology out of the kernel and
 general evolution layer.
 
-The current ecological direction begins with explicit spatial resource-placement
+The current ecological foundation includes explicit spatial resource-placement
 policy: renewable-resource quantity/cadence remains process responsibility, while
 an immutable ecology policy chooses each deposit location from the
 simulation-owned RNG. Uniform placement remains the simple baseline; patchy
 placement supplies static spatial heterogeneity. Committed world resources remain
 the authoritative state observed by downstream spatial recorders.
+
+The reference biology also demonstrates `max_speed` as an existing inherited
+performance/cost tradeoff. This is a concrete input to ecological scenario design,
+not a generic strategy or fitness abstraction.
 
 Possible continuing fronts include:
 
@@ -346,6 +409,10 @@ cross-cutting.
 - Keep genetic expression, development, and current state separate.
 - Keep presentation downstream of committed evidence even when presentation work
   proceeds in parallel with domain enrichment.
+- Share scenario-level scientific meaning across presentation media without
+  forcing renderer implementation or choreography into a universal abstraction.
+- Keep spatial observation focused; add selective sibling scientific records when
+  a real per-individual data need appears.
 - Prefer readable maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 
