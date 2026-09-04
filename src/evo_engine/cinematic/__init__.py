@@ -1,6 +1,21 @@
 """Deterministic cinematic presentation from committed simulation observations."""
 
 from evo_engine.cinematic.api import AnimationQuality, render_portfolio_animation
+from evo_engine.cinematic.b3_api import render_b3_flagship_cinematic
+from evo_engine.cinematic.b3_director import (
+    B3_BOUNDED_CONCLUSION,
+    B3_DIRECTOR_MODE,
+    B3_FLAGSHIP_ACTS,
+    B3_FLAGSHIP_SCENARIO_LABEL,
+    B3_REPRESENTATIVE_SEED,
+    B3_SCOPE_QUALIFIER,
+    B3FlagshipDirectorPlan,
+    prepare_b3_flagship_director,
+)
+from evo_engine.cinematic.b3_manifest import (
+    B3FlagshipRenderManifest,
+    build_b3_flagship_render_manifest,
+)
 from evo_engine.cinematic.events import (
     select_authoritative_events,
     select_authoritative_events_for_process,
@@ -24,14 +39,25 @@ from evo_engine.cinematic.timeline import (
 
 __all__ = [
     "AnimationQuality",
+    "B3_BOUNDED_CONCLUSION",
+    "B3_DIRECTOR_MODE",
+    "B3_FLAGSHIP_ACTS",
+    "B3_FLAGSHIP_SCENARIO_LABEL",
+    "B3_REPRESENTATIVE_SEED",
+    "B3_SCOPE_QUALIFIER",
+    "B3FlagshipDirectorPlan",
+    "B3FlagshipRenderManifest",
     "CinematicOrganismPrimitive",
     "CinematicPosition",
     "CinematicRenderManifest",
     "PortfolioAnimationFrame",
     "PortfolioAnimationTimeline",
+    "build_b3_flagship_render_manifest",
     "build_cinematic_render_manifest",
     "build_portfolio_animation_timeline",
     "interpolate_organism_position",
+    "prepare_b3_flagship_director",
+    "render_b3_flagship_cinematic",
     "render_portfolio_animation",
     "select_authoritative_events",
     "select_authoritative_events_for_process",
