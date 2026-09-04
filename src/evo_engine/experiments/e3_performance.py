@@ -21,7 +21,11 @@ from evo_engine.experiments.science import (
     validate_declared_treatment_difference,
 )
 from evo_engine.genetics import MAX_SPEED
-from evo_engine.observation import EventRecorder, PopulationObservation, PopulationRecorder
+from evo_engine.observation import (
+    EventRecorder,
+    PopulationObservation,
+    PopulationRecorder,
+)
 from evo_engine.presets.controlled_locomotion import (
     ControlledLocomotionConfig,
     ControlledLocomotionFounder,
@@ -328,7 +332,7 @@ def run_e3_replicate(
     treatment: E3TreatmentSpecification,
     *,
     seed: int,
-    run_role: RunRole = "confirmation",
+    run_role: RunRole | None = "confirmation",
 ) -> E3ReplicateOutcome:
     """Run one monomorphic E3 replicate and derive outcomes from committed evidence."""
     if not isinstance(treatment, E3TreatmentSpecification):
@@ -455,7 +459,7 @@ def run_e3_replicates(
     treatment: E3TreatmentSpecification,
     *,
     seeds: Sequence[int],
-    run_role: RunRole = "confirmation",
+    run_role: RunRole | None = "confirmation",
 ) -> tuple[E3ReplicateOutcome, ...]:
     """Run independent E3 replicates in caller-supplied seed order."""
     if not isinstance(treatment, E3TreatmentSpecification):
