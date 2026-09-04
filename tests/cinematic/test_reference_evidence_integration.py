@@ -72,11 +72,10 @@ def test_cinematic_preparation_consumes_real_b1_b2_committed_evidence() -> None:
             for resource in frame.spatial.resources
         )
 
-    assert tuple(
-        event
-        for frame in timeline.frames
-        for event in frame.applied_events
-    ) == ecology.event_recorder.events
+    assert (
+        tuple(event for frame in timeline.frames for event in frame.applied_events)
+        == ecology.event_recorder.events
+    )
 
 
 def _inside_any_patch(
@@ -85,7 +84,6 @@ def _inside_any_patch(
     patches: tuple[ResourcePatch, ...],
 ) -> bool:
     return any(
-        (x - patch.center_x) ** 2 + (y - patch.center_y) ** 2
-        <= patch.radius**2
+        (x - patch.center_x) ** 2 + (y - patch.center_y) ** 2 <= patch.radius**2
         for patch in patches
     )
