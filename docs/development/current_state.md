@@ -119,7 +119,7 @@ Committed evidence is a first-class layer. Available evidence includes:
 `SpatialObservation`, allowing presentation to join scientific values to replay by
 committed `(step_index, organism_id)` identity without broadening spatial snapshots.
 
-The experimental-science foundation now makes the downstream measurement boundary
+The experimental-science foundation makes the downstream measurement boundary
 explicit. One simulation run/seed is the experimental replicate; organisms within
 that run are not independent replicates; event step `t` aligns to committed state
 `t + 1`; denominators and right-censoring remain explicit; discovery,
@@ -134,6 +134,49 @@ derives attempted displacement, realized displacement, and locomotion-energy
 expenditure from authoritative committed movement evidence, with applied movement
 as the explicit denominator. Simulation/domain code remains independent of this
 analysis layer, and no universal metric/statistics framework has been introduced.
+
+### Controlled clonal locomotion mechanics
+
+E2 now provides a deliberately minimal experimental locomotion composition that is
+separate from the richer reference ecology and B3 flagship. It reuses existing
+general contracts rather than changing the kernel or simplifying general genetics:
+
+```text
+one inherited max_speed locus
+        +
+SingleParent + ClonalInheritance
+        +
+NoMutation
+        +
+fixed nonfocal biology
+        +
+perfect full-world resource sensing
+        +
+deterministic nearest-resource targeting
+        +
+power-law locomotion-use cost
+```
+
+The controlled baseline has no mate search, predation, metabolic maintenance,
+growth, aging, renewable resource generation, or `max_speed` maintenance penalty.
+Body mass, sensing, intake/assimilation, reproduction investment, and newborn mass
+are fixed simulation-wide values. Movement purpose is energy acquisition only, so
+reproduction cannot acquire a hidden mate-finding speed benefit.
+
+Focused mechanics assays run the real simulation and use E1's committed-event
+measurement path. They validate capacity-limited target-directed movement, no
+target overshoot, endpoint-only resource consumption, quadratic distance cost in
+the canonical configuration, stationary behavior when no resource remains,
+seed-randomized scarce-resource allocation rather than permanent ID priority, and
+grid/bearing anisotropy caused by integer coordinate rounding. Canonical assays
+pad targets away from boundaries and require attempted and committed displacement
+to agree.
+
+`max_speed` remains inherited/operative maximum movement capacity, not actual
+displacement. Continuous travel-cost theory is only a hypothesis/benchmark for
+later experiments; discrete timesteps, integer rounding, depletion, competition,
+and demography prevent treating it as an exact simulation oracle. E2 makes no
+evolutionary-adaptation claim.
 
 ### Scientific visualization boundary
 
@@ -165,8 +208,8 @@ handoff; they should not invent B3 treatment/control semantics independently.
 
 ## Confirmed B3 scientific flagship
 
-B3 has now identified and independently confirmed the primary scientific flagship
-for the next presentation generation.
+B3 has identified and independently confirmed the primary scientific flagship for
+the next presentation generation.
 
 The question is:
 
@@ -228,13 +271,12 @@ the public story.
 
 ## Current development front
 
-The key integration uncertainty that motivated B1/B2/B3 is resolved: the project
-now has a confirmed environment-dependent selection scenario and a renderer-neutral
-scientific handoff. The experimental-science foundation also establishes the
-measurement semantics needed to begin a deliberately simpler causal experiment
-track without changing the richer B3 flagship.
+The project now has both a confirmed richer B3 environment-dependent selection
+story and a validated minimal E2 locomotion-mechanics composition. These serve
+different purposes: B3 is the integrated public scientific flagship; E2 is the
+controlled causal foundation for the next experimental sequence.
 
-Two fronts can therefore proceed independently:
+Two fronts can proceed independently:
 
 ```text
 confirmed B3 scientific evidence/storyboard
@@ -245,28 +287,34 @@ confirmed B3 scientific evidence/storyboard
 interactive B3 comparison     cinematic B3 director
 (V2 continuation)             (V3 continuation)
 
-experimental-science foundation (E1)
+E1 experimental-science foundation
         |
         v
-minimal clonal locomotion mechanics (E2)
+E2 validated clonal locomotion mechanics
         |
         v
-controlled ecological performance landscape (E3)
+E3 controlled ecological performance landscape
         |
         v
-standing-variation selection test (E4)
+E4 standing-variation selection test
 ```
+
+E3 is now the next controlled-science milestone. It should keep focal evolution
+disabled and measure the `max_speed` capacity → realized movement → movement energy
+→ resource/energy/survival/reproduction causal ladder across predeclared
+monomorphic speed treatments and purposeful resource geometries. It should use E1
+replicate/provenance/treatment-integrity semantics and E2's validated controlled
+composition rather than reopening locomotion architecture.
+
+E4 should only follow after E3 produces an independently measured performance
+prediction. It will introduce known standing inherited speed variation with
+mutation still off and ask whether strategy/focal-trait frequencies move in the
+predicted direction.
 
 The presentation media should consume the B3 treatment/control semantics, fixed
 `max_speed` scale, matched comparison, representative seed/episodes, evidence
 hierarchy, and claim boundaries from `docs/flagship_evolution_demo.md`. They remain
 free to make renderer-specific choices without changing scientific meaning.
-
-The E2–E4 experimental track is intentionally separate from B3. It should isolate
-locomotor mechanics first, measure phenotype-to-performance without focal
-evolution second, and only then ask whether standing inherited variation changes
-in the independently predicted direction. E2 may compose new controlled biology
-above the frozen kernel but must not simplify general genetics or redesign B3.
 
 All fronts should preserve:
 
@@ -279,8 +327,8 @@ All fronts should preserve:
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-Those fronts need not serialize behind presentation or E2 when their public
-boundaries are already settled.
+Those fronts need not serialize behind presentation or the controlled E3/E4 track
+when their public boundaries are already settled.
 
 A native Rust/C++ backend remains a separate evidence-driven future concern.
 Python continues to own high-level modeling/configuration until measured workloads
@@ -326,6 +374,12 @@ independently parallelizable repository iteration.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Controlled clonal locomotion mechanics:** added a thin one-locus `max_speed`
+  experimental composition using existing clonal inheritance, deterministic
+  resource targeting, fixed nonfocal biology, use-only locomotion cost, and E1
+  committed-event measurement; validated capacity scaling, no overshoot,
+  endpoint-only feeding, integer-grid anisotropy, edge-neutral canonical assays,
+  and seed-randomized scarce-resource allocation without a kernel/genetics redesign.
 - **Experimental science foundation:** established exact committed event/state
   alignment, run-level replicate and treatment provenance, explicit fixed-horizon
   censoring semantics, thin normalization/equality treatment-integrity checking,

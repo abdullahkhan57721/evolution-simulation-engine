@@ -7,6 +7,12 @@ from evo_engine.experiments.checkpoint import (
     resume_reference_checkpoint,
     write_reference_checkpoint,
 )
+from evo_engine.experiments.e2_locomotion import (
+    LocomotionMechanicsCase,
+    LocomotionMechanicsOutcome,
+    run_locomotion_bearing_assay,
+    run_locomotion_mechanics_case,
+)
 from evo_engine.experiments.export import (
     write_experiment_json,
     write_locomotion_measurements_json,
@@ -48,6 +54,8 @@ __all__ = [
     "REFERENCE_OBSERVED_BASELINE",
     "AppliedMovementMeasurement",
     "FixedHorizonTimeToEvent",
+    "LocomotionMechanicsCase",
+    "LocomotionMechanicsOutcome",
     "LocomotionReplicateMeasurements",
     "ReferenceBenchmarkResult",
     "ReferenceCheckpointManifest",
@@ -66,6 +74,8 @@ __all__ = [
     "read_reference_checkpoint_manifest",
     "resume_reference_checkpoint",
     "run_flagship_max_intake_replicates",
+    "run_locomotion_bearing_assay",
+    "run_locomotion_mechanics_case",
     "run_reference_replicates",
     "summarize_locomotion_replicate",
     "validate_declared_treatment_difference",
