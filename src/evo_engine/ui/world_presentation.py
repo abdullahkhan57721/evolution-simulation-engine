@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import attrs
 
-from evo_engine.observation import SpatialObservation, SpatialOrganismSnapshot
+from evo_engine.observation import (
+    IndividualGeneticTraitObservation,
+    SpatialObservation,
+    SpatialOrganismSnapshot,
+)
+from evo_engine.presentation import ContinuousTraitEncoding
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -20,6 +25,8 @@ class OrganismPrimitive:
     mating_type: str
     marker_size: int
     selected: bool = False
+    focal_trait_value: int | None = None
+    focal_trait_normalized: float | None = None
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -61,6 +68,7 @@ class WorldPresentationFrame:
     carcasses: tuple[CarcassPrimitive, ...]
     trails: tuple[MovementTrail, ...]
     selected_organism_id: int | None = None
+    focal_encoding: ContinuousTraitEncoding | None = None
 
     def selected_organism(self) -> OrganismPrimitive | None:
         """Return the selected active organism, if present in this committed frame."""
@@ -103,29 +111,59 @@ def spatial_frame_for_step(
     raise KeyError(f"No committed spatial observation for step {step_index}.")
 
 
+def individual_trait_frame_for_step(
+    history: tuple[IndividualGeneticTraitObservation, ...],
+    *,
+    step_index: int,
+) -> IndividualGeneticTraitObservation:
+    """Return the committed individual-trait frame for one exact step."""
+    for frame in history:
+        if frame.step_index == step_index:
+            return frame
+    raise KeyError(f"No committed individual-trait observation for step {step_index}.")
+
+
 def build_world_presentation(
     history: tuple[SpatialObservation, ...],
     *,
     step_index: int,
+    individual_trait_history: tuple[IndividualGeneticTraitObservation, ...] = (),
+    focal_encoding: ContinuousTraitEncoding | None = None,
     selected_organism_id: int | None = None,
     show_resources: bool = True,
     show_carcasses: bool = True,
     show_trails: bool = True,
     trail_length: int = 5,
 ) -> WorldPresentationFrame:
-    """Build UI-only primitives from one selected committed spatial frame."""
+    """Build UI-only primitives from one selected committed spatial frame.
+
+    When ``focal_encoding`` is supplied, every active organism in the selected
+    spatial frame must have a matching committed individual-trait record at the
+    same step. Generic presentation does not require individual-trait history.
+    """
     if type(trail_length) is not int:
         raise TypeError("trail_length must be an integer.")
     if trail_length < 1:
         raise ValueError("trail_length must be at least 1.")
     if selected_organism_id is not None and type(selected_organism_id) is not int:
         raise TypeError("selected_organism_id must be an integer or None.")
+    if focal_encoding is not None and not isinstance(
+        focal_encoding, ContinuousTraitEncoding
+    ):
+        raise TypeError("focal_encoding must be a ContinuousTraitEncoding or None.")
 
     frame = spatial_frame_for_step(history, step_index=step_index)
+    trait_frame = _trait_frame_for_encoding(
+        frame,
+        individual_trait_history=individual_trait_history,
+        focal_encoding=focal_encoding,
+    )
     organisms = tuple(
         _organism_primitive(
             organism,
             selected=organism.organism_id == selected_organism_id,
+            trait_frame=trait_frame,
+            focal_encoding=focal_encoding,
         )
         for organism in frame.organisms
     )
@@ -169,6 +207,7 @@ def build_world_presentation(
         carcasses=carcasses,
         trails=trails,
         selected_organism_id=selected_organism_id,
+        focal_encoding=focal_encoding,
     )
 
 
@@ -215,11 +254,51 @@ def interpolate_organism_positions(
     return tuple(positions)
 
 
+def _trait_frame_for_encoding(
+    spatial_frame: SpatialObservation,
+    *,
+    individual_trait_history: tuple[IndividualGeneticTraitObservation, ...],
+    focal_encoding: ContinuousTraitEncoding | None,
+) -> IndividualGeneticTraitObservation | None:
+    if focal_encoding is None:
+        return None
+    trait_frame = individual_trait_frame_for_step(
+        individual_trait_history,
+        step_index=spatial_frame.step_index,
+    )
+    if focal_encoding.trait_name not in trait_frame.trait_names:
+        raise KeyError(
+            "No individual genetic trait recorded for "
+            f"{focal_encoding.trait_name!r} at step {spatial_frame.step_index}."
+        )
+    spatial_ids = tuple(item.organism_id for item in spatial_frame.organisms)
+    trait_ids = tuple(item.organism_id for item in trait_frame.individuals)
+    if trait_ids != spatial_ids:
+        raise ValueError(
+            "Spatial and individual-trait observations must contain identical "
+            f"active organism IDs at step {spatial_frame.step_index}; "
+            f"spatial={spatial_ids!r}, traits={trait_ids!r}."
+        )
+    return trait_frame
+
+
 def _organism_primitive(
     snapshot: SpatialOrganismSnapshot,
     *,
     selected: bool,
+    trait_frame: IndividualGeneticTraitObservation | None,
+    focal_encoding: ContinuousTraitEncoding | None,
 ) -> OrganismPrimitive:
+    focal_trait_value = None
+    focal_trait_normalized = None
+    if focal_encoding is not None:
+        if trait_frame is None:
+            raise RuntimeError("focal encoding requires an aligned trait frame.")
+        focal_trait_value = trait_frame.trait_value(
+            snapshot.organism_id,
+            focal_encoding.trait_name,
+        )
+        focal_trait_normalized = focal_encoding.normalize(focal_trait_value)
     return OrganismPrimitive(
         organism_id=snapshot.organism_id,
         x=float(snapshot.x),
@@ -230,6 +309,8 @@ def _organism_primitive(
         mating_type=snapshot.mating_type,
         marker_size=organism_marker_size(snapshot.body_mass),
         selected=selected,
+        focal_trait_value=focal_trait_value,
+        focal_trait_normalized=focal_trait_normalized,
     )
 
 

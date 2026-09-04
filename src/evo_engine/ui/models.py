@@ -6,13 +6,18 @@ from collections import Counter
 
 import attrs
 
+from evo_engine.ecology import PatchyResourcePlacement, ResourcePatch
+from evo_engine.engine import Simulation
 from evo_engine.experiments import (
     ReferenceExperimentResult,
     run_flagship_max_intake_replicates,
     run_reference_replicates,
 )
+from evo_engine.genetics import GENETIC_ARCHITECTURE, MAX_SPEED
 from evo_engine.observation import (
     GeneticCompositionObservation,
+    IndividualGeneticTraitObservation,
+    IndividualGeneticTraitRecorder,
     IndividualLifeHistory,
     PopulationObservation,
     SpatialObservation,
@@ -30,10 +35,17 @@ from evo_engine.presets import (
     build_flagship_max_intake_specification,
     build_reference_ecology,
 )
+from evo_engine.presets.reference_ecology.genetics import (
+    build_balanced_reference_trait_world,
+)
 from evo_engine.telemetry import StepTelemetry
 
 REFERENCE_SCENARIO = "reference_ecology"
 FLAGSHIP_MAX_INTAKE_SCENARIO = "flagship_max_intake"
+SCIENCE_AWARE_MAX_SPEED_SCENARIO = "science_aware_max_speed"
+SCIENCE_AWARE_MAX_SPEED_SEED = 17
+SCIENCE_AWARE_LOW_SPEED = 1
+SCIENCE_AWARE_HIGH_SPEED = 4
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -53,6 +65,9 @@ class DashboardRun:
     spatial_history: tuple[SpatialObservation, ...]
     telemetry_steps: tuple[StepTelemetry, ...]
     life_histories: tuple[IndividualLifeHistory, ...]
+    individual_trait_history: tuple[IndividualGeneticTraitObservation, ...] = (
+        attrs.field(factory=tuple)
+    )
     scenario: str = REFERENCE_SCENARIO
 
     @property
@@ -211,42 +226,150 @@ def _normalize_exploration_movement(
     )
 
 
-def run_dashboard_reference(config: ReferenceEcologyConfig) -> DashboardRun:
-    """Run the existing reference ecology and return committed presentation data."""
+def run_dashboard_reference(
+    config: ReferenceEcologyConfig,
+    *,
+    individual_trait_names: tuple[str, ...] = (),
+) -> DashboardRun:
+    """Run the reference ecology and return immutable committed presentation data.
+
+    Args:
+        config: Validated reference-ecology configuration.
+        individual_trait_names: Optional explicitly selected integer genetic-
+            phenotype traits to record for active organisms at each committed step.
+
+    Returns:
+        Completed immutable dashboard result.
+    """
     if not isinstance(config, ReferenceEcologyConfig):
         raise TypeError("config must be a ReferenceEcologyConfig.")
 
     spatial = SpatialRecorder(every_n_steps=1)
+    individual_traits = _individual_trait_recorder(individual_trait_names)
     ecology = build_reference_ecology(
         config,
-        additional_observers=(spatial,),
+        additional_observers=_dashboard_observers(
+            spatial=spatial,
+            individual_traits=individual_traits,
+        ),
     )
     return _run_dashboard_ecology(
         ecology,
         spatial=spatial,
+        individual_traits=individual_traits,
         scenario=REFERENCE_SCENARIO,
     )
 
 
-def run_dashboard_flagship_max_intake() -> DashboardRun:
+def run_dashboard_flagship_max_intake(
+    *,
+    individual_trait_names: tuple[str, ...] = (),
+) -> DashboardRun:
     """Run the canonical flagship demo and return committed presentation data."""
     specification = build_flagship_max_intake_specification()
     spatial = SpatialRecorder(every_n_steps=1)
+    individual_traits = _individual_trait_recorder(individual_trait_names)
     ecology = build_flagship_max_intake_ecology(
         specification,
-        additional_observers=(spatial,),
+        additional_observers=_dashboard_observers(
+            spatial=spatial,
+            individual_traits=individual_traits,
+        ),
     )
     return _run_dashboard_ecology(
         ecology,
         spatial=spatial,
+        individual_traits=individual_traits,
         scenario=FLAGSHIP_MAX_INTAKE_SCENARIO,
     )
+
+
+def run_dashboard_science_aware_max_speed() -> DashboardRun:
+    """Run a deterministic B1/B2 mechanism preview for interactive encoding.
+
+    This is a presentation integration proof, not the final B3 treatment/control
+    scenario. It composes existing patchy resources with balanced standing
+    variation at the already-established speed-1/speed-4 performance tradeoff.
+    """
+    baseline = ReferenceEcologyConfig()
+    config = attrs.evolve(
+        baseline,
+        width=12,
+        height=12,
+        initial_population=20,
+        initial_energy=30,
+        max_steps=30,
+        seed=SCIENCE_AWARE_MAX_SPEED_SEED,
+        mutation_probability_ppm=0,
+        resource_generation_amount=6,
+        resource_deposits_per_step=16,
+        resource_placement_model=PatchyResourcePlacement(
+            patches=(
+                ResourcePatch(center_x=2, center_y=2, radius=2),
+                ResourcePatch(center_x=9, center_y=9, radius=2),
+            )
+        ),
+        mating_radius=1,
+        traits=attrs.evolve(
+            baseline.traits,
+            attack_strength=0,
+            defense=1,
+        ),
+    )
+    spatial = SpatialRecorder(every_n_steps=1)
+    individual_traits = IndividualGeneticTraitRecorder(trait_names=(MAX_SPEED,))
+    ecology = build_reference_ecology(
+        config,
+        additional_observers=(spatial, individual_traits),
+    )
+    architecture = ecology.simulation.context.require(GENETIC_ARCHITECTURE)
+    founder_world = build_balanced_reference_trait_world(
+        architecture,
+        trait_name=MAX_SPEED,
+        variant_values=(SCIENCE_AWARE_LOW_SPEED, SCIENCE_AWARE_HIGH_SPEED),
+        config=config,
+    )
+    ecology = attrs.evolve(
+        ecology,
+        simulation=Simulation(
+            initial_domain_state=founder_world,
+            seed=config.seed,
+            context=ecology.simulation.context,
+        ),
+    )
+    return _run_dashboard_ecology(
+        ecology,
+        spatial=spatial,
+        individual_traits=individual_traits,
+        scenario=SCIENCE_AWARE_MAX_SPEED_SCENARIO,
+    )
+
+
+def _individual_trait_recorder(
+    trait_names: tuple[str, ...],
+) -> IndividualGeneticTraitRecorder | None:
+    if not isinstance(trait_names, tuple):
+        raise TypeError("individual_trait_names must be a tuple of trait names.")
+    if not trait_names:
+        return None
+    return IndividualGeneticTraitRecorder(trait_names=trait_names)
+
+
+def _dashboard_observers(
+    *,
+    spatial: SpatialRecorder,
+    individual_traits: IndividualGeneticTraitRecorder | None,
+) -> tuple[SpatialRecorder | IndividualGeneticTraitRecorder, ...]:
+    if individual_traits is None:
+        return (spatial,)
+    return (spatial, individual_traits)
 
 
 def _run_dashboard_ecology(
     ecology: ReferenceEcology,
     *,
     spatial: SpatialRecorder,
+    individual_traits: IndividualGeneticTraitRecorder | None,
     scenario: str,
 ) -> DashboardRun:
     ecology.engine.run(ecology.simulation)
@@ -258,6 +381,9 @@ def _run_dashboard_ecology(
         spatial_history=spatial.observations,
         telemetry_steps=ecology.event_recorder.steps,
         life_histories=ecology.pedigree_recorder.records,
+        individual_trait_history=(
+            () if individual_traits is None else individual_traits.observations
+        ),
         scenario=scenario,
     )
 

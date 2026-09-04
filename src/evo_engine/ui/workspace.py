@@ -8,8 +8,10 @@ from typing import Literal
 import streamlit as st
 
 from evo_engine.experiments import ReferenceExperimentResult
-from evo_engine.genetics import MAX_INTAKE_RATE
+from evo_engine.genetics import MAX_INTAKE_RATE, MAX_SPEED
 from evo_engine.observation import PopulationObservation
+from evo_engine.presentation import ContinuousTraitEncoding
+from evo_engine.presets.reference_ecology.config import REFERENCE_TRAIT_DOMAINS
 from evo_engine.ui.charts import (
     allele_frequency_figure,
     environment_figure,
@@ -30,6 +32,7 @@ from evo_engine.ui.charts import (
 from evo_engine.ui.exports import build_experiment_downloads
 from evo_engine.ui.models import (
     FLAGSHIP_MAX_INTAKE_SCENARIO,
+    SCIENCE_AWARE_MAX_SPEED_SCENARIO,
     DashboardRun,
     parse_seed_list,
     run_dashboard_experiment,
@@ -86,6 +89,11 @@ def render_simulation_workspace(
             "Curated scenario · illustrative engine demonstration, not a calibrated "
             "ecological prediction."
         )
+    elif run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+        st.caption(
+            "B1/B2 mechanism preview · committed maximum-speed evidence over real "
+            "patchy resource geography · not the final B3 treatment/control scenario."
+        )
     else:
         st.caption(
             f"Custom experiment · seed {run.config.seed} · "
@@ -105,11 +113,12 @@ def reset_world_presentation_state() -> None:
 
 def _workspace_header(run: DashboardRun) -> WorkspaceAction:
     title_col, edit_col, rerun_col, new_col = st.columns([5, 1.4, 1.2, 1.4])
-    title = (
-        "Flagship evolutionary demonstration"
-        if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO
-        else "Reference ecology experiment"
-    )
+    if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
+        title = "Flagship evolutionary demonstration"
+    elif run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+        title = "B1/B2 maximum-speed mechanism preview"
+    else:
+        title = "Reference ecology experiment"
     title_col.subheader(title)
     if edit_col.button("Edit configuration", use_container_width=True):
         return "edit"
@@ -127,6 +136,7 @@ def _world_and_headline_science(run: DashboardRun) -> None:
         return
     _initialize_world_state(steps)
     interval = _playback_interval() if st.session_state[_WORLD_PLAYING_KEY] else None
+    focal_encoding = _focal_encoding_for_run(run)
 
     @st.fragment(run_every=interval)
     def world_fragment() -> None:
@@ -136,6 +146,8 @@ def _world_and_headline_science(run: DashboardRun) -> None:
         presentation = build_world_presentation(
             run.spatial_history,
             step_index=selected_step,
+            individual_trait_history=run.individual_trait_history,
+            focal_encoding=focal_encoding,
             selected_organism_id=st.session_state[_WORLD_SELECTED_ORGANISM_KEY],
             show_resources=st.session_state[_WORLD_RESOURCES_KEY],
             show_carcasses=st.session_state[_WORLD_CARCASSES_KEY],
@@ -149,6 +161,19 @@ def _world_and_headline_science(run: DashboardRun) -> None:
             _render_context(run, presentation)
 
     world_fragment()
+
+
+def _focal_encoding_for_run(run: DashboardRun) -> ContinuousTraitEncoding | None:
+    """Return the fixed scientific encoding owned by a recognized scenario."""
+    if run.scenario != SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+        return None
+    lower_bound, upper_bound = REFERENCE_TRAIT_DOMAINS[MAX_SPEED]
+    return ContinuousTraitEncoding(
+        trait_name=MAX_SPEED,
+        label="Maximum speed",
+        lower_bound=lower_bound,
+        upper_bound=upper_bound,
+    )
 
 
 def _initialize_world_state(steps: tuple[int, ...]) -> None:
@@ -319,6 +344,10 @@ def _render_context(run: DashboardRun, presentation: WorldPresentationFrame) -> 
         st.write(f"**Energy:** {selected.energy}")
         st.write(f"**Body mass:** {selected.body_mass}")
         st.write(f"**Mating type:** {selected.mating_type}")
+        if presentation.focal_encoding is not None:
+            st.write(
+                f"**{presentation.focal_encoding.label}:** {selected.focal_trait_value}"
+            )
 
 
 def _advance_playback_if_due(steps: tuple[int, ...]) -> None:
@@ -432,7 +461,7 @@ def _analysis_tabs(run: DashboardRun, *, experiment_key: str) -> None:
     with experiments_tab:
         _experiments(run, experiment_key=experiment_key)
     with reports_tab:
-        _reports(experiment_key=experiment_key)
+        _reports(run, experiment_key=experiment_key)
 
 
 def _overview(run: DashboardRun) -> None:
@@ -468,11 +497,7 @@ def _evolution(run: DashboardRun) -> None:
     if not trait_names:
         st.info("No heritable trait summaries were recorded.")
         return
-    preferred = (
-        MAX_INTAKE_RATE
-        if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO
-        else "growth_rate"
-    )
+    preferred = _preferred_science_variable(run)
     trait_name = st.selectbox(
         "Inspect heritable trait",
         trait_names,
@@ -503,11 +528,7 @@ def _genetics(run: DashboardRun) -> None:
     if not locus_names:
         st.info("No genetic loci were recorded.")
         return
-    preferred = (
-        MAX_INTAKE_RATE
-        if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO
-        else "growth_rate"
-    )
+    preferred = _preferred_science_variable(run)
     locus_name = st.selectbox(
         "Inspect locus",
         locus_names,
@@ -526,6 +547,14 @@ def _genetics(run: DashboardRun) -> None:
             use_container_width=True,
             key="genotype-frequency",
         )
+
+
+def _preferred_science_variable(run: DashboardRun) -> str:
+    if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
+        return MAX_INTAKE_RATE
+    if run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+        return MAX_SPEED
+    return "growth_rate"
 
 
 def _life_history(run: DashboardRun) -> None:
@@ -564,6 +593,13 @@ def _life_history(run: DashboardRun) -> None:
 
 def _experiments(run: DashboardRun, *, experiment_key: str) -> None:
     st.subheader("Reproducible multi-seed experiments")
+    if run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+        st.info(
+            "This B1/B2 mechanism preview intentionally has no multi-seed "
+            "treatment/control action. B3 owns the durable environment-dependent "
+            "comparison, canonical parameterization, and claim boundaries."
+        )
+        return
     if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
         default_seeds = "11, 23, 37, 41, 59, 73, 89, 101"
     else:
@@ -605,8 +641,14 @@ def _experiments(run: DashboardRun, *, experiment_key: str) -> None:
     )
 
 
-def _reports(*, experiment_key: str) -> None:
+def _reports(run: DashboardRun, *, experiment_key: str) -> None:
     st.subheader("Reports and export")
+    if run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+        st.info(
+            "This mechanism preview does not expose a synthetic B3 report or export. "
+            "The eventual matched comparison will use B3's final scientific handoff."
+        )
+        return
     experiment = st.session_state.get(experiment_key)
     if not isinstance(experiment, ReferenceExperimentResult):
         st.info(
