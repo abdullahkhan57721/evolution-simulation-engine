@@ -4,8 +4,12 @@ on:
   pull_request:
     paths:
       - "src/evo_engine/experiments/e3_performance.py"
+      - "src/evo_engine/experiments/__init__.py"
       - "scripts/e3_landscape.py"
       - "tests/experiments/test_e3_performance.py"
+      - "docs/e3_ecological_performance.md"
+      - "docs/development/current_state.md"
+      - "mkdocs.yml"
       - ".github/workflows/e3-scientific-validation.yml"
   workflow_dispatch:
 
