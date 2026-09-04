@@ -536,9 +536,7 @@ def _evidence_text(frame: PortfolioAnimationFrame) -> str:
     for event in frame.applied_events:
         counts[event.event_name] = counts.get(event.event_name, 0) + 1
     leading = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:2]
-    event_summary = ", ".join(
-        f"{name} ×{count}" for name, count in leading
-    )
+    event_summary = ", ".join(f"{name} ×{count}" for name, count in leading)
     return f"{identity}  |  {event_summary}"
 
 
