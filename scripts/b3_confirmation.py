@@ -144,9 +144,7 @@ def _aggregate_confirmation(
         )
     ]
     return {
-        "uniform_step_30_mean_high_speed_allele_frequency": _mean(
-            control_frequencies
-        ),
+        "uniform_step_30_mean_high_speed_allele_frequency": _mean(control_frequencies),
         "compact_step_30_mean_high_speed_allele_frequency": _mean(
             treatment_frequencies
         ),
@@ -154,7 +152,9 @@ def _aggregate_confirmation(
             broad_frequencies
         ),
         "mean_compact_minus_uniform_effect": _mean(effects),
-        "compact_greater_than_uniform_seed_count": sum(effect > 0 for effect in effects),
+        "compact_greater_than_uniform_seed_count": sum(
+            effect > 0 for effect in effects
+        ),
         "uniform_low_speed_founder_rrs_win_count": sum(
             pair.control.founder_reproductive_success.low_speed_mean
             > pair.control.founder_reproductive_success.high_speed_mean
@@ -189,9 +189,7 @@ def _predeclared_checks(
     pairs: tuple[B3MatchedPairSummary, ...],
     aggregate: dict[str, float | int],
 ) -> dict[str, bool]:
-    control_mean = float(
-        aggregate["uniform_step_30_mean_high_speed_allele_frequency"]
-    )
+    control_mean = float(aggregate["uniform_step_30_mean_high_speed_allele_frequency"])
     treatment_mean = float(
         aggregate["compact_step_30_mean_high_speed_allele_frequency"]
     )
