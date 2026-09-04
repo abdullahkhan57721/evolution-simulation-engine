@@ -12,6 +12,7 @@ _CARCASS_COLOR = "#8C564B"
 _TRAIL_COLOR = "rgba(100, 116, 139, 0.55)"
 _DEFAULT_OUTLINE_COLOR = "#475569"
 _SELECTED_OUTLINE_COLOR = "#111827"
+_FOCAL_COLOR_SCALE = "Cividis"
 
 
 def world_presentation_figure(
@@ -118,6 +119,7 @@ def _add_organisms(
     show_labels: bool,
 ) -> None:
     mode = "markers+text" if show_labels else "markers"
+    marker = _organism_marker(frame)
     figure.add_trace(
         go.Scatter(
             x=[item.x for item in frame.organisms],
@@ -128,20 +130,7 @@ def _add_organisms(
             if show_labels
             else None,
             textposition="top center",
-            marker={
-                "size": [item.marker_size for item in frame.organisms],
-                "symbol": "circle",
-                "color": _NEUTRAL_ORGANISM_COLOR,
-                "line": {
-                    "width": [4 if item.selected else 1 for item in frame.organisms],
-                    "color": [
-                        _SELECTED_OUTLINE_COLOR
-                        if item.selected
-                        else _DEFAULT_OUTLINE_COLOR
-                        for item in frame.organisms
-                    ],
-                },
-            },
+            marker=marker,
             customdata=[
                 [
                     item.organism_id,
@@ -150,14 +139,69 @@ def _add_organisms(
                     item.body_mass,
                     item.mating_type,
                     item.selected,
+                    item.focal_trait_value,
                 ]
                 for item in frame.organisms
             ],
-            hovertemplate=(
-                "Organism %{customdata[0]}<br>position=(%{x}, %{y})<br>"
-                "age=%{customdata[1]}<br>energy=%{customdata[2]}<br>"
-                "body mass=%{customdata[3]}<br>mating type=%{customdata[4]}"
-                "<extra></extra>"
-            ),
+            hovertemplate=_organism_hover_template(frame),
         )
+    )
+
+
+def _organism_marker(frame: WorldPresentationFrame) -> dict[str, object]:
+    marker: dict[str, object] = {
+        "size": [item.marker_size for item in frame.organisms],
+        "symbol": "circle",
+        "line": {
+            "width": [4 if item.selected else 1 for item in frame.organisms],
+            "color": [
+                _SELECTED_OUTLINE_COLOR if item.selected else _DEFAULT_OUTLINE_COLOR
+                for item in frame.organisms
+            ],
+        },
+    }
+    if frame.focal_encoding is None:
+        marker["color"] = _NEUTRAL_ORGANISM_COLOR
+        return marker
+
+    normalized = tuple(item.focal_trait_normalized for item in frame.organisms)
+    if any(value is None for value in normalized):
+        raise ValueError(
+            "science-aware organism rendering requires a normalized focal value "
+            "for every displayed organism."
+        )
+    encoding = frame.focal_encoding
+    marker.update(
+        {
+            "color": normalized,
+            "colorscale": _FOCAL_COLOR_SCALE,
+            "cmin": 0.0,
+            "cmax": 1.0,
+            "showscale": True,
+            "colorbar": {
+                "title": {"text": encoding.label},
+                "tickmode": "array",
+                "tickvals": [0.0, 1.0],
+                "ticktext": [
+                    str(encoding.lower_bound),
+                    str(encoding.upper_bound),
+                ],
+            },
+        }
+    )
+    return marker
+
+
+def _organism_hover_template(frame: WorldPresentationFrame) -> str:
+    base = (
+        "Organism %{customdata[0]}<br>position=(%{x}, %{y})<br>"
+        "age=%{customdata[1]}<br>energy=%{customdata[2]}<br>"
+        "body mass=%{customdata[3]}<br>mating type=%{customdata[4]}"
+    )
+    if frame.focal_encoding is None:
+        return base + "<extra></extra>"
+    return (
+        base
+        + f"<br>{frame.focal_encoding.label}=%{{customdata[6]}}"
+        + "<extra></extra>"
     )

@@ -7,9 +7,11 @@ import streamlit as st
 from evo_engine.ui.configuration import render_configuration_mode
 from evo_engine.ui.models import (
     FLAGSHIP_MAX_INTAKE_SCENARIO,
+    SCIENCE_AWARE_MAX_SPEED_SCENARIO,
     DashboardRun,
     run_dashboard_flagship_max_intake,
     run_dashboard_reference,
+    run_dashboard_science_aware_max_speed,
 )
 from evo_engine.ui.workspace import (
     render_simulation_workspace,
@@ -88,6 +90,8 @@ def _rerun(run: DashboardRun) -> None:
         with st.spinner("Rerunning completed configuration…"):
             if run.scenario == FLAGSHIP_MAX_INTAKE_SCENARIO:
                 candidate = run_dashboard_flagship_max_intake()
+            elif run.scenario == SCIENCE_AWARE_MAX_SPEED_SCENARIO:
+                candidate = run_dashboard_science_aware_max_speed()
             else:
                 candidate = run_dashboard_reference(run.config)
     except (TypeError, ValueError) as exc:

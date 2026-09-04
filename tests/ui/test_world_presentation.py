@@ -7,14 +7,18 @@ from typing import Any, cast
 import pytest
 
 from evo_engine.observation import (
+    IndividualGeneticTraitObservation,
+    IndividualGeneticTraitSnapshot,
     SpatialCarcassSnapshot,
     SpatialObservation,
     SpatialOrganismSnapshot,
     SpatialResourceSnapshot,
 )
+from evo_engine.presentation import ContinuousTraitEncoding
 from evo_engine.ui.world_presentation import (
     available_step_indices,
     build_world_presentation,
+    individual_trait_frame_for_step,
     interpolate_organism_positions,
     organism_marker_size,
     spatial_frame_for_step,
@@ -83,6 +87,45 @@ def _history() -> tuple[SpatialObservation, ...]:
     )
 
 
+def _trait_history() -> tuple[IndividualGeneticTraitObservation, ...]:
+    return (
+        IndividualGeneticTraitObservation(
+            step_index=0,
+            trait_names=("max_speed",),
+            individuals=(
+                IndividualGeneticTraitSnapshot(organism_id=0, trait_values=(1,)),
+                IndividualGeneticTraitSnapshot(organism_id=1, trait_values=(4,)),
+            ),
+        ),
+        IndividualGeneticTraitObservation(
+            step_index=1,
+            trait_names=("max_speed",),
+            individuals=(
+                IndividualGeneticTraitSnapshot(organism_id=0, trait_values=(1,)),
+                IndividualGeneticTraitSnapshot(organism_id=1, trait_values=(4,)),
+                IndividualGeneticTraitSnapshot(organism_id=2, trait_values=(2,)),
+            ),
+        ),
+        IndividualGeneticTraitObservation(
+            step_index=2,
+            trait_names=("max_speed",),
+            individuals=(
+                IndividualGeneticTraitSnapshot(organism_id=0, trait_values=(2,)),
+                IndividualGeneticTraitSnapshot(organism_id=2, trait_values=(3,)),
+            ),
+        ),
+    )
+
+
+def _speed_encoding() -> ContinuousTraitEncoding:
+    return ContinuousTraitEncoding(
+        trait_name="max_speed",
+        label="Maximum speed",
+        lower_bound=1,
+        upper_bound=4,
+    )
+
+
 def test_selected_step_uses_exact_committed_frame_and_resource_snapshot() -> None:
     """Test selected world inputs come from the exact authoritative frame."""
     history = _history()
@@ -106,6 +149,123 @@ def test_selected_step_uses_exact_committed_frame_and_resource_snapshot() -> Non
     assert selected is not None
     assert selected.organism_id == 1
     assert [item.selected for item in presentation.organisms] == [False, True, False]
+    assert presentation.focal_encoding is None
+    assert all(item.focal_trait_value is None for item in presentation.organisms)
+
+
+def test_science_aware_world_joins_exact_committed_trait_evidence() -> None:
+    """Test focal values join by selected step and permanent organism ID."""
+    traits = _trait_history()
+    assert individual_trait_frame_for_step(traits, step_index=1) is traits[1]
+
+    presentation = build_world_presentation(
+        _history(),
+        step_index=1,
+        individual_trait_history=traits,
+        focal_encoding=_speed_encoding(),
+        selected_organism_id=1,
+        show_trails=False,
+    )
+
+    assert presentation.focal_encoding == _speed_encoding()
+    assert tuple(item.organism_id for item in presentation.organisms) == (0, 1, 2)
+    assert tuple(item.focal_trait_value for item in presentation.organisms) == (1, 4, 2)
+    assert tuple(item.focal_trait_normalized for item in presentation.organisms) == (
+        0.0,
+        1.0,
+        pytest.approx(1 / 3),
+    )
+    selected = presentation.selected_organism()
+    assert selected is not None
+    assert selected.focal_trait_value == 4
+    assert selected.focal_trait_normalized == 1.0
+
+
+def test_science_aware_world_rejects_missing_or_misaligned_trait_evidence() -> None:
+    """Test focal rendering cannot silently fabricate per-organism science."""
+    encoding = _speed_encoding()
+
+    with pytest.raises(KeyError, match="step 1"):
+        build_world_presentation(
+            _history(),
+            step_index=1,
+            individual_trait_history=(_trait_history()[0],),
+            focal_encoding=encoding,
+        )
+
+    wrong_trait = IndividualGeneticTraitObservation(
+        step_index=1,
+        trait_names=("growth_rate",),
+        individuals=tuple(
+            IndividualGeneticTraitSnapshot(
+                organism_id=item.organism_id,
+                trait_values=(1,),
+            )
+            for item in _history()[1].organisms
+        ),
+    )
+    with pytest.raises(KeyError, match="max_speed"):
+        build_world_presentation(
+            _history(),
+            step_index=1,
+            individual_trait_history=(wrong_trait,),
+            focal_encoding=encoding,
+        )
+
+    missing_id = IndividualGeneticTraitObservation(
+        step_index=1,
+        trait_names=("max_speed",),
+        individuals=(
+            IndividualGeneticTraitSnapshot(organism_id=0, trait_values=(1,)),
+            IndividualGeneticTraitSnapshot(organism_id=1, trait_values=(4,)),
+        ),
+    )
+    with pytest.raises(ValueError, match="identical active organism IDs"):
+        build_world_presentation(
+            _history(),
+            step_index=1,
+            individual_trait_history=(missing_id,),
+            focal_encoding=encoding,
+        )
+
+
+def test_science_aware_world_enforces_fixed_encoding_bounds() -> None:
+    """Test committed values outside the shared scale fail rather than autoscale."""
+    out_of_range = IndividualGeneticTraitObservation(
+        step_index=0,
+        trait_names=("max_speed",),
+        individuals=(
+            IndividualGeneticTraitSnapshot(organism_id=0, trait_values=(1,)),
+            IndividualGeneticTraitSnapshot(organism_id=1, trait_values=(5,)),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="must lie within"):
+        build_world_presentation(
+            _history(),
+            step_index=0,
+            individual_trait_history=(out_of_range,),
+            focal_encoding=_speed_encoding(),
+        )
+
+
+def test_generic_world_does_not_require_or_validate_focal_trait_history() -> None:
+    """Test generic neutral fallback remains independent of focal science."""
+    unrelated = IndividualGeneticTraitObservation(
+        step_index=99,
+        trait_names=("growth_rate",),
+        individuals=(),
+    )
+
+    presentation = build_world_presentation(
+        _history(),
+        step_index=1,
+        individual_trait_history=(unrelated,),
+        focal_encoding=None,
+    )
+
+    assert presentation.focal_encoding is None
+    assert all(item.focal_trait_value is None for item in presentation.organisms)
 
 
 def test_view_layers_can_hide_observed_environment_without_changing_frame() -> None:
@@ -178,6 +338,12 @@ def test_world_presentation_rejects_invalid_view_inputs() -> None:
             history,
             step_index=0,
             selected_organism_id=cast(Any, "0"),
+        )
+    with pytest.raises(TypeError, match="focal_encoding"):
+        build_world_presentation(
+            history,
+            step_index=0,
+            focal_encoding=cast(Any, "max_speed"),
         )
 
 
