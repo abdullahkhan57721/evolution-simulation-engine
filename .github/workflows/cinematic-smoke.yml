@@ -9,6 +9,7 @@ on:
       - "src/evo_engine/presentation/**"
       - "examples/render_portfolio_animation.py"
       - "examples/render_science_aware_cinematic_smoke.py"
+      - "examples/render_b3_flagship_cinematic.py"
       - ".github/workflows/cinematic-smoke.yml"
   workflow_dispatch:
 
@@ -49,7 +50,7 @@ jobs:
           venv/bin/python -m pip install --upgrade pip
           venv/bin/python -m pip install -e .
           venv/bin/python -m pip install -r requirements-animation.txt
-      - name: Render deterministic generic and science-aware smoke animations
+      - name: Render deterministic generic, science-aware, and B3 director smokes
         shell: bash
         run: |
           venv/bin/python examples/render_portfolio_animation.py \
@@ -59,6 +60,10 @@ jobs:
           venv/bin/python examples/render_science_aware_cinematic_smoke.py \
             --quality low \
             --output outputs/science-aware-cinematic-smoke.mp4
+          venv/bin/python examples/render_b3_flagship_cinematic.py \
+            --excerpt \
+            --quality low \
+            --output outputs/b3-director-smoke.mp4
           venv/bin/python - <<'PY'
           import json
           from pathlib import Path
@@ -68,6 +73,7 @@ jobs:
           outputs = (
               Path("outputs/cinematic-smoke.mp4"),
               Path("outputs/science-aware-cinematic-smoke.mp4"),
+              Path("outputs/b3-director-smoke.mp4"),
           )
           for output in outputs:
               assert output.is_file(), output
@@ -82,17 +88,41 @@ jobs:
                   f"{frame.width}x{frame.height} decoded frame)"
               )
 
-          manifest_path = Path("outputs/science-aware-cinematic-smoke.manifest.json")
-          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-          assert manifest["scenario_label"] == "b1-b2-science-aware-smoke"
-          assert manifest["seed"] == 17
-          assert manifest["focal_trait_name"] == "max_speed"
-          assert manifest["focal_label"] == "Maximum speed"
-          assert manifest["director_mode"] == "generic"
-          assert manifest["renderer_name"] == "manim"
-          assert manifest["renderer_version"]
-          assert manifest["quality"] == "low"
-          print(f"Verified reproducibility manifest: {manifest_path}")
+          science_manifest_path = Path(
+              "outputs/science-aware-cinematic-smoke.manifest.json"
+          )
+          science_manifest = json.loads(
+              science_manifest_path.read_text(encoding="utf-8")
+          )
+          assert science_manifest["scenario_label"] == "b1-b2-science-aware-smoke"
+          assert science_manifest["seed"] == 17
+          assert science_manifest["focal_trait_name"] == "max_speed"
+          assert science_manifest["focal_label"] == "Maximum speed"
+          assert science_manifest["director_mode"] == "generic"
+          assert science_manifest["renderer_name"] == "manim"
+          assert science_manifest["renderer_version"]
+          assert science_manifest["quality"] == "low"
+          print(f"Verified reproducibility manifest: {science_manifest_path}")
+
+          b3_manifest_path = Path("outputs/b3-director-smoke.manifest.json")
+          b3_manifest = json.loads(b3_manifest_path.read_text(encoding="utf-8"))
+          assert b3_manifest["scenario_label"] == "b3-environment-dependent-max-speed"
+          assert b3_manifest["director_mode"] == "b3_flagship"
+          assert b3_manifest["representative_seed"] == 5
+          assert b3_manifest["primary_step"] == 30
+          assert b3_manifest["focal_trait_name"] == "max_speed"
+          assert b3_manifest["focal_lower_bound"] == 1
+          assert b3_manifest["focal_upper_bound"] == 4
+          assert b3_manifest["low_speed_organism_id"] == 16
+          assert b3_manifest["low_speed_completed_step"] == 7
+          assert b3_manifest["high_speed_organism_id"] == 1
+          assert b3_manifest["high_speed_completed_step"] == 5
+          assert b3_manifest["confirmation_seed_count"] == 0
+          assert b3_manifest["includes_radius2_sensitivity"] is False
+          assert b3_manifest["renderer_name"] == "manim"
+          assert b3_manifest["renderer_version"]
+          assert b3_manifest["quality"] == "low"
+          print(f"Verified B3 director manifest: {b3_manifest_path}")
           PY
       - name: Upload smoke renders
         uses: actions/upload-artifact@v4
@@ -102,5 +132,7 @@ jobs:
             outputs/cinematic-smoke.mp4
             outputs/science-aware-cinematic-smoke.mp4
             outputs/science-aware-cinematic-smoke.manifest.json
+            outputs/b3-director-smoke.mp4
+            outputs/b3-director-smoke.manifest.json
           retention-days: 14
           if-no-files-found: error
