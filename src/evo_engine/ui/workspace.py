@@ -346,8 +346,7 @@ def _render_context(run: DashboardRun, presentation: WorldPresentationFrame) -> 
         st.write(f"**Mating type:** {selected.mating_type}")
         if presentation.focal_encoding is not None:
             st.write(
-                f"**{presentation.focal_encoding.label}:** "
-                f"{selected.focal_trait_value}"
+                f"**{presentation.focal_encoding.label}:** {selected.focal_trait_value}"
             )
 
 
