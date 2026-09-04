@@ -1,5 +1,5 @@
 # pyright: reportMissingImports=false
-"""Manim implementation for the optional cinematic portfolio renderer."""
+"""Manim implementation for the optional science-aware cinematic renderer."""
 
 from __future__ import annotations
 
@@ -12,16 +12,15 @@ from typing import Any
 from manim import (
     BLUE_C,
     DOWN,
-    GREEN_C,
     GREY_B,
     LEFT,
-    PURPLE_C,
     RED_C,
     RIGHT,
     TEAL_C,
     UP,
     WHITE,
     Axes,
+    Circle,
     Dot,
     FadeIn,
     FadeOut,
@@ -33,17 +32,19 @@ from manim import (
     Text,
     Transform,
     VGroup,
+    interpolate_color,
+    linear,
     tempconfig,
 )
 
 from evo_engine.cinematic.api import AnimationQuality
+from evo_engine.cinematic.primitives import CinematicOrganismPrimitive
 from evo_engine.cinematic.timeline import (
     PortfolioAnimationFrame,
     PortfolioAnimationTimeline,
 )
 from evo_engine.observation import (
     SpatialCarcassSnapshot,
-    SpatialOrganismSnapshot,
     SpatialResourceSnapshot,
 )
 
@@ -57,7 +58,6 @@ _QUALITY_SETTINGS: dict[AnimationQuality, tuple[int, int, int]] = {
     "medium": (1280, 720, 30),
     "high": (1920, 1080, 60),
 }
-_MATING_COLORS = (TEAL_C, BLUE_C, PURPLE_C, GREEN_C, RED_C)
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,12 +66,13 @@ class _WorldLayout:
     height: int
     display_width: float
     display_height: float
-    center_x: float = -3.35
-    center_y: float = -0.25
+    center_x: float = -3.25
+    center_y: float = -0.20
 
     @classmethod
     def from_bounds(cls, width: int, height: int) -> _WorldLayout:
-        scale = min(5.9 / width, 5.35 / height)
+        """Return a stable world layout for authoritative world dimensions."""
+        scale = min(6.1 / width, 5.45 / height)
         return cls(
             width=width,
             height=height,
@@ -80,6 +81,7 @@ class _WorldLayout:
         )
 
     def point(self, x: int, y: int) -> list[float]:
+        """Map one committed grid coordinate onto the cinematic world surface."""
         left = self.center_x - self.display_width / 2
         bottom = self.center_y - self.display_height / 2
         return [
@@ -100,18 +102,18 @@ class _WorldSceneState:
     step_text: object
     population_text: object
     trait_text: object
-    transition_text: object
+    evidence_text: object
 
 
 class _PortfolioScene(Scene):
-    """Render a completed timeline without retaining or driving a simulation."""
+    """Render committed evidence without retaining or driving a simulation."""
 
     def __init__(self, timeline: PortfolioAnimationTimeline, **kwargs: object) -> None:
         self._timeline = timeline
         super().__init__(**kwargs)
 
     def construct(self) -> None:
-        """Build the cinematic sequence from immutable committed values."""
+        """Build the generic cinematic sequence from immutable committed values."""
         self.camera.background_color = _BACKGROUND
         self._show_intro()
         if not self._timeline.frames:
@@ -119,7 +121,7 @@ class _PortfolioScene(Scene):
             return
         state = self._show_initial_world()
         self._animate_remaining_world(state)
-        self._show_analytics(state)
+        self._show_evidence(state)
         self._show_outcome()
 
     def _show_intro(self) -> None:
@@ -130,7 +132,7 @@ class _PortfolioScene(Scene):
             color=_TEXT,
         )
         subtitle = Text(
-            "A deterministic replay of committed simulation evidence",
+            "Cinematic replay from committed scientific evidence",
             font_size=23,
             color=_MUTED,
         ).next_to(title, DOWN, buff=0.35)
@@ -168,13 +170,13 @@ class _PortfolioScene(Scene):
             step_text=status[1],
             population_text=status[2],
             trait_text=status[3],
-            transition_text=status[4],
+            evidence_text=status[4],
         )
         self.play(
             FadeIn(shell),
             FadeIn(resources),
             FadeIn(carcasses),
-            *[FadeIn(mobject, scale=0.6) for mobject in organisms.values()],
+            *[FadeIn(item, scale=0.7) for item in organisms.values()],
             FadeIn(state.status_group),
             run_time=0.6,
         )
@@ -182,11 +184,14 @@ class _PortfolioScene(Scene):
 
     def _animate_remaining_world(self, state: _WorldSceneState) -> None:
         for frame in self._timeline.frames[1:]:
-            animations = _frame_animations(state, frame, self._timeline.trait_name)
-            self.play(*animations, run_time=0.18)
+            self.play(
+                *_frame_animations(state, frame, self._timeline),
+                run_time=0.22,
+                rate_func=linear,
+            )
         self.wait(0.25)
 
-    def _show_analytics(self, state: _WorldSceneState) -> None:
+    def _show_evidence(self, state: _WorldSceneState) -> None:
         world_mobjects = [
             state.shell,
             state.resources,
@@ -194,16 +199,21 @@ class _PortfolioScene(Scene):
             *state.organisms.values(),
             state.status_group,
         ]
-        self.play(*[FadeOut(item) for item in world_mobjects], run_time=0.45)
-        heading = Text("What changed?", font_size=38, weight="BOLD", color=_TEXT)
+        self.play(*[FadeOut(item) for item in world_mobjects], run_time=0.4)
+        heading = Text(
+            "Population-level evidence",
+            font_size=36,
+            weight="BOLD",
+            color=_TEXT,
+        )
         heading.to_edge(UP, buff=0.35)
         population_chart = _population_chart(self._timeline)
         trait_chart = _trait_chart(self._timeline)
         charts = VGroup(population_chart, trait_chart).arrange(RIGHT, buff=0.7)
         charts.shift(DOWN * 0.25)
-        self.play(FadeIn(heading), FadeIn(charts, shift=UP * 0.15), run_time=0.65)
-        self.wait(0.8)
-        self.play(FadeOut(heading), FadeOut(charts), run_time=0.4)
+        self.play(FadeIn(heading), FadeIn(charts, shift=UP * 0.15), run_time=0.6)
+        self.wait(0.75)
+        self.play(FadeOut(heading), FadeOut(charts), run_time=0.35)
 
     def _show_outcome(self) -> None:
         initial = self._timeline.frames[0]
@@ -236,7 +246,7 @@ def render_timeline_with_manim(
     *,
     quality: AnimationQuality,
 ) -> Path:
-    """Render ``timeline`` through Manim and copy the finished media to destination."""
+    """Render ``timeline`` through Manim and copy finished media to destination."""
     width, height, frame_rate = _QUALITY_SETTINGS[quality]
     output_format = output_path.suffix.lower().removeprefix(".")
     with TemporaryDirectory(prefix="evo-engine-manim-") as temporary_directory:
@@ -282,7 +292,7 @@ def _world_shell(layout: _WorldLayout) -> object:
         fill_opacity=0.55,
     ).move_to([layout.center_x, layout.center_y, 0])
     grid = VGroup(*_grid_lines(layout))
-    label = Text("Committed spatial state", font_size=20, color=_MUTED)
+    label = Text("Recorded ecological world", font_size=20, color=_MUTED)
     label.next_to(border, UP, buff=0.18)
     return VGroup(border, grid, label)
 
@@ -300,7 +310,7 @@ def _grid_lines(layout: _WorldLayout) -> list[object]:
                 [scene_x, bottom, 0],
                 [scene_x, top, 0],
                 stroke_color=GREY_B,
-                stroke_opacity=0.12,
+                stroke_opacity=0.10,
                 stroke_width=0.7,
             )
         )
@@ -311,7 +321,7 @@ def _grid_lines(layout: _WorldLayout) -> list[object]:
                 [left, scene_y, 0],
                 [right, scene_y, 0],
                 stroke_color=GREY_B,
-                stroke_opacity=0.12,
+                stroke_opacity=0.10,
                 stroke_width=0.7,
             )
         )
@@ -325,12 +335,12 @@ def _resource_layer(frame: PortfolioAnimationFrame, layout: _WorldLayout) -> obj
 
 
 def _resource_marker(resource: SpatialResourceSnapshot, layout: _WorldLayout) -> object:
-    side = 0.07 + min(resource.amount, 12) * 0.006
+    side = 0.07 + min(resource.amount, 14) * 0.006
     return Square(
         side_length=side,
         stroke_width=0,
         fill_color=_RESOURCE,
-        fill_opacity=0.75,
+        fill_opacity=0.78,
     ).move_to(layout.point(resource.x, resource.y))
 
 
@@ -346,7 +356,7 @@ def _carcass_marker(carcass: SpatialCarcassSnapshot, layout: _WorldLayout) -> ob
         Square(
             side_length=side,
             color=GREY_B,
-            fill_opacity=0.35,
+            fill_opacity=0.32,
             stroke_width=1.0,
         )
         .rotate(0.7853981633974483)
@@ -359,28 +369,30 @@ def _organism_layer(
     layout: _WorldLayout,
 ) -> dict[int, object]:
     return {
-        snapshot.organism_id: _organism_marker(snapshot, layout)
-        for snapshot in frame.spatial.organisms
+        organism.organism_id: _organism_marker(organism, layout)
+        for organism in frame.organisms
     }
 
 
 def _organism_marker(
-    organism: SpatialOrganismSnapshot,
+    organism: CinematicOrganismPrimitive,
     layout: _WorldLayout,
 ) -> object:
     radius = 0.065 + min(organism.body_mass, 30) * 0.0018
-    return Dot(
-        layout.point(organism.x, organism.y),
+    marker = Circle(
         radius=radius,
-        color=_mating_type_color(organism.mating_type),
+        stroke_color=WHITE,
+        stroke_width=0.65,
+        fill_color=_organism_fill(organism),
+        fill_opacity=0.95,
     )
+    return marker.move_to(layout.point(organism.x, organism.y))
 
 
-def _mating_type_color(mating_type: str) -> object:
-    weighted_codepoint_sum = sum(
-        (index + 1) * ord(character) for index, character in enumerate(mating_type)
-    )
-    return _MATING_COLORS[weighted_codepoint_sum % len(_MATING_COLORS)]
+def _organism_fill(organism: CinematicOrganismPrimitive) -> object:
+    if organism.focal_normalized is None:
+        return TEAL_C
+    return interpolate_color(BLUE_C, RED_C, organism.focal_normalized)
 
 
 def _status_group(
@@ -391,25 +403,44 @@ def _status_group(
     step = Text(_step_text(frame), font_size=25, color=WHITE)
     population = Text(_population_text(frame), font_size=25, color=WHITE)
     trait = Text(_trait_text(timeline.trait_name, frame), font_size=22, color=_MUTED)
-    transition = Text(_transition_text(frame), font_size=20, color=_MUTED)
-    group = VGroup(title, step, population, trait, transition).arrange(
+    evidence = Text(_evidence_text(frame), font_size=19, color=_MUTED)
+    legend = _focal_legend(timeline)
+    group = VGroup(title, step, population, trait, evidence, legend).arrange(
         DOWN,
         aligned_edge=LEFT,
-        buff=0.28,
+        buff=0.25,
     )
-    group.to_edge(RIGHT, buff=0.55).shift(UP * 0.75)
-    return group, step, population, trait, transition
+    group.to_edge(RIGHT, buff=0.45).shift(UP * 0.55)
+    return group, step, population, trait, evidence
+
+
+def _focal_legend(timeline: PortfolioAnimationTimeline) -> object:
+    encoding = timeline.focal_encoding
+    if encoding is None:
+        return Text("Organism fill: neutral", font_size=18, color=_MUTED)
+
+    label = Text(
+        f"Fill: {encoding.label}",
+        font_size=18,
+        color=_TEXT,
+    )
+    low_dot = Dot(radius=0.055, color=BLUE_C)
+    low_text = Text(str(encoding.lower_bound), font_size=16, color=_MUTED)
+    high_dot = Dot(radius=0.055, color=RED_C)
+    high_text = Text(str(encoding.upper_bound), font_size=16, color=_MUTED)
+    scale = VGroup(low_dot, low_text, high_dot, high_text).arrange(RIGHT, buff=0.13)
+    return VGroup(label, scale).arrange(DOWN, aligned_edge=LEFT, buff=0.12)
 
 
 def _frame_animations(
     state: _WorldSceneState,
     frame: PortfolioAnimationFrame,
-    trait_name: str,
+    timeline: PortfolioAnimationTimeline,
 ) -> list[object]:
     animations = _organism_animations(state, frame)
     animations.append(Transform(state.resources, _resource_layer(frame, state.layout)))
     animations.append(Transform(state.carcasses, _carcass_layer(frame, state.layout)))
-    animations.extend(_status_animations(state, frame, trait_name))
+    animations.extend(_status_animations(state, frame, timeline.trait_name))
     return animations
 
 
@@ -418,13 +449,13 @@ def _organism_animations(
     frame: PortfolioAnimationFrame,
 ) -> list[object]:
     animations: list[object] = []
-    current = {snapshot.organism_id: snapshot for snapshot in frame.spatial.organisms}
+    current = {organism.organism_id: organism for organism in frame.organisms}
     for organism_id in frame.departed_organism_ids:
         marker = state.organisms.pop(organism_id, None)
         if marker is not None:
             animations.append(FadeOut(marker, scale=0.55))
-    for organism_id, snapshot in current.items():
-        target = _organism_marker(snapshot, state.layout)
+    for organism_id, organism in current.items():
+        target = _organism_marker(organism, state.layout)
         if organism_id in state.organisms:
             animations.append(Transform(state.organisms[organism_id], target))
         else:
@@ -457,11 +488,11 @@ def _status_animations(
             ),
         ),
         Transform(
-            state.transition_text,
+            state.evidence_text,
             _replacement_text(
-                state.transition_text,
-                _transition_text(frame),
-                20,
+                state.evidence_text,
+                _evidence_text(frame),
+                19,
                 _MUTED,
             ),
         ),
@@ -493,13 +524,22 @@ def _trait_text(trait_name: str, frame: PortfolioAnimationFrame) -> str:
     return f"Mean {trait_name.replace('_', ' ')}  {value}"
 
 
-def _transition_text(frame: PortfolioAnimationFrame) -> str:
-    if not frame.born_organism_ids and not frame.departed_organism_ids:
-        return "No identity transition"
-    return (
-        f"New +{len(frame.born_organism_ids)}   "
+def _evidence_text(frame: PortfolioAnimationFrame) -> str:
+    identity = (
+        f"Appeared +{len(frame.appeared_organism_ids)}  "
         f"Departed −{len(frame.departed_organism_ids)}"
     )
+    if not frame.applied_events:
+        return f"{identity}  |  committed events 0"
+
+    counts: dict[str, int] = {}
+    for event in frame.applied_events:
+        counts[event.event_name] = counts.get(event.event_name, 0) + 1
+    leading = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:2]
+    event_summary = ", ".join(
+        f"{name} ×{count}" for name, count in leading
+    )
+    return f"{identity}  |  {event_summary}"
 
 
 def _population_chart(timeline: PortfolioAnimationTimeline) -> object:
