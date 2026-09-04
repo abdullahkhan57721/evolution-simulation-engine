@@ -84,9 +84,7 @@ def test_scarce_resource_winner_is_seed_randomized_not_fixed_to_low_id() -> None
                 ControlledLocomotionFounder(max_speed=0, x=5, y=5),
                 ControlledLocomotionFounder(max_speed=0, x=5, y=5),
             ),
-            resource_deposits=(
-                ControlledResourceDeposit(x=5, y=5, amount=1),
-            ),
+            resource_deposits=(ControlledResourceDeposit(x=5, y=5, amount=1),),
             resource_request_amount=1,
             reproduction_minimum_energy=10_000,
         )
@@ -97,11 +95,11 @@ def test_scarce_resource_winner_is_seed_randomized_not_fixed_to_low_id() -> None
         )
         compiled = spec.compile()
         compiled.engine.run(compiled.simulation)
-        feeding = tuple(
-            event.event
-            for event in recorder.events
-            if isinstance(event.event, ResourceConsumption.Event)
-        )
+        feeding: list[ResourceConsumption.Event] = []
+        for applied in recorder.events:
+            event = applied.event
+            if isinstance(event, ResourceConsumption.Event):
+                feeding.append(event)
         assert len(feeding) == 1
         winners.add(feeding[0].organism_id)
 

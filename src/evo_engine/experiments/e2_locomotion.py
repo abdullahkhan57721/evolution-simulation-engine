@@ -138,13 +138,15 @@ def run_locomotion_mechanics_case(
     applied = next(
         event for event in recorder.events if isinstance(event.event, Movement.Event)
     )
-    event = applied.event
+    movement = applied.event
+    if not isinstance(movement, Movement.Event):
+        raise AssertionError("movement telemetry must contain a Movement.Event.")
     measurement = measure_applied_movement(applied)
-    organism = compiled.simulation.state.domain_state.organisms[event.organism_id]
+    organism = compiled.simulation.state.domain_state.organisms[movement.organism_id]
     return LocomotionMechanicsOutcome(
         case=case,
-        attempted_dx=event.dx,
-        attempted_dy=event.dy,
+        attempted_dx=movement.dx,
+        attempted_dy=movement.dy,
         target_x=target_x,
         target_y=target_y,
         target_reached=(organism.x, organism.y) == (target_x, target_y),

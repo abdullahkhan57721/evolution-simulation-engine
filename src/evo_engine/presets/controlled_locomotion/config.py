@@ -83,15 +83,11 @@ class ControlledLocomotionConfig:
     )
     seed: int = attrs.field(default=42, validator=attrs_validators.validate_int)
     founders: tuple[ControlledLocomotionFounder, ...] = attrs.field(
-        factory=lambda: (
-            ControlledLocomotionFounder(max_speed=1, x=15, y=15),
-        ),
+        factory=lambda: (ControlledLocomotionFounder(max_speed=1, x=15, y=15),),
         validator=attrs.validators.instance_of(tuple),
     )
     resource_deposits: tuple[ControlledResourceDeposit, ...] = attrs.field(
-        factory=lambda: (
-            ControlledResourceDeposit(x=25, y=15, amount=100),
-        ),
+        factory=lambda: (ControlledResourceDeposit(x=25, y=15, amount=100),),
         validator=attrs.validators.instance_of(tuple),
     )
     initial_energy: int = attrs.field(
@@ -146,8 +142,7 @@ class ControlledLocomotionConfig:
         for index, deposit in enumerate(self.resource_deposits):
             if not isinstance(deposit, ControlledResourceDeposit):
                 raise TypeError(
-                    "resource_deposits"
-                    f"[{index}] must be a ControlledResourceDeposit."
+                    f"resource_deposits[{index}] must be a ControlledResourceDeposit."
                 )
             self._validate_coordinate(
                 deposit.x,

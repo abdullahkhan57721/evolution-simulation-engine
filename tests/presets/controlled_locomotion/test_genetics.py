@@ -56,9 +56,7 @@ def test_founder_world_is_deterministic_and_nonfocal_biology_is_fixed() -> None:
             ControlledLocomotionFounder(max_speed=2, x=4, y=5),
             ControlledLocomotionFounder(max_speed=8, x=11, y=12),
         ),
-        resource_deposits=(
-            ControlledResourceDeposit(x=15, y=10, amount=40),
-        ),
+        resource_deposits=(ControlledResourceDeposit(x=15, y=10, amount=40),),
         initial_energy=77,
         body_mass=3,
     )

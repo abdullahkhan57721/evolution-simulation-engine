@@ -58,7 +58,7 @@ def test_controlled_locomotion_spec_compiles_with_only_focal_genetic_trait() -> 
 
     compiled = spec.compile()
 
-    assert compiled.dependency_report.is_valid
+    assert not compiled.dependency_report.missing
     assert spec.genetic_architecture.trait_names == frozenset({MAX_SPEED})
 
 
@@ -73,34 +73,44 @@ def test_higher_capacity_permits_greater_target_directed_displacement() -> None:
     fast_event = next(
         event for event in fast_events if isinstance(event.event, Movement.Event)
     )
+    slow_movement = slow_event.event
+    fast_movement = fast_event.event
+    assert isinstance(slow_movement, Movement.Event)
+    assert isinstance(fast_movement, Movement.Event)
     slow = measure_applied_movement(slow_event)
     fast = measure_applied_movement(fast_event)
 
-    assert slow_event.event.target_x == 25
-    assert fast_event.event.target_x == 25
+    assert slow_movement.target_x == 25
+    assert fast_movement.target_x == 25
     assert slow.realized_distance == 2.0
     assert fast.realized_distance == 5.0
     assert slow.locomotion_energy_expenditure == 4
     assert fast.locomotion_energy_expenditure == 25
 
 
-def test_target_within_capacity_is_reached_without_overshoot_and_consumed_locally() -> None:
+def test_target_within_capacity_is_reached_without_overshoot_and_consumed_locally() -> (
+    None
+):
     """Test endpoint feeding follows exact target arrival rather than path traversal."""
     _, world, events = _run_one_step(max_speed=10, target_x=8, target_y=9)
 
-    movement = next(
+    movement_applied = next(
         event for event in events if isinstance(event.event, Movement.Event)
     )
-    feeding = next(
+    feeding_applied = next(
         event for event in events if isinstance(event.event, ResourceConsumption.Event)
     )
-    measured = measure_applied_movement(movement)
+    movement = movement_applied.event
+    feeding = feeding_applied.event
+    assert isinstance(movement, Movement.Event)
+    assert isinstance(feeding, ResourceConsumption.Event)
+    measured = measure_applied_movement(movement_applied)
 
-    assert (movement.event.dx, movement.event.dy) == (3, 4)
-    assert (movement.event.new_x, movement.event.new_y) == (8, 9)
+    assert (movement.dx, movement.dy) == (3, 4)
+    assert (movement.new_x, movement.new_y) == (8, 9)
     assert measured.realized_distance == 5.0
     assert measured.locomotion_energy_expenditure == 25
-    assert (feeding.event.x, feeding.event.y) == (8, 9)
+    assert (feeding.x, feeding.y) == (8, 9)
     assert world.organisms[0].x == 8
     assert world.organisms[0].y == 9
 
@@ -125,14 +135,18 @@ def test_no_resource_target_produces_stationary_fallback_not_blind_travel() -> N
 
     compiled.engine.run(compiled.simulation)
 
-    movement_events = tuple(
+    movement_applied = tuple(
         event for event in recorder.events if isinstance(event.event, Movement.Event)
     )
-    assert len(movement_events) == 2
-    assert movement_events[0].event.target_x == 6
-    assert (movement_events[0].event.dx, movement_events[0].event.dy) == (1, 0)
-    assert movement_events[1].event.target_x is None
-    assert (movement_events[1].event.dx, movement_events[1].event.dy) == (0, 0)
+    assert len(movement_applied) == 2
+    first = movement_applied[0].event
+    second = movement_applied[1].event
+    assert isinstance(first, Movement.Event)
+    assert isinstance(second, Movement.Event)
+    assert first.target_x == 6
+    assert (first.dx, first.dy) == (1, 0)
+    assert second.target_x is None
+    assert (second.dx, second.dy) == (0, 0)
 
 
 def test_single_parent_reproduction_clones_capacity_without_mate_search() -> None:
@@ -157,18 +171,24 @@ def test_single_parent_reproduction_clones_capacity_without_mate_search() -> Non
 
     compiled.engine.run(compiled.simulation)
 
-    reproduction = next(
-        event for event in recorder.events if isinstance(event.event, Reproduction.Event)
+    reproduction_applied = next(
+        event
+        for event in recorder.events
+        if isinstance(event.event, Reproduction.Event)
     )
-    movement = next(
+    movement_applied = next(
         event for event in recorder.events if isinstance(event.event, Movement.Event)
     )
+    reproduction = reproduction_applied.event
+    movement = movement_applied.event
+    assert isinstance(reproduction, Reproduction.Event)
+    assert isinstance(movement, Movement.Event)
     world = compiled.simulation.state.domain_state
 
-    assert reproduction.event.parent_ids == (0,)
-    assert reproduction.event.participant_ids == (0,)
-    assert movement.event.behavioral_purpose == "energy_acquisition"
-    assert movement.event.target_x == 7
+    assert reproduction.parent_ids == (0,)
+    assert reproduction.participant_ids == (0,)
+    assert movement.behavioral_purpose == "energy_acquisition"
+    assert movement.target_x == 7
     assert len(world.organisms) == 2
     assert world.organisms[1].genetic_phenotype.int_value(MAX_SPEED) == 3
     assert world.organisms[1].body_mass == config.body_mass
