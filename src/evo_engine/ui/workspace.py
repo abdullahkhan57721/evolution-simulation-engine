@@ -38,6 +38,7 @@ from evo_engine.ui.world_presentation import (
     WorldPresentationFrame,
     available_step_indices,
     build_world_presentation,
+    spatial_frame_for_step,
 )
 from evo_engine.ui.world_renderer import world_presentation_figure
 
@@ -186,7 +187,9 @@ def _world_controls(run: DashboardRun, steps: tuple[int, ...]) -> None:
         use_container_width=True,
     ):
         st.session_state[_WORLD_PLAYING_KEY] = True
-        st.session_state[_WORLD_NEXT_ADVANCE_KEY] = time.monotonic() + _playback_interval()
+        st.session_state[_WORLD_NEXT_ADVANCE_KEY] = (
+            time.monotonic() + _playback_interval()
+        )
         st.rerun(scope="app")
     if next_col.button(
         "Next",
@@ -284,11 +287,15 @@ def _render_context(run: DashboardRun, presentation: WorldPresentationFrame) -> 
     st.subheader("Key science")
     st.metric("Committed step", presentation.committed_step_index)
     if observation is None:
-        st.metric("Population", len(presentation.organisms))
-        st.metric("Resources", sum(item.amount for item in presentation.resources))
+        spatial = spatial_frame_for_step(
+            run.spatial_history,
+            step_index=presentation.committed_step_index,
+        )
+        st.metric("Population", len(spatial.organisms))
+        st.metric("Resources", sum(item.amount for item in spatial.resources))
         st.metric("Mean energy", "—")
         st.metric("Mean body mass", "—")
-        st.metric("Carcasses", len(presentation.carcasses))
+        st.metric("Carcasses", len(spatial.carcasses))
     else:
         st.metric("Population", observation.population_size)
         st.metric("Resources", observation.total_resources)
@@ -323,7 +330,9 @@ def _advance_playback_if_due(steps: tuple[int, ...]) -> None:
         st.rerun(scope="app")
     deadline = st.session_state.get(_WORLD_NEXT_ADVANCE_KEY)
     if not isinstance(deadline, float):
-        st.session_state[_WORLD_NEXT_ADVANCE_KEY] = time.monotonic() + _playback_interval()
+        st.session_state[_WORLD_NEXT_ADVANCE_KEY] = (
+            time.monotonic() + _playback_interval()
+        )
         return
     if time.monotonic() < deadline:
         return
