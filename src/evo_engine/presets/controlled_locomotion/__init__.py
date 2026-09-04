@@ -1,5 +1,9 @@
 """Controlled clonal locomotion experiment composition."""
 
+from evo_engine.presets.controlled_locomotion.builders import (
+    build_controlled_locomotion_event_recorder_spec,
+    build_controlled_locomotion_spec,
+)
 from evo_engine.presets.controlled_locomotion.config import (
     CONTROLLED_MAX_SPEED_MAXIMUM,
     ControlledLocomotionConfig,
@@ -19,7 +23,9 @@ __all__ = [
     "ControlledLocomotionConfig",
     "ControlledLocomotionFounder",
     "ControlledResourceDeposit",
+    "build_controlled_locomotion_event_recorder_spec",
     "build_controlled_locomotion_founder_genome",
     "build_controlled_locomotion_genetic_architecture",
+    "build_controlled_locomotion_spec",
     "build_controlled_locomotion_world",
 ]
