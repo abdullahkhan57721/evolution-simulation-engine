@@ -11,7 +11,10 @@ from evo_engine.ui.models import (
     run_dashboard_flagship_max_intake,
     run_dashboard_reference,
 )
-from evo_engine.ui.workspace import render_simulation_workspace
+from evo_engine.ui.workspace import (
+    render_simulation_workspace,
+    reset_world_presentation_state,
+)
 
 _RUN_KEY = "portfolio_dashboard_run"
 _EXPERIMENT_KEY = "portfolio_experiment_result"
@@ -75,6 +78,7 @@ def _workspace_mode(run: DashboardRun) -> None:
     if action == "new":
         st.session_state.pop(_RUN_KEY, None)
         st.session_state.pop(_EXPERIMENT_KEY, None)
+        reset_world_presentation_state()
         st.session_state[_MODE_KEY] = _CONFIGURATION_MODE
         st.rerun()
 
@@ -97,6 +101,7 @@ def _rerun(run: DashboardRun) -> None:
 def _store_completed_run(run: DashboardRun) -> None:
     st.session_state[_RUN_KEY] = run
     st.session_state.pop(_EXPERIMENT_KEY, None)
+    reset_world_presentation_state()
     st.session_state[_MODE_KEY] = _WORKSPACE_MODE
 
 
