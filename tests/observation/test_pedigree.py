@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+from typing import Protocol
+
 import attrs
 
 from evo_engine.observation import PedigreeRecorder
 from evo_engine.telemetry import AppliedEvent, StepTelemetry
 from evo_engine.world import OrganismAdded, OrganismRemoved
 from tests.helpers import add_organism, make_state
+
+
+class _StepIndexedEvent(Protocol):
+    step_index: int
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -43,13 +49,13 @@ class RemovalEvent:
 
 
 def _applied_event(
-    event: object,
+    event: _StepIndexedEvent,
     *,
     process_type: str,
     effects: tuple[object, ...],
 ) -> AppliedEvent:
     return AppliedEvent(
-        event_step_index=0,
+        event_step_index=event.step_index,
         stage_index=0,
         process_type=process_type,
         event_type=f"tests.{type(event).__name__}",

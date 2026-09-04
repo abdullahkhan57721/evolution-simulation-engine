@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 
+from evo_engine.experiments.b3_flagship import run_b3_flagship
 from evo_engine.experiments.export import write_locomotion_measurements_json
 from evo_engine.experiments.locomotion import (
     measure_applied_movement,
@@ -15,6 +17,9 @@ from evo_engine.experiments.locomotion import (
 from evo_engine.experiments.science import (
     ScientificRunProvenance,
     canonical_treatment_specification,
+)
+from evo_engine.presets.reference_ecology.b3_flagship import (
+    build_b3_flagship_specification,
 )
 from evo_engine.processes import Movement
 from evo_engine.telemetry import AppliedEvent
@@ -32,6 +37,7 @@ def _provenance() -> ScientificRunProvenance:
         seed=17,
         horizon_step_index=20,
         observation_every_n_steps=1,
+        observation_include_step_zero=True,
         focal_variables=("max_speed", "realized_distance"),
         run_role="confirmation",
     )
@@ -114,6 +120,50 @@ def test_applied_movement_rejects_inconsistent_committed_endpoint() -> None:
         measure_applied_movement(_movement_event(effects=(effect,)))
 
 
+def test_applied_movement_rejects_malformed_event_evidence() -> None:
+    """Test movement measurement rejects wrong type, timing, and effect identity."""
+    with pytest.raises(TypeError, match="must be an AppliedEvent"):
+        measure_applied_movement(cast(AppliedEvent, object()))
+
+    nonmovement = AppliedEvent(
+        event_step_index=0,
+        stage_index=0,
+        process_type="tests.Process",
+        event_type="tests.Event",
+        event=object(),
+    )
+    with pytest.raises(TypeError, match="must contain a Movement.Event"):
+        measure_applied_movement(nonmovement)
+
+    movement = _movement_event()
+    mismatched_step = AppliedEvent(
+        event_step_index=2,
+        stage_index=movement.stage_index,
+        process_type=movement.process_type,
+        event_type=movement.event_type,
+        event=movement.event,
+        effects=movement.effects,
+    )
+    with pytest.raises(ValueError, match="step_index must match"):
+        measure_applied_movement(mismatched_step)
+
+    mismatched_identity = OrganismMoved(
+        organism_id=99,
+        from_x=4,
+        from_y=5,
+        to_x=7,
+        to_y=9,
+    )
+    with pytest.raises(ValueError, match="organism IDs must match"):
+        measure_applied_movement(_movement_event(effects=(mismatched_identity,)))
+
+    move_effect = cast(OrganismMoved, movement.effects[0])
+    with pytest.raises(ValueError, match="multiple move effects"):
+        measure_applied_movement(
+            _movement_event(effects=(move_effect, move_effect)),
+        )
+
+
 def test_locomotion_summary_uses_applied_movement_as_explicit_denominator() -> None:
     """Test replicate means use the committed applied-movement denominator."""
     first = _movement_event()
@@ -148,9 +198,31 @@ def test_locomotion_summary_keeps_empty_denominator_undefined() -> None:
     )
 
     assert result.applied_movement_count == 0
+    assert result.total_attempted_distance == 0.0
     assert result.total_realized_distance == 0.0
     assert result.mean_realized_distance_per_applied_movement is None
     assert result.mean_locomotion_energy_expenditure_per_applied_movement is None
+
+
+def test_b3_seed_5_movement_matches_committed_flagship_evidence() -> None:
+    """Test E1 measurement reproduces the frozen B3 representative movement."""
+    evidence = run_b3_flagship(
+        build_b3_flagship_specification(seed=5, environment="compact_patch")
+    )
+    applied_event = next(
+        event
+        for event in evidence.events
+        if isinstance(event.event, Movement.Event)
+        and event.event.organism_id == 1
+        and event.completed_step_index == 5
+    )
+
+    measurement = measure_applied_movement(applied_event)
+
+    assert measurement.completed_step_index == 5
+    assert measurement.organism_id == 1
+    assert measurement.realized_distance == 4.0
+    assert measurement.locomotion_energy_expenditure == 2
 
 
 def test_locomotion_export_preserves_scientific_provenance(tmp_path: Path) -> None:
@@ -171,6 +243,7 @@ def test_locomotion_export_preserves_scientific_provenance(tmp_path: Path) -> No
     assert payload["provenance"]["seed"] == 17
     assert payload["provenance"]["horizon_step_index"] == 20
     assert payload["provenance"]["observation_every_n_steps"] == 1
+    assert payload["provenance"]["observation_include_step_zero"] is True
     assert payload["provenance"]["run_role"] == "confirmation"
     assert payload["mean_realized_distance_per_applied_movement"] == 5.0
     assert (

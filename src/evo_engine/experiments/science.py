@@ -11,9 +11,7 @@ import attrs
 from evo_engine.validation import validators
 
 RunRole = Literal["discovery", "confirmation", "representative"]
-_RUN_ROLES: frozenset[str] = frozenset(
-    {"discovery", "confirmation", "representative"}
-)
+_RUN_ROLES: frozenset[str] = frozenset({"discovery", "confirmation", "representative"})
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -32,7 +30,9 @@ class ScientificRunProvenance:
             scientifically relevant treatment specification.
         seed: Simulation RNG seed identifying the replicate.
         horizon_step_index: Predeclared final committed-state index.
-        observation_every_n_steps: State-observation cadence for the run.
+        observation_every_n_steps: State-observation frequency for the run.
+        observation_include_step_zero: Whether the observation schedule includes
+            the initial committed state at step zero.
         focal_variables: Predeclared scientific variables selected for analysis.
         run_role: Discovery, independent confirmation, or representative-only
             role when that distinction applies.
@@ -45,6 +45,7 @@ class ScientificRunProvenance:
     seed: int
     horizon_step_index: int
     observation_every_n_steps: int
+    observation_include_step_zero: bool
     focal_variables: tuple[str, ...]
     run_role: RunRole | None = None
 
@@ -63,6 +64,10 @@ class ScientificRunProvenance:
             self.observation_every_n_steps,
             bound=1,
             name="observation_every_n_steps",
+        )
+        validators.validate_bool(
+            self.observation_include_step_zero,
+            name="observation_include_step_zero",
         )
         validators.validate_tuple(self.focal_variables, name="focal_variables")
         if not self.focal_variables:
@@ -135,9 +140,7 @@ class FixedHorizonTimeToEvent:
                 name="event_step_index",
             )
             if self.event_step_index > self.horizon_step_index:
-                raise ValueError(
-                    "event_step_index must not exceed horizon_step_index."
-                )
+                raise ValueError("event_step_index must not exceed horizon_step_index.")
 
     @property
     def right_censored(self) -> bool:
@@ -179,7 +182,9 @@ def canonical_treatment_specification(
             ensure_ascii=False,
         )
     except (TypeError, ValueError) as error:
-        raise TypeError("specification must contain JSON-serializable values.") from error
+        raise TypeError(
+            "specification must contain JSON-serializable values."
+        ) from error
 
 
 def validate_declared_treatment_difference(

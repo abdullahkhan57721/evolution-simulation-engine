@@ -51,9 +51,7 @@ class AppliedMovementMeasurement:
             name="completed_step_index",
         )
         if self.completed_step_index != self.event_step_index + 1:
-            raise ValueError(
-                "completed_step_index must equal event_step_index + 1."
-            )
+            raise ValueError("completed_step_index must equal event_step_index + 1.")
         validators.validate_int_ge(self.organism_id, bound=0, name="organism_id")
         _validate_nonnegative_finite_float(
             self.attempted_distance,
@@ -194,15 +192,19 @@ def summarize_locomotion_replicate(
     for index, applied_event in enumerate(events):
         if not isinstance(applied_event, AppliedEvent):
             raise TypeError(
-                f"events[{index}] must be an AppliedEvent; received "
-                f"{applied_event!r}."
+                f"events[{index}] must be an AppliedEvent; received {applied_event!r}."
             )
         if isinstance(applied_event.event, Movement.Event):
             measurements.append(measure_applied_movement(applied_event))
 
     count = len(measurements)
+    total_attempted_distance = sum(
+        (measurement.attempted_distance for measurement in measurements),
+        0.0,
+    )
     total_realized_distance = sum(
-        measurement.realized_distance for measurement in measurements
+        (measurement.realized_distance for measurement in measurements),
+        0.0,
     )
     total_locomotion_energy_expenditure = sum(
         measurement.locomotion_energy_expenditure for measurement in measurements
@@ -210,9 +212,7 @@ def summarize_locomotion_replicate(
     return LocomotionReplicateMeasurements(
         provenance=provenance,
         applied_movement_count=count,
-        total_attempted_distance=sum(
-            measurement.attempted_distance for measurement in measurements
-        ),
+        total_attempted_distance=total_attempted_distance,
         total_realized_distance=total_realized_distance,
         mean_realized_distance_per_applied_movement=(
             total_realized_distance / count if count else None
@@ -239,9 +239,7 @@ def _validate_optional_per_movement_mean(
 
     _validate_nonnegative_finite_float(value, name=name)
     if applied_movement_count == 0:
-        raise ValueError(
-            f"{name} must be None when applied_movement_count is zero."
-        )
+        raise ValueError(f"{name} must be None when applied_movement_count is zero.")
 
 
 def _validate_nonnegative_finite_float(value: object, *, name: str) -> float:
