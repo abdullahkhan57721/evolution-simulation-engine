@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 from evo_engine.observation import (
@@ -164,21 +166,25 @@ def test_world_presentation_rejects_invalid_view_inputs() -> None:
     history = _history()
 
     with pytest.raises(TypeError, match="trail_length"):
-        build_world_presentation(history, step_index=0, trail_length=2.5)  # type: ignore[arg-type]
+        build_world_presentation(
+            history,
+            step_index=0,
+            trail_length=cast(Any, 2.5),
+        )
     with pytest.raises(ValueError, match="at least 1"):
         build_world_presentation(history, step_index=0, trail_length=0)
     with pytest.raises(TypeError, match="selected_organism_id"):
-        build_world_presentation(  # type: ignore[arg-type]
+        build_world_presentation(
             history,
             step_index=0,
-            selected_organism_id="0",
+            selected_organism_id=cast(Any, "0"),
         )
 
 
 def test_marker_size_rejects_nonphysical_inputs() -> None:
     """Test body-mass display sizing retains its physical input contract."""
     with pytest.raises(TypeError, match="body_mass"):
-        organism_marker_size(1.5)  # type: ignore[arg-type]
+        organism_marker_size(cast(Any, 1.5))
     with pytest.raises(ValueError, match="at least 1"):
         organism_marker_size(0)
 
