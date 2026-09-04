@@ -125,6 +125,16 @@ jobs:
           assert app.title[0].value == "Evolution Simulation Engine"
           labels = {button.label for button in app.button}
           assert "Run flagship evolution demo" in labels
+          assert "Run simulation" not in labels
+
+          path = next(
+              radio for radio in app.radio if radio.label == "Configuration path"
+          )
+          path.set_value("Custom experiment")
+          app.run(timeout=30)
+          assert not app.exception
+          labels = {button.label for button in app.button}
           assert "Run simulation" in labels
-          print("Dashboard initial state verified with Streamlit AppTest")
+          assert "Run flagship evolution demo" not in labels
+          print("V2 configuration paths verified with Streamlit AppTest")
           PY
