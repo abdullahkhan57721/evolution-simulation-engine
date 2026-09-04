@@ -219,7 +219,9 @@ class B3FlagshipDirectorPlan:
             has_confirmation=bool(self.confirmation_points),
         )
         if self.conclusion != B3_BOUNDED_CONCLUSION:
-            raise ValueError("B3 cinematic conclusion must match the confirmed handoff.")
+            raise ValueError(
+                "B3 cinematic conclusion must match the confirmed handoff."
+            )
         if self.scope_qualifier != B3_SCOPE_QUALIFIER:
             raise ValueError("B3 cinematic scope qualifier must remain fixed.")
 
@@ -317,7 +319,9 @@ def _validate_representative_specifications(
         if specification.environment != environment:
             raise ValueError(f"B3 {name} has the wrong environment.")
         if specification.founder_assignment != "standard":
-            raise ValueError("B3 representative film must use standard founder assignment.")
+            raise ValueError(
+                "B3 representative film must use standard founder assignment."
+            )
 
 
 def _prepare_arm(
@@ -410,7 +414,9 @@ def _matched_genetic_trajectory(
             control_point.high_speed_allele_frequency is None
             or treatment_point.high_speed_allele_frequency is None
         ):
-            raise ValueError("Confirmed B3 representative trajectories must be non-extinct.")
+            raise ValueError(
+                "Confirmed B3 representative trajectories must be non-extinct."
+            )
         matched.append(
             B3MatchedGeneticPoint(
                 step_index=control_point.step_index,
@@ -457,7 +463,9 @@ def _founder_contribution_points(
     for pair in pairs:
         for summary in (pair.control, pair.treatment):
             if summary.environment not in ("uniform", "compact_patch"):
-                raise ValueError("B3 founder contribution requires canonical matched arms.")
+                raise ValueError(
+                    "B3 founder contribution requires canonical matched arms."
+                )
             contribution = summary.founder_reproductive_success
             points.append(
                 B3FounderContributionPoint(
@@ -480,7 +488,9 @@ def _validate_confirmation_pair_order(
             "predeclared order."
         )
     if any(pair.founder_assignment != "standard" for pair in pairs):
-        raise ValueError("B3 flagship confirmation must use standard founder assignment.")
+        raise ValueError(
+            "B3 flagship confirmation must use standard founder assignment."
+        )
 
 
 def _broad_patch_mean(
@@ -496,11 +506,15 @@ def _broad_patch_mean(
         return None
     seeds = tuple(summary.seed for summary in summaries)
     if seeds != B3_CONFIRMATION_SEEDS:
-        raise ValueError("B3 broad-patch evidence must use all confirmation seeds in order.")
+        raise ValueError(
+            "B3 broad-patch evidence must use all confirmation seeds in order."
+        )
     values: list[float] = []
     for summary in summaries:
         if summary.environment != "broad_patch":
-            raise ValueError("B3 sensitivity evidence must use broad_patch specifications.")
+            raise ValueError(
+                "B3 sensitivity evidence must use broad_patch specifications."
+            )
         values.append(_required_frequency(summary.primary_high_speed_frequency))
     return sum(values) / len(values)
 
@@ -514,6 +528,10 @@ def _required_frequency(value: float | None) -> float:
 def _validate_prepared_arms(control: B3PreparedArm, treatment: B3PreparedArm) -> None:
     if control.label != B3_CONTROL_LABEL or treatment.label != B3_TREATMENT_LABEL:
         raise ValueError("B3 cinematic arm labels must remain fixed.")
+    validate_b3_treatment_integrity(
+        control.evidence.specification,
+        treatment.evidence.specification,
+    )
     _validate_representative_specifications(control.evidence, treatment.evidence)
     if control.timeline.world_bounds != treatment.timeline.world_bounds:
         raise ValueError("B3 matched cinematic worlds must use identical world bounds.")
@@ -528,7 +546,9 @@ def _validate_focal_encoding(encoding: ContinuousTraitEncoding) -> None:
         lower_bound=B3_LOW_MAX_SPEED,
         upper_bound=B3_HIGH_MAX_SPEED,
     ):
-        raise ValueError("B3 flagship focal encoding must remain max_speed on scale 1..4.")
+        raise ValueError(
+            "B3 flagship focal encoding must remain max_speed on scale 1..4."
+        )
 
 
 def _validate_act_order(acts: tuple[B3DirectorAct, ...]) -> None:
@@ -586,7 +606,9 @@ def _validate_founder_contributions(
     )
     actual = tuple((point.seed, point.environment) for point in points)
     if actual != expected:
-        raise ValueError("B3 founder-contribution points must preserve matched run order.")
+        raise ValueError(
+            "B3 founder-contribution points must preserve matched run order."
+        )
 
 
 def _validate_broad_patch_mean(
@@ -595,7 +617,9 @@ def _validate_broad_patch_mean(
     has_confirmation: bool,
 ) -> None:
     if has_confirmation and value is None:
-        raise ValueError("Full B3 flagship plan requires broad-patch sensitivity evidence.")
+        raise ValueError(
+            "Full B3 flagship plan requires broad-patch sensitivity evidence."
+        )
     if not has_confirmation and value is not None:
         raise ValueError("Broad-patch mean requires full confirmation evidence.")
 
