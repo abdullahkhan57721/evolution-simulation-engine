@@ -137,7 +137,7 @@ analysis layer, and no universal metric/statistics framework has been introduced
 
 ### Controlled clonal locomotion mechanics
 
-E2 now provides a deliberately minimal experimental locomotion composition that is
+E2 provides a deliberately minimal experimental locomotion composition that is
 separate from the richer reference ecology and B3 flagship. It reuses existing
 general contracts rather than changing the kernel or simplifying general genetics:
 
@@ -177,6 +177,41 @@ displacement. Continuous travel-cost theory is only a hypothesis/benchmark for
 later experiments; discrete timesteps, integer rounding, depletion, competition,
 and demography prevent treating it as an exact simulation oracle. E2 makes no
 evolutionary-adaptation claim.
+
+### Confirmed ecological performance landscape
+
+E3 reuses the E2 controlled composition with focal evolution disabled and measures
+the full causal ladder from monomorphic `max_speed` capacity through committed
+movement, locomotion expenditure, resource acquisition, population energy, and
+fixed-horizon reproduction/survival.
+
+The frozen canonical speed grid is `1..10`, well inside E2's supported trait domain
+through 20. Two environments hold total initial resources and all nonfocal biology
+fixed: a local-resource null requiring no travel, and an axis-aligned separated
+resource corridor requiring repeated travel. One run/seed remains the replicate;
+fixed-horizon cumulative applied reproduction events are the primary ecological
+performance outcome, while movement, resource, energy, population, and extinction
+remain separate mechanism/diagnostic evidence.
+
+The local-resource null is exactly speed-neutral in the independent confirmation:
+every tested speed produces six births in all eight confirmation replicates, with
+all resources consumed and no movement cost. The separated corridor independently
+confirms an interior performance maximum at `max_speed = 3`: mean births rise from
+2.0 at speed 1 to 4.0 at speed 3, then decline through 1.0 at speed 9 and 0 at
+speed 10. Speed 10 spends the founder's entire initial energy on its first movement
+and goes extinct in all confirmation runs.
+
+A bounded sensitivity changes only locomotion-cost coefficient `1 → 0`. Removing
+locomotion expenditure removes the high-speed penalty: speeds 3–10 consume all
+resources, speeds 4–10 form a near-flat high-performance plateau, and speed 10
+changes from extinction/zero reproduction to high reproductive output. This
+supports the mechanism that locomotor capacity creates an access benefit while
+quadratic locomotion-use expenditure creates the canonical high-speed cost.
+
+E3 also validates an experiment-specific whole-population energy identity from
+committed evidence. No scalar fitness field, optimization framework, or statistics
+DSL was added. The durable scientific handoff and frozen E4 prediction live in
+`docs/e3_ecological_performance.md`.
 
 ### Scientific visualization boundary
 
@@ -271,10 +306,10 @@ the public story.
 
 ## Current development front
 
-The project now has both a confirmed richer B3 environment-dependent selection
-story and a validated minimal E2 locomotion-mechanics composition. These serve
-different purposes: B3 is the integrated public scientific flagship; E2 is the
-controlled causal foundation for the next experimental sequence.
+The project now has three complementary scientific layers: the richer confirmed B3
+reference-ecology flagship, E2's isolated locomotion mechanics, and E3's independently
+confirmed monomorphic ecological-performance landscape. E3 has therefore completed
+the causal prediction step required before standing variation is introduced.
 
 Two fronts can proceed independently:
 
@@ -293,23 +328,19 @@ E1 experimental-science foundation
 E2 validated clonal locomotion mechanics
         |
         v
-E3 controlled ecological performance landscape
+E3 confirmed ecological performance landscape
         |
         v
 E4 standing-variation selection test
 ```
 
-E3 is now the next controlled-science milestone. It should keep focal evolution
-disabled and measure the `max_speed` capacity → realized movement → movement energy
-→ resource/energy/survival/reproduction causal ladder across predeclared
-monomorphic speed treatments and purposeful resource geometries. It should use E1
-replicate/provenance/treatment-integrity semantics and E2's validated controlled
-composition rather than reopening locomotion architecture.
-
-E4 should only follow after E3 produces an independently measured performance
-prediction. It will introduce known standing inherited speed variation with
-mutation still off and ask whether strategy/focal-trait frequencies move in the
-predicted direction.
+E4 is now the next controlled-science milestone. It should introduce known standing
+inherited variation with mutation still off, counterbalance founder positions and
+labels, and test the prediction frozen independently by E3: in the separated
+corridor, variation containing `max_speed = 1`, `3`, and `9` should shift toward
+the intermediate speed-3 lineage, while the matched local-resource environment
+should show no consistent speed-ordered advantage across seeds. Disagreement is a
+scientific result to investigate rather than tune away.
 
 The presentation media should consume the B3 treatment/control semantics, fixed
 `max_speed` scale, matched comparison, representative seed/episodes, evidence
@@ -327,8 +358,8 @@ All fronts should preserve:
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-Those fronts need not serialize behind presentation or the controlled E3/E4 track
-when their public boundaries are already settled.
+Those fronts need not serialize behind presentation or the controlled E4 track when
+their public boundaries are already settled.
 
 A native Rust/C++ backend remains a separate evidence-driven future concern.
 Python continues to own high-level modeling/configuration until measured workloads
@@ -374,6 +405,14 @@ independently parallelizable repository iteration.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Confirmed ecological performance landscape:** measured the monomorphic
+  `max_speed` → movement → locomotion cost → resource acquisition → population
+  energy → reproduction/survival ladder in E2's controlled clonal system,
+  independently confirmed an interior speed-3 performance maximum in a separated
+  resource corridor and an exact speed-neutral local-resource null, demonstrated
+  that removing locomotion cost removes the high-speed penalty, validated the
+  controlled whole-population energy budget, and froze the directional E4 standing-
+  variation prediction without introducing a fitness/optimization framework.
 - **Controlled clonal locomotion mechanics:** added a thin one-locus `max_speed`
   experimental composition using existing clonal inheritance, deterministic
   resource targeting, fixed nonfocal biology, use-only locomotion cost, and E1
