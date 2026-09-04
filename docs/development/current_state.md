@@ -217,6 +217,18 @@ camera timing, or other renderer implementation. Interactive and cinematic media
 independently own interaction, layout, camera, timing, interpolation, and
 storytelling.
 
+The first concrete cross-renderer scientific encoding is intentionally small:
+`ContinuousTraitEncoding` stores only a committed trait name, human-readable label,
+and fixed numeric bounds/normalization. It contains no renderer color, material,
+widget, camera, timing, easing, or scene-order configuration.
+
+The cinematic preparation path joins committed spatial and optional per-organism
+trait evidence by `(step_index, organism_id)` and attaches committed `StepTelemetry`
+separately. Identity appearance/departure remains renderer continuity metadata, not
+birth/death evidence. Cinematic event selection therefore uses actual committed
+`AppliedEvent` values in commit order. Presentation interpolation preserves exact
+committed endpoints but is never scientific evidence.
+
 Presentation interpolation is never scientific evidence. Configuration context,
 committed state, committed events, derived statistics, interpolation, and authored
 annotations remain conceptually distinct. A broad shared scenario-presentation
@@ -226,17 +238,29 @@ fields that genuinely repeat.
 ### Portfolio interfaces
 
 `evo_engine.ui` remains the current optional top-level Streamlit/Plotly consumer.
-It provides curated typed reference-ecology configuration, conditional
-mutation/recombination controls, spatial playback, evolutionary/genetic analytics,
-event/life-history views, experiment comparison, and export. Hidden UI state is
-not implicit engine configuration; selected values normalize into typed
-configuration before execution.
+Its current shell uses an explicit full-window configuration mode followed by a
+run action and a world-centered simulation workspace. The existing curated typed
+reference-ecology controls, spatial playback, evolutionary/genetic analytics,
+event/life-history views, experiment comparison, and export remain downstream of
+completed immutable results. Hidden UI state is not implicit engine configuration;
+selected values normalize into typed configuration before execution.
 
 `evo_engine.cinematic` remains the current optional sibling Manim consumer. Its
-`PortfolioAnimationTimeline` is renderer-owned ordering/interpolation state over
-committed `SpatialObservation` and `PopulationObservation` values, not a generic
-replay contract. Rendering occurs only after simulation completion and the heavy
-Manim dependency remains outside the core/default runtime.
+`PortfolioAnimationTimeline` is renderer-owned presentation ordering over committed
+`SpatialObservation`, `PopulationObservation`, optional
+`IndividualGeneticTraitObservation`, and committed event telemetry values, not a
+generic replay contract. Prepared organism primitives contain immutable copied
+scientific values rather than live domain objects. Generic mode remains available
+without a focal encoding; a focal view can bind one committed continuous trait to
+organism fill with an explicit legend while secondary categories do not reuse that
+channel. Rendering occurs only after simulation completion and the heavy Manim
+dependency remains outside the core/default runtime.
+
+The cinematic package also provides presentation-only endpoint-preserving position
+interpolation, authoritative event selection, and scalar reproducibility metadata.
+These are renderer-side capabilities, not modeled dynamics or a general film DSL.
+A B3-specific cinematic director remains separate and should consume the final
+renderer-neutral scenario storyboard rather than manufacture scientific episodes.
 
 The next presentation generation may replace renderer implementations, but it must
 preserve the committed-evidence and scientific-encoding boundaries rather than
@@ -273,8 +297,9 @@ The repository quality gate includes Ruff, Pyright, Import Linter architecture
 contracts, kernel-contract regressions, Complexipy, pytest with coverage, strict
 MkDocs, reference/kernel performance checks, and a stable protected aggregate
 status. Headless Streamlit interaction tests exercise the real dashboard path.
-Manim has a separate real render/decode smoke workflow so the heavy renderer does
-not become a core dependency.
+Manim has a separate real render/decode smoke workflow that covers both the generic
+cinematic path and a short science-aware B1/B2 focal-evidence path without making a
+full portfolio film part of routine CI.
 
 ## Current development front
 
@@ -288,12 +313,14 @@ Post-v0.1 development has **two coordinated parallel fronts**:
    experience above committed evidence while sharing scientific meaning rather
    than renderer mechanics.
 
-The immediate integration question is no longer whether patchy resources or a
-heritable performance tradeoff exist: both have concrete implementations and
-evidence. Scenario discovery can now test whether their composition yields a
-simple, robust, causally legible evolutionary demonstration. Presentation can
-advance in parallel on generic world/replay capabilities, while scenario-specific
-individual encoding consumes the selective per-organism trait observation seam.
+The immediate integration question is no longer whether patchy resources, a
+heritable performance tradeoff, or renderer-neutral focal-trait replay exist: all
+three now have concrete implementations and evidence. B3 scenario discovery must
+still determine the simplest robust causal demonstration and provide its durable
+scientific storyboard. In parallel, the interactive front has its configuration →
+run → world-workspace shell, and the cinematic front has a science-aware committed-
+evidence preparation/rendering foundation. The next scenario-specific presentation
+work should consume B3's final meaning rather than infer or invent it.
 
 Other longer-term modeled fronts remain:
 
@@ -353,6 +380,14 @@ cycle time, architectural correctness, recoverability, and user attention.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Science-aware cinematic foundation:** joined committed spatial, selective
+  per-organism focal-trait, and event evidence into deterministic cinematic
+  preparation; added a minimal shared continuous-trait encoding, authoritative
+  event selection, presentation-only interpolation, reproducibility metadata, and
+  generic/focal Manim rendering without live simulation ownership.
+- **World-centered interactive shell:** established explicit full-window
+  configuration → run → world-workspace mode switching while preserving completed
+  immutable result ownership and the existing scientific-presentation boundary.
 - **Scientific visualization evidence boundary:** added selective committed
   per-organism genetic-phenotype trait observation and formalized the separation
   among scientific evidence, scenario-specific visual meaning, and renderer-owned
