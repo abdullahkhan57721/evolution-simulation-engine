@@ -79,11 +79,11 @@ nav:
   - Pedigree and Lifetime Fitness: pedigree_fitness.md
   - Allele and Genotype Frequencies: genetic_composition.md
   - Reproducible Experiments and Export: experiments.md
+  - Experimental Science Standard: experimental_science.md
   - Exact Checkpoint and Resume: checkpointing.md
   - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md
   - Flagship Evolution Demo: flagship_evolution_demo.md
-  - B3 Flagship Cinematic: cinematic_flagship.md
   - Development Log: development_log.md
   - API Reference:
       - Validators: references/validators.md
