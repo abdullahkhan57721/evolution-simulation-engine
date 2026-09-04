@@ -168,7 +168,7 @@ jobs:
       - uses: ./.github/actions/setup-quality
         with:
           performance: "true"
-      - name: Reference + kernel performance profiles
+      - name: Reference + kernel + world-presentation performance profiles
         run: |
           venv/bin/python scripts/profile_kernel.py \
             --scenario all \
@@ -182,6 +182,9 @@ jobs:
             --warmups 0 \
             --top 15 \
             --output-dir outputs/performance
+          venv/bin/python scripts/profile_world_presentation.py \
+            --repeats 3 \
+            --output outputs/performance/world-presentation-benchmark.json
           venv/bin/python scripts/benchmark_state_copy.py \
             --fast \
             -o outputs/performance/state-copy-pyperf.json
