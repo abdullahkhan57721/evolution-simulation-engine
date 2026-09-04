@@ -319,8 +319,7 @@ def test_max_speed_preview_uses_committed_focal_science_without_b3_experiment() 
     expected = run.individual_trait_history[0].trait_value(0, MAX_SPEED)
     assert not app.exception
     assert any(
-        markdown.value == f"**Maximum speed:** {expected}"
-        for markdown in app.markdown
+        markdown.value == f"**Maximum speed:** {expected}" for markdown in app.markdown
     )
 
 
