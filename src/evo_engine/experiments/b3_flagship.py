@@ -7,6 +7,7 @@ from typing import cast
 
 import attrs
 
+from evo_engine.behavior import ENERGY_ACQUISITION
 from evo_engine.engine import Simulation
 from evo_engine.genetics import GENETIC_ARCHITECTURE, MAX_SPEED
 from evo_engine.observation import (
@@ -88,7 +89,7 @@ class B3ResourceGenerationAudit:
 
 @attrs.frozen(slots=True, kw_only=True)
 class B3MovementConsumptionEpisode:
-    """Record one authoritative targeted-movement/resource-consumption episode."""
+    """Record one authoritative resource-seeking movement/consumption episode."""
 
     completed_step_index: int
     organism_id: int
@@ -410,10 +411,10 @@ def _speed_by_id(
     return speed_by_id
 
 
-def _consumption_by_completed_step(
+def _consumption_by_completed_position(
     events: tuple[AppliedEvent, ...],
-) -> dict[tuple[int, int], int]:
-    consumption: dict[tuple[int, int], int] = {}
+) -> dict[tuple[int, int, int, int], int]:
+    consumption: dict[tuple[int, int, int, int], int] = {}
     for applied in events:
         if applied.process_name != "ResourceConsumption" or not isinstance(
             applied.event, ResourceConsumption.Event
@@ -422,7 +423,12 @@ def _consumption_by_completed_step(
         event = applied.event
         if event.amount <= 0:
             continue
-        key = (applied.event_step_index + 1, event.organism_id)
+        key = (
+            applied.event_step_index + 1,
+            event.organism_id,
+            event.x,
+            event.y,
+        )
         consumption[key] = consumption.get(key, 0) + event.amount
     return consumption
 
@@ -431,7 +437,7 @@ def _movement_episode(
     *,
     applied: AppliedEvent,
     speed_by_id: dict[int, int],
-    consumption: dict[tuple[int, int], int],
+    consumption: dict[tuple[int, int, int, int], int],
     spatial_by_step: dict[int, SpatialObservation],
 ) -> B3MovementConsumptionEpisode | None:
     if applied.process_name != "Movement" or not isinstance(
@@ -439,10 +445,17 @@ def _movement_episode(
     ):
         return None
     event = applied.event
-    if event.target_x is None or event.target_y is None:
+    if (
+        event.behavioral_purpose != ENERGY_ACQUISITION
+        or event.target_x is None
+        or event.target_y is None
+    ):
         return None
     completed_step = applied.event_step_index + 1
-    consumed = consumption.get((completed_step, event.organism_id), 0)
+    consumed = consumption.get(
+        (completed_step, event.organism_id, event.new_x, event.new_y),
+        0,
+    )
     if consumed <= 0:
         return None
     previous_observation = spatial_by_step.get(completed_step - 1)
@@ -471,7 +484,7 @@ def _mechanism_episodes(
     evidence: B3RunEvidence,
 ) -> tuple[B3MovementConsumptionEpisode, ...]:
     speed_by_id = _speed_by_id(evidence.individual_trait_observations)
-    consumption = _consumption_by_completed_step(evidence.events)
+    consumption = _consumption_by_completed_position(evidence.events)
     spatial_by_step = {
         observation.step_index: observation
         for observation in evidence.spatial_observations
