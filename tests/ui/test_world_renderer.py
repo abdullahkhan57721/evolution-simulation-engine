@@ -53,11 +53,51 @@ def test_world_figure_renders_selected_outline_layers_and_fixed_bounds() -> None
     assert tuple(rendered["layout"]["yaxis"]["range"]) == (5.5, -0.5)
     names = [trace["name"] for trace in rendered["data"]]
     assert names == ["Recent movement", "Resources", "Carcasses", "Organisms"]
-    organism_trace = rendered["data"][-1]
+
+    trail_trace, resource_trace, carcass_trace, organism_trace = rendered["data"]
+    assert trail_trace["line"]["color"] == "rgba(100, 116, 139, 0.55)"
+    assert resource_trace["marker"]["color"] == "#2E8B57"
+    assert carcass_trace["marker"]["color"] == "#8C564B"
+    assert organism_trace["marker"]["color"] == "#64748B"
     assert organism_trace["marker"]["size"] == [12, 14]
     assert organism_trace["marker"]["line"]["width"] == [1, 4]
+    assert organism_trace["marker"]["line"]["color"] == ["#475569", "#111827"]
     assert organism_trace["customdata"][1][0] == 2
     assert organism_trace["customdata"][1][5] is True
+
+
+def test_organism_color_is_stable_when_optional_layers_are_absent() -> None:
+    """Test view-layer toggles cannot change generic organism color meaning."""
+    frame = WorldPresentationFrame(
+        committed_step_index=2,
+        world_width=4,
+        world_height=4,
+        organisms=(
+            OrganismPrimitive(
+                organism_id=3,
+                x=1.0,
+                y=2.0,
+                age=2,
+                energy=10,
+                body_mass=3,
+                mating_type="type_a",
+                marker_size=11,
+                selected=True,
+            ),
+        ),
+        resources=(),
+        carcasses=(),
+        trails=(),
+        selected_organism_id=3,
+    )
+
+    rendered = world_presentation_figure(frame).to_plotly_json()
+    organism_trace = rendered["data"][0]
+
+    assert organism_trace["name"] == "Organisms"
+    assert organism_trace["marker"]["color"] == "#64748B"
+    assert organism_trace["marker"]["line"]["width"] == [4]
+    assert organism_trace["marker"]["line"]["color"] == ["#111827"]
 
 
 def test_world_figure_handles_extinct_frame_with_environment() -> None:
@@ -78,4 +118,6 @@ def test_world_figure_handles_extinct_frame_with_environment() -> None:
         "Resources",
         "Organisms",
     ]
+    assert rendered["data"][0]["marker"]["color"] == "#2E8B57"
+    assert rendered["data"][-1]["marker"]["color"] == "#64748B"
     assert len(rendered["data"][-1]["x"]) == 0
