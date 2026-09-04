@@ -74,10 +74,13 @@ def test_production_packages_do_not_depend_on_cinematic() -> None:
     assert violations == []
 
 
-def test_manim_import_is_isolated_to_optional_renderer_module() -> None:
+def test_manim_import_is_isolated_to_optional_renderer_modules() -> None:
     """Test Manim cannot leak into preparation or lower production packages."""
     package_root = Path("src/evo_engine")
-    allowed = package_root / "cinematic" / "_manim.py"
+    allowed = {
+        package_root / "cinematic" / "_manim.py",
+        package_root / "cinematic" / "_b3_manim.py",
+    }
     violations: list[str] = []
 
     for path in sorted(package_root.rglob("*.py")):
@@ -86,7 +89,7 @@ def test_manim_import_is_isolated_to_optional_renderer_module() -> None:
             for module in _imported_modules(node):
                 if (
                     module == "manim" or module.startswith("manim.")
-                ) and path != allowed:
+                ) and path not in allowed:
                     violations.append(f"{path}: imports {module}")
 
     assert violations == []
