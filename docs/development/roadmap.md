@@ -23,16 +23,16 @@ The project should continue toward a simulation engine in which:
    general contracts;
 4. richer modeled biology is added against explicit public responsibilities rather
    than by broadening lower layers speculatively;
-5. observation, experiments, and presentation remain downstream of committed
+5. scientific measurement and presentation remain downstream of committed
    simulation evidence;
 6. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
 above it unless a genuine generic deficiency is demonstrated.
 
-## Stable presentation boundary
+## Stable evidence and presentation boundary
 
-Current renderer choices are implementation details. The durable boundary is:
+The durable direction is:
 
 ```text
 simulation/domain layers
@@ -41,7 +41,7 @@ simulation/domain layers
 committed scientific evidence
         |
         v
-scenario-specific scientific meaning
+pure measurement / scenario meaning
         |
         +-------------------------+
         |                         |
@@ -55,8 +55,8 @@ Presentation interpolation is never scientific evidence.
 
 ## Completed post-v0.1 integration sequence
 
-The first post-v0.1 scenario/presentation sequence has now crossed its scientific
-integration gate:
+The first post-v0.1 scenario/presentation sequence has crossed both its scientific
+and cinematic integration gates:
 
 ```text
 v0.1.0 portfolio baseline
@@ -79,17 +79,22 @@ frozen disjoint confirmation
         |
         v
 confirmed renderer-neutral B3 scientific handoff
+        |
+        v
+concrete B3 flagship cinematic director
 ```
 
 B1 established immutable ecological resource-placement policy. B2 demonstrated
 an inherited `max_speed` benefit/cost axis using existing movement, maintenance,
-and sexual inheritance. B3 has now confirmed that the two mechanisms compose into
-a robust environment-dependent selection demonstration without kernel changes or a
-generic fitness abstraction.
+and sexual inheritance. B3 confirmed that the two mechanisms compose into a
+robust environment-dependent selection demonstration without kernel changes or a
+generic fitness abstraction. V3 turns that frozen scientific handoff into a
+reproducible explanatory film without moving camera/timing concerns into the
+domain model.
 
 ## Confirmed B3 scientific contract
 
-The current scientific flagship compares:
+The current integrated flagship compares:
 
 ```text
 uniform renewable-resource placement
@@ -119,7 +124,7 @@ The representative storytelling seed is `5`, chosen by the predeclared
 median-effect/legible-episode rule. The complete claim/nonclaim boundary and
 renderer-neutral storyboard live in `docs/flagship_evolution_demo.md`.
 
-The old `max_intake_rate` v0.1 demonstration is now a secondary historical
+The old `max_intake_rate` v0.1 demonstration is a secondary historical
 regression/integration example rather than the primary scientific flagship.
 
 ## Experimental-science foundation and controlled sequence
@@ -155,7 +160,7 @@ first pure locomotion measurement derived from committed movement evidence. It
 does not add a metric registry, universal analysis plan, statistics DSL, or new
 statistics dependency.
 
-The controlled experimental-evolution sequence is now:
+The controlled experimental-evolution sequence is:
 
 ```text
 E1 experimental-science foundation
@@ -179,11 +184,11 @@ and avoid the mating/predation/nonfocal genetic pathways of the richer reference
 ecology. It must not redesign the frozen kernel or general genetics around
 cloning.
 
-E3 should then measure the `max_speed` capacity → realized movement → movement
-energy → resource/energy/survival/reproduction causal ladder across controlled,
-monomorphic speed treatments. Focal evolution remains off, and the resulting
-replicate-level performance landscape should produce a predeclared prediction for
-E4 rather than forcing a desired optimum.
+E3 should measure the `max_speed` capacity → realized movement → movement energy →
+resource/energy/survival/reproduction causal ladder across controlled monomorphic
+speed treatments. Focal evolution remains off, and the resulting replicate-level
+performance landscape should produce a predeclared prediction for E4 rather than
+forcing a desired optimum.
 
 E4 should finally introduce known standing inherited speed variation with mutation
 still off and ask whether strategy/focal-trait frequencies move in the direction
@@ -197,9 +202,9 @@ general contracts without retroactively simplifying or rewriting B3.
 
 ## Presentation integration front
 
-The presentation step is no longer scenario discovery. Both media can consume the
-confirmed B3 scientific handoff faithfully while the E2–E4 controlled experiment
-track proceeds independently:
+The cinematic B3 continuation is now a concrete sibling renderer path. The
+remaining B3 presentation front is the interactive matched comparison, while the
+E2–E4 controlled experiment track can proceed independently:
 
 ```text
 confirmed B3 evidence/storyboard
@@ -207,12 +212,9 @@ confirmed B3 evidence/storyboard
         +-------------------------+
         |                         |
         v                         v
-V2 interactive B3            V3 cinematic B3
-comparison/director          comparison/director
+V2 interactive B3            V3 B3 flagship film
+comparison                   implemented
 ```
-
-These presentation continuations may proceed in parallel because the consequential
-scientific contract is settled.
 
 ### Interactive continuation
 
@@ -234,15 +236,26 @@ The presentation should preserve:
 Renderer-specific controls, layout, charts, animation rate, accessibility, and
 interaction remain UI responsibility.
 
-### Cinematic continuation
+### Cinematic baseline to preserve
 
-The cinematic director should consume the same B3 scientific meaning while
-remaining a sibling renderer concern. It may use seed 5's real committed episodes
-for causal storytelling, but must not fabricate pairwise encounters or substitute
-cinematic interpolation for evidence.
+The B3 cinematic director is intentionally concrete rather than a universal film
+DSL. Its durable lessons are:
 
-Camera, composition, timing, shot order, labels, palette, easing, and transitions
-belong entirely to the cinematic layer.
+- B3 science is consumed from the renderer-neutral handoff and committed evidence;
+- fixed scientific scales are shared across matched arms;
+- representative organisms/events are selected by B3, not by the renderer;
+- focus is a presentation channel independent of scientific fill and body size;
+- committed events support causal labels, while identity continuity remains
+  non-causal;
+- representative-run episodes explain mechanism, while run-level confirmation
+  supports robustness;
+- camera, shot timing, temporal compression, and evidence-chart choreography remain
+  renderer-only concerns;
+- the full portfolio film is a deliberate reproducible artifact, while routine CI
+  retains short generic/science-aware/B3 smokes.
+
+Do not generalize this into a broad camera DSL or scenario-presentation schema
+without multiple future films demonstrating a genuinely repeated contract.
 
 ## Front A — Richer genetic expression
 
@@ -275,64 +288,42 @@ Do not collapse those layers into a catch-all phenotype object.
 Current public responsibilities already separate chromosome-copy structure,
 pairing, recombination eligibility, segregation, and gamete formation.
 
-Future biological cases may justify:
-
-- higher-copy pairing policies;
-- preferential versus random bivalent formation;
-- multivalent models;
-- chromosome-specific pairing or crossover behavior;
-- multiple crossovers;
-- lifecycle/mating-type-sensitive gamete formation.
-
-Add only the policies required by concrete modeled biology. Do not push meiosis
-vocabulary into the frozen kernel or general propagation contracts.
+Future biological cases may justify higher-copy pairing policies, preferential or
+random bivalent formation, multivalent models, chromosome-specific crossover
+behavior, multiple crossovers, or lifecycle-sensitive gamete formation. Add only
+the policies required by concrete modeled biology. Do not push meiosis vocabulary
+into the frozen kernel or general propagation contracts.
 
 ## Front C — Richer mating systems
 
 Shared reproduction already separates participants, investors, genetic
-contributors, and production sources.
-
-Future cases may explore:
-
-- asymmetric/ordered reproductive roles;
-- multi-participant groups;
-- hermaphroditic systems;
-- role-sensitive mate choice;
-- real contributor/investor subsets;
-- lifecycle-specific production sources.
-
-Mating-system composition should remain separate from low-level inheritance.
+contributors, and production sources. Future cases may explore asymmetric roles,
+multi-participant groups, hermaphroditic systems, role-sensitive mate choice,
+contributor/investor subsets, or lifecycle-specific production sources. Mating
+system composition should remain separate from low-level inheritance.
 
 ## Front D — Richer development and G×E
 
 Potential concrete directions include nonlinear reaction norms, developmental
 stages/history, richer developmental stochasticity, and reversible adult
-plasticity distinct from lifetime developmental targets.
-
-Preserve distinctions among inheritance, genetic expression, development,
-environment, and current mutable state.
+plasticity distinct from lifetime developmental targets. Preserve distinctions
+among inheritance, genetic expression, development, environment, and current
+mutable state.
 
 ## Front E — Richer evolutionary ecology
 
-The ecological foundation now includes both explicit static resource geography and
-a confirmed environment-dependent selection use case. Future ecology should
-continue to drive requests for new biology where possible.
-
-Possible fronts include:
-
-- richer resource competition;
-- movement/behavior tradeoffs;
-- predation/prey coevolution;
-- life-history tradeoffs;
-- spatial/biogeographic structure;
-- fluctuating or heterogeneous selection regimes.
+The ecological foundation includes explicit static resource geography and a
+confirmed environment-dependent selection use case. Future ecology should continue
+to drive requests for new biology where possible: richer resource competition,
+movement/behavior tradeoffs, predation/prey coevolution, life-history tradeoffs,
+spatial structure, and fluctuating or heterogeneous selection regimes.
 
 Selection should continue to emerge from differential persistence and propagation,
 not from a kernel-owned scalar `fitness` field.
 
 ## Observation and statistical analysis
 
-E1 now defines the durable scientific-measurement semantics needed by the current
+E1 defines the durable scientific-measurement semantics needed by the current
 controlled experiment sequence while deliberately stopping short of a broad
 statistics framework. Future repeated experimental patterns may justify additional
 reusable statistical contracts, but only after concrete consumers establish what
@@ -359,31 +350,11 @@ zero, and presentation remains a consumer rather than an authoritative calculato
 ## Future native execution backend
 
 A Rust/C++ backend remains an evidence-driven future front rather than a current
-architecture target.
+architecture target. If measured workloads justify it, the desired direction is a
+validated static typed simulation plan feeding interchangeable Python-reference and
+native execution backends that produce the same committed result values.
 
-If measured workloads justify it, the desired shape is approximately:
-
-```text
-Python modeling / configuration
-        |
-        v
-validated static typed simulation plan
-        |
-        v
-backend execution boundary
-        |
-        +----------------------+
-        |                      |
-        v                      v
-Python reference backend   native backend
-        |                      |
-        +----------+-----------+
-                   |
-                   v
-        committed result values
-```
-
-Do not create this abstraction until real profiling demonstrates both the need and
+Do not create that abstraction until real profiling demonstrates both the need and
 the stable subset worth compiling.
 
 ## Architectural constraints that should survive future work
