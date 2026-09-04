@@ -43,7 +43,7 @@ def main() -> None:
         max_steps=2,
         seed=17,
         mutation_probability_ppm=0,
-        resource_deposits_per_step=2,
+        resource_deposits_per_step=8,
         resource_placement_model=PatchyResourcePlacement(
             patches=(
                 ResourcePatch(center_x=1, center_y=1, radius=1),
