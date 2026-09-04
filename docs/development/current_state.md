@@ -250,6 +250,14 @@ never become scientific or exported values. Existing evolutionary/genetic
 analytics, life-history views, experiment comparison, and export remain downstream
 of the same completed evidence.
 
+The interactive world can also opt into scenario-specific focal-trait presentation
+without broadening `SpatialObservation`: it joins committed
+`IndividualGeneticTraitObservation` values by exact `(step_index, organism_id)`,
+normalizes them through the shared `ContinuousTraitEncoding`, and keeps selection as
+a separate outline channel. Generic runs remain neutrally encoded. A deterministic
+B1/B2 `max_speed` mechanism preview exercises this path over real patchy resource
+geography, while explicitly stopping short of B3's final treatment/control claims.
+
 `evo_engine.cinematic` remains the current optional sibling Manim consumer. Its
 `PortfolioAnimationTimeline` is renderer-owned presentation ordering over committed
 `SpatialObservation`, `PopulationObservation`, optional
@@ -323,11 +331,11 @@ heritable performance tradeoff, a generic interactive world, or renderer-neutral
 focal-trait cinematic replay exist: all now have concrete implementations and
 evidence. B3 scenario discovery must still determine the simplest robust causal
 demonstration and provide its durable scientific storyboard. The interactive front
-can proceed from generic world primitives toward scenario-specific scientific
-encoding, legends/accessibility, matched comparison, and deeper analysis while
-consuming the selective per-organism trait observation seam. The cinematic front
-now has science-aware committed-evidence preparation/rendering and should consume
-B3's final scientific meaning rather than infer or invent it. The two media remain
+now has a science-aware focal-trait path over committed evidence and can proceed to
+B3-defined matched comparison, accessibility refinement, and deeper analysis rather
+than inventing treatment/control meaning itself. The cinematic front likewise has
+science-aware committed-evidence preparation/rendering and should consume B3's
+final scientific meaning rather than infer or invent it. The two media remain
 sibling renderer concerns rather than one shared scene runtime.
 
 Other longer-term modeled fronts remain:
@@ -388,6 +396,11 @@ cycle time, architectural correctness, recoverability, and user attention.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Science-aware interactive trait encoding:** joined committed per-organism focal
+  trait evidence to interactive world replay under the shared fixed continuous-trait
+  encoding, preserved generic neutral mode and independent selection semantics, and
+  added a real B1/B2 `max_speed` mechanism preview without publishing B3 comparison
+  claims.
 - **Science-aware cinematic foundation:** joined committed spatial, selective
   per-organism focal-trait, and event evidence into deterministic cinematic
   preparation; added a minimal shared continuous-trait encoding, authoritative
