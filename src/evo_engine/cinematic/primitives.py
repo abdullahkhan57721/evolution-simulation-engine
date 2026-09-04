@@ -39,9 +39,7 @@ class CinematicOrganismPrimitive:
             raise ValueError("mating_type must not be empty or whitespace-only.")
         if self.focal_value is None:
             if self.focal_normalized is not None:
-                raise ValueError(
-                    "focal_normalized requires a committed focal_value."
-                )
+                raise ValueError("focal_normalized requires a committed focal_value.")
             return
 
         validators.validate_int(self.focal_value, name="focal_value")
