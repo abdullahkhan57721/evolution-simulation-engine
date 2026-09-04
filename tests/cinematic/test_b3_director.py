@@ -144,9 +144,13 @@ def test_matched_representative_trajectory_uses_common_fixed_timestep_scale(
         treatment_evidence=treatment,
     )
 
-    assert plan.control.timeline.world_bounds == plan.treatment.timeline.world_bounds == (
-        12,
-        12,
+    assert (
+        plan.control.timeline.world_bounds
+        == plan.treatment.timeline.world_bounds
+        == (
+            12,
+            12,
+        )
     )
     steps = tuple(point.step_index for point in plan.representative_genetic_trajectory)
     assert steps == tuple(range(51))
@@ -214,7 +218,9 @@ def test_full_plan_derives_run_level_confirmation_and_sensitivity_values(
     )
 
     assert plan.is_full_flagship
-    assert tuple(point.seed for point in plan.confirmation_points) == B3_CONFIRMATION_SEEDS
+    assert (
+        tuple(point.seed for point in plan.confirmation_points) == B3_CONFIRMATION_SEEDS
+    )
     assert plan.confirmation_points[0].paired_effect == pytest.approx(0.25)
     assert len(plan.founder_contribution_points) == 16
     assert plan.broad_patch_step30_mean == pytest.approx(0.485)
