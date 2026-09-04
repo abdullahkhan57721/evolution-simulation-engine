@@ -116,7 +116,9 @@ def _add_organisms(
             y=[item.y for item in frame.organisms],
             mode=mode,
             name="Organisms",
-            text=[str(item.organism_id) for item in frame.organisms] if show_labels else None,
+            text=[str(item.organism_id) for item in frame.organisms]
+            if show_labels
+            else None,
             textposition="top center",
             marker={
                 "size": [item.marker_size for item in frame.organisms],
