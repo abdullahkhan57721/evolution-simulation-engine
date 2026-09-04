@@ -79,7 +79,8 @@ speed."
 ## Denominators and undefined quantities
 
 Every average, rate, or proportion must name or document its denominator. Prefer
-names such as `mean_realized_distance_per_applied_movement` over `average_speed`.
+names such as `mean_realized_distance_per_applied_movement` or
+`mean_locomotion_energy_expenditure_per_applied_movement` over ambiguous labels.
 
 An empty denominator produces an undefined quantity, represented as `None` where
 the typed result allows it. Do not silently replace undefined values with zero.
@@ -92,11 +93,12 @@ Lifetime, reproductive, and time-to-event measurements must preserve exposure.
 An organism entering late or dying early does not automatically have the same
 exposure time as a founder surviving the full assay.
 
-Time-to-event comparisons use a fixed predeclared horizon. If fixation, extinction,
-or another event is not observed by that horizon, record the result as explicitly
-right-censored. Do not assign the horizon as though the event happened there.
-`FixedHorizonTimeToEvent` stores the start, fixed horizon, optional observed event,
-and resulting exposure semantics directly.
+Time-to-event comparisons use a fixed predeclared committed-state horizon. If
+fixation, extinction, or another outcome is not observed by that horizon, record
+the result as explicitly right-censored. Do not assign the horizon as though the
+outcome happened there. `FixedHorizonTimeToEvent.observed_step_index` is the
+committed-state index where the outcome was first observed; `None` means it was
+unobserved and right-censored at `horizon_step_index`.
 
 ## Discovery, confirmation, and representative runs
 
@@ -154,7 +156,7 @@ equivalent concrete value that identifies:
 - canonical serialized scientifically relevant treatment specification;
 - seed;
 - fixed horizon;
-- observation cadence;
+- observation cadence, including whether committed step zero is recorded;
 - selected focal variables;
 - discovery, confirmation, or representative role when applicable.
 
