@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
-from typing import Literal
 
 import attrs
 
@@ -37,6 +36,7 @@ from evo_engine.observation import (
     EventRecorder,
     IndividualGeneticTraitObservation,
     IndividualGeneticTraitRecorder,
+    PopulationObservation,
     PopulationRecorder,
 )
 from evo_engine.presets.controlled_locomotion import (
@@ -46,6 +46,7 @@ from evo_engine.presets.controlled_locomotion import (
     build_controlled_locomotion_spec,
 )
 from evo_engine.processes import Movement, Reproduction, ResourceConsumption
+from evo_engine.telemetry import AppliedEvent
 from evo_engine.validation import attrs_validators, validators
 
 E4_FOCAL_SPEEDS: tuple[int, int, int] = (1, 3, 9)
@@ -315,6 +316,21 @@ class E4EnvironmentSummary:
         return self.mean_frequency_changes[_focal_speed_index(max_speed)]
 
 
+@attrs.define(slots=True)
+class _MutableStrategyMechanism:
+    """Accumulate one strategy's event-derived mechanism evidence within a run."""
+
+    movement_count: int = 0
+    realized_distance: float = 0.0
+    locomotion_energy: int = 0
+    resource_consumed: int = 0
+    birth_count: int = 0
+
+
+MechanismAccumulators = dict[int, _MutableStrategyMechanism]
+TraitLookup = dict[int, dict[int, int]]
+
+
 def build_e4_treatment(
     *,
     environment: E3Environment,
@@ -372,168 +388,35 @@ def run_e4_replicate(
     run_role: RunRole | None = "confirmation",
 ) -> E4ReplicateOutcome:
     """Run one E4 replicate and derive selection/mechanism evidence from records."""
-    if not isinstance(treatment, E4TreatmentSpecification):
-        raise TypeError("treatment must be an E4TreatmentSpecification.")
+    _require_e4_treatment(treatment)
     validators.validate_int(seed, name="seed")
-
-    trait_recorder = IndividualGeneticTraitRecorder(
-        trait_names=(MAX_SPEED,),
-        every_n_steps=1,
-        include_step_zero=True,
-    )
-    population_recorder = PopulationRecorder(
-        trait_names=(MAX_SPEED,),
-        every_n_steps=1,
-        include_step_zero=True,
-    )
-    event_recorder = EventRecorder()
-    spec = build_controlled_locomotion_spec(
-        treatment.to_config(seed=seed),
-        observers=(trait_recorder, population_recorder),
-        telemetry_observers=(event_recorder,),
-    )
-    compiled = spec.compile()
-    compiled.engine.run(compiled.simulation)
-
-    provenance = ScientificRunProvenance(
-        experiment_id="e4-standing-variation-selection",
-        scenario_id="controlled-clonal-locomotion-e4-v1",
-        treatment_id=treatment.treatment_id,
-        treatment_specification_json=canonical_treatment_specification(
-            _treatment_provenance_mapping(treatment)
-        ),
+    trait_recorder, population_recorder, event_recorder = _run_e4_recorders(
+        treatment,
         seed=seed,
-        horizon_step_index=E3_HORIZON,
-        observation_every_n_steps=1,
-        observation_include_step_zero=True,
-        focal_variables=(
-            "max_speed_focal_counts",
-            "max_speed_focal_frequencies",
-            "realized_movement_by_speed",
-            "locomotion_energy_by_speed",
-            "resource_consumption_by_speed",
-            "reproduction_by_speed",
-            "extinction",
-        ),
-        run_role=run_role,
     )
-
-    trait_observations = trait_recorder.observations
-    population_observations = population_recorder.observations
-    if not trait_observations or not population_observations:
-        raise RuntimeError("E4 committed observation recorders produced no evidence.")
-    if tuple(item.step_index for item in trait_observations) != tuple(
-        item.step_index for item in population_observations
-    ):
-        raise RuntimeError("E4 trait/population observation steps are misaligned.")
-
+    trait_observations, population_observations = _validated_observations(
+        trait_recorder.observations,
+        population_recorder.observations,
+    )
     _validate_founder_id_assignment(trait_observations[0], treatment=treatment)
     focal_trajectory = tuple(
         _composition_point(observation) for observation in trait_observations
     )
-    traits_by_step = _trait_lookup_by_step(trait_observations)
-
-    mechanism_values = {
-        speed: {
-            "movement_count": 0,
-            "realized_distance": 0.0,
-            "locomotion_energy": 0,
-            "resource_consumed": 0,
-            "birth_count": 0,
-        }
-        for speed in E4_FOCAL_SPEEDS
-    }
-    clipping_count = 0
-    for applied in event_recorder.events:
-        event = applied.event
-        if isinstance(event, Movement.Event):
-            speed = _event_actor_speed(
-                step_index=event.step_index,
-                organism_id=event.organism_id,
-                traits_by_step=traits_by_step,
-            )
-            measurement = measure_applied_movement(applied)
-            if not math.isclose(
-                measurement.attempted_distance,
-                measurement.realized_distance,
-            ):
-                clipping_count += 1
-            values = mechanism_values[speed]
-            values["movement_count"] += 1
-            values["realized_distance"] += measurement.realized_distance
-            values["locomotion_energy"] += measurement.locomotion_energy_expenditure
-        elif isinstance(event, ResourceConsumption.Event):
-            speed = _event_actor_speed(
-                step_index=event.step_index,
-                organism_id=event.organism_id,
-                traits_by_step=traits_by_step,
-            )
-            mechanism_values[speed]["resource_consumed"] += event.amount
-        elif isinstance(event, Reproduction.Event):
-            offspring_speed = event.offspring_genetic_phenotype.int_value(MAX_SPEED)
-            _focal_speed_index(offspring_speed)
-            if len(event.parent_ids) != 1:
-                raise RuntimeError("E4 clonal reproduction must have exactly one parent.")
-            parent_speed = _event_actor_speed(
-                step_index=event.step_index,
-                organism_id=event.parent_ids[0],
-                traits_by_step=traits_by_step,
-            )
-            if parent_speed != offspring_speed:
-                raise RuntimeError(
-                    "E4 clonal offspring max_speed differs from its genetic parent."
-                )
-            mechanism_values[offspring_speed]["birth_count"] += 1
-
-    if clipping_count:
-        raise RuntimeError(
-            "Canonical E4 geometry produced unexpected attempted/realized movement "
-            "mismatch; boundary clipping or another movement artifact is present."
-        )
-
-    mechanisms = tuple(
-        E4StrategyMechanismEvidence(
-            max_speed=speed,
-            applied_movement_count=int(mechanism_values[speed]["movement_count"]),
-            total_realized_distance=float(
-                mechanism_values[speed]["realized_distance"]
-            ),
-            total_locomotion_energy_expenditure=int(
-                mechanism_values[speed]["locomotion_energy"]
-            ),
-            total_resource_consumed=int(
-                mechanism_values[speed]["resource_consumed"]
-            ),
-            cumulative_birth_count=int(mechanism_values[speed]["birth_count"]),
-        )
-        for speed in E4_FOCAL_SPEEDS
+    mechanisms, clipping_count = _measure_mechanisms(
+        events=event_recorder.events,
+        traits_by_step=_trait_lookup_by_step(trait_observations),
     )
-    extinction_step = next(
-        (
-            point.step_index
-            for point in focal_trajectory
-            if point.population_size == 0
-        ),
-        None,
-    )
+    _require_no_boundary_clipping(clipping_count)
     outcome = E4ReplicateOutcome(
         treatment=treatment,
-        provenance=provenance,
+        provenance=_scientific_provenance(treatment, seed=seed, run_role=run_role),
         focal_trajectory=focal_trajectory,
         mechanisms=mechanisms,
         final_total_population_energy=population_observations[-1].energy.total,
-        extinction=FixedHorizonTimeToEvent(
-            start_step_index=0,
-            horizon_step_index=E3_HORIZON,
-            observed_step_index=extinction_step,
-        ),
+        extinction=_extinction_outcome(focal_trajectory),
         boundary_clipping_event_count=clipping_count,
     )
-    if outcome.energy_budget_residual != 0:
-        raise RuntimeError(
-            "Controlled E4 whole-population energy budget did not close; "
-            f"residual={outcome.energy_budget_residual}."
-        )
+    _require_closed_energy_budget(outcome)
     return outcome
 
 
@@ -563,35 +446,11 @@ def summarize_e4_environment(
 ) -> E4EnvironmentSummary:
     """Summarize one environment from run-level replicate outcomes only."""
     values = tuple(outcomes)
-    if not values:
-        raise ValueError("outcomes must contain at least one replicate.")
-    environment = values[0].treatment.environment
-    seen_seeds: set[int] = set()
-    for index, outcome in enumerate(values):
-        if not isinstance(outcome, E4ReplicateOutcome):
-            raise TypeError(f"outcomes[{index}] must be an E4ReplicateOutcome.")
-        if outcome.treatment.environment != environment:
-            raise ValueError("all outcomes must belong to the same E4 environment.")
-        if outcome.provenance.seed in seen_seeds:
-            raise ValueError("outcomes must not contain duplicate replicate seeds.")
-        seen_seeds.add(outcome.provenance.seed)
-
-    defined = tuple(
-        outcome
-        for outcome in values
-        if outcome.final_composition.population_size > 0
-    )
-    mean_final_frequencies = tuple(
-        _mean_optional(
-            tuple(outcome.final_composition.frequency(speed) for outcome in values)
-        )
-        for speed in E4_FOCAL_SPEEDS
-    )
-    mean_frequency_changes = tuple(
-        _mean_optional(tuple(outcome.frequency_change(speed) for outcome in values))
-        for speed in E4_FOCAL_SPEEDS
-    )
+    environment = _validate_environment_outcomes(values)
     count = len(values)
+    defined_count = sum(
+        outcome.final_composition.population_size > 0 for outcome in values
+    )
     return E4EnvironmentSummary(
         environment=environment,
         replicate_count=count,
@@ -599,33 +458,281 @@ def summarize_e4_environment(
         founder_speed_orders=tuple(
             outcome.treatment.founder_speed_order for outcome in values
         ),
-        mean_final_frequencies=mean_final_frequencies,
-        mean_frequency_changes=mean_frequency_changes,
-        defined_endpoint_count=len(defined),
-        extinction_count=count - len(defined),
-        mean_births_by_speed=tuple(
-            sum(outcome.mechanism(speed).cumulative_birth_count for outcome in values)
-            / count
-            for speed in E4_FOCAL_SPEEDS
+        mean_final_frequencies=(
+            _mean_final_frequency(values, 1),
+            _mean_final_frequency(values, 3),
+            _mean_final_frequency(values, 9),
         ),
-        mean_resources_by_speed=tuple(
-            sum(outcome.mechanism(speed).total_resource_consumed for outcome in values)
-            / count
-            for speed in E4_FOCAL_SPEEDS
+        mean_frequency_changes=(
+            _mean_frequency_change(values, 1),
+            _mean_frequency_change(values, 3),
+            _mean_frequency_change(values, 9),
         ),
-        mean_realized_distance_by_speed=tuple(
-            sum(outcome.mechanism(speed).total_realized_distance for outcome in values)
-            / count
-            for speed in E4_FOCAL_SPEEDS
+        defined_endpoint_count=defined_count,
+        extinction_count=count - defined_count,
+        mean_births_by_speed=(
+            _mean_births(values, 1),
+            _mean_births(values, 3),
+            _mean_births(values, 9),
         ),
-        mean_locomotion_energy_by_speed=tuple(
-            sum(
-                outcome.mechanism(speed).total_locomotion_energy_expenditure
-                for outcome in values
-            )
-            / count
-            for speed in E4_FOCAL_SPEEDS
+        mean_resources_by_speed=(
+            _mean_resources(values, 1),
+            _mean_resources(values, 3),
+            _mean_resources(values, 9),
         ),
+        mean_realized_distance_by_speed=(
+            _mean_realized_distance(values, 1),
+            _mean_realized_distance(values, 3),
+            _mean_realized_distance(values, 9),
+        ),
+        mean_locomotion_energy_by_speed=(
+            _mean_locomotion_energy(values, 1),
+            _mean_locomotion_energy(values, 3),
+            _mean_locomotion_energy(values, 9),
+        ),
+    )
+
+
+def _run_e4_recorders(
+    treatment: E4TreatmentSpecification,
+    *,
+    seed: int,
+) -> tuple[IndividualGeneticTraitRecorder, PopulationRecorder, EventRecorder]:
+    trait_recorder = IndividualGeneticTraitRecorder(
+        trait_names=(MAX_SPEED,),
+        every_n_steps=1,
+        include_step_zero=True,
+    )
+    population_recorder = PopulationRecorder(
+        trait_names=(MAX_SPEED,),
+        every_n_steps=1,
+        include_step_zero=True,
+    )
+    event_recorder = EventRecorder()
+    spec = build_controlled_locomotion_spec(
+        treatment.to_config(seed=seed),
+        observers=(trait_recorder, population_recorder),
+        telemetry_observers=(event_recorder,),
+    )
+    compiled = spec.compile()
+    compiled.engine.run(compiled.simulation)
+    return trait_recorder, population_recorder, event_recorder
+
+
+def _validated_observations(
+    trait_observations: Sequence[IndividualGeneticTraitObservation],
+    population_observations: Sequence[PopulationObservation],
+) -> tuple[
+    tuple[IndividualGeneticTraitObservation, ...],
+    tuple[PopulationObservation, ...],
+]:
+    traits = tuple(trait_observations)
+    populations = tuple(population_observations)
+    if not traits or not populations:
+        raise RuntimeError("E4 committed observation recorders produced no evidence.")
+    trait_steps = tuple(item.step_index for item in traits)
+    population_steps = tuple(item.step_index for item in populations)
+    if trait_steps != population_steps:
+        raise RuntimeError("E4 trait/population observation steps are misaligned.")
+    return traits, populations
+
+
+def _scientific_provenance(
+    treatment: E4TreatmentSpecification,
+    *,
+    seed: int,
+    run_role: RunRole | None,
+) -> ScientificRunProvenance:
+    return ScientificRunProvenance(
+        experiment_id="e4-standing-variation-selection",
+        scenario_id="controlled-clonal-locomotion-e4-v1",
+        treatment_id=treatment.treatment_id,
+        treatment_specification_json=canonical_treatment_specification(
+            _treatment_provenance_mapping(treatment)
+        ),
+        seed=seed,
+        horizon_step_index=E3_HORIZON,
+        observation_every_n_steps=1,
+        observation_include_step_zero=True,
+        focal_variables=(
+            "max_speed_focal_counts",
+            "max_speed_focal_frequencies",
+            "realized_movement_by_speed",
+            "locomotion_energy_by_speed",
+            "resource_consumption_by_speed",
+            "reproduction_by_speed",
+            "extinction",
+        ),
+        run_role=run_role,
+    )
+
+
+def _measure_mechanisms(
+    *,
+    events: Sequence[AppliedEvent],
+    traits_by_step: TraitLookup,
+) -> tuple[tuple[E4StrategyMechanismEvidence, ...], int]:
+    accumulators = {
+        speed: _MutableStrategyMechanism() for speed in E4_FOCAL_SPEEDS
+    }
+    clipping_count = 0
+    for applied in events:
+        clipping_count += _measure_applied_event(
+            applied,
+            accumulators=accumulators,
+            traits_by_step=traits_by_step,
+        )
+    return _frozen_mechanisms(accumulators), clipping_count
+
+
+def _measure_applied_event(
+    applied: AppliedEvent,
+    *,
+    accumulators: MechanismAccumulators,
+    traits_by_step: TraitLookup,
+) -> int:
+    event = applied.event
+    if isinstance(event, Movement.Event):
+        return _measure_movement_event(
+            applied,
+            accumulators=accumulators,
+            traits_by_step=traits_by_step,
+        )
+    if isinstance(event, ResourceConsumption.Event):
+        _measure_resource_event(
+            event,
+            accumulators=accumulators,
+            traits_by_step=traits_by_step,
+        )
+    elif isinstance(event, Reproduction.Event):
+        _measure_reproduction_event(
+            event,
+            accumulators=accumulators,
+            traits_by_step=traits_by_step,
+        )
+    return 0
+
+
+def _measure_movement_event(
+    applied: AppliedEvent,
+    *,
+    accumulators: MechanismAccumulators,
+    traits_by_step: TraitLookup,
+) -> int:
+    event = applied.event
+    if not isinstance(event, Movement.Event):
+        raise TypeError("applied event must contain Movement.Event.")
+    speed = _event_actor_speed(
+        step_index=event.step_index,
+        organism_id=event.organism_id,
+        traits_by_step=traits_by_step,
+    )
+    measurement = measure_applied_movement(applied)
+    accumulator = accumulators[speed]
+    accumulator.movement_count += 1
+    accumulator.realized_distance += measurement.realized_distance
+    accumulator.locomotion_energy += measurement.locomotion_energy_expenditure
+    return int(
+        not math.isclose(
+            measurement.attempted_distance,
+            measurement.realized_distance,
+        )
+    )
+
+
+def _measure_resource_event(
+    event: ResourceConsumption.Event,
+    *,
+    accumulators: MechanismAccumulators,
+    traits_by_step: TraitLookup,
+) -> None:
+    speed = _event_actor_speed(
+        step_index=event.step_index,
+        organism_id=event.organism_id,
+        traits_by_step=traits_by_step,
+    )
+    accumulators[speed].resource_consumed += event.amount
+
+
+def _measure_reproduction_event(
+    event: Reproduction.Event,
+    *,
+    accumulators: MechanismAccumulators,
+    traits_by_step: TraitLookup,
+) -> None:
+    offspring_speed = event.offspring_genetic_phenotype.int_value(MAX_SPEED)
+    _focal_speed_index(offspring_speed)
+    if len(event.parent_ids) != 1:
+        raise RuntimeError("E4 clonal reproduction must have exactly one parent.")
+    parent_speed = _event_actor_speed(
+        step_index=event.step_index,
+        organism_id=event.parent_ids[0],
+        traits_by_step=traits_by_step,
+    )
+    if parent_speed != offspring_speed:
+        raise RuntimeError("E4 clonal offspring max_speed differs from its genetic parent.")
+    accumulators[offspring_speed].birth_count += 1
+
+
+def _frozen_mechanisms(
+    accumulators: MechanismAccumulators,
+) -> tuple[
+    E4StrategyMechanismEvidence,
+    E4StrategyMechanismEvidence,
+    E4StrategyMechanismEvidence,
+]:
+    return (
+        _frozen_mechanism(1, accumulators[1]),
+        _frozen_mechanism(3, accumulators[3]),
+        _frozen_mechanism(9, accumulators[9]),
+    )
+
+
+def _frozen_mechanism(
+    speed: int,
+    accumulator: _MutableStrategyMechanism,
+) -> E4StrategyMechanismEvidence:
+    return E4StrategyMechanismEvidence(
+        max_speed=speed,
+        applied_movement_count=accumulator.movement_count,
+        total_realized_distance=accumulator.realized_distance,
+        total_locomotion_energy_expenditure=accumulator.locomotion_energy,
+        total_resource_consumed=accumulator.resource_consumed,
+        cumulative_birth_count=accumulator.birth_count,
+    )
+
+
+def _require_no_boundary_clipping(clipping_count: int) -> None:
+    if clipping_count:
+        raise RuntimeError(
+            "Canonical E4 geometry produced unexpected attempted/realized movement "
+            "mismatch; boundary clipping or another movement artifact is present."
+        )
+
+
+def _require_closed_energy_budget(outcome: E4ReplicateOutcome) -> None:
+    if outcome.energy_budget_residual != 0:
+        raise RuntimeError(
+            "Controlled E4 whole-population energy budget did not close; "
+            f"residual={outcome.energy_budget_residual}."
+        )
+
+
+def _extinction_outcome(
+    focal_trajectory: Sequence[E4FocalCompositionPoint],
+) -> FixedHorizonTimeToEvent:
+    extinction_step = next(
+        (
+            point.step_index
+            for point in focal_trajectory
+            if point.population_size == 0
+        ),
+        None,
+    )
+    return FixedHorizonTimeToEvent(
+        start_step_index=0,
+        horizon_step_index=E3_HORIZON,
+        observed_step_index=extinction_step,
     )
 
 
@@ -640,19 +747,26 @@ def _composition_point(
         _focal_speed_index(speed)
         counts[speed] += 1
     population_size = len(observation.individuals)
-    ordered_counts = tuple(counts[speed] for speed in E4_FOCAL_SPEEDS)
-    frequencies: tuple[float | None, float | None, float | None]
-    if population_size == 0:
-        frequencies = (None, None, None)
-    else:
-        frequencies = tuple(
-            counts[speed] / population_size for speed in E4_FOCAL_SPEEDS
-        )
+    ordered_counts: tuple[int, int, int] = (counts[1], counts[3], counts[9])
+    frequencies = _composition_frequencies(ordered_counts, population_size)
     return E4FocalCompositionPoint(
         step_index=observation.step_index,
         population_size=population_size,
         counts=ordered_counts,
         frequencies=frequencies,
+    )
+
+
+def _composition_frequencies(
+    counts: tuple[int, int, int],
+    population_size: int,
+) -> tuple[float | None, float | None, float | None]:
+    if population_size == 0:
+        return (None, None, None)
+    return (
+        counts[0] / population_size,
+        counts[1] / population_size,
+        counts[2] / population_size,
     )
 
 
@@ -676,8 +790,8 @@ def _validate_founder_id_assignment(
 
 def _trait_lookup_by_step(
     observations: Sequence[IndividualGeneticTraitObservation],
-) -> dict[int, dict[int, int]]:
-    result: dict[int, dict[int, int]] = {}
+) -> TraitLookup:
+    result: TraitLookup = {}
     for observation in observations:
         result[observation.step_index] = {
             individual.organism_id: individual.trait_values[0]
@@ -690,7 +804,7 @@ def _event_actor_speed(
     *,
     step_index: int,
     organism_id: int,
-    traits_by_step: dict[int, dict[int, int]],
+    traits_by_step: TraitLookup,
 ) -> int:
     try:
         speed = traits_by_step[step_index][organism_id]
@@ -700,6 +814,86 @@ def _event_actor_speed(
         ) from error
     _focal_speed_index(speed)
     return speed
+
+
+def _validate_environment_outcomes(
+    values: tuple[E4ReplicateOutcome, ...],
+) -> E3Environment:
+    if not values:
+        raise ValueError("outcomes must contain at least one replicate.")
+    environment = values[0].treatment.environment
+    seen_seeds: set[int] = set()
+    for index, outcome in enumerate(values):
+        _validate_environment_outcome(
+            outcome,
+            index=index,
+            environment=environment,
+            seen_seeds=seen_seeds,
+        )
+    return environment
+
+
+def _validate_environment_outcome(
+    outcome: E4ReplicateOutcome,
+    *,
+    index: int,
+    environment: E3Environment,
+    seen_seeds: set[int],
+) -> None:
+    if not isinstance(outcome, E4ReplicateOutcome):
+        raise TypeError(f"outcomes[{index}] must be an E4ReplicateOutcome.")
+    if outcome.treatment.environment != environment:
+        raise ValueError("all outcomes must belong to the same E4 environment.")
+    if outcome.provenance.seed in seen_seeds:
+        raise ValueError("outcomes must not contain duplicate replicate seeds.")
+    seen_seeds.add(outcome.provenance.seed)
+
+
+def _mean_final_frequency(
+    values: Sequence[E4ReplicateOutcome],
+    speed: int,
+) -> float | None:
+    return _mean_optional(
+        tuple(outcome.final_composition.frequency(speed) for outcome in values)
+    )
+
+
+def _mean_frequency_change(
+    values: Sequence[E4ReplicateOutcome],
+    speed: int,
+) -> float | None:
+    return _mean_optional(tuple(outcome.frequency_change(speed) for outcome in values))
+
+
+def _mean_births(values: Sequence[E4ReplicateOutcome], speed: int) -> float:
+    return sum(outcome.mechanism(speed).cumulative_birth_count for outcome in values) / len(
+        values
+    )
+
+
+def _mean_resources(values: Sequence[E4ReplicateOutcome], speed: int) -> float:
+    return sum(outcome.mechanism(speed).total_resource_consumed for outcome in values) / len(
+        values
+    )
+
+
+def _mean_realized_distance(
+    values: Sequence[E4ReplicateOutcome],
+    speed: int,
+) -> float:
+    return sum(outcome.mechanism(speed).total_realized_distance for outcome in values) / len(
+        values
+    )
+
+
+def _mean_locomotion_energy(
+    values: Sequence[E4ReplicateOutcome],
+    speed: int,
+) -> float:
+    return sum(
+        outcome.mechanism(speed).total_locomotion_energy_expenditure
+        for outcome in values
+    ) / len(values)
 
 
 def _treatment_provenance_mapping(
@@ -759,11 +953,15 @@ def _focal_speed_index(max_speed: int) -> int:
         ) from error
 
 
+def _require_e4_treatment(treatment: E4TreatmentSpecification) -> None:
+    if not isinstance(treatment, E4TreatmentSpecification):
+        raise TypeError("treatment must be an E4TreatmentSpecification.")
+
+
 def _require_e4_treatments(
     control: E4TreatmentSpecification,
     treatment: E4TreatmentSpecification,
 ) -> None:
     if not isinstance(control, E4TreatmentSpecification):
         raise TypeError("control must be an E4TreatmentSpecification.")
-    if not isinstance(treatment, E4TreatmentSpecification):
-        raise TypeError("treatment must be an E4TreatmentSpecification.")
+    _require_e4_treatment(treatment)
