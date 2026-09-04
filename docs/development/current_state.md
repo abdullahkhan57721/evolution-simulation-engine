@@ -217,6 +217,12 @@ camera timing, or other renderer implementation. Interactive and cinematic media
 independently own interaction, layout, camera, timing, interpolation, and
 storytelling.
 
+`ContinuousTraitEncoding` is the first concrete shared Layer-2 value justified by
+multiple renderer consumers. It carries only a committed trait name, human-readable
+label, fixed numeric bounds, and normalization. Palette implementation, legends,
+layout, selection, camera, timing, and other choreography remain renderer-owned.
+This is deliberately not a broad scenario-presentation schema.
+
 Presentation interpolation is never scientific evidence. Configuration context,
 committed state, committed events, derived statistics, interpolation, and authored
 annotations remain conceptually distinct. A broad shared scenario-presentation
@@ -226,7 +232,7 @@ fields that genuinely repeat.
 ### Portfolio interfaces
 
 `evo_engine.ui` remains the current optional top-level Streamlit/Plotly consumer.
-Its application flow now separates full-window configuration from a completed-run,
+Its application flow separates full-window configuration from a completed-run,
 world-centered workspace. Session state owns immutable `DashboardRun` values plus
 view/navigation state rather than live simulation objects. The generic interactive
 world has first-class committed-step selection, scrub/previous/next/playback
@@ -234,9 +240,22 @@ controls, view-only resource/carcass/trail/label controls, stable neutral organi
 encoding, body-mass sizing, selection through a reserved outline channel, and an
 authoritative selected-organism inspector. Recent movement trails and optional
 position interpolation are presentation-derived from committed spatial history and
-never become scientific or exported values. Existing evolutionary/genetic
-analytics, life-history views, experiment comparison, and export remain downstream
-of the same completed evidence.
+never become scientific or exported values.
+
+For a science-aware run, `DashboardRun` may additionally carry opt-in committed
+`IndividualGeneticTraitObservation` history. Interactive preparation joins that
+history to the selected `SpatialObservation` by exact `(step_index, organism_id)`
+and fails loudly on missing/misaligned focal evidence. A supplied
+`ContinuousTraitEncoding` then gives organism fill one fixed scientific meaning,
+with a readable numeric legend plus hover/inspector text while selection remains an
+independent outline channel and body mass remains size. The current concrete B1/B2
+preview demonstrates this path for `max_speed` over real patchy-resource evidence;
+it is explicitly not the final B3 treatment/control scenario.
+
+Existing evolutionary/genetic analytics, life-history views, experiment comparison,
+and export remain downstream of the same completed evidence. The B1/B2 mechanism
+preview deliberately withholds a synthetic multi-seed comparison/export until B3
+provides its durable scientific handoff.
 
 `evo_engine.cinematic` remains the current optional sibling Manim consumer. Its
 `PortfolioAnimationTimeline` is renderer-owned ordering/interpolation state over
@@ -295,14 +314,15 @@ Post-v0.1 development has **two coordinated parallel fronts**:
    than renderer mechanics.
 
 The immediate integration question is no longer whether patchy resources, a
-heritable performance tradeoff, or a generic interactive world exist: all now have
-concrete implementations and evidence. Scenario discovery can test whether the
-resource/tradeoff composition yields a simple, robust, causally legible evolutionary
-demonstration. The interactive front can proceed from its generic world primitives
-to scenario-specific scientific encoding, legends/accessibility, matched comparison,
-and deeper analysis while consuming the selective per-organism trait observation
-seam. Cinematic work remains a sibling renderer concern rather than a shared scene
-runtime.
+heritable performance tradeoff, a generic interactive world, or focal interactive
+trait encoding exist: all now have concrete implementations and evidence. Scenario
+discovery still owns whether the resource/tradeoff composition yields the simplest
+robust, causally legible evolutionary demonstration. Once B3 provides that durable
+handoff, the interactive front can build the actual matched treatment/control
+workspace, scenario-primary metrics, event emphasis, representative-organism
+inspection, and deeper analysis without reverse-engineering scientific conclusions
+from renderer behavior. Cinematic work remains a sibling renderer concern rather
+than a shared scene runtime.
 
 Other longer-term modeled fronts remain:
 
@@ -362,6 +382,12 @@ cycle time, architectural correctness, recoverability, and user attention.
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Science-aware interactive trait encoding:** added the small shared
+  `ContinuousTraitEncoding` value, opt-in committed individual-trait history in
+  completed dashboard results, strict spatial/trait evidence joins, fixed
+  continuous organism fill with readable legend and textual inspection, and a
+  B1/B2 `max_speed` mechanism preview that intentionally stops short of B3's
+  treatment/control claim.
 - **Interactive world presentation foundation:** established immutable UI-only
   world primitives over committed spatial evidence, first-class committed-step
   playback/scrubbing, view-only environmental layers and movement trails, stable
