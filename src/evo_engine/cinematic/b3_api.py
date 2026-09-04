@@ -83,8 +83,8 @@ def _install_moving_camera_overlay_compat(renderer_module: Any) -> None:
     def remove_overlay(self: Any, *mobjects: object) -> None:
         self.remove(*mobjects)
 
-    setattr(scene_type, "add_fixed_in_frame_mobjects", add_overlay)
-    setattr(scene_type, "remove_fixed_in_frame_mobjects", remove_overlay)
+    scene_type.add_fixed_in_frame_mobjects = add_overlay
+    scene_type.remove_fixed_in_frame_mobjects = remove_overlay
 
 
 __all__ = ["render_b3_flagship_cinematic"]
