@@ -13,7 +13,10 @@ from tests.helpers import add_organism, make_state
 
 
 class _StepIndexedEvent(Protocol):
-    step_index: int
+    @property
+    def step_index(self) -> int:
+        """Return the event's simulation step index."""
+        ...
 
 
 @attrs.frozen(slots=True, kw_only=True)
