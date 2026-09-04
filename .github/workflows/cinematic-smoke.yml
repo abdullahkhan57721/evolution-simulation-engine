@@ -60,6 +60,7 @@ jobs:
             --quality low \
             --output outputs/science-aware-cinematic-smoke.mp4
           venv/bin/python - <<'PY'
+          import json
           from pathlib import Path
 
           import av
@@ -80,6 +81,18 @@ jobs:
                   f"Verified {output} ({output.stat().st_size} bytes, "
                   f"{frame.width}x{frame.height} decoded frame)"
               )
+
+          manifest_path = Path("outputs/science-aware-cinematic-smoke.manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          assert manifest["scenario_label"] == "b1-b2-science-aware-smoke"
+          assert manifest["seed"] == 17
+          assert manifest["focal_trait_name"] == "max_speed"
+          assert manifest["focal_label"] == "Maximum speed"
+          assert manifest["director_mode"] == "generic"
+          assert manifest["renderer_name"] == "manim"
+          assert manifest["renderer_version"]
+          assert manifest["quality"] == "low"
+          print(f"Verified reproducibility manifest: {manifest_path}")
           PY
       - name: Upload smoke renders
         uses: actions/upload-artifact@v4
@@ -88,5 +101,6 @@ jobs:
           path: |
             outputs/cinematic-smoke.mp4
             outputs/science-aware-cinematic-smoke.mp4
+            outputs/science-aware-cinematic-smoke.manifest.json
           retention-days: 14
           if-no-files-found: error
