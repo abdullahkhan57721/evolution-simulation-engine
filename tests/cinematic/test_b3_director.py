@@ -184,7 +184,11 @@ def test_full_plan_derives_run_level_confirmation_and_sensitivity_values(
         B3MatchedPairSummary(
             seed=seed,
             founder_assignment="standard",
-            control=_summary_with_primary(control, seed=seed, value=0.30 + index * 0.01),
+            control=_summary_with_primary(
+                control,
+                seed=seed,
+                value=0.30 + index * 0.01,
+            ),
             treatment=_summary_with_primary(
                 treatment,
                 seed=seed,
