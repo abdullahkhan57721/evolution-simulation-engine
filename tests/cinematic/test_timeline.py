@@ -64,9 +64,7 @@ def test_timeline_joins_committed_individual_trait_values() -> None:
         spatial_history=(_spatial(step=0, organism_ids=(1, 2)),),
         population_history=(_population(step=0, trait_values=(1, 2)),),
         trait_name=_TRAIT_NAME,
-        individual_trait_history=(
-            _individual_traits(step=0, values=((1, 1), (2, 5))),
-        ),
+        individual_trait_history=(_individual_traits(step=0, values=((1, 1), (2, 5))),),
         focal_encoding=encoding,
     )
 
@@ -96,9 +94,7 @@ def test_timeline_rejects_missing_or_misaligned_focal_evidence() -> None:
             spatial_history=spatial,
             population_history=population,
             trait_name=_TRAIT_NAME,
-            individual_trait_history=(
-                _individual_traits(step=0, values=((1, 1),)),
-            ),
+            individual_trait_history=(_individual_traits(step=0, values=((1, 1),)),),
             focal_encoding=encoding,
         )
 
