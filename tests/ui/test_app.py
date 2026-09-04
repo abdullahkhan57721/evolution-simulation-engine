@@ -1,4 +1,4 @@
-"""Headless Streamlit interaction tests for the portfolio dashboard."""
+"""Headless Streamlit interaction tests for the interactive simulator."""
 
 from __future__ import annotations
 
@@ -9,21 +9,51 @@ from streamlit.testing.v1 import AppTest
 _APP_PATH = Path(__file__).parents[2] / "src" / "evo_engine" / "ui" / "app.py"
 
 
-def test_dashboard_launches_without_running_a_simulation() -> None:
-    """Test the dashboard loads its initial portfolio/configuration state."""
+def _custom_configuration(app: AppTest) -> AppTest:
+    path = next(radio for radio in app.radio if radio.label == "Configuration path")
+    path.set_value("Custom experiment")
+    return app.run(timeout=30)
+
+
+def _set_small_valid_configuration(app: AppTest) -> None:
+    for label, value in (
+        ("Steps", 1),
+        ("Founder population", 4),
+        ("World width", 4),
+        ("World height", 4),
+    ):
+        next(
+            number_input
+            for number_input in app.number_input
+            if number_input.label == label
+        ).set_value(value)
+
+
+def _run_small_custom_simulation() -> AppTest:
+    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+    app = _custom_configuration(app)
+    _set_small_valid_configuration(app)
+    next(button for button in app.button if button.label == "Run simulation").click()
+    return app.run(timeout=60)
+
+
+def test_app_launches_in_full_configuration_mode() -> None:
+    """Test initial launch shows configuration without result workspace state."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
 
     assert not app.exception
     assert app.title[0].value == "Evolution Simulation Engine"
-    labels = {button.label for button in app.button}
-    assert "Run flagship evolution demo" in labels
-    assert "Run simulation" in labels
-    assert app.info
+    path = next(radio for radio in app.radio if radio.label == "Configuration path")
+    assert path.value == "Curated scenario"
+    assert "Run flagship evolution demo" in {button.label for button in app.button}
+    assert not app.metric
+    assert "Edit configuration" not in {button.label for button in app.button}
 
 
-def test_adaptive_controls_hide_inactive_mutation_and_recombination_fields() -> None:
-    """Test high-level choices immediately control dependent field visibility."""
+def test_custom_path_preserves_adaptive_configuration_visibility() -> None:
+    """Test high-level choices control dependent fields before any run."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+    app = _custom_configuration(app)
 
     assert "Mutation probability (%)" in {slider.label for slider in app.slider}
     assert "Maximum mutation step" in {
@@ -42,29 +72,12 @@ def test_adaptive_controls_hide_inactive_mutation_and_recombination_fields() -> 
     assert "Maximum mutation step" not in {
         number_input.label for number_input in app.number_input
     }
-    assert "Recombination probability (%)" in {slider.label for slider in app.slider}
-    assert app.info
-    assert not app.metric
-
-    recombination = next(
-        checkbox
-        for checkbox in app.checkbox
-        if checkbox.label == "Enable recombination"
-    )
-    recombination.set_value(False)
-    app.run(timeout=30)
-
-    assert not app.exception
-    assert "Recombination probability (%)" not in {
-        slider.label for slider in app.slider
-    }
-    assert app.info
-    assert not app.metric
 
 
-def test_dashboard_configuration_changes_do_not_run_automatically() -> None:
-    """Test editing configuration still requires the explicit run action."""
+def test_configuration_edits_do_not_run_implicitly() -> None:
+    """Test changing simulation configuration still requires explicit Run."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+    app = _custom_configuration(app)
 
     steps = next(
         number_input
@@ -75,51 +88,39 @@ def test_dashboard_configuration_changes_do_not_run_automatically() -> None:
     app.run(timeout=30)
 
     assert not app.exception
-    assert app.info
     assert not app.metric
+    assert "Run simulation" in {button.label for button in app.button}
 
 
-def test_dashboard_can_run_a_small_valid_reference_ecology() -> None:
-    """Test one meaningful interaction produces committed result metrics."""
-    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
-
-    for label, value in (
-        ("Steps", 1),
-        ("Founder population", 4),
-        ("World width", 4),
-        ("World height", 4),
-    ):
-        next(
-            number_input
-            for number_input in app.number_input
-            if number_input.label == label
-        ).set_value(value)
-
-    run_button = next(
-        button for button in app.button if button.label == "Run simulation"
-    )
-    run_button.click()
-    app.run(timeout=60)
+def test_valid_custom_run_transitions_to_world_workspace() -> None:
+    """Test a successful run replaces configuration with the result workspace."""
+    app = _run_small_custom_simulation()
 
     assert not app.exception
     labels = {metric.label for metric in app.metric}
     assert {
         "Completed steps",
-        "Final population",
+        "Population",
+        "Resources",
+        "Mean energy",
         "Births",
         "Deaths",
-        "Final resources",
     } <= labels
     completed = next(
         metric for metric in app.metric if metric.label == "Completed steps"
     )
     assert completed.value == "1"
+    assert "Steps" not in {item.label for item in app.number_input}
+    assert {
+        "Edit configuration",
+        "Rerun",
+        "New simulation",
+    } <= {button.label for button in app.button}
 
 
-def test_dashboard_can_run_featured_flagship_evolution_demo() -> None:
-    """Test the featured action executes the canonical committed scenario."""
+def test_featured_scenario_transitions_to_same_workspace() -> None:
+    """Test the current curated scenario uses the V2 workspace shell."""
     app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
-
     next(
         button for button in app.button if button.label == "Run flagship evolution demo"
     ).click()
@@ -130,7 +131,7 @@ def test_dashboard_can_run_featured_flagship_evolution_demo() -> None:
         metric for metric in app.metric if metric.label == "Completed steps"
     )
     assert completed.value == "40"
-    assert any("Flagship demo" in success.value for success in app.success)
+    assert "Edit configuration" in {button.label for button in app.button}
     assert any(
         selectbox.label == "Inspect heritable trait"
         and selectbox.value == "max_intake_rate"
@@ -142,41 +143,15 @@ def test_dashboard_can_run_featured_flagship_evolution_demo() -> None:
     )
 
 
-def test_dashboard_runs_after_disabling_adaptive_branches() -> None:
-    """Test inactive variation branches still produce a valid real simulation."""
-    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+def test_edit_configuration_keeps_completed_run_until_new_run_succeeds() -> None:
+    """Test an invalid edit cannot destroy the last valid immutable result."""
+    app = _run_small_custom_simulation()
 
-    for label in ("Enable mutation", "Enable recombination"):
-        next(
-            checkbox for checkbox in app.checkbox if checkbox.label == label
-        ).set_value(False)
-        app.run(timeout=30)
-
-    for label, value in (
-        ("Steps", 1),
-        ("Founder population", 4),
-        ("World width", 4),
-        ("World height", 4),
-    ):
-        next(
-            number_input
-            for number_input in app.number_input
-            if number_input.label == label
-        ).set_value(value)
-
-    next(button for button in app.button if button.label == "Run simulation").click()
-    app.run(timeout=60)
-
-    assert not app.exception
-    completed = next(
-        metric for metric in app.metric if metric.label == "Completed steps"
-    )
-    assert completed.value == "1"
-
-
-def test_dashboard_surfaces_cross_field_configuration_errors() -> None:
-    """Test expected reference validation errors are presented to the user."""
-    app = AppTest.from_file(str(_APP_PATH)).run(timeout=30)
+    next(
+        button for button in app.button if button.label == "Edit configuration"
+    ).click()
+    app.run(timeout=30)
+    app = _custom_configuration(app)
 
     for label, value in (
         ("Founder population", 5),
@@ -189,11 +164,36 @@ def test_dashboard_surfaces_cross_field_configuration_errors() -> None:
             if number_input.label == label
         ).set_value(value)
 
-    run_button = next(
-        button for button in app.button if button.label == "Run simulation"
-    )
-    run_button.click()
+    next(button for button in app.button if button.label == "Run simulation").click()
     app.run(timeout=30)
 
     assert not app.exception
     assert any("must not exceed" in error.value for error in app.error)
+    assert "Back to current run" in {button.label for button in app.button}
+
+    next(
+        button for button in app.button if button.label == "Back to current run"
+    ).click()
+    app.run(timeout=30)
+    completed = next(
+        metric for metric in app.metric if metric.label == "Completed steps"
+    )
+    assert completed.value == "1"
+
+
+def test_rerun_and_new_simulation_are_explicit_workspace_actions() -> None:
+    """Test workspace actions do not blur simulation and configuration state."""
+    app = _run_small_custom_simulation()
+
+    next(button for button in app.button if button.label == "Rerun").click()
+    app.run(timeout=60)
+    completed = next(
+        metric for metric in app.metric if metric.label == "Completed steps"
+    )
+    assert completed.value == "1"
+
+    next(button for button in app.button if button.label == "New simulation").click()
+    app.run(timeout=30)
+    assert not app.metric
+    assert "Configuration path" in {radio.label for radio in app.radio}
+    assert "Back to current run" not in {button.label for button in app.button}
