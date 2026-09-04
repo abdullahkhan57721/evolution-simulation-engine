@@ -193,10 +193,7 @@ def interpolate_organism_positions(
     resolved_alpha = float(alpha)
     if not 0.0 <= resolved_alpha <= 1.0:
         raise ValueError("alpha must be between 0 and 1 inclusive.")
-    if (
-        left.world_width != right.world_width
-        or left.world_height != right.world_height
-    ):
+    if left.world_width != right.world_width or left.world_height != right.world_height:
         raise ValueError("interpolation endpoints must use identical world bounds.")
 
     right_by_id = {item.organism_id: item for item in right.organisms}
