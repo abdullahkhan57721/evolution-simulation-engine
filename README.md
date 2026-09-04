@@ -26,7 +26,8 @@ not empirically calibrated predictions about real populations.
 - exact checkpoint/resume and reproducible multi-seed experiments;
 - JSON/CSV experiment export;
 - an adaptive Streamlit/Plotly exploration path over completed immutable evidence;
-- a deterministic Manim cinematic path over the same evidence boundary;
+- a deterministic Manim cinematic path, including a B3-specific explanatory
+  flagship director, over the same evidence boundary;
 - architecture, typing, testing, documentation, complexity, and CI guardrails.
 
 ## Quick start
@@ -122,9 +123,9 @@ secondary historical regression/integration example. Its helpers and current
 presentation entry points are retained for compatibility with the v0.1 portfolio
 surface.
 
-The next interactive/cinematic presentation continuation should consume the B3
-scientific handoff rather than infer B3 treatment/control meaning from the older
-max-intake example.
+The B3 cinematic path now consumes the confirmed scientific handoff directly. The
+interactive B3 matched-comparison continuation should do the same rather than
+infer B3 treatment/control meaning from the older max-intake example.
 
 ## Interactive Streamlit / Plotly application
 
@@ -149,7 +150,7 @@ views, experiment comparison, and export.
 The UI never owns a mutable live engine/world after execution. Presentation values
 remain downstream of committed simulation evidence.
 
-The current generic/science-aware foundation is ready for the dedicated B3 matched
+The generic/science-aware foundation is ready for the dedicated B3 matched
 comparison; renderer-specific B3 layout and interaction remain presentation work,
 not part of the B3 scientific contract.
 
@@ -161,19 +162,45 @@ Install Manim separately:
 venv/bin/python -m pip install -r requirements-animation.txt
 ```
 
-Render the existing deterministic portfolio animation:
+Render the existing generic deterministic portfolio animation:
 
 ```bash
 venv/bin/python examples/render_portfolio_animation.py --quality low
 ```
 
-The simulation completes before Manim renders. The cinematic layer consumes
-committed spatial/population/optional focal-trait evidence and committed event
-telemetry through renderer-owned preparation values. Interpolation, camera, timing,
-and choreography never feed back into simulation semantics.
+Render the confirmed B3 explanatory flagship:
 
-The cinematic foundation is ready for a B3-specific director consuming the
-renderer-neutral storyboard in `docs/flagship_evolution_demo.md`.
+```bash
+venv/bin/python examples/render_b3_flagship_cinematic.py \
+  --quality high \
+  --output outputs/b3-flagship-cinematic.mp4
+```
+
+A short real-B3 director excerpt is available for faster verification:
+
+```bash
+venv/bin/python examples/render_b3_flagship_cinematic.py \
+  --excerpt \
+  --quality low \
+  --output outputs/b3-director-smoke.mp4
+```
+
+The simulation completes before Manim renders. The cinematic layer consumes
+committed spatial/population/focal-trait evidence and authoritative committed event
+telemetry through renderer-owned preparation values. The B3 director then consumes
+the frozen scientific handoff to control scene order, camera focus, temporal
+compression, matched comparison, evidence charts, and conclusion timing.
+Interpolation, camera, timing, and choreography never feed back into simulation
+semantics.
+
+The B3 film keeps organism fill on the fixed `max_speed` scale `1..4`, body size on
+authoritative body mass, and focus on a separate halo/camera channel. Representative
+seed 5 is illustrative; independent confirmation remains run-level robustness
+evidence. The render command also writes a deterministic scalar manifest beside the
+video.
+
+See [B3 Flagship Cinematic](docs/cinematic_flagship.md) for the full reproduction,
+scientific-boundary, CI, and manual-review contract.
 
 ## Reproducible experiments and evidence
 
@@ -270,7 +297,7 @@ scenario-specific scientific meaning
         |                         |
         v                         v
 Streamlit / Plotly             Manim
-interactive exploration       cinematic replay
+interactive exploration       cinematic explanation
 ```
 
 Both presentation paths consume immutable completed evidence. Neither is a second
@@ -283,10 +310,12 @@ Start with:
 - [Current Project State](docs/development/current_state.md)
 - [Architectural Roadmap](docs/development/roadmap.md)
 - [Architecture Overview](docs/architecture/index.md)
+- [Scientific Visualization Architecture](docs/architecture/scientific_visualization.md)
 - [Kernel Contract](docs/kernel_contract.md)
 - [General Evolution Framework](docs/general_evolution_framework.md)
 - [Reference Ecology](docs/reference_ecology.md)
 - [Confirmed Flagship Evolution Demo](docs/flagship_evolution_demo.md)
+- [B3 Flagship Cinematic](docs/cinematic_flagship.md)
 - [Learning Guide](docs/learning/engine_guide/index.md)
 
 The repository also contains subsystem documentation, ADRs, generated architecture
