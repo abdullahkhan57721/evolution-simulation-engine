@@ -83,7 +83,9 @@ def test_e4_local_replicate_preserves_full_composition_and_closes_energy() -> No
     )
 
     assert outcome.initial_composition.counts == (1, 1, 1)
-    assert outcome.initial_composition.frequencies == pytest.approx((1 / 3, 1 / 3, 1 / 3))
+    assert outcome.initial_composition.frequencies == pytest.approx(
+        (1 / 3, 1 / 3, 1 / 3)
+    )
     assert outcome.final_composition.population_size > 0
     assert outcome.boundary_clipping_event_count == 0
     assert outcome.energy_budget_residual == 0
@@ -106,13 +108,16 @@ def test_e4_corridor_replicate_separates_selection_from_mechanism_evidence() -> 
     assert all(
         mechanism.max_speed in E4_FOCAL_SPEEDS for mechanism in outcome.mechanisms
     )
-    assert sum(
-        mechanism.cumulative_birth_count for mechanism in outcome.mechanisms
-    ) >= 0
-    assert sum(
-        mechanism.total_locomotion_energy_expenditure
-        for mechanism in outcome.mechanisms
-    ) > 0
+    assert (
+        sum(mechanism.cumulative_birth_count for mechanism in outcome.mechanisms) >= 0
+    )
+    assert (
+        sum(
+            mechanism.total_locomotion_energy_expenditure
+            for mechanism in outcome.mechanisms
+        )
+        > 0
+    )
 
 
 def test_e4_environment_summary_preserves_run_level_replicates() -> None:
