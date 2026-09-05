@@ -18,24 +18,24 @@ permissions:
   contents: read
 
 jobs:
-  discovery-e5:
-    name: Bounded E5 discovery
+  confirmation-e5:
+    name: Independent E5 confirmation
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-quality
-      - name: Run predeclared discovery matrix only
+      - name: Run frozen disjoint-seed confirmation matrix
         run: |
           venv/bin/python scripts/e5_drift.py \
-            --mode discovery \
+            --mode confirmation \
             --weak-pair 3-4 \
-            --output outputs/e5-validation/e5-discovery.json
-      - name: Upload E5 discovery evidence
+            --output outputs/e5-validation/e5-confirmation.json
+      - name: Upload E5 confirmation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e5-discovery-${{ github.run_id }}
-          path: outputs/e5-validation/e5-discovery.json
+          name: e5-confirmation-${{ github.run_id }}
+          path: outputs/e5-validation/e5-confirmation.json
           retention-days: 30
           if-no-files-found: warn
