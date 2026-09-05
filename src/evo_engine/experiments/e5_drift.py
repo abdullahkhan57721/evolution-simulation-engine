@@ -105,9 +105,7 @@ class E5TreatmentSpecification:
             raise ValueError("mode must be 'neutral' or 'weak_selection'.")
         validators.validate_int(self.founder_count, name="founder_count")
         if self.founder_count not in E5_FOUNDER_COUNTS:
-            raise ValueError(
-                f"founder_count must be one of {E5_FOUNDER_COUNTS!r}."
-            )
+            raise ValueError(f"founder_count must be one of {E5_FOUNDER_COUNTS!r}.")
         validators.validate_int_in_range(
             self.assignment_phase,
             0,
@@ -134,8 +132,7 @@ class E5TreatmentSpecification:
         first: E5Group = "A" if self.assignment_phase == 0 else "B"
         second: E5Group = "B" if first == "A" else "A"
         return tuple(
-            first if index % 2 == 0 else second
-            for index in range(self.founder_count)
+            first if index % 2 == 0 else second for index in range(self.founder_count)
         )
 
     @property
@@ -220,7 +217,9 @@ class E5LineageCompositionPoint:
         if any(value is None for value in self.frequencies):
             raise ValueError("nonempty lineage frequencies must be defined.")
         defined = tuple(value for value in self.frequencies if value is not None)
-        if any(not math.isfinite(value) or not 0.0 <= value <= 1.0 for value in defined):
+        if any(
+            not math.isfinite(value) or not 0.0 <= value <= 1.0 for value in defined
+        ):
             raise ValueError("defined lineage frequencies must be finite in [0, 1].")
         if not math.isclose(sum(defined), 1.0):
             raise ValueError("defined lineage frequencies must sum to one.")
@@ -545,7 +544,9 @@ def compare_e5_weak_to_neutral(
     weak: E5RegimeSummary,
 ) -> E5WeakVsNeutralComparison:
     """Compare weak-selection shift with neutral stochastic spread at one size."""
-    if not isinstance(neutral, E5RegimeSummary) or not isinstance(weak, E5RegimeSummary):
+    if not isinstance(neutral, E5RegimeSummary) or not isinstance(
+        weak, E5RegimeSummary
+    ):
         raise TypeError("neutral and weak must be E5RegimeSummary values.")
     if neutral.mode != "neutral" or weak.mode != "weak_selection":
         raise ValueError("comparison requires neutral and weak_selection summaries.")
@@ -669,39 +670,57 @@ def _composition_point(
     ancestry_groups: dict[int, E5Group],
     treatment: E5TreatmentSpecification,
 ) -> E5LineageCompositionPoint:
-    counts: dict[E5Group, int] = {"A": 0, "B": 0}
-    expected_speed: dict[E5Group, int] = {
+    expected_speed_by_group: dict[E5Group, int] = {
         "A": treatment.group_speeds[0],
         "B": treatment.group_speeds[1],
     }
-    for individual in observation.individuals:
-        try:
-            group = ancestry_groups[individual.organism_id]
-        except KeyError as error:
-            raise ValueError(
-                f"active organism {individual.organism_id} has no resolved ancestry group."
-            ) from error
-        observed_speed = observation.trait_value(individual.organism_id, MAX_SPEED)
-        if observed_speed != expected_speed[group]:
-            raise ValueError(
-                "E5 clonal descendant speed does not match its founder-group speed."
-            )
-        counts[group] += 1
-    population_size = len(observation.individuals)
-    frequencies: tuple[float | None, float | None]
-    if population_size == 0:
-        frequencies = (None, None)
-    else:
-        frequencies = (
-            counts["A"] / population_size,
-            counts["B"] / population_size,
+    active_groups = tuple(
+        _validated_active_group(
+            observation,
+            organism_id=individual.organism_id,
+            ancestry_groups=ancestry_groups,
+            expected_speed_by_group=expected_speed_by_group,
         )
+        for individual in observation.individuals
+    )
+    counts = (active_groups.count("A"), active_groups.count("B"))
+    population_size = len(active_groups)
     return E5LineageCompositionPoint(
         step_index=observation.step_index,
         population_size=population_size,
-        counts=(counts["A"], counts["B"]),
-        frequencies=frequencies,
+        counts=counts,
+        frequencies=_lineage_frequencies(counts),
     )
+
+
+def _validated_active_group(
+    observation: IndividualGeneticTraitObservation,
+    *,
+    organism_id: int,
+    ancestry_groups: dict[int, E5Group],
+    expected_speed_by_group: dict[E5Group, int],
+) -> E5Group:
+    try:
+        group = ancestry_groups[organism_id]
+    except KeyError as error:
+        raise ValueError(
+            f"active organism {organism_id} has no resolved ancestry group."
+        ) from error
+    observed_speed = observation.trait_value(organism_id, MAX_SPEED)
+    if observed_speed != expected_speed_by_group[group]:
+        raise ValueError(
+            "E5 clonal descendant speed does not match its founder-group speed."
+        )
+    return group
+
+
+def _lineage_frequencies(
+    counts: tuple[int, int],
+) -> tuple[float | None, float | None]:
+    population_size = sum(counts)
+    if population_size == 0:
+        return (None, None)
+    return (counts[0] / population_size, counts[1] / population_size)
 
 
 def _group_loss_outcome(
@@ -772,9 +791,7 @@ def _validate_loss_fixation_consistency(outcome: E5ReplicateOutcome) -> None:
     if fixation_step is None:
         return
     losing_loss = (
-        outcome.group_b_loss
-        if outcome.fixation_winner == "A"
-        else outcome.group_a_loss
+        outcome.group_b_loss if outcome.fixation_winner == "A" else outcome.group_a_loss
     )
     if losing_loss.observed_step_index != fixation_step:
         raise ValueError("fixation must coincide with first loss of losing lineage.")
