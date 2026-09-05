@@ -240,7 +240,8 @@ success supporting the demographic mechanism. Radius sensitivity and founder-lab
 counterbalancing bound the interpretation.
 
 The representative storytelling run and real committed explanatory episodes are
-recorded in `docs/flagship_evolution_demo.md`.
+recorded in `docs/flagship_evolution_demo.md` and consumed directly by the B3
+cinematic director.
 
 The B3 claim is environment-dependent and specific to its tested reference ecology.
 It should not be generalized to universal optimal speed, generic patchiness, or
@@ -254,12 +255,35 @@ fixed numeric scale only. It contains no renderer color, material, widget, camer
 timing, easing, or scene-order configuration.
 
 The interactive application owns view state and presentation of completed committed
-runs. The cinematic package prepares renderer-owned timelines from committed
-spatial, population, focal-trait, and event evidence. Presentation interpolation is
-never scientific evidence.
+runs. The cinematic package retains its generic renderer-owned timeline path and
+also provides a concrete B3 flagship director above that foundation:
 
-V2 and V3 should consume the B3 scientific handoff rather than independently invent
-its treatment/control semantics.
+```text
+B3 committed evidence
+        ↓
+B3 renderer-neutral scientific handoff
+        ↓
+B3-specific director preparation
+        ↓
+existing cinematic timelines / prepared values
+        ↓
+Manim-only camera, timing, focus, and charts
+```
+
+The B3 director consumes the shared fixed `max_speed` scale, the predeclared
+representative seed and committed episodes, run-level confirmation evidence,
+founder reproductive contribution, radius-2 sensitivity, and the bounded B3 claim.
+Organism fill encodes focal `max_speed`; body size remains authoritative body mass;
+focus is a separate halo/camera channel. Identity appearance/departure is continuity
+metadata and is never promoted to biological birth/death evidence.
+
+Routine CI renders generic, science-aware, and reduced real-B3 cinematic smokes.
+The full high-quality B3 film is a deliberate reproducible artifact path rather
+than an every-commit quality gate. See `docs/cinematic_flagship.md`.
+
+Presentation interpolation is never scientific evidence. V2 should consume the
+same B3 scientific handoff rather than independently invent treatment/control
+semantics.
 
 ## Current development front
 
@@ -273,7 +297,8 @@ implementation chats. The next controlled-science or architecture milestone shou
 be chosen through roadmap reassessment and an explicit Issue if/when a concrete
 scientific or architectural question earns it.
 
-Independent work can continue on the already-settled presentation track:
+The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
+presentation continuation is the interactive matched-comparison experience:
 
 ```text
 confirmed B3 scientific evidence/storyboard
@@ -281,9 +306,14 @@ confirmed B3 scientific evidence/storyboard
         +-------------------------+
         |                         |
         v                         v
-interactive B3 comparison     cinematic B3 director
-(V2 continuation)             (V3 continuation)
+interactive B3 comparison     B3 flagship cinematic
+(V2 continuation)             (implemented V3 path)
 ```
+
+Both media must preserve B3's treatment/control semantics, common scientific trait
+scale, committed timestep convention, evidence hierarchy, representative-run versus
+multi-seed distinction, and bounded claim. Renderer-specific mechanics remain
+presentation concerns.
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
@@ -314,9 +344,10 @@ from the integrated reference-ecology flagship.
 
 ### Public presentation naming still contains v0.1 history
 
-Some dashboard/cinematic entry points and helper names still call the older
-`max_intake_rate` demonstration the flagship. V2/V3 should migrate the public story
-to B3 deliberately while preserving compatibility where required.
+Some dashboard/helper names still call the older `max_intake_rate` demonstration
+the flagship. The B3 cinematic path does not require renaming those compatibility
+surfaces. V2 should migrate the interactive public story deliberately rather than
+through broad compatibility churn.
 
 ## Collaboration model
 
@@ -336,6 +367,12 @@ early PR → CI → exact-head review → squash merge → `main` verification w
 
 Newest first; this is a capability summary, not a changelog.
 
+- **B3 flagship cinematic director:** turns the confirmed renderer-neutral B3
+  storyboard into a deterministic explanatory Manim film with matched
+  treatment/control framing, authoritative representative episodes, repeated
+  interaction, founder reproductive contribution, population genetic evidence,
+  independent confirmation, radius-2 sensitivity, fixed scientific scales, and a
+  reproducibility manifest while preserving the generic cinematic path.
 - **Confirmed standing-variation selection:** introduced equal-frequency inherited
   speeds 1/3/9 into the frozen E2/E3 controlled ecology with mutation off,
   counterbalanced founder-ID assignment, preserved full committed focal
