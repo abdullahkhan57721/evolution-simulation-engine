@@ -6,10 +6,10 @@ import attrs
 import pytest
 
 from evo_engine.cinematic.b3_director import (
-    B3ConfirmationPoint,
-    B3FounderContributionPoint,
-    B3FlagshipDirectorPlan,
     B3_REPRESENTATIVE_SEED,
+    B3ConfirmationPoint,
+    B3FlagshipDirectorPlan,
+    B3FounderContributionPoint,
     prepare_b3_flagship_director,
 )
 from evo_engine.experiments.b3_flagship import B3RunEvidence, run_b3_flagship
@@ -108,7 +108,9 @@ def test_plan_rejects_changed_representative_focus(
     with pytest.raises(ValueError, match="match the handoff"):
         attrs.evolve(
             representative_plan,
-            representative_focus=tuple(reversed(representative_plan.representative_focus)),
+            representative_focus=tuple(
+                reversed(representative_plan.representative_focus)
+            ),
         )
 
 
