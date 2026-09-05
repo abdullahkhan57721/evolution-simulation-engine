@@ -81,7 +81,7 @@ E5_HORIZON = 60
 E5_NEUTRAL_SPEED = 3
 E5_WEAK_PAIR: tuple[int, int] = (3, 4)
 E5_WEAK_PAIR_ALTERNATIVE: tuple[int, int] = (3, 2)
-E5_RESOURCE_PER_FOUNDER = 160
+E5_RESOURCE_PER_FOUNDER = 420
 
 _E5_MODES: frozenset[str] = frozenset({"neutral", "weak_selection"})
 _E5_WEAK_PAIRS: frozenset[tuple[int, int]] = frozenset(
