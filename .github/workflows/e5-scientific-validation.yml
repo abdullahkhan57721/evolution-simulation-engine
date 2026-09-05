@@ -1,0 +1,41 @@
+name: E5 Scientific Validation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/experiments/e5_drift.py"
+      - "src/evo_engine/experiments/__init__.py"
+      - "scripts/e5_drift.py"
+      - "tests/experiments/test_e5_drift.py"
+      - "docs/e5_drift_weak_selection.md"
+      - "docs/development/current_state.md"
+      - "docs/development/roadmap.md"
+      - "mkdocs.yml"
+      - ".github/workflows/e5-scientific-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discovery-e5:
+    name: Bounded E5 discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run predeclared discovery matrix only
+        run: |
+          venv/bin/python scripts/e5_drift.py \
+            --mode discovery \
+            --weak-pair 3-4 \
+            --output outputs/e5-validation/e5-discovery.json
+      - name: Upload E5 discovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e5-discovery-${{ github.run_id }}
+          path: outputs/e5-validation/e5-discovery.json
+          retention-days: 30
+          if-no-files-found: warn
