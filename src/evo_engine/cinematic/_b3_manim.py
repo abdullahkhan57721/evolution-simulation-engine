@@ -647,9 +647,16 @@ def _centered_multiline_text(
     color: object,
     weight: str | None = None,
 ) -> Any:
-    return VGroup(
-        *(Text(line, font_size=font_size, color=color, weight=weight) for line in lines)
-    ).arrange(DOWN, buff=0.08)
+    if weight is None:
+        text_lines = (
+            Text(line, font_size=font_size, color=color) for line in lines
+        )
+    else:
+        text_lines = (
+            Text(line, font_size=font_size, color=color, weight=weight)
+            for line in lines
+        )
+    return VGroup(*text_lines).arrange(DOWN, buff=0.08)
 
 
 def _wrapped_text(
