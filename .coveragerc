@@ -3,13 +3,15 @@ branch = true
 omit =
     */evo_engine/ui/app.py
     */evo_engine/cinematic/_manim.py
+    */evo_engine/cinematic/_b3_manim.py
 
 # Streamlit AppTest executes the dashboard entrypoint in Streamlit's isolated app
 # runner, which is verified by tests/ui/test_app.py but is not attributed to the
 # source file by pytest-cov. Keep presentation transforms/models in coverage and
 # omit only the framework-owned entrypoint from the aggregate threshold.
 #
-# The Manim renderer is an optional heavy dependency that is intentionally absent
+# The Manim renderers are optional heavy dependencies that are intentionally absent
 # from the protected default quality environment. Deterministic cinematic timeline
-# preparation and the lazy public API remain in aggregate coverage; the renderer
-# itself is verified by the dedicated headless cinematic smoke workflow.
+# and B3-director preparation plus the lazy public APIs remain in aggregate coverage;
+# the renderer modules themselves are verified by the dedicated headless cinematic
+# smoke workflow.
