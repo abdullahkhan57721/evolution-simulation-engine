@@ -648,9 +648,7 @@ def _centered_multiline_text(
     weight: str | None = None,
 ) -> Any:
     if weight is None:
-        text_lines = (
-            Text(line, font_size=font_size, color=color) for line in lines
-        )
+        text_lines = (Text(line, font_size=font_size, color=color) for line in lines)
     else:
         text_lines = (
             Text(line, font_size=font_size, color=color, weight=weight)
