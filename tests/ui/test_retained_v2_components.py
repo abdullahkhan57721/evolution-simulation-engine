@@ -98,7 +98,9 @@ def test_retained_configuration_edits_do_not_run_implicitly() -> None:
     app = _custom_configuration(app)
 
     steps = next(
-        number_input for number_input in app.number_input if number_input.label == "Steps"
+        number_input
+        for number_input in app.number_input
+        if number_input.label == "Steps"
     )
     steps.set_value(1)
     app.run(timeout=30)
