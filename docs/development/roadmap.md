@@ -155,7 +155,7 @@ first pure locomotion measurement derived from committed movement evidence. It
 does not add a metric registry, universal analysis plan, statistics DSL, or new
 statistics dependency.
 
-The controlled experimental-evolution sequence is now:
+The controlled experimental-evolution sequence is now complete through E5:
 
 ```text
 E1 experimental-science foundation
@@ -171,6 +171,10 @@ E3 ecological performance landscape
         v
 E4 standing variation +
    environment-dependent selection
+        |
+        v
+E5 finite-population drift +
+   weak-selection reliability
 ```
 
 E2 should isolate one inherited locomotor-capacity trait in a deliberately simple
@@ -185,20 +189,35 @@ monomorphic speed treatments. Focal evolution remains off, and the resulting
 replicate-level performance landscape should produce a predeclared prediction for
 E4 rather than forcing a desired optimum.
 
-E4 should finally introduce known standing inherited speed variation with mutation
-still off and ask whether strategy/focal-trait frequencies move in the direction
-predicted independently by E3. Founder positions/labels must be counterbalanced,
-and disagreement with E3 is a scientific result to investigate rather than tune
-away.
+E4 then introduced known standing inherited speed variation with mutation still off
+and confirmed that strategy frequencies move in the direction predicted
+independently by E3 under the separated corridor while the matched local-resource
+arm remains neutral.
+
+E5 now adds the finite-population reliability layer. Neutral A/B ancestry exists
+only in analysis and is derived from founder IDs plus the existing clonal pedigree;
+neutral lineages therefore have identical modeled biology. Across founder counts
+2, 8, and 32, independent confirmation shows neutral frequency-change spread
+contracting with population size while weak 3-vs-4 selection is reversed in some
+small-population runs and becomes more reliable at the largest tested size.
+Unobserved lineage loss, fixation, and extinction remain right-censored rather than
+being forced by adding turnover.
+
+The next controlled-science pressure is rare-lineage invasion. Its neutral control
+must match the mutant lineage's introduction mechanism/state, initial rarity,
+population context, ecology, horizon, and censoring semantics. An unmatched rare
+founder is not automatically a valid control for a de-novo mutant. Reuse E5's
+pedigree-derived ancestry and run-level loss/censoring measurements rather than
+creating a generic population-genetics framework.
 
 This sequence is intentionally separate from B3. B3 remains the richer integrated
-reference-ecology flagship; E2–E4 are controlled causal experiments that may reuse
+reference-ecology flagship; E2–E5 are controlled causal experiments that may reuse
 general contracts without retroactively simplifying or rewriting B3.
 
 ## Presentation integration front
 
 The presentation step is no longer scenario discovery. Both media can consume the
-confirmed B3 scientific handoff faithfully while the E2–E4 controlled experiment
+confirmed B3 scientific handoff faithfully while the E2–E5 controlled experiment
 track proceeds independently:
 
 ```text
@@ -332,11 +351,12 @@ not from a kernel-owned scalar `fitness` field.
 
 ## Observation and statistical analysis
 
-E1 now defines the durable scientific-measurement semantics needed by the current
-controlled experiment sequence while deliberately stopping short of a broad
-statistics framework. Future repeated experimental patterns may justify additional
-reusable statistical contracts, but only after concrete consumers establish what
-actually repeats.
+E1–E5 now provide concrete consumers for the durable scientific-measurement
+boundary while deliberately stopping short of a broad statistics framework. E5
+adds run-level frequency distributions and probabilities without pooling organisms
+or introducing a new statistics dependency. Future repeated experimental patterns
+may justify additional reusable contracts only after concrete consumers establish
+what actually repeats.
 
 Preserve the distinction among:
 
