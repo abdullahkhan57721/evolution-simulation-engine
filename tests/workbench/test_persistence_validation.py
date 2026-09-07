@@ -88,7 +88,9 @@ def test_manifest_rejects_identity_version_and_explicit_slot_corruption() -> Non
     with pytest.raises(TypeError, match="engine_version"):
         attrs.evolve(manifest, engine_version="")
     with pytest.raises(ValueError, match="stable order"):
-        attrs.evolve(manifest, explicit_values=tuple(reversed(manifest.explicit_values)))
+        attrs.evolve(
+            manifest, explicit_values=tuple(reversed(manifest.explicit_values))
+        )
 
 
 def test_manifest_value_pairs_reject_invalid_container_items_keys_values_and_duplicates() -> (
@@ -115,7 +117,9 @@ def test_manifest_unknown_semantic_value_raises_key_error() -> None:
         manifest.derived_value("unknown")
 
 
-def test_manifest_loader_rejects_non_string_non_object_and_bad_required_fields() -> None:
+def test_manifest_loader_rejects_non_string_non_object_and_bad_required_fields() -> (
+    None
+):
     manifest = _manifest()
     with pytest.raises(TypeError, match="string"):
         ControlledLocomotionManifest.from_json(1)  # type: ignore[arg-type]
