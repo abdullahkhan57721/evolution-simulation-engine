@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import attrs
+import pytest
+
 from evo_engine.experiments.e7_adaptation import (
     E7_REFERENCE_REGION,
     E7_SPEED_DOMAIN,
     build_e7_treatment,
     e7_distribution_overlap,
     run_e7_replicate,
+    run_e7_seed_set,
     summarize_e7_starting_condition,
 )
 
@@ -61,6 +65,18 @@ def test_e7_forced_focal_mutation_is_evidence_derived_and_bounded() -> None:
         assert all(0 <= speed < len(E7_SPEED_DOMAIN) for speed in point.modal_speeds)
 
 
+def test_e7_seed_set_rejects_duplicate_replicate_seeds() -> None:
+    """Test one seed cannot be counted twice as independent E7 replication."""
+    treatment = build_e7_treatment(starting_speed=3, horizon=1)
+
+    with pytest.raises(ValueError, match="seeds must not contain duplicates"):
+        run_e7_seed_set(
+            treatment,
+            seeds=(17, 17),
+            run_role="discovery",
+        )
+
+
 def test_e7_endpoint_summary_keeps_run_as_replicate() -> None:
     """Test endpoint aggregation weights each run once and preserves distributions."""
     treatment = build_e7_treatment(
@@ -85,6 +101,29 @@ def test_e7_endpoint_summary_keeps_run_as_replicate() -> None:
             < 1e-9
         )
     assert e7_distribution_overlap(summary, summary) == 1.0
+
+
+def test_e7_summary_rejects_duplicate_seeds_and_mixed_treatments() -> None:
+    """Test summaries cannot manufacture replication or mix assay definitions."""
+    treatment = build_e7_treatment(
+        starting_speed=3,
+        horizon=5,
+        mutation_probability_ppm=1_000_000,
+    )
+    outcome = run_e7_replicate(treatment, seed=17, run_role="discovery")
+
+    with pytest.raises(ValueError, match="duplicate replicate seeds"):
+        summarize_e7_starting_condition((outcome, outcome))
+
+    mixed = attrs.evolve(
+        outcome,
+        treatment=attrs.evolve(
+            treatment,
+            mutation_probability_ppm=500_000,
+        ),
+    )
+    with pytest.raises(ValueError, match="same E7 treatment"):
+        summarize_e7_starting_condition((outcome, mixed))
 
 
 def test_e7_reference_region_is_bounded_inside_legal_domain() -> None:
