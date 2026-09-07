@@ -143,7 +143,7 @@ it characterizes this finite-horizon modeled ecology.
 
 Speed 3 is the E3/E4-favored member of the pair in the separated corridor.
 
-| Founder count | Mean Δ speed-3 frequency | Runs speed 3 increased | Runs speed 3 decreased | |mean shift| / neutral SD |
+| Founder count | Mean Δ speed-3 frequency | Runs speed 3 increased | Runs speed 3 decreased | Absolute mean shift / neutral SD |
 | ---: | ---: | ---: | ---: | ---: |
 | 2 | +0.0215 | 13 / 24 | 2 / 24 | 0.67 |
 | 8 | +0.0204 | 21 / 24 | 1 / 24 | 1.21 |
