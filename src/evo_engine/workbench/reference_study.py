@@ -70,7 +70,9 @@ class ReferenceStudyRevision:
             raise ValueError("Stored reference intent contains inactive stale values.")
         readiness = assess_reference_readiness(self.intent, self.evidence_plan)
         if readiness.state != "ready":
-            raise ValueError("Stored reference intent is outside the WB4 support envelope.")
+            raise ValueError(
+                "Stored reference intent is outside the WB4 support envelope."
+            )
         if (
             normalized_reference_explicit_values(self.intent)
             != self.manifest.explicit_values
