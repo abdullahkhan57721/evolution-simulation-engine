@@ -245,9 +245,11 @@ obscure or reverse weak selection at small modeled population size.
 No lineage loss, fixation, or whole-population extinction was observed within the
 60-step confirmation horizon; those outcomes remain right-censored. The minimal
 controlled composition has no ordinary aging/metabolic/density-independent
-turnover, so E5 does not manufacture fixation. E6 directly consumed that requirement by using a matched neutral rare-lineage
-control with the same introduction state, rarity, ecology, population context, and
-horizon rather than treating an unmatched rare founder as the control. See `docs/e5_drift_weak_selection.md`.
+turnover, so E5 does not manufacture fixation. E6 directly consumed that
+requirement by using a matched neutral rare-lineage control with the same
+introduction state, rarity, ecology, population context, and horizon rather than
+treating an unmatched rare founder as the control. See
+`docs/e5_drift_weak_selection.md`.
 
 ### E6 — confirmed rare-lineage invasion and candidate stability
 
@@ -280,8 +282,9 @@ claim. See `docs/e6_rare_lineage_invasion.md`.
 
 WB1 establishes the bounded controlled-locomotion study recipe. WB2 adds the first
 trusted curated-scenario workflow using the confirmed B3 flagship. WB3 adds the
-first user-authored controlled experiment patterns. Together they expand the
-Workbench without turning it into a universal simulation or experiment language.
+first user-authored controlled experiment patterns. WB4 adds the first rich but
+bounded editable reference-ecology recipe. Together they expand the Workbench
+without turning it into a universal simulation or experiment language.
 
 The durable authoring direction remains:
 
@@ -352,13 +355,38 @@ the concrete pattern. In particular, E4's individual focal-trait evidence is
 satisfied through the existing E4 recorder path rather than by widening WB1's
 monomorphic manifest.
 
-The Workbench remains recipe/pattern-specific where concrete consumers differ. WB2
-and WB3 do not yet justify a universal persisted study root, plugin system,
-configuration graph, generic factor/experiment hierarchy, capability/evidence
-solver, path-based treatment-diff language, migration framework, claim-inference
-engine, metric/statistics registry, or alternate simulation engine. Lower
-engine/domain packages remain independent of `workbench`. Scientific manifests
-remain renderer-neutral. See `docs/evolution_experiment_workbench.md`.
+WB4 adds `bounded-reference-ecology` v1 as a sibling bounded recipe over ordinary
+`ReferenceEcologyConfig` and `build_reference_spec()`. Its Guided surface covers
+world/founder/run settings, three founder performance/sensing traits, exploration
+movement, and uniform versus bounded two-patch geography. Its Advanced surface adds
+Gaussian spread, renewable-resource quantity/cadence, patch geometry, mutation
+controls, and recombination probability. Expert is deliberately empty; arbitrary
+reference traits/tradeoffs, placement policies, genetics/expression, inheritance,
+reproduction, targeted-movement graphs, lifecycle processes, and development/G×E
+remain extension/internal capability rather than automatic form fields.
+
+Applicability is recipe-local. Non-Gaussian movement, disabled mutation, and uniform
+geography normalize inactive Gaussian/mutation/patch values out of both the
+resolved manifest and saved editable intent. The resolved manifest separately
+records explicit selections, derived wiring, and a compatibility fingerprint for
+all non-editable numeric reference assumptions that could change the modeled
+science. Saved revision load rechecks the v1 authoring support envelope and exact
+intent/manifest agreement. Compilation still reconstructs fresh existing reference
+configuration, evidence recorders, and authoritative lower preflight. Population,
+event, pedigree, genetic-composition, and spatial evidence remain concrete existing
+recorders; spatial replay is opt-in with an advisory rather than a new evidence
+solver. See `docs/wb4_bounded_reference_ecology.md`.
+
+The Workbench remains recipe/pattern-specific where concrete consumers differ.
+WB2–WB4 strengthen repeated principles—stable semantic identity, immutable resolved
+meaning, exact load, explicit lineage/design metadata, fresh runtime reconstruction,
+and renderer-neutral science—but still do not justify a universal persisted study
+root, plugin system, configuration graph, generic factor/experiment hierarchy,
+capability/evidence solver, reflection-based form system, path-based treatment-diff
+language, migration framework, claim-inference engine, metric/statistics registry,
+or alternate simulation engine. Lower engine/domain packages remain independent of
+`workbench`. See `docs/evolution_experiment_workbench.md` and
+`docs/wb4_bounded_reference_ecology.md`.
 
 ## Confirmed B3 scientific flagship
 
@@ -443,16 +471,18 @@ must not be promoted to an optimum. Mutation must remain isolated to the focal
 locomotor locus rather than being enabled across the richer reference genome.
 
 The Workbench product front now includes WB1 exact study/manifest foundations, WB2
-trusted curated-B3 exact reproduction and fork lineage, and WB3 controlled-
-experiment authoring. Later milestones may rely on scenario origin versus validated
-identity, stable experiment pattern/factor IDs, deterministic treatment expansion,
-explicit seed/factor/counterbalance metadata, immutable resolved manifests, and
-unchanged typed scenario/experiment results. Results/presentation work should keep
-primary outcomes, mechanism evidence, diagnostics, replicate values, summaries,
-scenario validation status, and presentation meaning distinct rather than
-flattening them into scalar fitness or a generic metric/statistics layer. Future
-generalization should be earned by repeated consumers rather than inferred merely
-because three Workbench milestones now exist.
+trusted curated-B3 exact reproduction and fork lineage, WB3 controlled-experiment
+authoring, and WB4 rich bounded reference-ecology authoring. Later milestones may
+rely on scenario origin versus validated identity, stable experiment pattern/factor
+IDs, deterministic treatment expansion, explicit seed/factor/counterbalance
+metadata, normalized rich reference intent/manifests, exact run provenance, and the
+concrete WB4 population/event/pedigree/genetic/spatial result evidence. Results and
+presentation work should keep primary outcomes, mechanism evidence, diagnostics,
+replicate values, summaries, scenario validation status, authoring support status,
+and presentation meaning distinct rather than flattening them into scalar fitness
+or a generic metric/statistics layer. Future generalization should be earned by
+repeated consumers rather than inferred merely because four Workbench milestones
+now exist.
 
 The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
 presentation continuation is the interactive matched-comparison experience:
@@ -494,7 +524,7 @@ of concrete policies, not a structural ambiguity in `Genome` or
 
 ### Scientific scope remains intentionally illustrative
 
-The reference ecology, B3 flagship, and E2–E6 controlled experiments are
+The reference ecology, B3 flagship, and E2–E5 controlled experiments are
 software/modeling demonstrations. They are not species-calibrated predictive
 ecological models. The controlled E2–E6 program remains intentionally distinct
 from the integrated reference-ecology flagship.
@@ -502,12 +532,13 @@ from the integrated reference-ecology flagship.
 ### Workbench persistence remains intentionally concrete
 
 WB1's saved revision is controlled-locomotion-specific, WB2 uses a B3-specific
-curated revision, and WB3 uses concrete persisted experiment definitions. These
-milestones establish repeated principles—stable semantic identity, immutable
-resolved values, exact load, provenance, and explicit lineage/design metadata—but
-not yet enough repeated shape to justify a universal persisted study/experiment
-root. Later concrete consumers should determine whether that generalization is
-earned.
+curated revision, WB3 uses concrete persisted experiment definitions, and WB4 uses
+a reference-ecology-specific saved revision. These milestones establish repeated
+principles—stable semantic identity, immutable resolved values, exact load,
+provenance, normalized inactive state, and explicit lineage/design metadata—but
+still do not provide enough repeated shape to justify a universal persisted
+study/experiment root. Later concrete consumers should determine whether that
+generalization is earned.
 
 ### Public presentation naming still contains v0.1 history
 
@@ -541,6 +572,15 @@ Newest first; this is a capability summary, not a changelog.
   residents while reciprocal speed 4 does not expand. The claim remains bounded
   to candidate stability against speed 4 without a formal ESS, fixation, scalar
   fitness, or generic intervention/population-genetics framework.
+- **WB4 bounded reference-ecology custom study:** added a rich but deliberately
+  bounded `bounded-reference-ecology` recipe over existing reference composition,
+  explicit Guided/Advanced/Expert/Extension classification, recipe-local
+  applicability and stale-state normalization, stable semantic slot metadata,
+  exact explicit/derived manifests with non-editable-default compatibility
+  fingerprinting, concrete population/event/pedigree/genetic/spatial evidence,
+  exact saved-study/run provenance, immutable fork/diff semantics, and unchanged
+  lower reference preflight without introducing a registry, capability solver,
+  full reference-config form, or generic policy editor.
 - **WB3 controlled experiment authoring:** added concrete E3 max-speed sweep and E4
   matched environment-comparison definitions using stable semantic factor IDs,
   deterministic pre-compilation treatment expansion, explicit evidence needs,

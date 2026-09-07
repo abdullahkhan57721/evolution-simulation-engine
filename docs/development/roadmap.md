@@ -149,7 +149,7 @@ claim/nonclaim boundary and renderer-neutral storyboard live in
 The old `max_intake_rate` v0.1 demonstration remains a secondary historical
 regression/integration example.
 
-## Completed E1–E5 controlled-science sequence
+## Completed E1–E6 controlled-science sequence
 
 A separate controlled program now provides a deliberately simpler causal proof
 sequence:
@@ -164,6 +164,8 @@ E3 monomorphic ecological-performance landscape
 E4 selection on standing inherited variation
         ↓
 E5 finite-population drift and weak selection
+        ↓
+E6 rare-lineage invasion and candidate stability
 ```
 
 ### E1 — measurement semantics and reproducibility
@@ -227,30 +229,25 @@ not at the largest tested founder count. Loss/fixation/extinction remain outcome
 and are right-censored when absent; E5 does not introduce turnover merely to force
 absorption.
 
-The rare-invasion handoff is explicit: later invasion must compare disappearance
-against a neutral lineage introduced in the same state and at the same rarity under
-the same ecology, population context, and horizon. A rare founder is not
-automatically a valid control for a de-novo mutant. Reuse E5's pedigree-derived
-ancestry and run-level censoring rather than building a generic population-genetics
-layer.
-
+The rare-invasion handoff required later invasion to compare disappearance against a
+neutral lineage introduced in the same state and at the same rarity under the same
+ecology, population context, and horizon. E6 directly consumes that requirement.
 
 ### E6 — rare-lineage invasion and candidate stability
 
-E6 consumes E5's matched-neutral requirement directly. Eight monomorphic residents
-run through a genuine 10-step burn-in in the E3 corridor; the exact committed
-state/RNG is then forked into matched external-admission arms. The newborn-like
-entrant is placed at a deterministic living resident's current position and differs
-between paired arms only in `max_speed`; resident/rare ancestry remains analysis-
-only through existing pedigree evidence. Reciprocal speed 3↔4 invasion is followed
-to terminal step 60.
+E6 uses eight monomorphic residents through a genuine 10-step burn-in in the E3
+corridor, then forks the exact committed state/RNG into matched external-admission
+arms. The newborn-like entrant is placed at a deterministic living resident's
+current position and differs between paired arms only in `max_speed`; resident/rare
+ancestry remains analysis-only through existing pedigree evidence. Reciprocal speed
+3↔4 invasion is followed to terminal step 60.
 
 Independent confirmation on 24 fresh seeds shows speed-3 mutants producing rare
-descendants in `8/24` speed-4 resident runs versus `0/24` matched neutral controls,
-with positive mean paired frequency contrast (`+0.0055`). Reciprocal speed-4 mutants
-produce no descendants in `24/24` runs and have no positive average invasion
-signal. Loss, fixation, and extinction remain right-censored because E6 does not
-retrofit turnover merely to force absorption.
+descendants and expanding in `8/24` speed-4 resident runs versus `0/24` matched
+neutral controls, with positive mean paired frequency contrast (`+0.0055`).
+Reciprocal speed-4 mutants expand in `0/24` runs and have an essentially zero to
+slightly negative average invasion signal. Loss, fixation, and extinction remain
+right-censored because E6 does not retrofit turnover merely to force absorption.
 
 This is a bounded **candidate invasion-stability** result against reciprocal speed
 4, not a formal ESS, asymptotic invasion-fitness estimate, fixation result, or
@@ -263,9 +260,9 @@ retroactively simplify B3.
 
 ## Experiment Workbench product front
 
-WB1, WB2, and WB3 establish three concrete product-layer foundations for study,
-curated-scenario, and controlled-experiment authoring above existing typed/scenario
-composition:
+WB1, WB2, WB3, and WB4 establish four concrete product-layer foundations for
+bounded studies, trusted curated scenarios, controlled experiments, and richer
+custom biological studies above existing typed/scenario composition:
 
 ```text
 semantic study / curated scenario / experiment authoring
@@ -352,23 +349,50 @@ integrity and scientific results remain authoritative; Workbench authoring does 
 replace them with generic configuration diffing, factor registries, evidence
 solving, metric registries, or statistics infrastructure.
 
-### Workbench direction after WB3
+### WB4 — bounded rich reference-ecology custom study
+
+WB4 adds `bounded-reference-ecology` v1 as a sibling recipe over ordinary
+`ReferenceEcologyConfig` and `build_reference_spec()` rather than turning that
+configuration object into a generic form. Guided authoring covers world/founder/run
+settings, founder `max_speed`/sensing traits, exploration movement, and uniform
+versus bounded two-patch resource geography. Advanced authoring covers Gaussian
+spread, renewable resource quantity/cadence, patch geometry, mutation controls, and
+recombination probability. Expert is deliberately empty; arbitrary policy graphs,
+reference traits/tradeoffs, genetics/expression, inheritance, reproduction,
+lifecycle, and development/G×E remain extension/internal capability.
+
+Conditional controls are recipe-local. Non-Gaussian movement, disabled mutation,
+and uniform geography normalize inactive Gaussian, mutation, and patch values out
+of both the resolved manifest and saved editable intent. Exact manifests use stable
+semantic IDs and include a compatibility fingerprint for every non-editable numeric
+reference assumption that could otherwise drift with future preset defaults. Saved
+revision load rechecks the v1 support envelope and exact intent/manifest agreement.
+Compilation reconstructs fresh existing reference configuration and recorders before
+authoritative lower preflight.
+
+WB4 exposes concrete population, committed-event, pedigree/life-history,
+genetic-composition, and spatial evidence. Spatial replay is opt-in with a volume
+advisory rather than a generic evidence solver. Forking remains immutable, semantic
+diff remains recipe-scoped, and runs carry exact Workbench plus E1 scientific
+provenance. See `docs/wb4_bounded_reference_ecology.md`.
+
+### Workbench direction after WB4
 
 The next Workbench integration pressure is results/presentation and broader study
 workflows, not generic abstraction. A downstream results layer may rely on WB2's
-scenario-origin/validated-identity distinction and WB3's stable experiment
-pattern/factor IDs, deterministic treatment ordering, per-treatment
-seed/factor/counterbalance metadata, and unchanged typed scientific results. It
-should preserve primary outcome, mechanism evidence, diagnostics, replicate-level
-values, summaries, validation status, and presentation meaning as distinct
+scenario-origin/validated-identity distinction, WB3's stable experiment
+pattern/factor IDs and deterministic treatment ordering, and WB4's normalized rich
+reference manifests plus concrete evidence/provenance. It should preserve primary
+outcome, mechanism evidence, diagnostics, replicate-level values, summaries,
+validation status, authoring support status, and presentation meaning as distinct
 scientific concepts rather than flattening them into scalar fitness.
 
 Lower packages do not depend on the Workbench. Scientific manifests remain
 renderer-neutral. Generalization should wait until repeated concrete consumers
-demonstrate repeated responsibility: WB1/WB2/WB3 do not authorize a universal
-Blueprint, persisted study root, registry, capability solver, schema system,
-experiment hierarchy, generic sensitivity framework, migration system,
-claim-inference engine, or statistics DSL.
+demonstrate repeated responsibility: WB1/WB2/WB3/WB4 do not authorize a universal
+Blueprint, persisted study root, registry, reflection-based form system, capability
+solver, schema system, experiment hierarchy, generic sensitivity framework,
+migration system, claim-inference engine, or statistics DSL.
 
 The Workbench product track is orthogonal to the next controlled-science pressure;
 neither should be made an artificial prerequisite for the other.
@@ -457,6 +481,9 @@ E4's selection direction, and E6's bounded invasion-stability region.
 E7 should remain above the frozen kernel and should not introduce a universal
 adaptive-landscape, fitness, mutation, or population-genetics framework unless a
 concrete deficiency in existing contracts is independently demonstrated.
+
+The Workbench product track remains orthogonal to this scientific sequence. E7
+should not acquire Workbench dependencies merely because the Workbench exists.
 
 ## Front A — Richer genetic expression
 
@@ -611,6 +638,8 @@ the stable subset worth compiling.
 - Preserve semantic factor identity separately from implementation field paths, and
   keep experimental counterbalancing/blocking metadata separate from primary-factor
   meaning.
+- Normalize inapplicable Workbench authoring state before persistence so hidden
+  inactive values cannot later reappear as scientific changes.
 - Keep Workbench scientific manifests renderer-neutral.
 - Prefer readable, maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
