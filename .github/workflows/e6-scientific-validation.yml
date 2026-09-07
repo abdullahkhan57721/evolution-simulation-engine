@@ -16,6 +16,273 @@ on:
   workflow_dispatch:
 
 permissions:
+  contents: write
+
+jobs:
+  finalize-e6-docs:
+    name: Finalize E6 project orientation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Patch current orientation, roadmap, and navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"expected one match in {path}, found {count}")
+              path.write_text(text.replace(old, new), encoding="utf-8")
+
+          current = Path("docs/development/current_state.md")
+          replace_once(
+              current,
+              """E1–E5 now form a completed causal proof sequence above the frozen kernel and
+separate from the richer reference ecology.
+
+```text
+E1 measurement semantics and reproducibility
+        ↓
+E2 minimal controlled locomotion mechanics
+        ↓
+E3 monomorphic ecological-performance landscape
+        ↓
+E4 selection on standing inherited variation
+        ↓
+E5 finite-population drift and weak selection
+```
+""",
+              """E1–E6 now form a completed causal proof sequence above the frozen kernel and
+separate from the richer reference ecology.
+
+```text
+E1 measurement semantics and reproducibility
+        ↓
+E2 minimal controlled locomotion mechanics
+        ↓
+E3 monomorphic ecological-performance landscape
+        ↓
+E4 selection on standing inherited variation
+        ↓
+E5 finite-population drift and weak selection
+        ↓
+E6 rare-lineage invasion and candidate stability
+```
+""",
+          )
+          replace_once(
+              current,
+              """No lineage loss, fixation, or whole-population extinction was observed within the
+60-step confirmation horizon; those outcomes remain right-censored. The minimal
+controlled composition has no ordinary aging/metabolic/density-independent
+turnover, so E5 does not manufacture fixation. A later rare-lineage invasion must
+use a matched neutral rare-lineage control with the same introduction state,
+rarity, ecology, population context, and horizon rather than treating an unmatched
+rare founder as the control. See `docs/e5_drift_weak_selection.md`.
+
+## Experiment Workbench authoring foundation
+""",
+              """No lineage loss, fixation, or whole-population extinction was observed within the
+60-step confirmation horizon; those outcomes remain right-censored. The minimal
+controlled composition has no ordinary aging/metabolic/density-independent
+turnover, so E5 does not manufacture fixation. E5 therefore froze the matched
+neutral rare-lineage control requirement consumed directly by E6. See
+`docs/e5_drift_weak_selection.md`.
+
+### E6 — confirmed rare-lineage invasion and candidate stability
+
+E6 runs a genuine resident-only burn-in and then forks the exact committed
+`SimulationState`, including its RNG and allocator state, into matched neutral and
+mutant arms. The external entrant is an explicit experiment admission rather than
+a simulated birth or mutation. It is newborn-like (age 0, energy 20, body mass 1),
+is placed at the current position of the lowest-ID living resident without
+consuming RNG, and differs across paired arms only in `max_speed`. Resident/rare
+identity remains analysis-only and propagates through existing pedigree evidence.
+
+The final frozen assay uses eight monomorphic residents, the E3 separated-resource
+corridor with E5's 420 resource units per resident founder, a 10-step burn-in, and a
+fixed terminal step 60. The reciprocal comparison is speed 3 invading speed-4
+residents versus speed 4 invading speed-3 residents, each against its exact matched
+neutral rare entrant.
+
+Independent confirmation on 24 fresh seeds shows speed-3 mutants expanding in 8/24
+speed-4 resident runs versus 0/24 matched neutral controls, with mean paired rare-
+frequency contrast about `+0.0055`. The reciprocal speed-4 mutants expand in 0/24
+runs and have an essentially zero/slightly negative mean paired contrast
+(`-0.0001`). No rare-lineage loss, fixation, or whole-population extinction is
+observed within the fixed horizon, so those event times remain right-censored.
+
+The result supports speed 3 only as a **candidate invasion-stable strategy against
+reciprocal speed 4 in this controlled corridor assay**. It is not a formal ESS,
+fixation result, asymptotic invasion-fitness estimate, or universal optimal-speed
+claim. See `docs/e6_rare_lineage_invasion.md`.
+
+## Experiment Workbench authoring foundation
+""",
+          )
+          replace_once(
+              current,
+              """The E1→E5 controlled-science sequence is complete through the finite-population
+baseline. It provides a causal chain from mechanics to ecological performance,
+selection on inherited standing variation, and the stochastic reliability of weak
+selection across modeled founder-count regimes, alongside the richer independently
+confirmed B3 flagship.
+
+The next controlled-science pressure is rare-lineage invasion. Any such milestone
+must preserve E5's key interpretation boundary: disappearance of a rare lineage is
+not by itself evidence of selective disadvantage. If the invasion design can lose
+a rare lineage, it must include a matched neutral control using the same
+introduction mechanism/state, initial rarity, population context, ecology, horizon,
+and censoring semantics. Do not retrofit mortality or generic population-genetics
+machinery merely to obtain textbook fixation behavior.
+""",
+              """The E1→E6 controlled-science sequence is complete through matched rare-lineage
+invasion. It provides a causal chain from mechanics to ecological performance,
+selection on inherited standing variation, finite-population stochasticity, and a
+reciprocal established-resident invasion assay, alongside the richer independently
+confirmed B3 flagship.
+
+E6 resolves the immediate rare-invasion pressure without manufacturing turnover or
+generic population-genetics machinery. The next controlled-science milestone is
+not preauthorized by sequence alone: it should begin from a concrete biological or
+experimental question and demonstrate why richer turnover, mutation-driven
+invasion, sexual rare variants, broader strategy sets, longer horizons, or another
+modeled extension is necessary before generalizing E6's intervention semantics.
+""",
+          )
+          replace_once(
+              current,
+              """Newest first; this is a capability summary, not a changelog.
+
+- **WB3 controlled experiment authoring:**""",
+              """Newest first; this is a capability summary, not a changelog.
+
+- **Confirmed rare-lineage invasion and candidate stability:** established exact
+  resident-state/RNG forking, explicit matched external newborn-like admission,
+  analysis-only pedigree ancestry, reciprocal speed-3/speed-4 invasion, and
+  independent confirmation that speed 3 can reproduce and expand against speed-4
+  residents while reciprocal speed 4 does not expand, supporting only a bounded
+  candidate-stability claim without a formal ESS, fixation, scalar fitness, or
+  generic intervention/population-genetics framework.
+- **WB3 controlled experiment authoring:**""",
+          )
+          text = current.read_text(encoding="utf-8")
+          text = text.replace("reinterpreted by E2–E5 or the Workbench", "reinterpreted by E2–E6 or the Workbench")
+          text = text.replace("E2–E5 controlled experiments", "E2–E6 controlled experiments")
+          text = text.replace("E2–E5 controlled experiments are", "E2–E6 controlled experiments are")
+          current.write_text(text, encoding="utf-8")
+
+          roadmap = Path("docs/development/roadmap.md")
+          replace_once(
+              roadmap,
+              """The rare-invasion handoff is explicit: later invasion must compare disappearance
+against a neutral lineage introduced in the same state and at the same rarity under
+the same ecology, population context, and horizon. A rare founder is not
+automatically a valid control for a de-novo mutant. Reuse E5's pedigree-derived
+ancestry and run-level censoring rather than building a generic population-genetics
+layer.
+
+E1–E5 are intentionally separate from B3. B3 remains the richer integrated
+reference-ecology flagship; the E sequence isolates causal mechanics and does not
+retroactively simplify B3.
+""",
+              """The rare-invasion handoff is explicit: later invasion must compare disappearance
+against a neutral lineage introduced in the same state and at the same rarity under
+the same ecology, population context, and horizon. A rare founder is not
+automatically a valid control for a de-novo mutant. E6 consumed this requirement
+directly rather than building a generic population-genetics layer.
+
+### E6 — rare-lineage invasion and candidate stability
+
+E6 runs eight monomorphic residents through a 10-step burn-in in the E3 corridor,
+then forks the exact committed state/RNG into matched external-admission arms. The
+newborn-like entrant is placed at a deterministic living resident's current
+position and differs between paired arms only in `max_speed`; resident/rare ancestry
+remains analysis-only through existing pedigree evidence. Reciprocal speed 3↔4
+invasion is tested to terminal step 60.
+
+Independent confirmation on 24 fresh seeds shows speed-3 mutants producing rare
+descendants in 8/24 speed-4 resident runs versus 0/24 matched neutral controls, with
+a positive mean paired frequency contrast (`+0.0055`). Reciprocal speed-4 mutants
+produce no descendants in 24/24 runs and have no positive average invasion signal.
+Loss, fixation, and extinction remain right-censored because the existing minimal
+controlled biology is not retrofitted with turnover merely to force absorption.
+
+This is a bounded **candidate invasion-stability** result against reciprocal speed
+4, not a formal ESS, asymptotic invasion-fitness estimate, fixation result, or
+universal optimum. E6 establishes no generic intervention or population-genetics
+framework; future generalization requires a new concrete scientific consumer.
+
+E1–E6 are intentionally separate from B3. B3 remains the richer integrated
+reference-ecology flagship; the E sequence isolates causal mechanics and does not
+retroactively simplify B3.
+""",
+          )
+          replace_once(
+              roadmap,
+              """E5 establishes the finite-population baseline needed before rare-lineage invasion.
+The next controlled-science milestone should test invasion only after its
+introduction semantics are explicit enough to construct a matched neutral control.
+That control must share the mutant treatment's introduction state, rarity,
+population context, ecology, horizon, and evidence/censoring semantics.
+
+Do not interpret disappearance as selection merely because a lineage is rare, and
+do not add generic fixation/population-genetics architecture ahead of concrete
+consumers. Longer-term modeled fronts remain directions rather than preauthorized
+implementations.
+""",
+              """E6 completes the immediate controlled-science pressure through matched reciprocal
+rare-lineage invasion. Its exact state/RNG fork, explicit external-admission
+provenance, matched neutral control, analysis-only pedigree ancestry, and
+right-censoring are concrete E6 contracts rather than authorization for a universal
+invasion framework.
+
+The next controlled-science milestone should be question-driven rather than
+sequence-driven. Richer turnover, mutation-driven invasion, sexual rare variants,
+broader reciprocal strategy sets, or long-run absorption should be added only when
+a concrete scientific question requires them. Do not infer generic fixation,
+population-genetics, intervention, or fitness architecture merely from E1–E6.
+Longer-term modeled fronts remain directions rather than preauthorized
+implementations.
+""",
+          )
+
+          mkdocs = Path("mkdocs.yml")
+          replace_once(
+              mkdocs,
+              """  - E5 Drift, Population Size, and Weak Selection: e5_drift_weak_selection.md
+  - Exact Checkpoint and Resume: checkpointing.md
+""",
+              """  - E5 Drift, Population Size, and Weak Selection: e5_drift_weak_selection.md
+  - E6 Rare-Lineage Invasion and Candidate Stability: e6_rare_lineage_invasion.md
+  - Exact Checkpoint and Resume: checkpointing.md
+""",
+          )
+
+          workflow = Path(".github/workflows/e6-scientific-validation.yml")
+          workflow.write_text('''name: E6 Scientific Validation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/experiments/e6_invasion.py"
+      - "src/evo_engine/experiments/__init__.py"
+      - "scripts/e6_invasion.py"
+      - "tests/experiments/test_e6_invasion.py"
+      - "tests/experiments/test_e6_invasion_contracts.py"
+      - "docs/e6_rare_lineage_invasion.md"
+      - "docs/development/current_state.md"
+      - "docs/development/roadmap.md"
+      - "mkdocs.yml"
+      - ".github/workflows/e6-scientific-validation.yml"
+  workflow_dispatch:
+
+permissions:
   contents: read
 
 jobs:
@@ -28,8 +295,8 @@ jobs:
       - uses: ./.github/actions/setup-quality
       - name: Run frozen disjoint-seed reciprocal invasion matrix
         run: |
-          venv/bin/python scripts/e6_invasion.py \
-            --mode confirmation \
+          venv/bin/python scripts/e6_invasion.py \\
+            --mode confirmation \\
             --output outputs/e6-validation/e6-confirmation.json
       - name: Upload E6 confirmation evidence
         if: always()
@@ -39,3 +306,12 @@ jobs:
           path: outputs/e6-validation/e6-confirmation.json
           retention-days: 30
           if-no-files-found: warn
+''', encoding="utf-8")
+          PY
+      - name: Commit E6 orientation updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/development/current_state.md docs/development/roadmap.md mkdocs.yml .github/workflows/e6-scientific-validation.yml
+          git commit -m "Document E6 project-state handoff"
+          git push origin HEAD:e6/rare-lineage-invasion
