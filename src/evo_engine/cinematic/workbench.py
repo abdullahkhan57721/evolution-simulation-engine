@@ -17,7 +17,7 @@ def prepare_b3_workbench_cinematic(
 ) -> B3FlagshipDirectorPlan:
     """Prepare the existing confirmed B3 cinematic from one exact Workbench result.
 
-    Workbench owns only study/run association and evidence availability.  The
+    Workbench owns only study/run association and evidence availability. The
     existing B3 director remains authoritative for representative-seed selection,
     scientific encoding, confirmation semantics, sensitivity evidence, bounded
     conclusion text, and renderer-neutral choreography inputs.
@@ -34,8 +34,7 @@ def prepare_b3_workbench_cinematic(
                 else f"{detail} Missing recorded evidence: {missing}."
             )
         raise ValueError(
-            detail
-            or "The confirmed B3 cinematic scientific handoff is unavailable."
+            detail or "The confirmed B3 cinematic scientific handoff is unavailable."
         )
 
     representative = next(
@@ -56,9 +55,7 @@ def prepare_b3_workbench_cinematic(
         control_evidence=representative.control_evidence,
         treatment_evidence=representative.treatment_evidence,
         confirmation_pairs=tuple(pair.summary for pair in view.confirmation),
-        broad_patch_summaries=tuple(
-            item.summary for item in view.radius_sensitivity
-        ),
+        broad_patch_summaries=tuple(item.summary for item in view.radius_sensitivity),
     )
 
 
