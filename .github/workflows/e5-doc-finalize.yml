@@ -1,0 +1,27 @@
+name: E5 Documentation Finalization
+
+on:
+  push:
+    branches: [e5/drift-weak-selection]
+    paths: [.github/workflows/e5-doc-finalize.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: e5/drift-weak-selection
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python scripts/_e5_finalize_docs.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/development/current_state.md docs/development/roadmap.md mkdocs.yml
+          git commit -m "E5: integrate confirmed results into project orientation"
+          git push origin HEAD:e5/drift-weak-selection
