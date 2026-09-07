@@ -23,6 +23,7 @@ from evo_engine.ui.simulation_authoring import (
 from evo_engine.ui.study_shell import ConcreteWorkbenchArtifact
 from evo_engine.workbench import (
     B3CuratedDiff,
+    B3SemanticChange,
     B3StudyRevision,
     ControlledLocomotionDiff,
     ControlledLocomotionIntent,
@@ -31,21 +32,13 @@ from evo_engine.workbench import (
     ReferenceEcologyDiff,
     ReferenceEcologyIntent,
     ReferenceStudyRevision,
+    SemanticChange,
     StudyRevision,
     WorkbenchReadiness,
     assess_b3_readiness,
     evidence_advisories,
     resolve_controlled_locomotion,
     resolve_reference_ecology,
-)
-from evo_engine.workbench.controlled_locomotion import (
-    MAX_SPEED_SLOT as CONTROLLED_MAX_SPEED_SLOT,
-)
-from evo_engine.workbench.controlled_locomotion import (
-    RESOURCE_GEOGRAPHY_SLOT as CONTROLLED_RESOURCE_GEOGRAPHY_SLOT,
-)
-from evo_engine.workbench.controlled_locomotion import (
-    SEED_SLOT as CONTROLLED_SEED_SLOT,
 )
 from evo_engine.workbench.controlled_locomotion import SUPPORTED_RESOURCE_GEOGRAPHIES
 from evo_engine.workbench.reference_ecology import (
@@ -54,7 +47,6 @@ from evo_engine.workbench.reference_ecology import (
     FOUNDER_POPULATION_SLOT,
     GAUSSIAN_STDDEV_SLOT,
     HORIZON_SLOT,
-    MAX_SPEED_SLOT as REFERENCE_MAX_SPEED_SLOT,
     MUTATION_ENABLED_SLOT,
     MUTATION_MAX_CHANGE_SLOT,
     MUTATION_PROBABILITY_SLOT,
@@ -67,13 +59,18 @@ from evo_engine.workbench.reference_ecology import (
     RECOMBINATION_PROBABILITY_SLOT,
     RESOURCE_AMOUNT_SLOT,
     RESOURCE_DEPOSITS_SLOT,
-    RESOURCE_GEOGRAPHY_SLOT as REFERENCE_RESOURCE_GEOGRAPHY_SLOT,
-    SEED_SLOT as REFERENCE_SEED_SLOT,
     SENSORY_ACCURACY_SLOT,
     SENSORY_RANGE_SLOT,
     WORLD_HEIGHT_SLOT,
     WORLD_WIDTH_SLOT,
 )
+from evo_engine.workbench.reference_ecology import (
+    MAX_SPEED_SLOT as REFERENCE_MAX_SPEED_SLOT,
+)
+from evo_engine.workbench.reference_ecology import (
+    RESOURCE_GEOGRAPHY_SLOT as REFERENCE_RESOURCE_GEOGRAPHY_SLOT,
+)
+from evo_engine.workbench.reference_ecology import SEED_SLOT as REFERENCE_SEED_SLOT
 
 _DRAFT_INTENT_KEY = "wu2_simulation_draft_intent"
 _DRAFT_REVISION_KEY = "wu2_simulation_draft_revision_id"
@@ -319,9 +316,7 @@ def _render_reference_guided(
     parent: ReferenceStudyRevision,
     draft: ReferenceEcologyIntent,
 ) -> ReferenceEcologyIntent:
-    visible = {
-        item.slot_id for item in reference_slots_for_disclosure(draft, "Guided")
-    }
+    visible = {item.slot_id for item in reference_slots_for_disclosure(draft, "Guided")}
 
     st.markdown("#### Environment")
     width = _integer_input(
@@ -695,16 +690,19 @@ def _render_parent_diff(
         )
 
 
-def _render_change_section(title: str, changes: tuple[object, ...]) -> None:
+def _render_change_section(
+    title: str,
+    changes: tuple[SemanticChange | B3SemanticChange, ...],
+) -> None:
     st.markdown(f"#### {title}")
     if not changes:
         st.caption("No changes.")
         return
     for change in changes:
         _display_change(
-            semantic_slot_label(cast(str, getattr(change, "slot_id"))),
-            getattr(change, "before"),
-            getattr(change, "after"),
+            semantic_slot_label(change.slot_id),
+            change.before,
+            change.after,
         )
 
 
@@ -791,10 +789,9 @@ def _render_provenance(revision: Any, preview_manifest: Any | None = None) -> No
 
 def _controlled_draft(parent: StudyRevision) -> ControlledLocomotionIntent:
     draft = st.session_state.get(_DRAFT_INTENT_KEY)
-    if (
-        st.session_state.get(_DRAFT_REVISION_KEY) != parent.revision_id
-        or not isinstance(draft, ControlledLocomotionIntent)
-    ):
+    if st.session_state.get(
+        _DRAFT_REVISION_KEY
+    ) != parent.revision_id or not isinstance(draft, ControlledLocomotionIntent):
         draft = parent.intent
         _store_draft(parent.revision_id, draft)
     return draft
@@ -802,10 +799,9 @@ def _controlled_draft(parent: StudyRevision) -> ControlledLocomotionIntent:
 
 def _reference_draft(parent: ReferenceStudyRevision) -> ReferenceEcologyIntent:
     draft = st.session_state.get(_DRAFT_INTENT_KEY)
-    if (
-        st.session_state.get(_DRAFT_REVISION_KEY) != parent.revision_id
-        or not isinstance(draft, ReferenceEcologyIntent)
-    ):
+    if st.session_state.get(
+        _DRAFT_REVISION_KEY
+    ) != parent.revision_id or not isinstance(draft, ReferenceEcologyIntent):
         draft = parent.intent
         _store_draft(parent.revision_id, draft)
     return draft
