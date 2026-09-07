@@ -1,0 +1,41 @@
+name: E6 Documentation Finalizer
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/e6-doc-finalizer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-e6-docs:
+    name: Finalize E6 documentation consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Correct E6 scope wording
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("docs/development/current_state.md")
+          text = path.read_text(encoding="utf-8")
+          old = "The controlled E2–E5 program remains intentionally distinct"
+          new = "The controlled E2–E6 program remains intentionally distinct"
+          if text.count(old) != 1:
+              raise SystemExit(f"expected one stale E2–E5 scope sentence, found {text.count(old)}")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+          git diff --check
+      - name: Commit documentation correction
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/development/current_state.md
+          git commit -m "Correct E6 current-state scope wording"
+          git push origin HEAD:e6/rare-lineage-invasion
