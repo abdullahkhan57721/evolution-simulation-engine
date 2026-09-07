@@ -7,20 +7,8 @@ import json
 import pytest
 
 import evo_engine.workbench.study as persisted_study
-from evo_engine.workbench import (
-    B3_STUDY_FORMAT_ID,
-    B3_VALIDATED_SCENARIO_ID,
-    EXPERIMENT_DEFINITION_FORMAT_ID,
-    IncompatibleManifestError,
-    STUDY_FORMAT_ID,
-    B3StudyRevision,
-    EnvironmentSelectionComparisonDefinition,
-    MaxSpeedSweepDefinition,
-    ReferenceStudyRevision,
-    StudyRevision,
-    fork_b3_study_revision,
-)
 from evo_engine.ui.study_shell import (
+    ConcreteWorkbenchArtifact,
     UnsupportedStudyArtifactError,
     artifact_kind,
     artifact_readiness,
@@ -35,9 +23,22 @@ from evo_engine.ui.study_shell import (
     new_reference_ecology,
     serialize_concrete_artifact,
 )
+from evo_engine.workbench import (
+    B3_STUDY_FORMAT_ID,
+    B3_VALIDATED_SCENARIO_ID,
+    EXPERIMENT_DEFINITION_FORMAT_ID,
+    STUDY_FORMAT_ID,
+    B3StudyRevision,
+    EnvironmentSelectionComparisonDefinition,
+    IncompatibleManifestError,
+    MaxSpeedSweepDefinition,
+    ReferenceStudyRevision,
+    StudyRevision,
+    fork_b3_study_revision,
+)
 
 
-def _supported_artifacts() -> tuple[object, ...]:
+def _supported_artifacts() -> tuple[ConcreteWorkbenchArtifact, ...]:
     return (
         new_controlled_run(revision_id="controlled-test"),
         new_b3_flagship(revision_id="b3-test"),
@@ -49,7 +50,7 @@ def _supported_artifacts() -> tuple[object, ...]:
 
 def test_supported_concrete_artifacts_round_trip_through_exact_loaders() -> None:
     for artifact in _supported_artifacts():
-        encoded = serialize_concrete_artifact(artifact)  # type: ignore[arg-type]
+        encoded = serialize_concrete_artifact(artifact)
         loaded = load_concrete_artifact(encoded)
 
         assert type(loaded) is type(artifact)
@@ -171,8 +172,9 @@ def test_revision_and_readiness_metadata_are_exposed_only_where_authoritative() 
 
     assert artifact_revision_id(controlled) == "controlled-ready"
     assert artifact_run_count(controlled) == 0
-    assert artifact_readiness(controlled) is not None
-    assert artifact_readiness(controlled).state == "ready"  # type: ignore[union-attr]
+    readiness = artifact_readiness(controlled)
+    assert readiness is not None
+    assert readiness.state == "ready"
 
     assert artifact_revision_id(sweep) is None
     assert artifact_run_count(sweep) is None
