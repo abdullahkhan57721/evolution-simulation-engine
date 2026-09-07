@@ -496,7 +496,7 @@ of concrete policies, not a structural ambiguity in `Genome` or
 
 The reference ecology, B3 flagship, and E2–E6 controlled experiments are
 software/modeling demonstrations. They are not species-calibrated predictive
-ecological models. The controlled E2–E5 program remains intentionally distinct
+ecological models. The controlled E2–E6 program remains intentionally distinct
 from the integrated reference-ecology flagship.
 
 ### Workbench persistence remains intentionally concrete
