@@ -94,9 +94,7 @@ SUPPORTED_EVIDENCE_IDS = frozenset(
 
 _DERIVED_RESOURCE_PLACEMENT = "reference-ecology.resolved-resource-placement"
 _DERIVED_EXPLORATION_PATTERN = "reference-ecology.resolved-exploration-pattern"
-_DERIVED_MUTATION_PROBABILITY = (
-    "reference-ecology.effective-mutation-probability-ppm"
-)
+_DERIVED_MUTATION_PROBABILITY = "reference-ecology.effective-mutation-probability-ppm"
 _DERIVED_MUTATION_MAX_CHANGE = "reference-ecology.effective-mutation-max-change"
 _DERIVED_FIXED_CONFIG = "reference-ecology.fixed-reference-config"
 _DERIVED_GENOME_STRUCTURE = "reference-ecology.genome-structure"
@@ -356,9 +354,7 @@ class ReferenceEvidencePlan:
             raise ValueError("requested must not contain duplicate evidence IDs.")
         for index, evidence_id in enumerate(self.requested):
             if type(evidence_id) is not str or not evidence_id.strip():
-                raise TypeError(
-                    f"requested[{index}] must be a non-empty evidence ID."
-                )
+                raise TypeError(f"requested[{index}] must be a non-empty evidence ID.")
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -952,7 +948,6 @@ def _normalized_patch_values(intent: ReferenceEcologyIntent) -> ValuePairs:
 
 def _derived_values(explicit: ValuePairs) -> ValuePairs:
     movement = cast(str, _value_for(explicit, EXPLORATION_MOVEMENT_SLOT))
-    geography = cast(str, _value_for(explicit, RESOURCE_GEOGRAPHY_SLOT))
     mutation_enabled = cast(bool, _value_for(explicit, MUTATION_ENABLED_SLOT))
     mutation_probability = 0
     mutation_change = 0
@@ -998,9 +993,17 @@ def _resource_placement_description(explicit: ValuePairs) -> str:
 
 def _patch_mapping(explicit: ValuePairs, *, prefix: int) -> dict[str, int]:
     if prefix == 1:
-        x_slot, y_slot, radius_slot = PATCH_1_X_SLOT, PATCH_1_Y_SLOT, PATCH_1_RADIUS_SLOT
+        x_slot, y_slot, radius_slot = (
+            PATCH_1_X_SLOT,
+            PATCH_1_Y_SLOT,
+            PATCH_1_RADIUS_SLOT,
+        )
     else:
-        x_slot, y_slot, radius_slot = PATCH_2_X_SLOT, PATCH_2_Y_SLOT, PATCH_2_RADIUS_SLOT
+        x_slot, y_slot, radius_slot = (
+            PATCH_2_X_SLOT,
+            PATCH_2_Y_SLOT,
+            PATCH_2_RADIUS_SLOT,
+        )
     return {
         "center_x": cast(int, _value_for(explicit, x_slot)),
         "center_y": cast(int, _value_for(explicit, y_slot)),
@@ -1132,9 +1135,7 @@ def _runtime_evidence(plan: ReferenceEvidencePlan) -> ReferenceRuntimeEvidence:
     requested = set(plan.requested)
     return ReferenceRuntimeEvidence(
         population_recorder=(
-            PopulationRecorder(
-                trait_names=(MAX_SPEED, SENSORY_RANGE, SENSORY_ACCURACY)
-            )
+            PopulationRecorder(trait_names=(MAX_SPEED, SENSORY_RANGE, SENSORY_ACCURACY))
             if POPULATION_EVIDENCE_ID in requested
             else None
         ),
@@ -1162,7 +1163,9 @@ def _validate_evidence_plan_for_compile(plan: ReferenceEvidencePlan) -> None:
         raise ValueError("Reference recipe requires at least one evidence stream.")
     unsupported = set(plan.requested) - SUPPORTED_EVIDENCE_IDS
     if unsupported:
-        raise ValueError(f"Unsupported reference evidence IDs: {sorted(unsupported)!r}.")
+        raise ValueError(
+            f"Unsupported reference evidence IDs: {sorted(unsupported)!r}."
+        )
 
 
 def _validate_manifest_identity(manifest: ReferenceEcologyManifest) -> None:
