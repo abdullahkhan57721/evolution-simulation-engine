@@ -19,8 +19,8 @@ on:
 permissions:
   contents: read
 
-# Until Issue #176 records the frozen E7 protocol and numeric convergence
-# criteria, CI is discovery-only. Confirmation seeds must not execute yet.
+# Issue #176 freezes the final protocol, disjoint confirmation seeds, and
+# numeric convergence criteria before this confirmation job was enabled.
 jobs:
   discovery-e7:
     name: E7 bounded discovery
@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-quality
-      - name: Run predeclared discovery seeds across low, near, and high starts
+      - name: Run frozen discovery seeds across low, near, and high starts
         run: |
           venv/bin/python scripts/e7_adaptation.py \
             --mode discovery \
@@ -40,5 +40,27 @@ jobs:
         with:
           name: e7-discovery-${{ github.run_id }}
           path: outputs/e7-validation/e7-discovery.json
+          retention-days: 30
+          if-no-files-found: warn
+
+  confirmation-e7:
+    name: E7 disjoint confirmation
+    needs: discovery-e7
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run frozen confirmation seeds and evaluate predeclared criteria
+        run: |
+          venv/bin/python scripts/e7_adaptation.py \
+            --mode confirmation \
+            --output outputs/e7-validation/e7-confirmation.json
+      - name: Upload E7 confirmation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e7-confirmation-${{ github.run_id }}
+          path: outputs/e7-validation/e7-confirmation.json
           retention-days: 30
           if-no-files-found: warn
