@@ -217,10 +217,7 @@ def _print_summary(payload: dict[str, Any]) -> None:
                 f"boundary={result['boundary_diagnostic_count']}/24 "
                 f"nonextinct={result['nonextinct_count']}/24"
             )
-        print(
-            "frozen convergence criteria passed="
-            f"{evaluation['converged']}"
-        )
+        print(f"frozen convergence criteria passed={evaluation['converged']}")
 
 
 def _mean_from_counts(counts: list[int]) -> float | None:
