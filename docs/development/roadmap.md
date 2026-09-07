@@ -27,8 +27,7 @@ The project should continue toward a simulation engine in which:
    simulation evidence;
 6. scientific-study authoring compiles down into existing typed/scenario
    composition rather than becoming a second simulation architecture;
-7. Workbench foundation growth is incremental, while application integration now
-   builds concrete product workflows over those settled contracts;
+7. Workbench growth is now primarily incremental rather than foundational;
 8. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
@@ -100,7 +99,7 @@ representative run, bounded claim, counterbalance, and sensitivity are selected 
 interpreted by science rather than by UI/cinematic code. A B3-derived radius-2 fork
 retains scenario origin but not canonical validated identity.
 
-## Completed E1–E6 controlled-science sequence
+## Completed E1–E7 controlled-science sequence
 
 A deliberately simpler controlled program isolates causal mechanics:
 
@@ -116,12 +115,28 @@ E4 selection on standing inherited variation
 E5 finite-population drift and weak selection
         ↓
 E6 rare-lineage invasion and candidate stability
+        ↓
+E7 mutation-driven adaptation and convergence
 ```
 
-The sequence now establishes a causal chain from locomotion mechanics through
-performance, standing-variation selection, finite-population stochasticity, and a
-bounded reciprocal rare-lineage invasion assay. It remains separate from B3 and
-does not authorize universal fitness/statistics/population-genetics abstractions.
+The sequence establishes a causal chain from locomotion mechanics through
+performance, standing-variation selection, finite-population stochasticity, bounded
+reciprocal rare-lineage invasion, and finally mutation-driven accessibility. It
+remains separate from B3 and does not authorize universal
+fitness/statistics/population-genetics abstractions.
+
+E7 is an important negative result. Under the frozen 60-step focal-only `±1`
+mutation assay, independent low/near/high starting populations do **not** converge
+toward a shared distribution around speeds 2..4. Start 3 remains bounded in that
+region; start 1 develops upward descendants but also substantial speed-0 boundary
+accumulation; start 7 repeatedly creates speed-6/8 descendants that do not reproduce
+and therefore cannot propagate further mutational steps toward the reference
+region. This bounds the earlier E3–E6 result: favorable performance, selection, and
+invasion when a strategy already exists do not imply that distant populations can
+reach it through mutation within a finite ecological/reproductive regime.
+
+Future science should preserve this result rather than post-hoc retuning E7 until
+convergence appears.
 
 ## Completed Workbench foundation: WB1–WB6
 
@@ -173,8 +188,8 @@ The final review is in `docs/workbench_architecture_review.md`.
 
 The Workbench foundation is now in **maintenance-and-extension mode**.
 
-Future foundation changes should normally begin from a real scientific/product use
-case and take one of these forms:
+Future Workbench work should normally begin from a real scientific/product use case
+and take one of these forms:
 
 ```text
 add bounded recipe
@@ -231,70 +246,36 @@ No migration engine is currently justified. If future saved-study incompatibilit
 creates a real migration need, migration must create new scientific identity rather
 than masquerade as exact reproduction.
 
-## Workbench UI integration sequence
+## Controlled-science direction after E7
 
-WU1 establishes the concrete Streamlit product shell over the completed backend:
+E7 closes the first planned E-series causal sequence. There is no automatic E8.
+The next controlled-science milestone should be chosen only after reassessing the
+new unresolved mechanism rather than assuming the previous hypothesis was supposed
+to succeed.
 
-```text
-HOME
-├── New Study
-└── Open Study
+Potential future questions include:
 
-STUDY
-├── Simulation
-├── Evidence
-├── Experiment
-├── Results
-└── Presentation
+- whether longer **generational turnover**, rather than merely more simulation
+  steps, changes mutational accessibility;
+- how reproductive opportunity and resource renewal alter the ability of
+  intermediate mutants to propagate;
+- whether richer genetic architectures or recombination change accessibility;
+- how temporal or spatial environmental change reshapes the locally favored region;
+- whether repeated independent consumers now justify any small reusable analysis
+  contract beyond the current experiment-specific measurements.
 
-Run = action
-```
-
-The shell uses explicit dispatch over existing concrete persisted artifacts rather
-than a universal Study schema. Canonical B3, controlled single-run, E3 max-speed
-sweep, E4 environment-selection comparison, and bounded Reference Ecology share the
-same product frame while retaining their existing serializers/loaders, readiness,
-manifest meaning, and revision semantics. The prior world workspace stays available
-for later integration. See `docs/workbench_ui.md`.
-
-The next sequential product milestone is **WU2 — Simulation Authoring,
-Guided/Advanced, Forks, and Semantic Diff**. WU2 should expose the already-supported
-semantic simulation choices inside the Study shell, including support-tier and
-applicability behavior, and make scientific forks/diffs explicit. It must not create
-a generic form generator, arbitrary engine introspection, universal Study schema,
-or silently reinterpret saved manifests.
-
-Later WU milestones should continue filling Evidence, Experiment, Results, execution,
-and Presentation through the same shell while preserving existing Workbench and
-scientific ownership rather than reopening the backend architecture.
-
-## Next controlled-science milestone: E7
-
-### E7 — Mutation-Driven Adaptation and Convergence
-
-E7 is the next sequential controlled-science pressure. Its central question is
-whether independent populations with **focal-only `max_speed` mutation** converge
-toward the performance/selection/invasion region identified by E3–E6.
-
-Use multiple predeclared low/near/high starting conditions, multiple independent
-seeds, an explicit mutation rate and step distribution, a legal speed range wider
-than the expected adaptive region, and full trait-distribution evidence. Distinguish
-convergence from stationary variation, persistent polymorphism, directional
-change, extinction, and boundary accumulation. A pile-up at a configured boundary
-is not an optimum.
-
-Do not enable mutation across the richer reference genome merely for convenience.
-E7 should remain above the frozen kernel and should not acquire Workbench
-dependencies merely because the Workbench exists.
+Those are new experiments with new scientific identities. They must use their own
+discovery/freeze/confirmation protocols rather than changing E7 after seeing its
+confirmed negative result.
 
 A later product milestone may expose E7 through a concrete Workbench experiment
-pattern only after E7 science is settled.
+pattern, but the Workbench should consume the settled E7 science rather than become
+a dependency of it.
 
 ## Presentation continuation
 
-WB5 provides the architecture seam for Workbench→V2/V3. The WU sequence should
-integrate those consumers only after Study execution/result ownership is concrete,
-while preserving:
+WB5 provides the architecture seam for Workbench→V2/V3. Future interactive work may
+improve the concrete B3 matched-comparison experience while preserving:
 
 - exact Study/run/treatment/replicate identity;
 - B3 control/treatment semantics;
@@ -362,7 +343,7 @@ emerge from differential persistence/propagation rather than a kernel-owned scal
 
 ## Observation and statistical analysis
 
-E1–E6 provide concrete consumers for scientific measurement without justifying a
+E1–E7 provide concrete consumers for scientific measurement without justifying a
 broad statistics framework. Future repeated experiment patterns may earn reusable
 statistical contracts only after multiple concrete consumers show what actually
 repeats.
