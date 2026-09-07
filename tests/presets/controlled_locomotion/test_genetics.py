@@ -4,8 +4,14 @@ from __future__ import annotations
 
 import random
 
-from evo_engine.genetics import MAX_SPEED, ClonalInheritance
+from evo_engine.genetics import (
+    MAX_SPEED,
+    ClonalInheritance,
+    NoMutation,
+    UniformIntegerMutation,
+)
 from evo_engine.presets.controlled_locomotion import (
+    CONTROLLED_MAX_SPEED_MAXIMUM,
     ControlledLocomotionConfig,
     ControlledLocomotionFounder,
     ControlledResourceDeposit,
@@ -27,6 +33,7 @@ def test_controlled_architecture_contains_only_inherited_max_speed() -> None:
 
     assert architecture.trait_names == frozenset({MAX_SPEED})
     assert phenotype.int_value(MAX_SPEED) == 7
+    assert isinstance(architecture.locus(MAX_SPEED).mutation, NoMutation)
 
 
 def test_no_mutation_clonal_inheritance_preserves_focal_capacity_exactly() -> None:
@@ -45,6 +52,67 @@ def test_no_mutation_clonal_inheritance_preserves_focal_capacity_exactly() -> No
 
     assert offspring == parent
     assert architecture.express(offspring).int_value(MAX_SPEED) == 9
+
+
+def test_optional_focal_mutation_changes_only_max_speed_by_declared_step() -> None:
+    """Test an opt-in integer policy mutates the sole inherited focal locus."""
+    mutation = UniformIntegerMutation(
+        probability_ppm=1_000_000,
+        max_change=1,
+    )
+    architecture = build_controlled_locomotion_genetic_architecture(
+        max_speed_mutation=mutation,
+    )
+    parent = build_controlled_locomotion_founder_genome(
+        architecture,
+        max_speed=9,
+    )
+
+    offspring = ClonalInheritance().inherit(
+        (parent,),
+        genetic_architecture=architecture,
+        rng=random.Random(1234),
+    )
+
+    parent_speed = architecture.express(parent).int_value(MAX_SPEED)
+    offspring_speed = architecture.express(offspring).int_value(MAX_SPEED)
+    assert architecture.trait_names == frozenset({MAX_SPEED})
+    assert architecture.locus(MAX_SPEED).mutation is mutation
+    assert abs(offspring_speed - parent_speed) == 1
+
+
+def test_focal_mutation_respects_existing_controlled_speed_domain() -> None:
+    """Test integer-domain clamping keeps focal offspring inside legal bounds."""
+    architecture = build_controlled_locomotion_genetic_architecture(
+        max_speed_mutation=UniformIntegerMutation(
+            probability_ppm=1_000_000,
+            max_change=1,
+        ),
+    )
+    low_parent = build_controlled_locomotion_founder_genome(
+        architecture,
+        max_speed=0,
+    )
+    high_parent = build_controlled_locomotion_founder_genome(
+        architecture,
+        max_speed=CONTROLLED_MAX_SPEED_MAXIMUM,
+    )
+
+    low_offspring = ClonalInheritance().inherit(
+        (low_parent,),
+        genetic_architecture=architecture,
+        rng=random.Random(1),
+    )
+    high_offspring = ClonalInheritance().inherit(
+        (high_parent,),
+        genetic_architecture=architecture,
+        rng=random.Random(1),
+    )
+
+    low_speed = architecture.express(low_offspring).int_value(MAX_SPEED)
+    high_speed = architecture.express(high_offspring).int_value(MAX_SPEED)
+    assert 0 <= low_speed <= CONTROLLED_MAX_SPEED_MAXIMUM
+    assert 0 <= high_speed <= CONTROLLED_MAX_SPEED_MAXIMUM
 
 
 def test_founder_world_is_deterministic_and_nonfocal_biology_is_fixed() -> None:

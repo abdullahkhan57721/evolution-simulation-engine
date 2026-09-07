@@ -25,7 +25,7 @@ from evo_engine.engine import (
     StageCoordinator,
 )
 from evo_engine.feeding import FullAssimilation
-from evo_engine.genetics import ClonalInheritance
+from evo_engine.genetics import ClonalInheritance, MutationPolicy
 from evo_engine.presets.controlled_locomotion.config import ControlledLocomotionConfig
 from evo_engine.presets.controlled_locomotion.genetics import (
     build_controlled_locomotion_genetic_architecture,
@@ -62,6 +62,7 @@ def build_controlled_locomotion_spec(
     *,
     observers: Iterable[Observer] = (),
     telemetry_observers: Iterable[TelemetryObserver] = (),
+    max_speed_mutation: MutationPolicy[int] | None = None,
 ) -> BiologicalSimulationSpec:
     """Build the complete minimal clonal locomotion simulation specification.
 
@@ -75,6 +76,8 @@ def build_controlled_locomotion_spec(
         config: Controlled E2 configuration. Defaults to canonical values.
         observers: State observers attached to committed states.
         telemetry_observers: Event observers attached to committed steps.
+        max_speed_mutation: Optional mutation policy for the sole inherited
+            ``max_speed`` locus. ``None`` preserves E2's no-mutation default.
 
     Returns:
         Dependency-validatable biological simulation specification.
@@ -83,7 +86,9 @@ def build_controlled_locomotion_spec(
     if not isinstance(resolved, ControlledLocomotionConfig):
         raise TypeError("config must be a ControlledLocomotionConfig or None.")
 
-    architecture = build_controlled_locomotion_genetic_architecture()
+    architecture = build_controlled_locomotion_genetic_architecture(
+        max_speed_mutation=max_speed_mutation,
+    )
     world = build_controlled_locomotion_world(architecture, resolved)
 
     movement_stage = _accept_all_stage(
