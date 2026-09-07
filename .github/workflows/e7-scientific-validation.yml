@@ -1,0 +1,44 @@
+name: E7 Scientific Validation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/experiments/e7_adaptation.py"
+      - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/presets/controlled_locomotion/**"
+      - "scripts/e7_adaptation.py"
+      - "tests/experiments/test_e7_adaptation.py"
+      - "tests/presets/controlled_locomotion/test_genetics.py"
+      - "docs/e7_mutation_driven_adaptation.md"
+      - "docs/development/current_state.md"
+      - "docs/development/roadmap.md"
+      - "mkdocs.yml"
+      - ".github/workflows/e7-scientific-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Until Issue #176 records the frozen E7 protocol and numeric convergence
+# criteria, CI is discovery-only. Confirmation seeds must not execute yet.
+jobs:
+  discovery-e7:
+    name: E7 bounded discovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run predeclared discovery seeds across low, near, and high starts
+        run: |
+          venv/bin/python scripts/e7_adaptation.py \
+            --mode discovery \
+            --output outputs/e7-validation/e7-discovery.json
+      - name: Upload E7 discovery evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e7-discovery-${{ github.run_id }}
+          path: outputs/e7-validation/e7-discovery.json
+          retention-days: 30
+          if-no-files-found: warn
