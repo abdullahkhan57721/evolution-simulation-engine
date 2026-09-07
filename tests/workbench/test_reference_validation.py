@@ -124,7 +124,9 @@ def test_slot_metadata_and_advisories_reject_unsupported_inputs() -> None:
     with pytest.raises(KeyError, match="Unsupported reference-ecology slot"):
         slot_metadata("reference-ecology.unknown")
     with pytest.raises(KeyError):
-        is_slot_applicable(default_reference_ecology_intent(), "reference-ecology.unknown")
+        is_slot_applicable(
+            default_reference_ecology_intent(), "reference-ecology.unknown"
+        )
     with pytest.raises(TypeError, match="ReferenceEvidencePlan"):
         evidence_advisories(cast(Any, object()))
     assert evidence_advisories(ReferenceEvidencePlan()) == ()
@@ -156,8 +158,12 @@ def test_reference_readiness_reports_blocked_for_unsupported_authoring_state() -
         ReferenceEvidencePlan(requested=("reference-ecology.unsupported",)),
     )
     assert readiness.state == "blocked"
-    assert any(item.slot_id == EXPLORATION_MOVEMENT_SLOT for item in readiness.diagnostics)
-    assert any(item.slot_id == RESOURCE_GEOGRAPHY_SLOT for item in readiness.diagnostics)
+    assert any(
+        item.slot_id == EXPLORATION_MOVEMENT_SLOT for item in readiness.diagnostics
+    )
+    assert any(
+        item.slot_id == RESOURCE_GEOGRAPHY_SLOT for item in readiness.diagnostics
+    )
     assert any(item.slot_id == MUTATION_ENABLED_SLOT for item in readiness.diagnostics)
     assert any(item.code == "unsupported-evidence" for item in readiness.diagnostics)
 
@@ -191,7 +197,9 @@ def test_reference_readiness_blocks_patch_centers_outside_world() -> None:
     )
     readiness = assess_reference_readiness(intent)
     assert readiness.state == "blocked"
-    assert sum("inside the world" in item.message for item in readiness.diagnostics) == 2
+    assert (
+        sum("inside the world" in item.message for item in readiness.diagnostics) == 2
+    )
 
 
 def test_reference_readiness_type_checks_public_inputs() -> None:
@@ -210,7 +218,9 @@ def test_resolve_rejects_nonready_intent() -> None:
 
 
 @pytest.mark.parametrize("movement", ["moore", "von_neumann", "uniform", "gaussian"])
-def test_compile_reconstructs_every_supported_exploration_movement(movement: str) -> None:
+def test_compile_reconstructs_every_supported_exploration_movement(
+    movement: str,
+) -> None:
     intent = attrs.evolve(
         default_reference_ecology_intent(),
         horizon=1,
@@ -291,7 +301,9 @@ def test_manifest_from_json_validates_top_level_value(
     error_type: type[Exception],
     match: str,
 ) -> None:
-    value = mutator(resolve_reference_ecology(default_reference_ecology_intent()).to_json())
+    value = mutator(
+        resolve_reference_ecology(default_reference_ecology_intent()).to_json()
+    )
     with pytest.raises(error_type, match=match):
         ReferenceEcologyManifest.from_json(value)
 
@@ -319,7 +331,9 @@ def test_manifest_from_json_rejects_malformed_fields(
 
 def test_manifest_constructor_rejects_invalid_identity_and_schema() -> None:
     manifest = resolve_reference_ecology(default_reference_ecology_intent())
-    with pytest.raises(ValueError, match="Unsupported reference recipe/compiler identity"):
+    with pytest.raises(
+        ValueError, match="Unsupported reference recipe/compiler identity"
+    ):
         attrs.evolve(manifest, recipe_id="other")
     with pytest.raises(ValueError, match="engine_version"):
         attrs.evolve(manifest, engine_version="")
@@ -331,7 +345,9 @@ def test_manifest_constructor_rejects_invalid_identity_and_schema() -> None:
             explicit_values=(*manifest.explicit_values, manifest.explicit_values[0]),
         )
     with pytest.raises(TypeError, match="must be a tuple"):
-        attrs.evolve(manifest, explicit_values=cast(Any, list(manifest.explicit_values)))
+        attrs.evolve(
+            manifest, explicit_values=cast(Any, list(manifest.explicit_values))
+        )
     with pytest.raises(TypeError, match="two-item tuple"):
         attrs.evolve(manifest, explicit_values=cast(Any, (("bad",),)))
     with pytest.raises(TypeError, match="key must be a non-empty string"):
