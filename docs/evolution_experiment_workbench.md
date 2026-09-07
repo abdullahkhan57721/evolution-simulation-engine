@@ -4,23 +4,24 @@ The Evolution Experiment Workbench is a **scientific-study authoring layer over 
 existing engine**. It does not define a second simulation model and it does not sit
 between biological composition and the generic kernel.
 
-WB1 establishes the first intentionally narrow vertical using the controlled clonal
-locomotion system.
+WB1 established the first intentionally narrow controlled-locomotion vertical. WB2
+pressure-tested those contracts against the richer confirmed B3 flagship and added
+the first trusted curated-scenario workflow. WB3 then added two concrete controlled-
+experiment authoring patterns without turning those concrete needs into a universal
+experiment language.
 
 ## Dependency direction
 
 The durable dependency direction is:
 
 ```text
-Workbench scientific study
+Workbench scientific study / curated scenario / experiment definition
         ↓
-bounded recipe adapter
+bounded recipe adapter or concrete experiment-pattern expansion
         ↓
-existing preset / experiment composition
+existing preset / experiment / scenario composition
         ↓
-BiologicalSimulationSpec
-        ↓
-SimulationSpec
+authoritative scientific validation and biological/generic preflight
         ↓
 frozen kernel
 ```
@@ -45,13 +46,46 @@ BiologicalSimulationSpec.compile()
 SimulationSpec.compile()
 ```
 
-Nothing new is introduced between `BiologicalSimulationSpec` and
-`SimulationSpec`. Lower engine/domain packages must not import
-`evo_engine.workbench`.
+For WB2 specifically:
+
+```text
+trusted B3 scenario
+        ↓
+B3CuratedIntent
+        ↓
+immutable B3CuratedManifest
+        ↓
+existing B3 flagship specification builders
+        ↓
+authoritative B3 treatment-integrity validation
+        ↓
+existing B3 evidence / summary contracts
+        ↓
+ordinary reference-ecology execution
+```
+
+For WB3 specifically:
+
+```text
+concrete experiment definition
+        ↓
+stable semantic factor identity
+        ↓
+deterministic treatment expansion
+        ↓
+WB1 manifest or existing E4 treatment specification
+        ↓
+existing E3/E4 treatment-integrity authority
+        ↓
+existing E3/E4 execution and result contracts
+```
+
+Nothing new is introduced inside the frozen kernel. Lower engine/domain packages
+must not import `evo_engine.workbench`.
 
 ## Bounded recipe identity
 
-The first supported recipe has stable scientific identity:
+WB1's first supported recipe has stable scientific identity:
 
 - recipe ID: `controlled-clonal-locomotion`;
 - recipe version: `1`;
@@ -66,15 +100,30 @@ controlled-locomotion.resource-geography
 controlled-locomotion.seed
 ```
 
+WB2 adds a second explicit bounded recipe:
+
+- recipe ID: `curated-b3-flagship`;
+- recipe version: `1`;
+- compiler ID: `workbench.curated-b3-flagship`;
+- compiler version: `1`.
+
+Its only editable scientific slot is the pre-existing B3 geometry sensitivity:
+
+```text
+b3.resource-geography.treatment-radius
+```
+
+The canonical validated value is radius `1`; WB2 supports only the authoritative
+B3 radius-`2` sensitivity as a scientific fork. The remaining B3 assumptions are
+inspectable frozen resolved values rather than a giant editable form.
+
 These IDs are persisted scientific identity. Python module paths, class names, and
 object graphs are not scientific identity.
 
-WB1 directly exposes one bounded adapter. There is no reflection-based discovery,
-global recipe registry, generic policy descriptor system, composition graph,
-configuration DSL, or capability solver. If later Workbench recipes earn a shared
-composition root, that root should list supported recipes explicitly.
+There is no reflection-based discovery, global recipe registry, generic policy
+descriptor system, composition graph, configuration DSL, or capability solver.
 
-## Supported authoring surface
+## Supported authoring surfaces
 
 WB1 deliberately supports only the scientific surface already characterized by E3.
 Resource geography is one of:
@@ -84,9 +133,16 @@ Resource geography is one of:
 
 The Workbench-supported `max_speed` range is `1..10`, matching E3's characterized
 speed grid. The underlying controlled-locomotion preset remains engine/domain-valid
-for `0..20`.
+for its existing broader range.
 
-Keep these concepts distinct:
+WB2 is deliberately different: canonical B3 is a trusted curated study, not a
+general reference-ecology editor. Its assumptions are frozen by the confirmed B3
+contract. The only supported edit is radius `1 → 2`, because that exact sensitivity
+already exists in authoritative B3 science.
+
+WB3 is different again: it authors two concrete experimental designs over already
+settled science rather than exposing arbitrary configuration. Keep these concepts
+distinct:
 
 ```text
 engine-valid range
@@ -94,23 +150,20 @@ engine-valid range
 Workbench-supported range
         ≠
 experiment-declared factor levels
+        ≠
+curated-scenario frozen assumptions
 ```
 
-The Workbench range is a support/product contract for this recipe version, not a
-new biological invariant.
+Workbench support is a product/recipe contract, not a new biological invariant.
 
-## Explicit intent and resolved manifest
+## Explicit intent and resolved manifests
 
-`ControlledLocomotionIntent` persists the human-visible choices that can be edited.
-It is an immutable value and may temporarily be incomplete while authoring.
+Editable semantic intent and immutable resolved scientific meaning remain separate.
 
-Resolution creates a separate immutable `ControlledLocomotionManifest`. The
-manifest stores:
-
-- recipe/compiler identity and versions;
-- engine distribution/version compatibility identity;
-- normalized explicit semantic slot values;
-- recipe-owned scientifically meaningful derived assumptions.
+`ControlledLocomotionIntent` persists WB1's human-visible choices. Resolution
+creates a separate immutable `ControlledLocomotionManifest` containing stable
+recipe/compiler identity, engine compatibility identity, normalized explicit slot
+values, and scientifically meaningful fixed assumptions.
 
 The controlled-locomotion derived assumptions make the fixed composition visible:
 one inherited focal `max_speed`, controlled one-locus genetics, clonal inheritance,
@@ -120,18 +173,31 @@ predation, metabolism, growth, aging, and renewable resource generation. Resourc
 layout is derived through the existing E3 treatment builder rather than copied into
 Workbench code.
 
-The manifest is not editable authoring state and does not serialize a
-`BiologicalSimulationSpec`, `SimulationSpec`, process graph, or runtime object
-graph. Editing intent creates a new resolved manifest.
+WB2 follows the same principle with `B3CuratedIntent` and `B3CuratedManifest`, but
+B3 requires a much richer resolved manifest. It makes inspectable the frozen matched
+study design, uniform versus patch resource geography, patch centers/radius/weights,
+treatment-integrity semantics, blocked-by-seed RNG interpretation, focal trait and
+balanced founder construction, standard versus swapped founder-assignment roles,
+discovery/confirmation/counterbalance seeds, primary step-30 readout, explicit
+reference-ecology configuration, mutation/recombination, ordinary reference sexual
+inheritance, expected renewable-resource generation, and the authority/claim
+semantics needed to avoid treating a derived fork as validated B3.
 
-Compilation verifies that persisted derived values still match the pinned recipe
-and compiler semantics. A stale or tampered manifest fails explicitly rather than
-silently compiling into different science.
+Those B3 values are derived from `build_b3_flagship_specification()` and the frozen
+B3 constants at resolution time rather than copied into a second scientific
+implementation. Compilation reconstructs the expected values through the compatible
+pinned recipe/compiler and rejects a stale or tampered manifest if they no longer
+match.
 
-## Evidence plan and authoritative preflight
+A manifest is not editable authoring state and does not serialize a
+`BiologicalSimulationSpec`, `SimulationSpec`, process graph, recorder state,
+renderer object, or runtime object graph. Editing intent creates a new manifest.
 
-Evidence intent is persisted separately from simulation intent. WB1 supports the
-existing concrete evidence streams:
+## Evidence plan and authoritative validation
+
+Evidence intent remains separate from scientific simulation intent.
+
+WB1 supports the existing concrete evidence streams:
 
 ```text
 controlled-locomotion.population-focal-trait
@@ -141,62 +207,91 @@ controlled-locomotion.committed-events
     ↓ fresh EventRecorder
 ```
 
-Fresh mutable recorder instances are reconstructed for each compile/run. Recorder
-runtime state is never persisted as configuration.
+Fresh mutable recorder instances are reconstructed for each compile/run and supplied
+before lower preflight. Recorder runtime state is never persisted as configuration.
+The committed event stream remains authoritative for E1 locomotion measurement.
 
-The recorders are supplied to `build_controlled_locomotion_spec()` **before**
-`BiologicalSimulationSpec.compile()`. Their requirements therefore participate in
-existing biological dependency collection and generic `SimulationSpec` preflight.
-Workbench support checks do not replace that authority.
+B3 already owns a richer fixed evidence surface: population, genetic composition,
+spatial state, individual focal-trait records, committed events, and pedigree/life-
+history evidence. WB2 persists those existing evidence requirements as the curated
+B3 evidence plan and executes through the existing B3 runner. It does not invent or
+recalculate allele/genotype summaries, founder reproductive contribution, resource-
+geography audits, mechanism episodes, representative-run selection, robustness
+analysis, or claim boundaries.
 
-The event stream remains authoritative committed evidence for E1's pure locomotion
-measurement. No evidence registry, metric registry, statistics DSL, or generic
-evidence solver is introduced.
+Workbench readiness remains small and user-facing. Genetics, biological invariants,
+dependency satisfaction, B3 treatment integrity, and executable simulation validity
+remain authoritative in their existing lower/scenario-specific layers.
 
-## Readiness versus validation authority
+No evidence registry, metric registry, statistics DSL, or generic evidence solver
+is introduced.
 
-WB1 has only three user-facing readiness states:
+## Exact save/load and reproduction semantics
 
-- `draft` — required semantic selections/evidence are incomplete;
-- `blocked` — a supplied value or evidence request is outside this recipe's support;
-- `ready` — the bounded Workbench surface is complete and supported.
+WB1 `StudyRevision` is an immutable saved revision containing semantic intent, the
+exact resolved manifest, evidence plan, revision/parent identity, and references
+tying completed runs to the exact manifest.
 
-These checks belong to the authoring layer. Genetics, biological invariants,
-dependency satisfaction, and executable simulation validity remain lower-layer
-responsibilities. Unexpected authoritative lower-layer failures remain
-lower-layer failures; Workbench does not parse exception strings into synthetic
-diagnostics.
+WB2 uses a B3-specific `B3StudyRevision` because one additional concrete consumer
+did not justify replacing WB1's recipe-specific persisted shape with a universal
+study schema. It persists the exact B3 manifest plus scenario origin, validated
+scenario identity, parent lineage, evidence intent, and run provenance.
 
-## Exact save/load semantics
-
-`StudyRevision` is an immutable saved revision containing:
-
-- semantic authoring intent;
-- the exact resolved manifest;
-- evidence plan;
-- revision identity and optional parent revision identity;
-- references tying completed runs to the revision and exact manifest.
-
-The study file stores the manifest itself. Loading a saved revision deserializes
-that stored manifest; it does **not** re-resolve historical intent with current
+Saved Workbench revisions persist the resolved manifest itself. Loading deserializes
+that exact stored manifest; it does **not** re-resolve historical intent with modern
 defaults and call the result exact reproduction.
 
-Manifest compilation also requires compatible recipe/compiler/engine identity.
-Migration and upgrading of historical manifests are outside WB1. Unsupported old
-formats fail explicitly.
+Exact reproduction requires compatible persisted recipe/compiler/software identity.
+Compilation reconstructs existing typed/scenario composition from the saved
+manifest and checks its stored resolved assumptions against the compatible current
+implementation. If compatibility cannot be honored, loading/compilation fails
+explicitly.
+
+WB2 specifically persists enough resolved B3 assumptions that canonical B3 does not
+silently inherit future `ReferenceEcologyConfig` defaults. The authoritative B3
+builder is already fully explicit; Workbench additionally stores the resulting
+scientific meaning and verifies it during exact compilation.
+
+Migration or "recompile old authoring intent under current software" remains a
+separate future operation. WB1/WB2 do not implement a migration framework, and such
+an operation must create a new manifest/revision rather than masquerading as exact
+reproduction.
+
+## Scenario identity versus scenario origin
+
+WB2 establishes a distinction required by trusted curated studies:
+
+```text
+scenario identity
+    = this exact saved revision is the validated frozen B3 scientific scenario
+
+scenario origin
+    = this study descends scientifically from B3
+```
+
+Canonical B3 persists both:
+
+```text
+origin   = confirmed B3 flagship
+identity = exact validated radius-1 B3 scenario
+```
+
+A supported radius-2 fork persists B3 origin but has no validated B3 scenario
+identity. It is a B3-derived custom study, not the exact validated flagship.
+
+Scenario lineage therefore cannot be used as a proxy for validation or claim
+status. WB2 does not create generic claim inference or a universal scenario-
+certification framework.
 
 ## Run provenance
 
-Workbench run provenance and E1 scientific provenance answer different questions.
-
-`ScientificRunProvenance` identifies the scientific experiment/treatment/seed and
-remains the provenance carried by E1 measurements. `WorkbenchRunProvenance` adds
-study-authoring identity:
+`WorkbenchRunProvenance` adds saved-study identity around existing scientific
+provenance/evidence contracts:
 
 ```text
 run ID
     ↓
-saved StudyRevision ID
+saved revision ID
     ↓
 SHA-256 digest of the exact resolved manifest
     ↓
@@ -205,71 +300,152 @@ requested evidence IDs
 produced evidence/result references
 ```
 
-This keeps the saved-study origin of a run explicit without changing E1's
-scientific replicate semantics.
+WB1 can additionally carry E1 `ScientificRunProvenance` on locomotion measurements.
+WB2 returns existing B3 `B3RunEvidence`, `B3RunSummary`, and
+`B3MatchedPairSummary` artifacts while attaching Workbench saved-revision/manifest
+provenance around the study execution.
 
-WB1 keeps produced evidence/results in the returned run value and persists stable
-references from the study revision. A future storage layer may provide durable
-artifact locations without changing the scientific manifest contract.
+The Workbench does not become the owner of those scientific results. A future
+storage layer may provide durable artifact locations without changing the manifest
+contract.
 
 ## Fork and semantic diff
 
-Forking creates a new immutable `StudyRevision` with `parent_revision_id` pointing
-to its parent. The parent is not mutated and completed-run references are not
-silently inherited into the child.
+Forking creates a new immutable saved revision with its parent revision ID. Parent
+science and completed-run references are not mutated or silently inherited.
 
-Semantic diff compares only the stable recipe-owned scientific IDs. It reports two
-sets separately:
+Semantic diff compares stable recipe-owned scientific IDs rather than Python object
+graphs. It separates:
 
 ```text
 explicit authoring changes
         ↓
 derived scientific consequences
+        ↓
+scenario identity change, where relevant
 ```
 
-For example, changing `max_speed` from `3` to `4` changes
-`controlled-locomotion.max-speed` explicitly and changes the derived initial focal
-speed. Fixed clonal inheritance does not appear as a change. Changing resource
-geography changes the explicit geography slot and the derived resource-deposit
-layout obtained from E3 composition.
+WB1 reports controlled-locomotion explicit versus derived changes.
 
-This is a bounded recipe diff, not a generic configuration-diff language.
+WB2's supported canonical B3 fork reports approximately:
 
-## Settled contracts for WB2/WB3/WB4
+```text
+Origin:
+    confirmed B3 flagship
 
-Later Workbench milestones should treat the following WB1 contracts as settled
-unless repository evidence demonstrates a concrete deficiency:
+Explicit change:
+    treatment resource-patch radius 1 → 2
 
-1. Workbench remains above existing preset/domain builders; it is never inserted
-   between `BiologicalSimulationSpec` and `SimulationSpec`.
-2. Scientific persistence uses stable semantic IDs, not Python paths.
-3. Editable authoring intent and immutable resolved manifest remain distinct.
-4. Exact saved-revision reproduction uses the stored manifest; no silent
-   re-resolution or migration occurs.
-5. Recipe adapters are bounded and explicit. They may own support ranges,
-   applicability, visible derivation, and mapping into existing typed builders,
-   but lower biological validation remains authoritative.
-6. Evidence intent is separate from simulation intent and reconstructs existing
-   concrete recorders before authoritative preflight.
-7. Runtime recorders are fresh mutable objects; manifests, evidence plans, and
-   study revisions are immutable values.
-8. Workbench readiness remains small and user-facing rather than becoming a
-   universal diagnostics framework.
+Current study:
+    B3-derived custom study
+
+Lost identity:
+    exact validated radius-1 B3 scenario
+
+Derived consequences:
+    broad geometry becomes primary treatment
+    the original representative-story semantics are not inherited
+    the original B3 headline claim does not automatically transfer
+```
+
+Unchanged frozen scientific slots can also be surfaced to show that mutation,
+standing variation, seed roles, counterbalance design, ordinary inheritance, and
+other frozen assumptions were not edited.
+
+The diff remains bounded to stable recipe semantics. It is not a generic
+configuration-diff or claim-reasoning language.
+
+## Presentation boundary
+
+Workbench scientific manifests stop at scientific study meaning. They do not
+contain camera, Manim, Plotly, Streamlit, Blender, CSS, material, timing, easing, or
+renderer implementation objects.
+
+The B3 path remains:
+
+```text
+B3 scientific evidence/results
+        ↓
+renderer-neutral B3 scientific meaning
+        ↓
+interactive or cinematic presentation
+```
+
+The representative seed remains authoritative in the existing B3 scientific
+handoff. WB2 records that authority/rule boundary but does not hardcode the selected
+seed into the curated scientific manifest as Workbench-owned science.
+
+## What WB2 proved
+
+B3 did not require redesigning the central WB1 architecture. It demonstrated that:
+
+1. a rich trusted scenario can remain an explicit bounded recipe rather than
+   requiring a generic experiment DSL or registry;
+2. exact-reproduction manifests must be rich enough to expose frozen scenario
+   assumptions, not merely the small editable intent surface;
+3. scenario identity and scenario origin are distinct concepts for curated studies;
+4. a scientifically justified fork can preserve origin while losing validated
+   scenario identity;
+5. semantic diff can remain stable and scientific even for a richer multi-run
+   study;
+6. existing scenario-specific evidence, analysis, robustness, representative-run,
+   and claim contracts can remain authoritative below the Workbench;
+7. renderer-neutral scientific persistence can remain clean despite existing
+   interactive and cinematic consumers.
+
+The concrete pressure exposed by B3 is persistence shape: WB1's first
+`StudyRevision` is intentionally controlled-locomotion-specific, so WB2 uses a
+B3-specific saved revision rather than prematurely generalizing the container into
+a universal study schema.
+
+WB3 strengthens that conclusion rather than weakening it: its concrete experiment
+definitions have a different persistence responsibility from a saved curated
+scenario. Repeated needs across future recipes/studies/experiments should determine
+what shared root, if any, is actually warranted.
+
+## Settled contracts after WB2
+
+Later Workbench milestones should treat these contracts as settled unless repository
+evidence demonstrates a concrete deficiency:
+
+1. Workbench remains above existing preset/domain/scenario builders; it is never
+   inserted into the frozen kernel or settled lower composition layers.
+2. Scientific persistence uses stable semantic IDs, not Python paths or object
+   identity.
+3. Editable semantic authoring intent and immutable resolved manifest remain
+   distinct.
+4. Exact saved-revision reproduction uses the stored resolved manifest; no silent
+   re-resolution, default inheritance, or migration occurs.
+5. Recipe adapters are bounded and explicit. New breadth must be earned by concrete
+   studies rather than reflection, registries, or speculative schemas.
+6. Evidence intent is separate from scientific simulation intent and reuses existing
+   authoritative evidence/recorders/results.
+7. Mutable runtime objects are reconstructed afresh; manifests, evidence plans, and
+   saved revisions are immutable values.
+8. Workbench readiness remains small and user-facing rather than becoming universal
+   validation/diagnostics.
 9. Runs carry exact saved-manifest/revision provenance in addition to existing
-   scientific provenance.
+   scenario/scientific provenance.
 10. Forking is immutable and semantic diff reports stable scientific meaning,
-    separating explicit changes from derived consequences.
-11. Engine-valid ranges, Workbench-supported ranges, and experiment-declared factor
-    levels remain separate concepts.
-12. New recipe breadth must be earned by concrete studies; WB1 does not authorize
-    generic simulation configuration, plugin systems, registries, arbitrary
-    genetics, generic experiments, or generic statistics.
+    separating explicit changes, derived consequences, and validated scenario
+    identity changes where applicable.
+11. Scenario origin is not scenario identity. A derived study may retain scientific
+    lineage without retaining validation/claim status.
+12. Curated studies may expose frozen assumptions without making them generally
+    editable.
+13. Engine-valid ranges, Workbench-supported ranges, experiment factor levels, and
+    curated frozen assumptions remain separate concepts.
+14. Scientific manifests remain renderer-neutral.
+15. These milestones do not authorize generic simulation configuration, plugin
+    systems, capability solvers, arbitrary genetics, migration, generic sensitivity
+    analysis, claim inference, universal statistics, or a universal presentation
+    specification.
 
 ## WB3 controlled experiment authoring
 
 WB3 adds experiment authoring **above** the settled WB1 recipe and existing E3/E4
-science. It does not add a universal `Experiment` class, a factor registry, a
-configuration-diff language, or a statistics framework.
+science. It does not add a universal `Experiment` class, factor registry,
+configuration-diff language, or statistics framework.
 
 The common sequencing is:
 
@@ -390,7 +566,7 @@ Population mean speed is not substituted for focal composition.
 
 ### Experiment-definition persistence
 
-Both patterns use the versioned experiment-definition envelope:
+Both WB3 patterns use the versioned experiment-definition envelope:
 
 ```text
 format ID:      evolution-experiment-workbench-experiment
@@ -408,8 +584,7 @@ introduced.
 
 ### What WB3 actually shares
 
-The responsibilities now genuinely shared across the two implemented patterns are
-small:
+The responsibilities now genuinely shared across the two WB3 patterns are small:
 
 - persisted factor identity uses stable Workbench semantic slot IDs;
 - factor/replicate design is expanded before per-run compilation;
@@ -432,17 +607,18 @@ The following remain deliberately concrete:
 Two consumers did not earn a generic factor hierarchy, experiment DSL, treatment
 normalizer, evidence solver, metric registry, or statistics registry.
 
-### Contract available to WB5
+### Contract available to later results/presentation work
 
-A later results/presentation milestone may rely on WB3 to provide:
+A later results/presentation milestone may rely on WB2/WB3 to provide:
 
+- scenario origin and validated scenario identity where a curated study has them;
 - stable experiment pattern and factor IDs suitable for labels and provenance;
 - deterministic expanded treatment order;
 - per-treatment seed, factor level, and E4 counterbalance metadata;
-- unchanged typed E3/E4 replicate outcomes;
-- unchanged typed E3/E4 treatment/environment summaries;
+- unchanged typed B3/E3/E4 evidence, replicate outcomes, and summaries;
 - explicit separation between primary outcome, mechanism evidence, diagnostics,
-  replicate-level values, and summaries inherited from E3/E4.
+  replicate-level values, summaries, scenario validation status, and presentation
+  meaning.
 
-WB5 should present those scientific result distinctions rather than flattening them
-into a scalar fitness value or inventing a generic metric/statistics layer.
+Later presentation should preserve those scientific distinctions rather than
+flattening them into scalar fitness or inventing a generic metric/statistics layer.
