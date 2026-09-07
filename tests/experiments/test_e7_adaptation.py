@@ -28,7 +28,7 @@ def test_e7_treatment_preserves_controlled_nonfocal_biology() -> None:
     assert config.resource_request_amount == 10
     assert config.reproduction_minimum_energy == 140
     assert config.reproduction_energy_investment == 20
-    assert treatment.mutation_policy.probability_ppm == 100_000
+    assert treatment.mutation_policy.probability_ppm == 1_000_000
     assert treatment.mutation_policy.max_change == 1
 
 
@@ -80,7 +80,10 @@ def test_e7_endpoint_summary_keeps_run_as_replicate() -> None:
     assert summary.defined_endpoint_count + summary.extinction_count == 2
     if summary.defined_endpoint_count:
         assert all(value is not None for value in summary.endpoint_distribution)
-        assert abs(sum(value or 0.0 for value in summary.endpoint_distribution) - 1.0) < 1e-9
+        assert (
+            abs(sum(value or 0.0 for value in summary.endpoint_distribution) - 1.0)
+            < 1e-9
+        )
     assert e7_distribution_overlap(summary, summary) == 1.0
 
 
