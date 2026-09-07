@@ -135,7 +135,7 @@ layer, and no universal metric/statistics framework has been introduced.
 
 ## Controlled experimental-evolution sequence
 
-E1–E5 now form a completed causal proof sequence above the frozen kernel and
+E1–E6 now form a completed causal proof sequence above the frozen kernel and
 separate from the richer reference ecology.
 
 ```text
@@ -148,6 +148,8 @@ E3 monomorphic ecological-performance landscape
 E4 selection on standing inherited variation
         ↓
 E5 finite-population drift and weak selection
+        ↓
+E6 rare-lineage invasion and candidate stability
 ```
 
 ### E2 — controlled clonal locomotion mechanics
@@ -243,10 +245,38 @@ obscure or reverse weak selection at small modeled population size.
 No lineage loss, fixation, or whole-population extinction was observed within the
 60-step confirmation horizon; those outcomes remain right-censored. The minimal
 controlled composition has no ordinary aging/metabolic/density-independent
-turnover, so E5 does not manufacture fixation. A later rare-lineage invasion must
-use a matched neutral rare-lineage control with the same introduction state,
-rarity, ecology, population context, and horizon rather than treating an unmatched
-rare founder as the control. See `docs/e5_drift_weak_selection.md`.
+turnover, so E5 does not manufacture fixation. E6 directly consumed that
+requirement by using a matched neutral rare-lineage control with the same
+introduction state, rarity, ecology, population context, and horizon rather than
+treating an unmatched rare founder as the control. See
+`docs/e5_drift_weak_selection.md`.
+
+### E6 — confirmed rare-lineage invasion and candidate stability
+
+E6 runs a genuine resident-only burn-in and then forks the exact committed
+`SimulationState`, including RNG and allocator state, into matched neutral and
+mutant arms. The external entrant is explicit experiment provenance rather than a
+simulated birth or mutation. It is newborn-like (age 0, energy 20, body mass 1), is
+placed at the current position of the lowest-ID living resident without consuming
+RNG, and differs across paired arms only in `max_speed`. Resident/rare identity
+remains analysis-only and propagates through existing pedigree evidence.
+
+The frozen assay uses eight monomorphic residents, the E3 separated-resource
+corridor at E5's corrected resource scale, a 10-step resident burn-in, and terminal
+step 60. It tests reciprocal speed 3↔4 invasion, with each mutant arm compared to an
+exact matched neutral rare entrant from the same resident history.
+
+Independent confirmation on 24 fresh seeds shows speed-3 mutants expanding in
+`8/24` speed-4 resident runs versus `0/24` matched neutral controls, with mean
+paired rare-frequency contrast approximately `+0.0055`. Reciprocal speed-4 mutants
+expand in `0/24` runs and have an essentially zero/slightly negative mean paired
+contrast (`-0.0001`). No rare-lineage loss, fixation, or whole-population extinction
+is observed within the fixed horizon, so those event times remain right-censored.
+
+The result supports speed 3 only as a **candidate invasion-stable strategy against
+reciprocal speed 4 in this controlled corridor assay**. It is not a formal ESS,
+fixation result, asymptotic invasion-fitness estimate, or universal optimal-speed
+claim. See `docs/e6_rare_lineage_invasion.md`.
 
 ## Experiment Workbench authoring foundation
 
@@ -361,7 +391,7 @@ or alternate simulation engine. Lower engine/domain packages remain independent 
 ## Confirmed B3 scientific flagship
 
 B3 remains the richer integrated reference-ecology flagship and is not replaced or
-reinterpreted by E2–E5 or the Workbench.
+reinterpreted by E2–E6 or the Workbench.
 
 Its central matched question is whether compact spatial resource geography changes
 selection on existing heritable `max_speed` standing variation relative to a
@@ -423,19 +453,22 @@ semantics.
 
 ## Current development front
 
-The E1→E5 controlled-science sequence is complete through the finite-population
-baseline. It provides a causal chain from mechanics to ecological performance,
-selection on inherited standing variation, and the stochastic reliability of weak
-selection across modeled founder-count regimes, alongside the richer independently
-confirmed B3 flagship.
+The E1→E6 controlled-science sequence is complete through the first matched
+established-resident rare-lineage invasion assay. It now provides a causal chain
+from locomotion mechanics through ecological performance, standing-variation
+selection, finite-population stochasticity, and reciprocal invasion evidence,
+alongside the richer independently confirmed B3 flagship.
 
-The next controlled-science pressure is rare-lineage invasion. Any such milestone
-must preserve E5's key interpretation boundary: disappearance of a rare lineage is
-not by itself evidence of selective disadvantage. If the invasion design can lose
-a rare lineage, it must include a matched neutral control using the same
-introduction mechanism/state, initial rarity, population context, ecology, horizon,
-and censoring semantics. Do not retrofit mortality or generic population-genetics
-machinery merely to obtain textbook fixation behavior.
+The next planned controlled-science milestone is **E7 — Mutation-Driven Adaptation
+and Convergence**. E7 should ask whether independent populations with focal-only
+`max_speed` mutation converge toward the performance/selection/invasion region
+identified by E3–E6. It should use multiple predeclared low/near/high starting
+conditions, an explicit mutation rate and step distribution, a legal speed range
+wider than the expected adaptive region, and full trait-distribution evidence.
+Boundary accumulation, polymorphism, stationary variation, directional evolution,
+and extinction must remain distinguishable; boundary pile-up or a population mean
+must not be promoted to an optimum. Mutation must remain isolated to the focal
+locomotor locus rather than being enabled across the richer reference genome.
 
 The Workbench product front now includes WB1 exact study/manifest foundations, WB2
 trusted curated-B3 exact reproduction and fork lineage, WB3 controlled-experiment
@@ -493,7 +526,7 @@ of concrete policies, not a structural ambiguity in `Genome` or
 
 The reference ecology, B3 flagship, and E2–E5 controlled experiments are
 software/modeling demonstrations. They are not species-calibrated predictive
-ecological models. The controlled E2–E5 program remains intentionally distinct
+ecological models. The controlled E2–E6 program remains intentionally distinct
 from the integrated reference-ecology flagship.
 
 ### Workbench persistence remains intentionally concrete
@@ -532,6 +565,13 @@ early PR → CI → exact-head review → squash merge → `main` verification w
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Confirmed rare-lineage invasion and candidate stability:** established exact
+  resident-state/RNG forking, explicit matched external newborn-like admission,
+  analysis-only pedigree ancestry, reciprocal speed-3/speed-4 invasion, and
+  independent confirmation that speed 3 can reproduce and expand against speed-4
+  residents while reciprocal speed 4 does not expand. The claim remains bounded
+  to candidate stability against speed 4 without a formal ESS, fixation, scalar
+  fitness, or generic intervention/population-genetics framework.
 - **WB4 bounded reference-ecology custom study:** added a rich but deliberately
   bounded `bounded-reference-ecology` recipe over existing reference composition,
   explicit Guided/Advanced/Expert/Extension classification, recipe-local

@@ -149,7 +149,7 @@ claim/nonclaim boundary and renderer-neutral storyboard live in
 The old `max_intake_rate` v0.1 demonstration remains a secondary historical
 regression/integration example.
 
-## Completed E1–E5 controlled-science sequence
+## Completed E1–E6 controlled-science sequence
 
 A separate controlled program now provides a deliberately simpler causal proof
 sequence:
@@ -164,6 +164,8 @@ E3 monomorphic ecological-performance landscape
 E4 selection on standing inherited variation
         ↓
 E5 finite-population drift and weak selection
+        ↓
+E6 rare-lineage invasion and candidate stability
 ```
 
 ### E1 — measurement semantics and reproducibility
@@ -227,14 +229,32 @@ not at the largest tested founder count. Loss/fixation/extinction remain outcome
 and are right-censored when absent; E5 does not introduce turnover merely to force
 absorption.
 
-The rare-invasion handoff is explicit: later invasion must compare disappearance
-against a neutral lineage introduced in the same state and at the same rarity under
-the same ecology, population context, and horizon. A rare founder is not
-automatically a valid control for a de-novo mutant. Reuse E5's pedigree-derived
-ancestry and run-level censoring rather than building a generic population-genetics
-layer.
+The rare-invasion handoff required later invasion to compare disappearance against a
+neutral lineage introduced in the same state and at the same rarity under the same
+ecology, population context, and horizon. E6 directly consumes that requirement.
 
-E1–E5 are intentionally separate from B3. B3 remains the richer integrated
+### E6 — rare-lineage invasion and candidate stability
+
+E6 uses eight monomorphic residents through a genuine 10-step burn-in in the E3
+corridor, then forks the exact committed state/RNG into matched external-admission
+arms. The newborn-like entrant is placed at a deterministic living resident's
+current position and differs between paired arms only in `max_speed`; resident/rare
+ancestry remains analysis-only through existing pedigree evidence. Reciprocal speed
+3↔4 invasion is followed to terminal step 60.
+
+Independent confirmation on 24 fresh seeds shows speed-3 mutants producing rare
+descendants and expanding in `8/24` speed-4 resident runs versus `0/24` matched
+neutral controls, with positive mean paired frequency contrast (`+0.0055`).
+Reciprocal speed-4 mutants expand in `0/24` runs and have an essentially zero to
+slightly negative average invasion signal. Loss, fixation, and extinction remain
+right-censored because E6 does not retrofit turnover merely to force absorption.
+
+This is a bounded **candidate invasion-stability** result against reciprocal speed
+4, not a formal ESS, asymptotic invasion-fitness estimate, fixation result, or
+universal optimum. E6 establishes no generic intervention or population-genetics
+framework; future generalization requires another concrete scientific consumer.
+
+E1–E6 are intentionally separate from B3. B3 remains the richer integrated
 reference-ecology flagship; the E sequence isolates causal mechanics and does not
 retroactively simplify B3.
 
@@ -435,21 +455,35 @@ without multiple future films demonstrating a genuinely repeated contract.
 
 ## Next controlled-science pressure
 
-E5 establishes the finite-population baseline needed before rare-lineage invasion.
-The next controlled-science milestone should test invasion only after its
-introduction semantics are explicit enough to construct a matched neutral control.
-That control must share the mutant treatment's introduction state, rarity,
-population context, ecology, horizon, and evidence/censoring semantics.
+### E7 — mutation-driven adaptation and convergence
 
-Do not interpret disappearance as selection merely because a lineage is rare, and
-do not add generic fixation/population-genetics architecture ahead of concrete
-consumers. Longer-term modeled fronts remain directions rather than preauthorized
-implementations.
+E7 is the next sequential controlled-science milestone after E6. Its central
+question is:
 
-The Workbench product track proceeds independently from this scientific sequence.
-A scientific milestone should not acquire Workbench dependencies merely because
-the Workbench exists, and Workbench expansion should continue to compile into
-already settled simulation/science contracts.
+> If evolution is no longer limited to supplied standing strategies, where does a
+> population evolve when `max_speed` can mutate, and do independent populations
+> converge toward the performance/selection/invasion region identified by E3–E6?
+
+E7 should mutate **only the focal locomotor locus**. It must not enable mutation
+across the richer reference genome merely for convenience. Use multiple
+predeclared starting conditions spanning low speed, the predicted region, and high
+speed, with multiple independent seeds. The legal speed domain should extend wider
+than the expected adaptive region, and the mutation rate plus mutation-step
+distribution must be explicit.
+
+Preserve full committed trait distributions rather than relying on population
+means. Distinguish genuine convergence from stationary variation, persistent
+polymorphism, directional evolution, boundary accumulation, and extinction. A
+pile-up at a configured trait boundary is not evidence of an optimum. Compare E7's
+outcomes against the causal chain already established by E3's performance region,
+E4's selection direction, and E6's bounded invasion-stability region.
+
+E7 should remain above the frozen kernel and should not introduce a universal
+adaptive-landscape, fitness, mutation, or population-genetics framework unless a
+concrete deficiency in existing contracts is independently demonstrated.
+
+The Workbench product track remains orthogonal to this scientific sequence. E7
+should not acquire Workbench dependencies merely because the Workbench exists.
 
 ## Front A — Richer genetic expression
 
