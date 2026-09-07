@@ -25,7 +25,9 @@ The project should continue toward a simulation engine in which:
    than by broadening lower layers speculatively;
 5. observation, experiments, and presentation remain downstream of committed
    simulation evidence;
-6. performance/native-backend work begins only from measured need.
+6. scientific-study authoring compiles down into existing typed composition rather
+   than becoming a second simulation architecture;
+7. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
 above it unless a genuine generic deficiency is demonstrated.
@@ -236,6 +238,76 @@ E1–E5 are intentionally separate from B3. B3 remains the richer integrated
 reference-ecology flagship; the E sequence isolates causal mechanics and does not
 retroactively simplify B3.
 
+## Experiment Workbench product front
+
+WB1 and WB3 establish the first completed product-layer foundations for
+scientific-study and controlled-experiment authoring above existing typed
+composition:
+
+```text
+semantic study / experiment authoring
+        ↓
+bounded recipe or concrete experiment-pattern resolution
+        ↓
+immutable manifest / concrete treatment specification
+        ↓
+existing typed simulation composition
+        ↓
+authoritative biological/generic preflight
+        ↓
+frozen kernel
+```
+
+WB1's first recipe is `controlled-clonal-locomotion` v1, bounded to the
+characterized E3 `max_speed` range `1..10`, the E3 `local_resource` and
+`separated_corridor` geographies, a reproducibility seed, and explicit evidence
+intent. Its manifest uses stable scientific IDs, records explicit selections
+separately from derived assumptions, and is canonical, immutable,
+compatibility-pinned, and separate from mutable runtime/spec graphs.
+
+Evidence intent remains separate from the manifest. Compilation reconstructs the
+existing E1-capable recorders before existing lower preflight. Saved revisions keep
+the exact manifest, lineage, and run-to-manifest provenance; forks are immutable,
+and diffing remains recipe-scoped.
+
+WB3 adds two concrete persisted experiment patterns without a generic experiment
+DSL:
+
+- an E3-style one-factor max-speed sweep using stable factor identity
+  `controlled-locomotion.max-speed`, declared levels and unique replicate seeds,
+  deterministic expansion into exact WB1 treatment manifests, existing E3
+  treatment-integrity validation, and unchanged E3 replicate outcomes/summaries;
+- an E4-style matched environment comparison using stable primary factor identity
+  `controlled-locomotion.resource-geography`, the frozen local-resource control and
+  separated-corridor treatment, complete standing composition `(1, 3, 9)`, and the
+  existing cyclic speed-to-founder-ID counterbalance kept explicitly separate from
+  primary factor meaning.
+
+One simulation run/seed remains the replicate. E4's required individual focal-trait
+evidence continues through its existing recorder/analysis path rather than widening
+WB1's monomorphic recipe to arbitrary founder composition. Existing E3/E4 treatment
+integrity and scientific results remain authoritative; Workbench authoring does not
+replace them with generic configuration diffing, factor registries, evidence
+solving, metric registries, or statistics infrastructure.
+
+The next Workbench integration pressure is results/presentation and broader study
+workflows, not generic experiment abstraction. A downstream results layer may rely
+on stable experiment pattern/factor IDs, deterministic treatment ordering,
+per-treatment seed/factor/counterbalance metadata, and unchanged typed E3/E4
+replicate outcomes and treatment/environment summaries. It should preserve primary
+outcome, mechanism evidence, diagnostics, replicate-level values, and summaries as
+distinct meanings rather than flattening them into scalar fitness.
+
+Lower packages do not depend on the Workbench. Parallel Workbench milestones must
+continue outside-in from concrete product needs and integrate against current
+`main`. Durable contracts live in `docs/evolution_experiment_workbench.md`.
+Generalization should wait until repeated concrete consumers demonstrate repeated
+responsibility; WB1/WB3 do not authorize a universal Blueprint, registry, solver,
+schema system, experiment hierarchy, or statistics DSL.
+
+The Workbench product track is orthogonal to the next controlled-science pressure;
+neither should be made an artificial prerequisite for the other.
+
 ## Presentation integration front
 
 The B3 cinematic path is now an implemented sibling renderer path. The remaining
@@ -304,6 +376,11 @@ Do not interpret disappearance as selection merely because a lineage is rare, an
 do not add generic fixation/population-genetics architecture ahead of concrete
 consumers. Longer-term modeled fronts remain directions rather than preauthorized
 implementations.
+
+The Workbench product track proceeds independently from this scientific sequence.
+A scientific milestone should not acquire Workbench dependencies merely because
+the Workbench exists, and Workbench expansion should continue to compile into
+already settled simulation/science contracts.
 
 ## Front A — Richer genetic expression
 
@@ -448,6 +525,13 @@ the stable subset worth compiling.
   derived measurements, representative examples, and robustness evidence.
 - Preserve run/seed as the experimental replicate for current stochastic treatment
   comparisons unless a later concrete design justifies another unit.
+- Keep Workbench authoring above existing typed composition and authoritative
+  preflight; lower simulation/domain packages must not depend on Workbench code.
+- Keep persisted Workbench manifests separate from mutable runtime recorder/spec
+  graphs; reconstruct runtime evidence and compiled specifications afresh.
+- Preserve semantic factor identity separately from implementation field paths, and
+  keep experimental counterbalancing/blocking metadata separate from primary-factor
+  meaning.
 - Prefer readable, maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 

@@ -224,7 +224,6 @@ Mutation is off, so this is selection on standing variation rather than de novo
 mutation-driven adaptation. The result is not a universal optimum or long-run
 fixation claim. See `docs/e4_standing_variation.md`.
 
-
 ### E5 — confirmed finite-population stochasticity and weak selection
 
 E5 derives A/B ancestry only in the analysis layer from existing founder IDs and
@@ -249,10 +248,64 @@ use a matched neutral rare-lineage control with the same introduction state,
 rarity, ecology, population context, and horizon rather than treating an unmatched
 rare founder as the control. See `docs/e5_drift_weak_selection.md`.
 
+## Experiment Workbench authoring foundation
+
+WB1 established the bounded controlled-locomotion study recipe; WB3 adds the first
+user-authored controlled experiment patterns above that foundation without turning
+the Workbench into a universal simulation or experiment language.
+
+The durable authoring direction remains:
+
+```text
+semantic study / experiment authoring
+        ↓
+recipe or concrete experiment-pattern resolution
+        ↓
+immutable scientific manifest / treatment specification
+        ↓
+existing typed simulation composition
+        ↓
+authoritative biological/generic preflight
+        ↓
+frozen kernel
+```
+
+The initial WB1 recipe exposes only characterized `max_speed` values `1..10`, the
+E3 `local_resource` and `separated_corridor` geographies, a reproducibility seed,
+and a concrete evidence plan. Saved revisions preserve immutable semantic intent,
+an exact canonical manifest, evidence intent, lineage, and run-to-manifest
+provenance. Loading deserializes the stored manifest rather than silently
+re-resolving historical defaults; compilation reconstructs fresh existing recorders
+before lower preflight; forks remain immutable and diffing remains recipe-scoped.
+
+WB3 adds two concrete persisted experiment definitions:
+
+- an E3-style max-speed sweep whose primary factor identity is the stable semantic
+  slot `controlled-locomotion.max-speed`, with factor levels and replicate seeds
+  expanded into exact treatment-specific WB1 manifests before execution;
+- an E4-style matched local-versus-separated resource-environment comparison whose
+  primary factor identity is `controlled-locomotion.resource-geography`, while the
+  complete standing focal composition `(1, 3, 9)` and cyclic speed-to-founder-ID
+  counterbalancing remain separate concrete E4 meanings.
+
+Existing E3/E4 treatment-integrity helpers remain authoritative, one run/seed
+remains one experimental replicate, and existing E3/E4 replicate outcomes and
+summaries remain the result types. `EvidencePlan` is shared only as an immutable
+request carrier; evidence sufficiency and recorder interpretation remain owned by
+the concrete pattern. In particular, E4's individual focal-trait evidence is
+satisfied through the existing E4 recorder path rather than by widening WB1's
+monomorphic manifest.
+
+This is not a plugin system, universal configuration graph, generic factor or
+experiment hierarchy, capability/evidence solver, path-based treatment-diff
+language, metric/statistics registry, or alternate simulation engine. Lower
+engine/domain packages remain independent of `workbench`. See
+`docs/evolution_experiment_workbench.md`.
+
 ## Confirmed B3 scientific flagship
 
 B3 remains the richer integrated reference-ecology flagship and is not replaced or
-reinterpreted by E2–E4.
+reinterpreted by E2–E5 or the Workbench.
 
 Its central matched question is whether compact spatial resource geography changes
 selection on existing heritable `max_speed` standing variation relative to a
@@ -328,6 +381,16 @@ introduction mechanism/state, initial rarity, population context, ecology, horiz
 and censoring semantics. Do not retrofit mortality or generic population-genetics
 machinery merely to obtain textbook fixation behavior.
 
+The Workbench product front now has both the WB1 exact study/manifest foundation and
+WB3 controlled-experiment authoring. The next Workbench milestones may rely on
+stable experiment pattern/factor identities, deterministic treatment expansion,
+explicit per-treatment seed/factor/counterbalance metadata, and unchanged typed
+E3/E4 replicate outcomes and summaries. Results/presentation work should preserve
+primary outcomes, mechanism evidence, diagnostics, replicate values, and summaries
+as distinct scientific meanings rather than inventing scalar fitness or a generic
+metric/statistics layer. Parallel Workbench work must continue to treat current
+`main` and the authoritative Workbench architecture as the integration boundary.
+
 The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
 presentation continuation is the interactive matched-comparison experience:
 
@@ -348,8 +411,8 @@ presentation concerns.
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-Those directions are not implied E5 work; sequence them only after a concrete
-question and dependency analysis.
+Those directions remain separate from the controlled-science and Workbench tracks
+unless a concrete question demonstrates a dependency.
 
 A native Rust/C++ backend remains a separate evidence-driven future concern. Python
 continues to own high-level modeling/configuration until measured workloads justify
@@ -398,6 +461,18 @@ early PR → CI → exact-head review → squash merge → `main` verification w
 
 Newest first; this is a capability summary, not a changelog.
 
+- **WB3 controlled experiment authoring:** added concrete E3 max-speed sweep and E4
+  matched environment-comparison definitions using stable semantic factor IDs,
+  deterministic pre-compilation treatment expansion, explicit evidence needs,
+  existing treatment-integrity helpers, unchanged E3/E4 scientific result types,
+  and E4 counterbalancing kept separate from primary factor meaning without a
+  generic experiment DSL, factor registry, or statistics framework.
+- **WB1 controlled-locomotion Workbench foundation:** added bounded semantic study
+  authoring above existing E3/E2 composition, immutable explicit/derived manifests,
+  exact persistence and compatibility identity, evidence reconstruction before
+  authoritative preflight, run-to-manifest provenance, real E1 measurement reuse,
+  immutable fork lineage, and recipe-scoped semantic diff without changing the
+  frozen kernel or introducing universal configuration/experiment infrastructure.
 - **Confirmed drift and weak-selection baseline:** derived neutral ancestry only in
   the analysis layer from existing pedigree evidence, independently confirmed that
   neutral frequency-change spread contracts across founder counts 2/8/32, showed
