@@ -54,13 +54,9 @@ MAX_SPEED_SWEEP_PATTERN_ID = "controlled-locomotion.max-speed-sweep"
 ENVIRONMENT_SELECTION_PATTERN_ID = (
     "controlled-locomotion.environment-selection-comparison"
 )
-INDIVIDUAL_FOCAL_TRAIT_EVIDENCE_ID = (
-    "controlled-locomotion.individual-focal-trait"
-)
+INDIVIDUAL_FOCAL_TRAIT_EVIDENCE_ID = "controlled-locomotion.individual-focal-trait"
 
-E3_SWEEP_REQUIRED_EVIDENCE = frozenset(
-    {POPULATION_EVIDENCE_ID, EVENT_EVIDENCE_ID}
-)
+E3_SWEEP_REQUIRED_EVIDENCE = frozenset({POPULATION_EVIDENCE_ID, EVENT_EVIDENCE_ID})
 E4_COMPARISON_REQUIRED_EVIDENCE = frozenset(
     {
         INDIVIDUAL_FOCAL_TRAIT_EVIDENCE_ID,
@@ -86,27 +82,20 @@ class MaxSpeedSweepDefinition:
 
     def __attrs_post_init__(self) -> None:
         if not isinstance(self.base_intent, ControlledLocomotionIntent):
-            raise TypeError(
-                "base_intent must be a ControlledLocomotionIntent."
-            )
+            raise TypeError("base_intent must be a ControlledLocomotionIntent.")
         if self.factor_slot_id != MAX_SPEED_SLOT:
             raise ValueError(
-                "The max-speed sweep manipulates only "
-                f"{MAX_SPEED_SLOT!r}."
+                f"The max-speed sweep manipulates only {MAX_SPEED_SLOT!r}."
             )
         if self.base_intent.max_speed is not None:
             raise ValueError(
-                "base_intent.max_speed must be None because the factor "
-                "supplies it."
+                "base_intent.max_speed must be None because the factor supplies it."
             )
         if self.base_intent.seed is not None:
             raise ValueError(
                 "base_intent.seed must be None because replicates supply it."
             )
-        if (
-            self.base_intent.resource_geography
-            not in SUPPORTED_RESOURCE_GEOGRAPHIES
-        ):
+        if self.base_intent.resource_geography not in SUPPORTED_RESOURCE_GEOGRAPHIES:
             raise ValueError(
                 "base_intent.resource_geography must be a supported E3 "
                 "resource geography."
@@ -126,9 +115,7 @@ class MaxSpeedSweepDefinition:
             {
                 "base_intent": {
                     "max_speed": self.base_intent.max_speed,
-                    "resource_geography": (
-                        self.base_intent.resource_geography
-                    ),
+                    "resource_geography": (self.base_intent.resource_geography),
                     "seed": self.base_intent.seed,
                 },
                 "evidence_ids": list(self.evidence_plan.requested),
@@ -162,9 +149,7 @@ class MaxSpeedSweepDefinition:
             levels=_int_tuple(mapping, "levels"),
             seeds=_int_tuple(mapping, "seeds"),
             factor_slot_id=_required_str(mapping, "factor_slot_id"),
-            evidence_plan=EvidencePlan(
-                requested=_str_tuple(mapping, "evidence_ids")
-            ),
+            evidence_plan=EvidencePlan(requested=_str_tuple(mapping, "evidence_ids")),
             run_role=_optional_run_role(mapping, "run_role"),
         )
 
@@ -183,13 +168,9 @@ class MaxSpeedSweepTreatment:
         if type(self.seed) is not int:
             raise TypeError("seed must be an integer.")
         if not isinstance(self.manifest, ControlledLocomotionManifest):
-            raise TypeError(
-                "manifest must be a ControlledLocomotionManifest."
-            )
+            raise TypeError("manifest must be a ControlledLocomotionManifest.")
         if self.manifest.explicit_value(MAX_SPEED_SLOT) != self.factor_level:
-            raise ValueError(
-                "manifest max-speed selection must equal factor_level."
-            )
+            raise ValueError("manifest max-speed selection must equal factor_level.")
         if self.manifest.explicit_value(SEED_SLOT) != self.seed:
             raise ValueError("manifest seed must equal treatment seed.")
 
@@ -243,8 +224,7 @@ class EnvironmentSelectionComparisonDefinition:
     def __attrs_post_init__(self) -> None:
         if self.factor_slot_id != RESOURCE_GEOGRAPHY_SLOT:
             raise ValueError(
-                "The E4 comparison manipulates only "
-                f"{RESOURCE_GEOGRAPHY_SLOT!r}."
+                f"The E4 comparison manipulates only {RESOURCE_GEOGRAPHY_SLOT!r}."
             )
         if (
             self.control_environment != "local_resource"
@@ -256,8 +236,7 @@ class EnvironmentSelectionComparisonDefinition:
             )
         if self.focal_speeds != E4_FOCAL_SPEEDS:
             raise ValueError(
-                "The E4 comparison preserves standing focal composition "
-                "(1, 3, 9)."
+                "The E4 comparison preserves standing focal composition (1, 3, 9)."
             )
         _validate_seeds(self.seeds)
         _require_exact_evidence(
@@ -312,9 +291,7 @@ class EnvironmentSelectionComparisonDefinition:
                 _required_str(mapping, "treatment_environment"),
             ),
             focal_speeds=cast(tuple[int, int, int], focal_speeds),
-            evidence_plan=EvidencePlan(
-                requested=_str_tuple(mapping, "evidence_ids")
-            ),
+            evidence_plan=EvidencePlan(requested=_str_tuple(mapping, "evidence_ids")),
             run_role=_optional_run_role(mapping, "run_role"),
         )
 
@@ -334,13 +311,9 @@ class EnvironmentSelectionTreatment:
         if type(self.seed) is not int:
             raise TypeError("seed must be an integer.")
         if not isinstance(self.treatment, E4TreatmentSpecification):
-            raise TypeError(
-                "treatment must be an E4TreatmentSpecification."
-            )
+            raise TypeError("treatment must be an E4TreatmentSpecification.")
         if self.founder_speed_order != self.treatment.founder_speed_order:
-            raise ValueError(
-                "counterbalance order must match the E4 treatment."
-            )
+            raise ValueError("counterbalance order must match the E4 treatment.")
 
     @property
     def factor_slot_id(self) -> str:
@@ -376,9 +349,7 @@ def expand_max_speed_sweep(
 ) -> tuple[MaxSpeedSweepTreatment, ...]:
     """Expand declared E3 factor levels before per-run compilation."""
     if not isinstance(definition, MaxSpeedSweepDefinition):
-        raise TypeError(
-            "definition must be a MaxSpeedSweepDefinition."
-        )
+        raise TypeError("definition must be a MaxSpeedSweepDefinition.")
     geography = cast(
         E3Environment,
         definition.base_intent.resource_geography,
@@ -431,9 +402,7 @@ def run_max_speed_sweep(
     summaries = tuple(
         summarize_e3_treatment(
             tuple(
-                outcome
-                for outcome in outcomes
-                if outcome.treatment.max_speed == level
+                outcome for outcome in outcomes if outcome.treatment.max_speed == level
             )
         )
         for level in definition.levels
@@ -455,8 +424,7 @@ def expand_environment_selection_comparison(
         EnvironmentSelectionComparisonDefinition,
     ):
         raise TypeError(
-            "definition must be an "
-            "EnvironmentSelectionComparisonDefinition."
+            "definition must be an EnvironmentSelectionComparisonDefinition."
         )
     expanded: list[EnvironmentSelectionTreatment] = []
     for index, seed in enumerate(definition.seeds):
@@ -537,10 +505,7 @@ def _validate_sweep_manifest_differences(
                 reference.manifest,
                 candidate.manifest,
             )
-            explicit_ids = {
-                change.slot_id
-                for change in difference.explicit_changes
-            }
+            explicit_ids = {change.slot_id for change in difference.explicit_changes}
             if explicit_ids != {MAX_SPEED_SLOT}:
                 raise RuntimeError(
                     "Sweep treatment manifests differ outside the declared "
@@ -558,14 +523,9 @@ def _validate_levels(levels: tuple[int, ...]) -> None:
     for index, level in enumerate(levels):
         if type(level) is not int:
             raise TypeError(f"levels[{index}] must be an integer.")
-        if not (
-            SUPPORTED_MAX_SPEED_MINIMUM
-            <= level
-            <= SUPPORTED_MAX_SPEED_MAXIMUM
-        ):
+        if not (SUPPORTED_MAX_SPEED_MINIMUM <= level <= SUPPORTED_MAX_SPEED_MAXIMUM):
             raise ValueError(
-                "levels must stay within the characterized Workbench "
-                "max-speed range."
+                "levels must stay within the characterized Workbench max-speed range."
             )
 
 
@@ -593,13 +553,10 @@ def _require_exact_evidence(
     missing = required - requested
     unsupported = requested - required
     if missing:
-        raise ValueError(
-            f"{pattern_name} requires evidence IDs {sorted(missing)!r}."
-        )
+        raise ValueError(f"{pattern_name} requires evidence IDs {sorted(missing)!r}.")
     if unsupported:
         raise ValueError(
-            f"{pattern_name} does not support evidence IDs "
-            f"{sorted(unsupported)!r}."
+            f"{pattern_name} does not support evidence IDs {sorted(unsupported)!r}."
         )
 
 
@@ -611,8 +568,7 @@ def _validate_run_role(run_role: RunRole | None) -> None:
         "representative",
     }:
         raise ValueError(
-            "run_role must be discovery, confirmation, representative, "
-            "or None."
+            "run_role must be discovery, confirmation, representative, or None."
         )
 
 
@@ -638,10 +594,7 @@ def _definition_mapping(
         raise ValueError("experiment JSON must encode an object.")
     if decoded.get("format_id") != EXPERIMENT_DEFINITION_FORMAT_ID:
         raise ValueError("Unsupported Workbench experiment format ID.")
-    if (
-        decoded.get("format_version")
-        != EXPERIMENT_DEFINITION_FORMAT_VERSION
-    ):
+    if decoded.get("format_version") != EXPERIMENT_DEFINITION_FORMAT_VERSION:
         raise ValueError("Unsupported Workbench experiment format version.")
     if decoded.get("pattern_id") != expected_pattern_id:
         raise ValueError("Stored experiment pattern identity does not match.")
@@ -714,9 +667,7 @@ def _str_tuple(
     result: list[str] = []
     for index, item in enumerate(value):
         if type(item) is not str or not item:
-            raise TypeError(
-                f"{key}[{index}] must be a non-empty string."
-            )
+            raise TypeError(f"{key}[{index}] must be a non-empty string.")
         result.append(item)
     return tuple(result)
 
