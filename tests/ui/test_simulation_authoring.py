@@ -19,8 +19,8 @@ from evo_engine.ui.study_shell import (
     new_reference_ecology,
 )
 from evo_engine.workbench import (
-    B3CuratedDiff,
     B3_VALIDATED_SCENARIO_ID,
+    B3CuratedDiff,
     ControlledLocomotionDiff,
     ControlledLocomotionIntent,
     ReferenceEcologyDiff,
@@ -46,8 +46,7 @@ def test_reference_disclosure_uses_current_support_metadata_and_applicability() 
     assert reference_has_expert_controls() is False
 
 
-def test_reference_conditional_values_are_cleared_only_when_wb4_marks_them_inactive(
-) -> None:
+def test_inactive_reference_values_are_cleared() -> None:
     revision = new_reference_ecology(revision_id="reference-normalization")
     stale = attrs.evolve(
         revision.intent,
@@ -78,8 +77,7 @@ def test_reference_conditional_values_are_cleared_only_when_wb4_marks_them_inact
     assert normalized.mutation_max_change is None
 
 
-def test_controlled_edit_creates_immutable_child_and_uses_existing_semantic_diff(
-) -> None:
+def test_controlled_edit_creates_immutable_child_and_semantic_diff() -> None:
     parent = new_controlled_run(revision_id="controlled-parent")
     original_json = parent.to_json()
     draft = ControlledLocomotionIntent(
