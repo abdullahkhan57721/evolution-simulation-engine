@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import ast
+from ast import Import, ImportFrom, parse, walk
 from pathlib import Path
-
 
 _DOWNSTREAM_PRESENTATION_PACKAGES = frozenset({"cinematic", "ui"})
 
@@ -59,11 +58,11 @@ def test_model_and_science_packages_do_not_import_renderers() -> None:
 
 
 def _imports(path: Path) -> tuple[str, ...]:
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    tree = parse(path.read_text(encoding="utf-8"), filename=str(path))
     imported: list[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
+    for node in walk(tree):
+        if isinstance(node, Import):
             imported.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.module is not None:
+        elif isinstance(node, ImportFrom) and node.module is not None:
             imported.append(node.module)
     return tuple(imported)
