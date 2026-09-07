@@ -11,7 +11,6 @@ from evo_engine.experiments.b3_flagship import (
 )
 from evo_engine.experiments.science import ScientificRunProvenance
 from evo_engine.presets.reference_ecology.b3_flagship import (
-    B3_REPRESENTATIVE_SEED,
     build_b3_flagship_specification,
 )
 from evo_engine.ui.workbench import (
@@ -23,6 +22,7 @@ from evo_engine.workbench import (
     B3_REQUIRED_EVIDENCE_IDS,
     B3CuratedRunResult,
     B3MatchedRunArtifacts,
+    B3StudyRevision,
     ReferenceEvidencePlan,
     ReferenceRunResult,
     WorkbenchRunProvenance,
@@ -34,20 +34,22 @@ from evo_engine.workbench.reference_ecology import (
     POPULATION_EVIDENCE_ID as REFERENCE_POPULATION_EVIDENCE_ID,
 )
 
+_B3_TEST_SEED = 5
+
 
 @pytest.fixture(scope="module")
-def representative_b3_result() -> tuple[object, B3CuratedRunResult]:
+def representative_b3_result() -> tuple[B3StudyRevision, B3CuratedRunResult]:
     """Build one real matched B3 representative pair for V2 adapter tests."""
     revision = create_b3_study_revision(revision_id="b3-v2")
     control_evidence = run_b3_flagship(
         build_b3_flagship_specification(
-            seed=B3_REPRESENTATIVE_SEED,
+            seed=_B3_TEST_SEED,
             environment="uniform",
         )
     )
     treatment_evidence = run_b3_flagship(
         build_b3_flagship_specification(
-            seed=B3_REPRESENTATIVE_SEED,
+            seed=_B3_TEST_SEED,
             environment="compact_patch",
         )
     )
@@ -57,7 +59,7 @@ def representative_b3_result() -> tuple[object, B3CuratedRunResult]:
         control_evidence=control_evidence,
         treatment_evidence=treatment_evidence,
         summary=B3MatchedPairSummary(
-            seed=B3_REPRESENTATIVE_SEED,
+            seed=_B3_TEST_SEED,
             founder_assignment="standard",
             control=control,
             treatment=treatment,
@@ -83,24 +85,24 @@ def representative_b3_result() -> tuple[object, B3CuratedRunResult]:
 
 
 def test_b3_matched_world_frames_preserve_same_scientific_encoding(
-    representative_b3_result: tuple[object, B3CuratedRunResult],
+    representative_b3_result: tuple[B3StudyRevision, B3CuratedRunResult],
 ) -> None:
     revision, result = representative_b3_result
-    before_manifest = revision.manifest.to_json()  # type: ignore[attr-defined]
+    before_manifest = revision.manifest.to_json()
 
     control = build_b3_workbench_world_presentation(
-        revision,  # type: ignore[arg-type]
+        revision,
         result,
-        seed=B3_REPRESENTATIVE_SEED,
+        seed=_B3_TEST_SEED,
         arm="control",
         step_index=0,
         show_resources=False,
         show_trails=False,
     )
     treatment = build_b3_workbench_world_presentation(
-        revision,  # type: ignore[arg-type]
+        revision,
         result,
-        seed=B3_REPRESENTATIVE_SEED,
+        seed=_B3_TEST_SEED,
         arm="treatment",
         step_index=0,
         show_resources=True,
@@ -109,7 +111,7 @@ def test_b3_matched_world_frames_preserve_same_scientific_encoding(
 
     assert control.provenance is result.provenance
     assert treatment.provenance is result.provenance
-    assert control.seed == treatment.seed == B3_REPRESENTATIVE_SEED
+    assert control.seed == treatment.seed == _B3_TEST_SEED
     assert control.arm == "control"
     assert treatment.arm == "treatment"
     assert control.environment == "uniform"
@@ -118,7 +120,7 @@ def test_b3_matched_world_frames_preserve_same_scientific_encoding(
     assert control.frame.focal_encoding is not None
     assert control.frame.focal_encoding.lower_bound == 1
     assert control.frame.focal_encoding.upper_bound == 4
-    assert revision.manifest.to_json() == before_manifest  # type: ignore[attr-defined]
+    assert revision.manifest.to_json() == before_manifest
 
 
 def test_reference_world_replay_is_unavailable_without_spatial_evidence() -> None:
