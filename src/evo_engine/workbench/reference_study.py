@@ -65,7 +65,10 @@ class ReferenceStudyRevision:
             _require_nonempty(self.parent_revision_id, name="parent_revision_id")
             if self.parent_revision_id == self.revision_id:
                 raise ValueError("parent_revision_id must differ from revision_id.")
-        if normalized_reference_explicit_values(self.intent) != self.manifest.explicit_values:
+        if (
+            normalized_reference_explicit_values(self.intent)
+            != self.manifest.explicit_values
+        ):
             raise ValueError("Stored reference intent does not match stored manifest.")
         _validate_runs(self)
 
@@ -233,7 +236,6 @@ def run_reference_study_revision(
     provenance = _workbench_provenance(
         revision,
         run_id=resolved_run_id,
-        prepared=prepared.evidence,
     )
     return ReferenceRunResult(
         provenance=provenance,
@@ -250,7 +252,6 @@ def _workbench_provenance(
     revision: ReferenceStudyRevision,
     *,
     run_id: str,
-    prepared: object,
 ) -> WorkbenchRunProvenance:
     evidence_references = tuple(
         f"{run_id}:{suffix}"
@@ -290,9 +291,7 @@ def _scientific_provenance(
     }
     return ScientificRunProvenance(
         experiment_id="workbench-reference-ecology",
-        scenario_id=(
-            f"bounded-reference-ecology-v{revision.manifest.recipe_version}"
-        ),
+        scenario_id=(f"bounded-reference-ecology-v{revision.manifest.recipe_version}"),
         treatment_id=f"custom-reference-ecology-{treatment_digest}",
         treatment_specification_json=treatment_specification_json,
         seed=cast_int(revision.manifest.explicit_value(SEED_SLOT)),
@@ -405,9 +404,7 @@ def _run_from_mapping(value: object) -> WorkbenchRunProvenance:
         study_revision_id=_required_string(value, "study_revision_id"),
         manifest_digest=_required_string(value, "manifest_digest"),
         evidence_ids=tuple(_required_string_list(value, "evidence_ids")),
-        evidence_references=tuple(
-            _required_string_list(value, "evidence_references")
-        ),
+        evidence_references=tuple(_required_string_list(value, "evidence_references")),
         result_references=tuple(_required_string_list(value, "result_references")),
     )
 
