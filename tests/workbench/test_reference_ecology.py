@@ -163,6 +163,30 @@ def test_manifest_fingerprints_noneditable_reference_assumptions() -> None:
     assert "resource_request_amount" in fixed
 
 
+def test_rich_manifest_exposes_noneditable_reference_wiring() -> None:
+    manifest = resolve_reference_ecology(_rich_intent())
+    assert (
+        manifest.derived_value("reference-ecology.inheritance")
+        == "sexual-meiotic-single-crossover"
+    )
+    assert (
+        manifest.derived_value("reference-ecology.reproduction")
+        == "reference-pairwise-sexual"
+    )
+    assert (
+        manifest.derived_value("reference-ecology.development")
+        == "reference-developmental-profile"
+    )
+    assert (
+        manifest.derived_value("reference-ecology.food-targeting")
+        == "nearest-detectable-resource"
+    )
+    assert (
+        manifest.derived_value("reference-ecology.mate-targeting")
+        == "preferred-compatible-mate"
+    )
+
+
 def test_tampered_derived_assumptions_fail_before_execution() -> None:
     manifest = resolve_reference_ecology(_rich_intent())
     derived = list(manifest.derived_values)
