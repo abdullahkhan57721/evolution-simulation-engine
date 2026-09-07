@@ -1,0 +1,24 @@
+name: E5 Sync Main
+
+on:
+  push:
+    branches: [e5/drift-weak-selection]
+    paths: [.github/workflows/e5-sync-main.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: e5/drift-weak-selection
+          fetch-depth: 0
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
+          git push origin HEAD:e5/drift-weak-selection
