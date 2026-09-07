@@ -131,7 +131,7 @@ def test_forward_study_format_version_is_rejected_by_concrete_loader() -> None:
         load_concrete_artifact(json.dumps(decoded))
 
 
-def test_incompatible_manifest_error_propagates_for_truthful_exact_reproduction() -> None:
+def test_incompatible_manifest_error_propagates() -> None:
     revision = new_controlled_run(revision_id="incompatible-manifest")
     decoded = json.loads(revision.to_json())
     manifest = json.loads(decoded["manifest_json"])
