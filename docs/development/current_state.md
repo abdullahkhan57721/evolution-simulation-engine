@@ -86,7 +86,8 @@ experiment export.
 
 ## Controlled experimental-evolution sequence
 
-E1–E6 form a completed causal proof sequence separate from the richer B3 flagship:
+E1–E7 form a completed first causal proof sequence separate from the richer B3
+flagship:
 
 ```text
 E1 measurement semantics and reproducibility
@@ -100,6 +101,8 @@ E4 selection on standing inherited variation
 E5 finite-population drift and weak selection
         ↓
 E6 rare-lineage invasion and candidate stability
+        ↓
+E7 focal mutation, adaptation, and convergence
 ```
 
 The durable experiment semantics are:
@@ -122,6 +125,21 @@ finite-population stochasticity and weak-selection reversals without manufacturi
 fixation. E6 added exact resident-state/RNG forking and matched rare-lineage
 admission, supporting speed 3 as a bounded candidate invasion-stable strategy
 against reciprocal speed 4 rather than a formal ESS.
+
+E7 added only a narrow optional focal mutation-policy seam to controlled locomotion;
+existing E2–E6 callers remain mutation-off by default. Its frozen high-mutation,
+full-distribution confirmation **does not show cross-start convergence**. Starts 1
+and 7 remain strongly separated from the reference region while start 3 stays
+bounded inside speeds 2..4. The mechanism evidence shows why: speed-6/8 descendants
+from the high start do not reproduce within the horizon, so repeated first-step
+mutation does not propagate toward lower speeds; the low start can reproduce through
+speed 2 toward speed 3 but also accumulates substantial mass at the legal speed-0
+boundary. E7 therefore bounds the E3–E6 story: favorable performance, selection,
+and invasion when a strategy is already present do not guarantee mutation-driven
+accessibility from distant starting states.
+
+See `docs/e7_mutation_driven_adaptation.md` for the frozen assay, confirmation
+criteria, mechanism evidence, and bounded nonclaims.
 
 ## Confirmed B3 flagship
 
@@ -291,8 +309,10 @@ charts, and animation remain presentation concerns.
 
 ## Current development front
 
-The Workbench foundation is no longer the architectural development front. Future
-Workbench work should normally be one of:
+The Workbench foundation and the first E-series controlled-science program are both
+settled enough to move out of foundational architecture mode.
+
+Future Workbench work should normally be one of:
 
 ```text
 add bounded recipe
@@ -308,12 +328,13 @@ or
 add a downstream result/presentation consumer
 ```
 
-The next controlled-science direction remains **E7 — Mutation-Driven Adaptation and
-Convergence**: focal-only `max_speed` mutation, multiple predeclared starting
-conditions, explicit mutation mechanics, full trait distributions, and careful
-separation of convergence from boundary accumulation, polymorphism, directional
-change, and extinction. E7 remains independent of the Workbench unless a later
-concrete product milestone chooses to expose it.
+E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
+result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
+A future controlled-science milestone should begin from a new predeclared question
+and new scientific identity. Potential pressure includes evolutionary accessibility
+across longer generational turnover, richer reproduction/resource opportunity,
+richer genetics, or changing ecology, but none of those is automatically the next
+milestone merely because E7 exposed the mechanism.
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
@@ -342,7 +363,7 @@ repeats while keeping renderer mechanics local.
 
 ### Scientific scope remains illustrative
 
-The reference ecology, B3 flagship, and E2–E6 controlled sequence are software and
+The reference ecology, B3 flagship, and E2–E7 controlled sequence are software and
 modeling demonstrations, not species-calibrated predictive ecological models.
 
 ## Collaboration model
