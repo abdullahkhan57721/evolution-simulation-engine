@@ -18,6 +18,7 @@ on:
 permissions:
   contents: read
 
+# Discovery remains manual; CI reruns only the frozen independent confirmation matrix.
 jobs:
   confirmation-e6:
     name: Independent E6 confirmation
