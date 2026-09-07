@@ -12,6 +12,7 @@ from evo_engine.genetics import (
     IntegerAlleleDomain,
     Locus,
     MeanIntegerExpression,
+    MutationPolicy,
     NoMutation,
     Trait,
 )
@@ -25,14 +26,24 @@ from evo_engine.world import Organism, WorldState
 CONTROLLED_LOCOMOTION_CHROMOSOME = "locomotion"
 
 
-def build_controlled_locomotion_genetic_architecture() -> GeneticArchitecture:
-    """Build the one-locus haploid genetic architecture used by E2.
+def build_controlled_locomotion_genetic_architecture(
+    *,
+    max_speed_mutation: MutationPolicy[int] | None = None,
+) -> GeneticArchitecture:
+    """Build the one-locus haploid controlled-locomotion architecture.
+
+    Args:
+        max_speed_mutation: Optional mutation policy for the sole inherited
+            ``max_speed`` locus. ``None`` preserves the E2 default of no mutation.
 
     Returns:
-        Genetic architecture containing only inherited ``max_speed`` with no
-        mutation. Haploidy is an experimental composition choice; it does not
-        alter the engine's general support for richer ploidy or sexual genetics.
+        Genetic architecture containing only inherited ``max_speed``. Haploidy is
+        an experimental composition choice; it does not alter the engine's general
+        support for richer ploidy or sexual genetics.
     """
+    resolved_mutation: MutationPolicy[int] = (
+        NoMutation() if max_speed_mutation is None else max_speed_mutation
+    )
     return GeneticArchitecture(
         genome_structure=GenomeStructure(
             chromosomes=(
@@ -51,7 +62,7 @@ def build_controlled_locomotion_genetic_architecture() -> GeneticArchitecture:
                     minimum=0,
                     maximum=CONTROLLED_MAX_SPEED_MAXIMUM,
                 ),
-                mutation=NoMutation(),
+                mutation=resolved_mutation,
             ),
         ),
         traits=(
