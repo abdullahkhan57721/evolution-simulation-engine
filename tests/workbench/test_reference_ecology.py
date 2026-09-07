@@ -127,10 +127,13 @@ def test_disabled_mutation_normalizes_stale_mutation_parameters_away() -> None:
     )
     assert manifest.explicit_value_or_none(MUTATION_PROBABILITY_SLOT) is None
     assert manifest.explicit_value_or_none(MUTATION_MAX_CHANGE_SLOT) is None
-    assert manifest.derived_value(
-        "reference-ecology.effective-mutation-probability-ppm"
-    ) == 0
-    assert manifest.derived_value("reference-ecology.effective-mutation-max-change") == 0
+    assert (
+        manifest.derived_value("reference-ecology.effective-mutation-probability-ppm")
+        == 0
+    )
+    assert (
+        manifest.derived_value("reference-ecology.effective-mutation-max-change") == 0
+    )
 
 
 def test_uniform_resources_normalize_stale_patch_geometry_away() -> None:
