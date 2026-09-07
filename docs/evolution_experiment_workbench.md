@@ -264,3 +264,185 @@ unless repository evidence demonstrates a concrete deficiency:
 12. New recipe breadth must be earned by concrete studies; WB1 does not authorize
     generic simulation configuration, plugin systems, registries, arbitrary
     genetics, generic experiments, or generic statistics.
+
+## WB3 controlled experiment authoring
+
+WB3 adds experiment authoring **above** the settled WB1 recipe and existing E3/E4
+science. It does not add a universal `Experiment` class, a factor registry, a
+configuration-diff language, or a statistics framework.
+
+The common sequencing is:
+
+```text
+base semantic study intent / concrete experimental design
+        +
+concrete experiment pattern
+        ↓
+stable semantic factor ID
+        ↓
+treatment expansion
+        ↓
+concrete treatment-specific manifest/specification
+        ↓
+experiment-owned integrity validation
+        ↓
+existing evidence + execution + measurements
+```
+
+Expansion happens before each run reaches typed biological compilation. Compiled
+Python objects are never patched after the fact.
+
+### E3-style max-speed sweep
+
+`MaxSpeedSweepDefinition` is the concrete one-factor sweep pattern. Its stable
+pattern identity is:
+
+```text
+controlled-locomotion.max-speed-sweep
+```
+
+Its only manipulable factor is:
+
+```text
+controlled-locomotion.max-speed
+```
+
+The definition owns declared factor levels, unique replicate seeds, run role, and
+evidence intent. The base `ControlledLocomotionIntent` must leave both `max_speed`
+and `seed` unresolved: experiment expansion supplies the factor level and replicate
+seed while keeping the base resource geography fixed.
+
+For every `(level, seed)` pair, WB3 resolves a fresh exact
+`ControlledLocomotionManifest` **before execution**. Same-seed manifests are checked
+to ensure their explicit semantic difference is exactly the max-speed slot. The
+existing E3 `validate_e3_speed_treatment_integrity()` remains the scientific
+integrity authority; WB3 does not replace it with a generic diff mechanism.
+
+The sweep requires the existing population focal-trait and committed-event evidence
+needed by E3 analysis. Execution delegates to `run_e3_replicate()` and
+`summarize_e3_treatment()`, so replicate outcomes, primary cumulative-birth outcome,
+mechanism measurements, extinction semantics, and treatment summaries remain the
+existing E3 values rather than Workbench-specific reinterpretations.
+
+One run/seed remains one experimental replicate. Organisms are not promoted to
+replicate status.
+
+### E4-style matched environment comparison
+
+`EnvironmentSelectionComparisonDefinition` is the concrete standing-variation
+comparison pattern. Its stable pattern identity is:
+
+```text
+controlled-locomotion.environment-selection-comparison
+```
+
+Its only primary factor is:
+
+```text
+controlled-locomotion.resource-geography
+```
+
+The frozen control/treatment meaning remains:
+
+```text
+control:   local_resource
+treatment: separated_corridor
+```
+
+The full focal standing composition remains exactly `(1, 3, 9)`. WB3 intentionally
+does **not** widen the monomorphic WB1 recipe into an arbitrary founder-composition
+manifest just to make E4 look like E3. E4 treatment expansion therefore reuses the
+existing concrete `E4TreatmentSpecification` and E4 execution path.
+
+Founder-ID counterbalancing is persisted by the stable scheme identity:
+
+```text
+e4-founder-id-cyclic-orders-v1
+```
+
+For each declared seed index, `founder_order_for_replicate()` supplies the existing
+predeclared cyclic speed-to-founder-ID assignment. Matched local/corridor arms use
+the same seed and founder order. `founder_speed_order` is exposed as counterbalance
+metadata on the expanded treatment; it is not the primary evolutionary factor.
+
+The existing `validate_e4_environment_treatment_integrity()` remains the matched-arm
+integrity authority. The Workbench does not introduce an allowed-path diff or
+factorial-treatment normalizer.
+
+E4 requires three concrete evidence meanings:
+
+```text
+controlled-locomotion.individual-focal-trait
+controlled-locomotion.population-focal-trait
+controlled-locomotion.committed-events
+```
+
+`EvidencePlan` is shared only as the immutable request carrier. Evidence support and
+resolution remain pattern-owned. The E4 individual focal-trait requirement is
+satisfied through E4's existing `IndividualGeneticTraitRecorder` path; WB3 does not
+widen `compile_controlled_locomotion()` to pretend that WB1's monomorphic manifest
+can represent E4's polymorphic founders.
+
+Execution delegates to `run_e4_replicate()` and `summarize_e4_environment()`. Full
+focal composition, frequency change, strategy-attributed mechanism evidence,
+energy audits, and extinction semantics therefore remain authoritative E4 results.
+Population mean speed is not substituted for focal composition.
+
+### Experiment-definition persistence
+
+Both patterns use the versioned experiment-definition envelope:
+
+```text
+format ID:      evolution-experiment-workbench-experiment
+format version: 1
+```
+
+Stored definitions preserve stable pattern/factor identity, factor levels or
+control/treatment meaning, ordered unique seeds, evidence intent, run role, and the
+E4 counterbalance identity/focal composition needed to preserve scientific meaning.
+They do not persist Python field paths as factor identity.
+
+Loading validates the stored pattern/factor/counterbalance identities and rebuilds
+the same concrete expansion. No migration or generic experiment language is
+introduced.
+
+### What WB3 actually shares
+
+The responsibilities now genuinely shared across the two implemented patterns are
+small:
+
+- persisted factor identity uses stable Workbench semantic slot IDs;
+- factor/replicate design is expanded before per-run compilation;
+- `EvidencePlan` carries immutable requested evidence IDs;
+- unique seed values preserve E1's one-run/seed replicate semantics;
+- experiment definitions are immutable, canonically versioned persisted values;
+- execution returns existing experiment-owned replicate outcomes and summaries.
+
+The following remain deliberately concrete:
+
+- which semantic slot is a scientifically valid factor;
+- factor levels and control/treatment interpretation;
+- E3 monomorphic base intent and exact WB1 manifests;
+- E4 standing focal composition;
+- E4 founder-ID counterbalancing;
+- treatment-integrity normalization;
+- evidence sufficiency and recorder meaning;
+- E3/E4 measurement and summary logic.
+
+Two consumers did not earn a generic factor hierarchy, experiment DSL, treatment
+normalizer, evidence solver, metric registry, or statistics registry.
+
+### Contract available to WB5
+
+A later results/presentation milestone may rely on WB3 to provide:
+
+- stable experiment pattern and factor IDs suitable for labels and provenance;
+- deterministic expanded treatment order;
+- per-treatment seed, factor level, and E4 counterbalance metadata;
+- unchanged typed E3/E4 replicate outcomes;
+- unchanged typed E3/E4 treatment/environment summaries;
+- explicit separation between primary outcome, mechanism evidence, diagnostics,
+  replicate-level values, and summaries inherited from E3/E4.
+
+WB5 should present those scientific result distinctions rather than flattening them
+into a scalar fitness value or inventing a generic metric/statistics layer.
