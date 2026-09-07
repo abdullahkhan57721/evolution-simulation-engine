@@ -1,8 +1,8 @@
 """Study-facing navigation over existing authoritative scientific artifacts.
 
-WB5 deliberately keeps this module thin.  It associates already-produced evidence
+WB5 deliberately keeps this module thin. It associates already-produced evidence
 and result values with exact Workbench provenance, reports evidence insufficiency,
-and preserves treatment/replicate identity.  It does not calculate scientific
+and preserves treatment/replicate identity. It does not calculate scientific
 measurements, treatment summaries, causal claims, charts, or renderer state.
 """
 
@@ -70,7 +70,7 @@ from evo_engine.workbench.study import (
 class AnalysisAvailability:
     """Describe whether one concrete existing analysis/evidence view is available.
 
-    This is not an evidence dependency solver.  Concrete builders below declare the
+    This is not an evidence dependency solver. Concrete builders below declare the
     small fixed evidence requirements of their already-established consumers.
     """
 
@@ -178,7 +178,9 @@ class EnvironmentSelectionReplicateView:
         if self.role not in ("control", "treatment"):
             raise ValueError("role must be control or treatment.")
         if self.factor_slot_id != RESOURCE_GEOGRAPHY_SLOT:
-            raise ValueError("E4 navigation must preserve resource geography as factor.")
+            raise ValueError(
+                "E4 navigation must preserve resource geography as factor."
+            )
         _require_nonempty(self.factor_level, name="factor_level")
         _require_nonempty(self.treatment_id, name="treatment_id")
         if type(self.seed) is not int:
@@ -243,7 +245,9 @@ def inspect_controlled_locomotion_results(
         required=(EVENT_EVIDENCE_ID,),
     )
     if locomotion.available != (result.locomotion is not None):
-        raise ValueError("WB1 locomotion result availability disagrees with evidence plan.")
+        raise ValueError(
+            "WB1 locomotion result availability disagrees with evidence plan."
+        )
     return ControlledLocomotionResultsView(
         provenance=result.provenance,
         scientific_provenance=result.scientific_provenance,
@@ -311,7 +315,9 @@ def inspect_reference_study_results(
     )
 
 
-def inspect_max_speed_sweep_results(result: MaxSpeedSweepResult) -> MaxSpeedSweepResultsView:
+def inspect_max_speed_sweep_results(
+    result: MaxSpeedSweepResult,
+) -> MaxSpeedSweepResultsView:
     """Organize E3 results by authored factor/replicate without recomputing them."""
     if not isinstance(result, MaxSpeedSweepResult):
         raise TypeError("result must be a MaxSpeedSweepResult.")
@@ -385,7 +391,9 @@ def inspect_b3_results(
     if result.scenario_origin != revision.scenario_origin:
         raise ValueError("B3 result scenario origin does not match the study revision.")
     if result.scenario_identity != revision.scenario_identity:
-        raise ValueError("B3 result scenario identity does not match the study revision.")
+        raise ValueError(
+            "B3 result scenario identity does not match the study revision."
+        )
 
     reason = None
     if revision.scenario_identity != B3_VALIDATED_SCENARIO_ID:
@@ -419,7 +427,9 @@ def _availability(
     required: tuple[str, ...],
     unavailable_reason: str | None = None,
 ) -> AnalysisAvailability:
-    missing = tuple(evidence_id for evidence_id in required if evidence_id not in requested)
+    missing = tuple(
+        evidence_id for evidence_id in required if evidence_id not in requested
+    )
     return AnalysisAvailability(
         analysis_id=analysis_id,
         source_contract=source_contract,
