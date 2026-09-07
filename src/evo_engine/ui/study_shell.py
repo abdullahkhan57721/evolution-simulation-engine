@@ -89,9 +89,7 @@ def new_controlled_run(*, revision_id: str) -> StudyRevision:
 def new_max_speed_sweep() -> MaxSpeedSweepDefinition:
     """Create the existing E3-pattern sweep with its established confirmation seeds."""
     return MaxSpeedSweepDefinition(
-        base_intent=ControlledLocomotionIntent(
-            resource_geography="separated_corridor"
-        ),
+        base_intent=ControlledLocomotionIntent(resource_geography="separated_corridor"),
         seeds=E3_CONFIRMATION_SEEDS,
     )
 
