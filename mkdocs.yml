@@ -42,6 +42,7 @@ nav:
       - Overview: architecture/index.md
       - Scientific Visualization: architecture/scientific_visualization.md
       - Evolution Experiment Workbench: evolution_experiment_workbench.md
+      - Workbench Architecture Review: workbench_architecture_review.md
       - WB4 Bounded Reference Ecology: wb4_bounded_reference_ecology.md
       - WB5 Results and Presentation: wb5_results_presentation.md
       - Simulation Kernel Contract: kernel_contract.md
@@ -60,7 +61,6 @@ nav:
   - Development Workflow:
       - Current Project State: development/current_state.md
       - Architectural Roadmap: development/roadmap.md
-      - WB6 Workbench Handoff: development/wb6_workbench_handoff.md
       - Codex Ticket Workflow: development/codex_workflow.md
       - Manual Verification: development/manual_verification.md
   - General Evolution Framework: general_evolution_framework.md

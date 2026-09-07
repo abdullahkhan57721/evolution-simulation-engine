@@ -1,8 +1,8 @@
 """V2 interactive-presentation adapters for exact Workbench run artifacts.
 
-This module is intentionally downstream of Workbench.  It converts already-recorded
+This module is intentionally downstream of Workbench. It converts already-recorded
 spatial/trait evidence into the existing renderer-neutral V2 world-presentation
-values and keeps exact study/run/treatment context beside the frame.  It never
+values and keeps exact study/run/treatment context beside the frame. It never
 calculates scientific outcomes or reconstructs missing evidence.
 """
 
@@ -29,17 +29,28 @@ from evo_engine.workbench import (
     ReferenceStudyRevision,
     WorkbenchRunProvenance,
 )
+from evo_engine.workbench.diagnostics import WorkbenchDiagnostic
 from evo_engine.workbench.results import (
     AnalysisAvailability,
     inspect_b3_results,
     inspect_reference_study_results,
 )
+from evo_engine.workbench.support import analysis_availability_diagnostic
 
 B3InteractiveArm = Literal["control", "treatment"]
 
 
 class WorkbenchPresentationUnavailableError(ValueError):
-    """Raised when a requested presentation requires unrecorded evidence."""
+    """Raised when a requested presentation is unavailable from recorded evidence."""
+
+    def __init__(self, diagnostic: WorkbenchDiagnostic) -> None:
+        if not isinstance(diagnostic, WorkbenchDiagnostic):
+            raise TypeError("diagnostic must be a WorkbenchDiagnostic.")
+        self.diagnostic = diagnostic
+        message = diagnostic.message
+        if diagnostic.remediation is not None:
+            message = f"{message} {diagnostic.remediation}"
+        super().__init__(message)
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -76,13 +87,7 @@ def build_reference_workbench_world_presentation(
 ) -> WorkbenchWorldPresentation:
     """Build a V2 world frame only from spatial evidence actually recorded by WB4."""
     view = inspect_reference_study_results(revision, result)
-    _require_available(
-        view.spatial_availability,
-        rerun_message=(
-            "Rerun this Study revision with the reference-ecology spatial EvidencePlan "
-            "selection to enable interactive world replay."
-        ),
-    )
+    _require_available(view.spatial_availability)
     frame = build_world_presentation(
         view.spatial_observations,
         step_index=step_index,
@@ -151,21 +156,11 @@ def build_b3_workbench_world_presentation(
     )
 
 
-def _require_available(
-    availability: AnalysisAvailability,
-    *,
-    rerun_message: str,
-) -> None:
-    if availability.available:
+def _require_available(availability: AnalysisAvailability) -> None:
+    diagnostic = analysis_availability_diagnostic(availability)
+    if diagnostic is None:
         return
-    missing = ", ".join(availability.missing_evidence_ids)
-    reason = availability.unavailable_reason
-    detail = f" Missing evidence: {missing}." if missing else ""
-    if reason:
-        detail = f" {reason}{detail}"
-    raise WorkbenchPresentationUnavailableError(
-        f"{availability.analysis_id} is unavailable.{detail} {rerun_message}"
-    )
+    raise WorkbenchPresentationUnavailableError(diagnostic)
 
 
 __all__ = [
