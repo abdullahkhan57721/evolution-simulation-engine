@@ -150,4 +150,4 @@ def test_reference_adapter_builds_from_recorded_spatial_evidence() -> None:
     assert presentation.seed == result.scientific_provenance.seed
     assert presentation.arm is None
     assert presentation.environment is None
-    assert presentation.frame.step_index == 0
+    assert presentation.frame.committed_step_index == 0
