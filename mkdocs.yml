@@ -84,6 +84,7 @@ nav:
   - E3 Ecological Performance Landscape: e3_ecological_performance.md
   - E4 Standing Variation and Selection: e4_standing_variation.md
   - E5 Drift, Population Size, and Weak Selection: e5_drift_weak_selection.md
+  - E6 Rare-Lineage Invasion and Candidate Stability: e6_rare_lineage_invasion.md
   - Exact Checkpoint and Resume: checkpointing.md
   - Performance Measurement: performance.md
   - Reference Ecology: reference_ecology.md

@@ -135,7 +135,7 @@ layer, and no universal metric/statistics framework has been introduced.
 
 ## Controlled experimental-evolution sequence
 
-E1–E5 now form a completed causal proof sequence above the frozen kernel and
+E1–E6 now form a completed causal proof sequence above the frozen kernel and
 separate from the richer reference ecology.
 
 ```text
@@ -148,6 +148,8 @@ E3 monomorphic ecological-performance landscape
 E4 selection on standing inherited variation
         ↓
 E5 finite-population drift and weak selection
+        ↓
+E6 rare-lineage invasion and candidate stability
 ```
 
 ### E2 — controlled clonal locomotion mechanics
@@ -243,29 +245,56 @@ obscure or reverse weak selection at small modeled population size.
 No lineage loss, fixation, or whole-population extinction was observed within the
 60-step confirmation horizon; those outcomes remain right-censored. The minimal
 controlled composition has no ordinary aging/metabolic/density-independent
-turnover, so E5 does not manufacture fixation. A later rare-lineage invasion must
-use a matched neutral rare-lineage control with the same introduction state,
-rarity, ecology, population context, and horizon rather than treating an unmatched
-rare founder as the control. See `docs/e5_drift_weak_selection.md`.
+turnover, so E5 does not manufacture fixation. E6 directly consumed that requirement by using a matched neutral rare-lineage
+control with the same introduction state, rarity, ecology, population context, and
+horizon rather than treating an unmatched rare founder as the control. See `docs/e5_drift_weak_selection.md`.
+
+### E6 — confirmed rare-lineage invasion and candidate stability
+
+E6 runs a genuine resident-only burn-in and then forks the exact committed
+`SimulationState`, including RNG and allocator state, into matched neutral and
+mutant arms. The external entrant is explicit experiment provenance rather than a
+simulated birth or mutation. It is newborn-like (age 0, energy 20, body mass 1), is
+placed at the current position of the lowest-ID living resident without consuming
+RNG, and differs across paired arms only in `max_speed`. Resident/rare identity
+remains analysis-only and propagates through existing pedigree evidence.
+
+The frozen assay uses eight monomorphic residents, the E3 separated-resource
+corridor at E5's corrected resource scale, a 10-step resident burn-in, and terminal
+step 60. It tests reciprocal speed 3↔4 invasion, with each mutant arm compared to an
+exact matched neutral rare entrant from the same resident history.
+
+Independent confirmation on 24 fresh seeds shows speed-3 mutants expanding in
+`8/24` speed-4 resident runs versus `0/24` matched neutral controls, with mean
+paired rare-frequency contrast approximately `+0.0055`. Reciprocal speed-4 mutants
+expand in `0/24` runs and have an essentially zero/slightly negative mean paired
+contrast (`-0.0001`). No rare-lineage loss, fixation, or whole-population extinction
+is observed within the fixed horizon, so those event times remain right-censored.
+
+The result supports speed 3 only as a **candidate invasion-stable strategy against
+reciprocal speed 4 in this controlled corridor assay**. It is not a formal ESS,
+fixation result, asymptotic invasion-fitness estimate, or universal optimal-speed
+claim. See `docs/e6_rare_lineage_invasion.md`.
 
 ## Experiment Workbench authoring foundation
 
-WB1 established the bounded controlled-locomotion study recipe; WB3 adds the first
-user-authored controlled experiment patterns above that foundation without turning
-the Workbench into a universal simulation or experiment language.
+WB1 establishes the bounded controlled-locomotion study recipe. WB2 adds the first
+trusted curated-scenario workflow using the confirmed B3 flagship. WB3 adds the
+first user-authored controlled experiment patterns. Together they expand the
+Workbench without turning it into a universal simulation or experiment language.
 
 The durable authoring direction remains:
 
 ```text
-semantic study / experiment authoring
+semantic study / curated scenario / experiment authoring
         ↓
-recipe or concrete experiment-pattern resolution
+bounded recipe or concrete experiment-pattern resolution
         ↓
 immutable scientific manifest / treatment specification
         ↓
-existing typed simulation composition
+existing typed or scenario-specific simulation composition
         ↓
-authoritative biological/generic preflight
+authoritative biological/scientific validation and preflight
         ↓
 frozen kernel
 ```
@@ -277,6 +306,33 @@ an exact canonical manifest, evidence intent, lineage, and run-to-manifest
 provenance. Loading deserializes the stored manifest rather than silently
 re-resolving historical defaults; compilation reconstructs fresh existing recorders
 before lower preflight; forks remain immutable and diffing remains recipe-scoped.
+
+WB2 adds the explicit `curated-b3-flagship` recipe for the confirmed B3 reference-
+ecology study. Canonical B3 persists a rich resolved manifest containing the frozen
+study design, matched resource geography, balanced `max_speed = 1/4` standing
+variation, seed roles, primary step-30 readout, explicit reference-ecology
+configuration, mutation/recombination, ordinary sexual inheritance, treatment-
+integrity and counterbalance semantics, and the authority of the existing B3
+scientific handoff for representative-run selection and bounded claims. Those
+assumptions are derived through the authoritative B3 builder rather than duplicated
+as a second scientific implementation.
+
+WB2 establishes the distinction:
+
+```text
+scenario identity = this exact saved revision is the validated frozen B3 scenario
+scenario origin   = this study descends scientifically from B3
+```
+
+The only supported B3 fork is its already-established radius-2 resource-geometry
+sensitivity. The fork retains B3 origin, loses validated radius-1 identity, and does
+not automatically inherit the original B3 headline claim or representative-story
+semantics. Exact reproduction loads the stored resolved manifest, requires
+compatible recipe/compiler/software identity, and fails explicitly rather than
+silently inheriting future `ReferenceEcologyConfig` defaults or migrating old
+intent. Execution returns existing B3 evidence and summary contracts; Workbench
+does not recalculate authoritative B3 genetics, founder reproductive contribution,
+mechanism evidence, robustness, representative-run selection, or claim boundaries.
 
 WB3 adds two concrete persisted experiment definitions:
 
@@ -296,16 +352,18 @@ the concrete pattern. In particular, E4's individual focal-trait evidence is
 satisfied through the existing E4 recorder path rather than by widening WB1's
 monomorphic manifest.
 
-This is not a plugin system, universal configuration graph, generic factor or
-experiment hierarchy, capability/evidence solver, path-based treatment-diff
-language, metric/statistics registry, or alternate simulation engine. Lower
-engine/domain packages remain independent of `workbench`. See
-`docs/evolution_experiment_workbench.md`.
+The Workbench remains recipe/pattern-specific where concrete consumers differ. WB2
+and WB3 do not yet justify a universal persisted study root, plugin system,
+configuration graph, generic factor/experiment hierarchy, capability/evidence
+solver, path-based treatment-diff language, migration framework, claim-inference
+engine, metric/statistics registry, or alternate simulation engine. Lower
+engine/domain packages remain independent of `workbench`. Scientific manifests
+remain renderer-neutral. See `docs/evolution_experiment_workbench.md`.
 
 ## Confirmed B3 scientific flagship
 
 B3 remains the richer integrated reference-ecology flagship and is not replaced or
-reinterpreted by E2–E5 or the Workbench.
+reinterpreted by E2–E6 or the Workbench.
 
 Its central matched question is whether compact spatial resource geography changes
 selection on existing heritable `max_speed` standing variation relative to a
@@ -367,29 +425,34 @@ semantics.
 
 ## Current development front
 
-The E1→E5 controlled-science sequence is complete through the finite-population
-baseline. It provides a causal chain from mechanics to ecological performance,
-selection on inherited standing variation, and the stochastic reliability of weak
-selection across modeled founder-count regimes, alongside the richer independently
-confirmed B3 flagship.
+The E1→E6 controlled-science sequence is complete through the first matched
+established-resident rare-lineage invasion assay. It now provides a causal chain
+from locomotion mechanics through ecological performance, standing-variation
+selection, finite-population stochasticity, and reciprocal invasion evidence,
+alongside the richer independently confirmed B3 flagship.
 
-The next controlled-science pressure is rare-lineage invasion. Any such milestone
-must preserve E5's key interpretation boundary: disappearance of a rare lineage is
-not by itself evidence of selective disadvantage. If the invasion design can lose
-a rare lineage, it must include a matched neutral control using the same
-introduction mechanism/state, initial rarity, population context, ecology, horizon,
-and censoring semantics. Do not retrofit mortality or generic population-genetics
-machinery merely to obtain textbook fixation behavior.
+The next planned controlled-science milestone is **E7 — Mutation-Driven Adaptation
+and Convergence**. E7 should ask whether independent populations with focal-only
+`max_speed` mutation converge toward the performance/selection/invasion region
+identified by E3–E6. It should use multiple predeclared low/near/high starting
+conditions, an explicit mutation rate and step distribution, a legal speed range
+wider than the expected adaptive region, and full trait-distribution evidence.
+Boundary accumulation, polymorphism, stationary variation, directional evolution,
+and extinction must remain distinguishable; boundary pile-up or a population mean
+must not be promoted to an optimum. Mutation must remain isolated to the focal
+locomotor locus rather than being enabled across the richer reference genome.
 
-The Workbench product front now has both the WB1 exact study/manifest foundation and
-WB3 controlled-experiment authoring. The next Workbench milestones may rely on
-stable experiment pattern/factor identities, deterministic treatment expansion,
-explicit per-treatment seed/factor/counterbalance metadata, and unchanged typed
-E3/E4 replicate outcomes and summaries. Results/presentation work should preserve
-primary outcomes, mechanism evidence, diagnostics, replicate values, and summaries
-as distinct scientific meanings rather than inventing scalar fitness or a generic
-metric/statistics layer. Parallel Workbench work must continue to treat current
-`main` and the authoritative Workbench architecture as the integration boundary.
+The Workbench product front now includes WB1 exact study/manifest foundations, WB2
+trusted curated-B3 exact reproduction and fork lineage, and WB3 controlled-
+experiment authoring. Later milestones may rely on scenario origin versus validated
+identity, stable experiment pattern/factor IDs, deterministic treatment expansion,
+explicit seed/factor/counterbalance metadata, immutable resolved manifests, and
+unchanged typed scenario/experiment results. Results/presentation work should keep
+primary outcomes, mechanism evidence, diagnostics, replicate values, summaries,
+scenario validation status, and presentation meaning distinct rather than
+flattening them into scalar fitness or a generic metric/statistics layer. Future
+generalization should be earned by repeated consumers rather than inferred merely
+because three Workbench milestones now exist.
 
 The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
 presentation continuation is the interactive matched-comparison experience:
@@ -431,10 +494,20 @@ of concrete policies, not a structural ambiguity in `Genome` or
 
 ### Scientific scope remains intentionally illustrative
 
-The reference ecology, B3 flagship, and E2–E5 controlled experiments are
+The reference ecology, B3 flagship, and E2–E6 controlled experiments are
 software/modeling demonstrations. They are not species-calibrated predictive
 ecological models. The controlled E2–E5 program remains intentionally distinct
 from the integrated reference-ecology flagship.
+
+### Workbench persistence remains intentionally concrete
+
+WB1's saved revision is controlled-locomotion-specific, WB2 uses a B3-specific
+curated revision, and WB3 uses concrete persisted experiment definitions. These
+milestones establish repeated principles—stable semantic identity, immutable
+resolved values, exact load, provenance, and explicit lineage/design metadata—but
+not yet enough repeated shape to justify a universal persisted study/experiment
+root. Later concrete consumers should determine whether that generalization is
+earned.
 
 ### Public presentation naming still contains v0.1 history
 
@@ -461,12 +534,26 @@ early PR → CI → exact-head review → squash merge → `main` verification w
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Confirmed rare-lineage invasion and candidate stability:** established exact
+  resident-state/RNG forking, explicit matched external newborn-like admission,
+  analysis-only pedigree ancestry, reciprocal speed-3/speed-4 invasion, and
+  independent confirmation that speed 3 can reproduce and expand against speed-4
+  residents while reciprocal speed 4 does not expand. The claim remains bounded
+  to candidate stability against speed 4 without a formal ESS, fixation, scalar
+  fitness, or generic intervention/population-genetics framework.
 - **WB3 controlled experiment authoring:** added concrete E3 max-speed sweep and E4
   matched environment-comparison definitions using stable semantic factor IDs,
   deterministic pre-compilation treatment expansion, explicit evidence needs,
   existing treatment-integrity helpers, unchanged E3/E4 scientific result types,
   and E4 counterbalancing kept separate from primary factor meaning without a
   generic experiment DSL, factor registry, or statistics framework.
+- **WB2 curated B3 exact reproduction and fork lineage:** represented the confirmed
+  B3 flagship as a trusted Workbench study with a rich immutable resolved manifest,
+  explicit scenario origin versus validated scenario identity, exact compatible
+  save/load/reproduction, authoritative B3 evidence/result reuse, and one bounded
+  radius-1→radius-2 scientific fork that retains origin while losing validated B3
+  identity and automatic headline-claim/story inheritance. The Workbench does not
+  become authoritative for B3 representative-run selection, robustness, or claims.
 - **WB1 controlled-locomotion Workbench foundation:** added bounded semantic study
   authoring above existing E3/E2 composition, immutable explicit/derived manifests,
   exact persistence and compatibility identity, evidence reconstruction before

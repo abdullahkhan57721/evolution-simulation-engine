@@ -342,8 +342,30 @@ infrastructure. The reusable lessons are narrower contracts:
 - rare-lineage interpretation needs a matched neutral introduction baseline;
 - run-level pairing and right-censoring remain first-class scientific semantics.
 
-Future controlled-science work should build from the concrete question it wants to
-answer rather than generalizing E6 into a universal invasion framework. Richer
-turnover, mutation-driven invasion, sexual rare variants, broader reciprocal
-strategy sets, or long-run absorption would each change the modeled question and
-should be introduced only when a later milestone explicitly requires them.
+## E7 handoff — Mutation-Driven Adaptation and Convergence
+
+E7 should begin only after E6 is merged and verified. It changes the scientific
+question from invasion of supplied rare strategies to adaptation when the focal
+`max_speed` locus itself can mutate.
+
+The planned E7 design pressure is deliberately bounded:
+
+- mutate only the focal locomotor locus; do not enable mutation across the richer
+  reference genome;
+- use multiple predeclared starting populations spanning low speed, the E3–E6
+  predicted region, and high speed;
+- use multiple independent seeds for each starting condition;
+- define a legal speed range wider than the expected adaptive region;
+- make mutation rate and mutation-step distribution explicit;
+- preserve full committed `max_speed` distributions rather than reporting only a
+  population mean;
+- distinguish convergence, stationary variation, persistent polymorphism,
+  directional evolution, boundary accumulation, and extinction;
+- treat accumulation at a configured speed boundary as a diagnostic, not as proof
+  of an optimum.
+
+The scientific comparison should connect E7 back to the existing causal chain:
+E3's monomorphic performance region, E4's standing-variation selection direction,
+and E6's bounded reciprocal invasion result. E7 should not add a universal fitness,
+adaptive-landscape, mutation, or population-genetics framework merely because the
+focal mutation experiment now needs one concrete mutation policy.
