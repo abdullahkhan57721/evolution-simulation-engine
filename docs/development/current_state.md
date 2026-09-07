@@ -224,7 +224,6 @@ Mutation is off, so this is selection on standing variation rather than de novo
 mutation-driven adaptation. The result is not a universal optimum or long-run
 fixation claim. See `docs/e4_standing_variation.md`.
 
-
 ### E5 — confirmed finite-population stochasticity and weak selection
 
 E5 derives A/B ancestry only in the analysis layer from existing founder IDs and
@@ -249,10 +248,52 @@ use a matched neutral rare-lineage control with the same introduction state,
 rarity, ecology, population context, and horizon rather than treating an unmatched
 rare founder as the control. See `docs/e5_drift_weak_selection.md`.
 
+## Experiment Workbench foundation
+
+WB1 establishes the first durable experiment-authoring layer above existing typed
+composition. It is deliberately bounded to the controlled clonal locomotion recipe
+rather than introducing a universal simulation schema:
+
+```text
+semantic authoring intent
+        ↓
+recipe-owned readiness / resolution
+        ↓
+immutable resolved scientific manifest
+        ↓
+existing E3/E2 controlled-locomotion composition
+        ↓
+BiologicalSimulationSpec
+        ↓
+SimulationSpec / authoritative preflight
+        ↓
+frozen kernel
+```
+
+The initial recipe exposes only characterized `max_speed` values `1..10`, the E3
+`local_resource` and `separated_corridor` geographies, a reproducibility seed, and
+a concrete evidence plan. The Workbench range is a support contract, not a new
+engine invariant; the lower controlled-locomotion model remains valid on its
+existing broader range.
+
+Saved revisions preserve immutable semantic intent, an exact canonical manifest,
+evidence intent, lineage, and run-to-manifest provenance. Manifests separate
+explicit selections from recipe-owned derived assumptions and pin recipe/compiler/
+software compatibility. Loading a saved revision deserializes that stored manifest
+rather than silently re-resolving historical defaults. Compilation reconstructs
+fresh existing recorders before lower preflight, and committed event evidence can
+feed the existing E1 locomotion measurement. Forking creates a new revision and
+recipe-scoped semantic diff without mutating its parent.
+
+This is not a plugin system, universal configuration graph, capability solver,
+metric registry, generic experiment language, or alternate simulation engine.
+Lower engine/domain packages remain independent of `workbench`. See
+`docs/evolution_experiment_workbench.md`.
+
 ## Confirmed B3 scientific flagship
 
 B3 remains the richer integrated reference-ecology flagship and is not replaced or
-reinterpreted by E2–E4.
+reinterpreted by E2–E5 or WB1.
 
 Its central matched question is whether compact spatial resource geography changes
 selection on existing heritable `max_speed` standing variation relative to a
@@ -328,6 +369,14 @@ introduction mechanism/state, initial rarity, population context, ecology, horiz
 and censoring semantics. Do not retrofit mortality or generic population-genetics
 machinery merely to obtain textbook fixation behavior.
 
+WB1 is the product-layer foundation for a future Evolution Experiment Workbench:
+one controlled recipe can be authored semantically, resolved into an exact
+scientific manifest, compiled through existing typed configuration and authoritative
+preflight, run with existing evidence, saved/reloaded exactly, forked, and diffed.
+Future Workbench milestones should expand only from concrete repeated product needs;
+do not generalize WB1 prematurely. The Workbench product track is orthogonal to the
+next controlled-science milestone rather than a dependency of it.
+
 The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
 presentation continuation is the interactive matched-comparison experience:
 
@@ -348,8 +397,8 @@ presentation concerns.
 
 Longer-term modeled fronts remain richer genetic expression, chromosome
 pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-Those directions are not implied E5 work; sequence them only after a concrete
-question and dependency analysis.
+Those directions remain separate from the controlled-science and Workbench tracks
+unless a concrete question demonstrates a dependency.
 
 A native Rust/C++ backend remains a separate evidence-driven future concern. Python
 continues to own high-level modeling/configuration until measured workloads justify
@@ -398,6 +447,12 @@ early PR → CI → exact-head review → squash merge → `main` verification w
 
 Newest first; this is a capability summary, not a changelog.
 
+- **WB1 controlled-locomotion Workbench foundation:** added bounded semantic study
+  authoring above existing E3/E2 composition, immutable explicit/derived manifests,
+  exact persistence and compatibility identity, evidence reconstruction before
+  authoritative preflight, run-to-manifest provenance, real E1 measurement reuse,
+  immutable fork lineage, and recipe-scoped semantic diff without changing the
+  frozen kernel or introducing universal configuration/experiment infrastructure.
 - **Confirmed drift and weak-selection baseline:** derived neutral ancestry only in
   the analysis layer from existing pedigree evidence, independently confirmed that
   neutral frequency-change spread contracts across founder counts 2/8/32, showed

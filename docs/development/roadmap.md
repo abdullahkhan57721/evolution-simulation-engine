@@ -25,7 +25,9 @@ The project should continue toward a simulation engine in which:
    than by broadening lower layers speculatively;
 5. observation, experiments, and presentation remain downstream of committed
    simulation evidence;
-6. performance/native-backend work begins only from measured need.
+6. scientific-study authoring compiles down into existing typed composition rather
+   than becoming a second simulation architecture;
+7. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
 above it unless a genuine generic deficiency is demonstrated.
@@ -236,6 +238,46 @@ E1–E5 are intentionally separate from B3. B3 remains the richer integrated
 reference-ecology flagship; the E sequence isolates causal mechanics and does not
 retroactively simplify B3.
 
+## Experiment Workbench product front
+
+WB1 establishes the first completed product-layer foundation for scientific-study
+authoring above existing typed composition:
+
+```text
+semantic study authoring
+        ↓
+bounded recipe resolution
+        ↓
+immutable resolved manifest
+        ↓
+existing typed simulation composition
+        ↓
+authoritative biological/generic preflight
+        ↓
+frozen kernel
+```
+
+The first recipe is `controlled-clonal-locomotion` v1, bounded to the characterized
+E3 `max_speed` range `1..10`, the E3 `local_resource` and `separated_corridor`
+geographies, a reproducibility seed, and explicit evidence intent. The manifest
+uses stable scientific IDs, records explicit selections separately from derived
+assumptions, and is canonical, immutable, compatibility-pinned, and separate from
+mutable runtime/spec graphs.
+
+Evidence intent remains separate from the manifest. Compilation reconstructs the
+existing E1-capable recorders before existing lower preflight. Saved revisions keep
+the exact manifest, lineage, and run-to-manifest provenance; forks are immutable,
+and diffing remains recipe-scoped.
+
+Lower packages do not depend on the Workbench. Future Workbench milestones should
+continue outside-in from concrete product needs. Durable WB2/WB3/WB4 handoff
+contracts live in `docs/evolution_experiment_workbench.md`. Generalization should
+wait until multiple concrete recipes demonstrate repeated structure; WB1 is not a
+universal Blueprint, registry, solver, schema system, or statistics DSL.
+
+The Workbench product track is orthogonal to the next controlled-science pressure;
+neither should be made an artificial prerequisite for the other.
+
 ## Presentation integration front
 
 The B3 cinematic path is now an implemented sibling renderer path. The remaining
@@ -304,6 +346,11 @@ Do not interpret disappearance as selection merely because a lineage is rare, an
 do not add generic fixation/population-genetics architecture ahead of concrete
 consumers. Longer-term modeled fronts remain directions rather than preauthorized
 implementations.
+
+The Workbench product track proceeds independently from this scientific sequence.
+A scientific milestone should not acquire Workbench dependencies merely because
+WB1 exists, and Workbench expansion should continue to compile into already settled
+simulation/science contracts.
 
 ## Front A — Richer genetic expression
 
@@ -448,6 +495,10 @@ the stable subset worth compiling.
   derived measurements, representative examples, and robustness evidence.
 - Preserve run/seed as the experimental replicate for current stochastic treatment
   comparisons unless a later concrete design justifies another unit.
+- Keep Workbench authoring above existing typed composition and authoritative
+  preflight; lower simulation/domain packages must not depend on Workbench code.
+- Keep persisted Workbench manifests separate from mutable runtime recorder/spec
+  graphs; reconstruct runtime evidence and compiled specifications afresh.
 - Prefer readable, maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 

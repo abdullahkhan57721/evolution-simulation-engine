@@ -437,30 +437,92 @@ richer biological policies
 
 That is the architecture working as intended.
 
-## Stage 12 — Current direction: deepen biology above stable lower layers
+## Stage 12 — Deepen biology above stable lower layers
 
-The current development front is explicit ploidy, homolog pairing, segregation,
-and related recombination semantics.
+Later genetics work continued the same architectural pattern. `Genome` could
+already represent chromosome-copy collections, so richer ploidy, pairing,
+segregation, recombination, and related semantics were treated as biological
+responsibilities rather than reasons to broaden the kernel.
 
-The existing `Genome` container can already represent arbitrary chromosome-copy
-collections. The missing work is about what those copies **mean biologically**.
-
-That means the likely responsibilities are biological:
+The relevant responsibility ladder remains:
 
 ```text
-expected copy counts
-pairing
-segregation
-gamete copy counts
-recombination under pairing rules
+stable generic execution
+    |
+    v
+general evolutionary contracts
+    |
+    v
+biological chromosome / inheritance policies
 ```
 
-not new kernel concepts.
-
-This is a useful final lesson from the history:
+The durable lesson is:
 
 > Once boundaries are good, richer domain complexity should make the domain layer
 > richer—not automatically make the infrastructure layer more complicated.
+
+## Stage 13 — Add scientific-study authoring above existing composition
+
+After the engine could express controlled experiments reproducibly, a new product
+pressure appeared: a person should be able to describe a supported scientific
+study without manually assembling Python object graphs.
+
+A tempting design would have been to invent a universal simulation schema, plugin
+registry, or second configuration engine. WB1 instead started with one concrete
+controlled-locomotion recipe and preserved the existing compilation path:
+
+```text
+human-visible scientific intent
+        |
+        v
+bounded recipe resolution
+        |
+        v
+immutable resolved manifest
+        |
+        v
+existing typed biological composition
+        |
+        v
+SimulationSpec preflight
+        |
+        v
+frozen kernel
+```
+
+The Workbench owns authoring concerns such as explicit selections, recipe-owned
+derived assumptions, evidence intent, persisted study revisions, lineage, semantic
+diffs, and run-to-manifest provenance. It does **not** become the authority for
+simulation validity: existing biological and generic preflight remain authoritative.
+
+### Why the resolved manifest is separate
+
+A saved study needs durable scientific meaning without serializing a mutable
+runtime/specification object graph. WB1 therefore distinguishes:
+
+```text
+editable semantic intent
+        !=
+immutable resolved scientific manifest
+        !=
+runtime simulation objects and recorders
+```
+
+Loading a saved revision reads its stored manifest rather than silently applying
+future defaults. Compiling reconstructs fresh runtime evidence objects and then
+uses the ordinary lower-layer builders and preflight.
+
+### What this teaches about generalization
+
+The architecture again follows evidence rather than aspiration. One working recipe
+is not evidence for a universal descriptor system. Future Workbench abstractions
+should be extracted only when multiple concrete recipes demonstrate a repeated
+contract.
+
+This is the same design discipline used elsewhere in the project:
+
+> Build a concrete vertical, identify the real repeated responsibility, and only
+> then generalize.
 
 # The architecture as accumulated answers
 
@@ -494,6 +556,9 @@ How do we know that abstraction is real?
 How do we support richer reproduction?
     -> specialize biology with independent responsibilities,
        not new kernel assumptions
+
+How do we author reproducible studies without a second simulation architecture?
+    -> bounded Workbench recipes compile into existing typed composition
 ```
 
 # How to use history when designing new features
@@ -522,7 +587,9 @@ That is why ADRs and focused tests are more useful than folklore.
 - explain why the nonbiological vertical slice was stronger evidence than naming
   generic Protocols;
 - explain why reproduction hardening happened in biology rather than the frozen
-  kernel; and
+  kernel;
+- explain why Workbench authoring stays above existing typed composition and
+  authoritative preflight; and
 - use project history to recover design rationale without treating old
   implementation details as permanent requirements.
 
