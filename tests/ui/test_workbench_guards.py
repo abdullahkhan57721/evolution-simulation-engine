@@ -132,9 +132,7 @@ def test_reference_adapter_builds_from_recorded_spatial_evidence() -> None:
     revision = create_reference_study_revision(
         revision_id="reference-v2-guard",
         intent=default_reference_ecology_intent(),
-        evidence_plan=ReferenceEvidencePlan(
-            requested=(REFERENCE_SPATIAL_EVIDENCE_ID,)
-        ),
+        evidence_plan=ReferenceEvidencePlan(requested=(REFERENCE_SPATIAL_EVIDENCE_ID,)),
     )
     result = run_reference_study_revision(
         revision,
