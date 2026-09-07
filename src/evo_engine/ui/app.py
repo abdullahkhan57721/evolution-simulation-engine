@@ -6,6 +6,10 @@ import uuid
 
 import streamlit as st
 
+from evo_engine.ui.simulation_page import (
+    clear_simulation_authoring_state,
+    render_simulation_page,
+)
 from evo_engine.ui.study_shell import (
     ConcreteWorkbenchArtifact,
     artifact_download_name,
@@ -29,6 +33,7 @@ _ROUTE_KEY = "wu1_route"
 _ACTIVE_ARTIFACT_KEY = "wu1_active_artifact"
 _SECTION_KEY = "wu1_study_section"
 _RESULT_KEY = "wu1_current_result"
+_DIFF_PARENT_KEY = "wu2_diff_parent_artifact"
 
 _HOME = "home"
 _NEW = "new"
@@ -121,8 +126,8 @@ def _render_new_study() -> None:
     _render_page_back("Home")
     st.title("New Study")
     st.caption(
-        "WU1 opens supported concrete starting artifacts. Scientific authoring "
-        "controls arrive in later WU milestones."
+        "Open one supported concrete Study family, then author its scientific "
+        "simulation meaning inside the persistent Study shell."
     )
 
     st.subheader("Curated")
@@ -228,7 +233,7 @@ def _render_study_actions(artifact: ConcreteWorkbenchArtifact) -> None:
             "Run",
             disabled=True,
             use_container_width=True,
-            help="WU1 reserves the primary Run action; execution integration is later.",
+            help="WU2 authors Simulation meaning; execution integration is WU3.",
         )
     with save_column:
         st.download_button(
@@ -237,13 +242,14 @@ def _render_study_actions(artifact: ConcreteWorkbenchArtifact) -> None:
             file_name=artifact_download_name(artifact),
             mime="application/json",
             use_container_width=True,
+            help="Download the current immutable concrete Workbench artifact.",
         )
     with more_column:
         st.button(
             "More",
             disabled=True,
             use_container_width=True,
-            help="Fork and semantic-diff actions arrive in WU2.",
+            help="Additional Study-level actions remain reserved for later milestones.",
         )
 
 
@@ -270,21 +276,27 @@ def _render_study_section(
     artifact: ConcreteWorkbenchArtifact,
     section: str,
 ) -> None:
-    st.header(section)
     if section == "Simulation":
-        st.write(
-            "This Study's concrete simulation meaning is loaded and retained. "
-            "Simulation authoring is intentionally deferred to WU2."
+        child = render_simulation_page(
+            artifact,
+            diff_parent=_diff_parent(),
+            new_revision_id=_new_revision_id,
         )
-    elif section == "Evidence":
+        if child is not None:
+            _activate_artifact(child, diff_parent=artifact)
+            st.rerun()
+        return
+
+    st.header(section)
+    if section == "Evidence":
         st.write(
             "The concrete artifact's existing evidence plan is preserved exactly. "
-            "Evidence authoring is intentionally deferred."
+            "Evidence authoring is intentionally deferred to WU3."
         )
     elif section == "Experiment":
         st.write(
             "Experiment structure is shown through the active concrete Workbench "
-            "artifact; WU1 does not introduce an experiment DSL or generic builder."
+            "artifact; WU2 does not introduce an experiment DSL or generic builder."
         )
     elif section == "Results":
         _render_results_placeholder(artifact)
@@ -297,7 +309,7 @@ def _render_study_section(
 
 def _render_results_placeholder(artifact: ConcreteWorkbenchArtifact) -> None:
     if st.session_state.get(_RESULT_KEY) is not None:
-        st.info("A session-only result is present, but WU1 does not persist it.")
+        st.info("A session-only result is present, but WU2 does not persist it.")
         return
 
     run_count = artifact_run_count(artifact)
@@ -312,7 +324,7 @@ def _render_results_placeholder(artifact: ConcreteWorkbenchArtifact) -> None:
     else:
         st.info(
             "This concrete experiment definition does not contain durable result "
-            "payloads. WU1 does not invent result storage."
+            "payloads. WU2 does not invent result storage."
         )
 
 
@@ -334,11 +346,17 @@ def _render_page_back(label: str) -> None:
         st.rerun()
 
 
-def _activate_artifact(artifact: ConcreteWorkbenchArtifact) -> None:
+def _activate_artifact(
+    artifact: ConcreteWorkbenchArtifact,
+    *,
+    diff_parent: ConcreteWorkbenchArtifact | None = None,
+) -> None:
     _clear_active_context()
     st.session_state[_ACTIVE_ARTIFACT_KEY] = artifact
     st.session_state[_SECTION_KEY] = _STUDY_SECTIONS[0]
     st.session_state[_ROUTE_KEY] = _STUDY
+    if diff_parent is not None:
+        st.session_state[_DIFF_PARENT_KEY] = diff_parent
 
 
 def _go_home() -> None:
@@ -347,11 +365,17 @@ def _go_home() -> None:
 
 
 def _clear_active_context() -> None:
+    clear_simulation_authoring_state()
     for key in (_ACTIVE_ARTIFACT_KEY, _SECTION_KEY, _RESULT_KEY, *_LEGACY_KEYS):
         st.session_state.pop(key, None)
     for key in tuple(st.session_state):
         if str(key).startswith("v2_world_"):
             st.session_state.pop(key, None)
+
+
+def _diff_parent() -> ConcreteWorkbenchArtifact | None:
+    value = st.session_state.get(_DIFF_PARENT_KEY)
+    return value if is_concrete_artifact(value) else None
 
 
 def _has_active_artifact() -> bool:
