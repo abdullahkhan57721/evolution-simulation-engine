@@ -147,7 +147,7 @@ claim/nonclaim boundary and renderer-neutral storyboard live in
 The old `max_intake_rate` v0.1 demonstration remains a secondary historical
 regression/integration example.
 
-## Completed E1–E4 controlled-science sequence
+## Completed E1–E5 controlled-science sequence
 
 A separate controlled program now provides a deliberately simpler causal proof
 sequence:
@@ -160,6 +160,8 @@ E2 minimal clonal locomotion mechanics
 E3 monomorphic ecological-performance landscape
         ↓
 E4 selection on standing inherited variation
+        ↓
+E5 finite-population drift and weak selection
 ```
 
 ### E1 — measurement semantics and reproducibility
@@ -208,7 +210,29 @@ finite-horizon ecology without adding a scalar fitness abstraction. It is select
 on standing variation, not a universal optimum, fixation claim, or de novo
 mutation result.
 
-E1–E4 are intentionally separate from B3. B3 remains the richer integrated
+### E5 — drift, population size, and weak selection
+
+E5 asks how reliable a weak selection signal remains under finite-population
+stochasticity. It assigns neutral A/B ancestry only in analysis from founder IDs
+and the existing clonal pedigree, so neutral lineages have identical modeled
+biology. Founder counts 2, 8, and 32 are modeled regimes rather than real-world
+effective population-size claims.
+
+Independent confirmation shows neutral frequency-change spread contracting with
+founder count while the small positive 3-vs-4 directional effect remains similar.
+The favored speed-3 strategy reverses direction in some small-population runs but
+not at the largest tested founder count. Loss/fixation/extinction remain outcomes
+and are right-censored when absent; E5 does not introduce turnover merely to force
+absorption.
+
+The rare-invasion handoff is explicit: later invasion must compare disappearance
+against a neutral lineage introduced in the same state and at the same rarity under
+the same ecology, population context, and horizon. A rare founder is not
+automatically a valid control for a de-novo mutant. Reuse E5's pedigree-derived
+ancestry and run-level censoring rather than building a generic population-genetics
+layer.
+
+E1–E5 are intentionally separate from B3. B3 remains the richer integrated
 reference-ecology flagship; the E sequence isolates causal mechanics and does not
 retroactively simplify B3.
 
@@ -268,15 +292,18 @@ DSL. Its durable lessons are:
 Do not generalize this into a broad camera DSL or scenario-presentation schema
 without multiple future films demonstrating a genuinely repeated contract.
 
-## Next milestone selection
+## Next controlled-science pressure
 
-There is currently **no repository-defined E5 milestone**. Do not infer one merely
-because E1–E4 are complete. The next controlled-science or architecture milestone
-should be chosen by roadmap reassessment around a concrete scientific question,
-architectural pressure, or product need, then encoded in an explicit Issue.
+E5 establishes the finite-population baseline needed before rare-lineage invasion.
+The next controlled-science milestone should test invasion only after its
+introduction semantics are explicit enough to construct a matched neutral control.
+That control must share the mutant treatment's introduction state, rarity,
+population context, ecology, horizon, and evidence/censoring semantics.
 
-Possible longer-term modeled fronts remain below, but they are directions rather
-than preauthorized sequential milestones.
+Do not interpret disappearance as selection merely because a lineage is rare, and
+do not add generic fixation/population-genetics architecture ahead of concrete
+consumers. Longer-term modeled fronts remain directions rather than preauthorized
+implementations.
 
 ## Front A — Richer genetic expression
 
@@ -347,7 +374,7 @@ not from a kernel-owned scalar `fitness` field.
 
 ## Observation and statistical analysis
 
-E1–E4 provide concrete consumers for the scientific-measurement boundary without
+E1–E5 provide concrete consumers for the scientific-measurement boundary without
 justifying a broad statistics framework. Future repeated experimental patterns may
 earn additional reusable statistical contracts, but only after concrete consumers
 show what actually repeats.

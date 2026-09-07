@@ -1,0 +1,41 @@
+name: E5 Scientific Validation
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/experiments/e5_drift.py"
+      - "src/evo_engine/experiments/__init__.py"
+      - "scripts/e5_drift.py"
+      - "tests/experiments/test_e5_drift.py"
+      - "docs/e5_drift_weak_selection.md"
+      - "docs/development/current_state.md"
+      - "docs/development/roadmap.md"
+      - "mkdocs.yml"
+      - ".github/workflows/e5-scientific-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  confirmation-e5:
+    name: Independent E5 confirmation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - name: Run frozen disjoint-seed confirmation matrix
+        run: |
+          venv/bin/python scripts/e5_drift.py \
+            --mode confirmation \
+            --weak-pair 3-4 \
+            --output outputs/e5-validation/e5-confirmation.json
+      - name: Upload E5 confirmation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e5-confirmation-${{ github.run_id }}
+          path: outputs/e5-validation/e5-confirmation.json
+          retention-days: 30
+          if-no-files-found: warn

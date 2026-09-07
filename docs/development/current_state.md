@@ -135,7 +135,7 @@ layer, and no universal metric/statistics framework has been introduced.
 
 ## Controlled experimental-evolution sequence
 
-E1–E4 now form a completed causal proof sequence above the frozen kernel and
+E1–E5 now form a completed causal proof sequence above the frozen kernel and
 separate from the richer reference ecology.
 
 ```text
@@ -146,6 +146,8 @@ E2 minimal controlled locomotion mechanics
 E3 monomorphic ecological-performance landscape
         ↓
 E4 selection on standing inherited variation
+        ↓
+E5 finite-population drift and weak selection
 ```
 
 ### E2 — controlled clonal locomotion mechanics
@@ -222,6 +224,31 @@ Mutation is off, so this is selection on standing variation rather than de novo
 mutation-driven adaptation. The result is not a universal optimum or long-run
 fixation claim. See `docs/e4_standing_variation.md`.
 
+
+### E5 — confirmed finite-population stochasticity and weak selection
+
+E5 derives A/B ancestry only in the analysis layer from existing founder IDs and
+`PedigreeRecorder`; neutral labels never enter modeled biology. Neutral runs use
+identical speed-3 founders. Weak-selection runs compare speeds 3 and 4 with
+founder-ID assignment counterbalanced and one run/seed as the replicate.
+
+After one pre-confirmation resource correction exposed E2's existing randomized
+scarce-resource allocation, the design was frozen. A single bounded 3-vs-2
+diagnostic was rejected because it was substantially stronger than 3-vs-4.
+Independent confirmation on 24 disjoint seeds shows neutral frequency-change SD
+contracting across founder counts 2, 8, and 32 (`0.0319`, `0.0168`, `0.0102`).
+The favored speed-3 strategy decreases in 2/24 weak-selection runs at two founders,
+1/24 at eight founders, and 0/24 at 32 founders. Thus finite-run stochasticity can
+obscure or reverse weak selection at small modeled population size.
+
+No lineage loss, fixation, or whole-population extinction was observed within the
+60-step confirmation horizon; those outcomes remain right-censored. The minimal
+controlled composition has no ordinary aging/metabolic/density-independent
+turnover, so E5 does not manufacture fixation. A later rare-lineage invasion must
+use a matched neutral rare-lineage control with the same introduction state,
+rarity, ecology, population context, and horizon rather than treating an unmatched
+rare founder as the control. See `docs/e5_drift_weak_selection.md`.
+
 ## Confirmed B3 scientific flagship
 
 B3 remains the richer integrated reference-ecology flagship and is not replaced or
@@ -287,15 +314,19 @@ semantics.
 
 ## Current development front
 
-The planned E1→E4 controlled-science sequence is complete. It now provides a clean
-causal chain from mechanics to ecological performance to environment-dependent
-selection on inherited standing variation, alongside the richer independently
+The E1→E5 controlled-science sequence is complete through the finite-population
+baseline. It provides a causal chain from mechanics to ecological performance,
+selection on inherited standing variation, and the stochastic reliability of weak
+selection across modeled founder-count regimes, alongside the richer independently
 confirmed B3 flagship.
 
-There is **no repository-defined E5 milestone** at this point. Do not invent one in
-implementation chats. The next controlled-science or architecture milestone should
-be chosen through roadmap reassessment and an explicit Issue if/when a concrete
-scientific or architectural question earns it.
+The next controlled-science pressure is rare-lineage invasion. Any such milestone
+must preserve E5's key interpretation boundary: disappearance of a rare lineage is
+not by itself evidence of selective disadvantage. If the invasion design can lose
+a rare lineage, it must include a matched neutral control using the same
+introduction mechanism/state, initial rarity, population context, ecology, horizon,
+and censoring semantics. Do not retrofit mortality or generic population-genetics
+machinery merely to obtain textbook fixation behavior.
 
 The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
 presentation continuation is the interactive matched-comparison experience:
@@ -337,9 +368,9 @@ of concrete policies, not a structural ambiguity in `Genome` or
 
 ### Scientific scope remains intentionally illustrative
 
-The reference ecology, B3 flagship, and E2–E4 controlled experiments are
+The reference ecology, B3 flagship, and E2–E5 controlled experiments are
 software/modeling demonstrations. They are not species-calibrated predictive
-ecological models. The controlled E2–E4 program remains intentionally distinct
+ecological models. The controlled E2–E5 program remains intentionally distinct
 from the integrated reference-ecology flagship.
 
 ### Public presentation naming still contains v0.1 history
@@ -367,6 +398,13 @@ early PR → CI → exact-head review → squash merge → `main` verification w
 
 Newest first; this is a capability summary, not a changelog.
 
+- **Confirmed drift and weak-selection baseline:** derived neutral ancestry only in
+  the analysis layer from existing pedigree evidence, independently confirmed that
+  neutral frequency-change spread contracts across founder counts 2/8/32, showed
+  weak 3-vs-4 selection reversing in individual small-population runs, preserved
+  unobserved loss/fixation/extinction as right-censored, and froze a matched-neutral
+  rare-lineage control requirement for later invasion without adding mortality,
+  fitness, or generic population-genetics machinery.
 - **B3 flagship cinematic director:** turns the confirmed renderer-neutral B3
   storyboard into a deterministic explanatory Manim film with matched
   treatment/control framing, authoritative representative episodes, repeated
