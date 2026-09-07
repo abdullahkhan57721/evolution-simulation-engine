@@ -147,20 +147,28 @@ configuration layers may build on it and add domain validation.
 
 The Workbench is a scientific-study authoring layer over existing typed
 composition, not an alternate simulation engine. It persists human-visible semantic
-intent, an immutable resolved scientific manifest, evidence intent, lineage, and
-run-to-manifest provenance, then compiles through existing preset/domain builders
-and the ordinary biological/generic preflight path.
+intent, immutable resolved scientific meaning, evidence intent, lineage/design
+metadata, and run-to-manifest provenance, then compiles through existing preset,
+scenario, and experiment builders plus the ordinary scientific/biological/generic
+validation path.
 
 Read:
 
 - [Evolution Experiment Workbench Architecture](../evolution_experiment_workbench.md)
+- [WB4 Bounded Reference-Ecology Recipe](../wb4_bounded_reference_ecology.md)
 - `src/evo_engine/workbench/`
 - `tests/workbench/`
 
-WB1's first recipe is deliberately bounded to the controlled clonal locomotion
-system and reuses E3/E2 composition. Lower engine/domain packages must not depend
-on `evo_engine.workbench`, and the Workbench must not introduce a new layer between
-`BiologicalSimulationSpec` and `SimulationSpec`.
+WB1 established the first bounded controlled-locomotion recipe; WB2 pressure-tested
+exact reproduction against the trusted B3 flagship; WB3 added concrete controlled-
+experiment authoring; WB4 proves the same principles scale to a richer editable
+reference ecology through recipe-local support tiers, applicability/normalization,
+a broader curated evidence plan, and compatibility-fingerprinted non-editable
+assumptions. None of these milestones inserts Workbench between
+`BiologicalSimulationSpec` and `SimulationSpec` or authorizes a universal schema,
+registry, capability solver, or generic policy editor.
+
+Lower engine/domain packages must not depend on `evo_engine.workbench`.
 
 ## Observation and telemetry
 
