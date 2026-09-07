@@ -31,21 +31,18 @@ jobs:
           if ! git merge-base --is-ancestor origin/main HEAD; then
             set +e
             git merge --no-commit --no-ff origin/main
-            status=$?
             set -e
-            if [ "$status" -ne 0 ]; then
-              unmerged="$(git diff --name-only --diff-filter=U | sort)"
-              expected=$'docs/development/current_state.md\ndocs/development/roadmap.md'
-              if [ "$unmerged" != "$expected" ]; then
-                echo "Unexpected merge conflicts:"
-                printf '%s\n' "$unmerged"
-                exit 1
-              fi
-              git checkout --theirs -- docs/development/current_state.md docs/development/roadmap.md
-              git add docs/development/current_state.md docs/development/roadmap.md
+
+            unexpected="$(git diff --name-only --diff-filter=U | grep -Ev '^(docs/development/current_state.md|docs/development/roadmap.md)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "Unexpected merge conflicts:"
+              printf '%s\n' "$unexpected"
+              exit 1
             fi
           fi
 
+          git checkout origin/main -- docs/development/current_state.md docs/development/roadmap.md
+          git add docs/development/current_state.md docs/development/roadmap.md
           python scripts/e6_reconcile_main.py
           git add docs/development/current_state.md docs/development/roadmap.md
           git rm .github/workflows/e6-reconcile-main.yml scripts/e6_reconcile_main.py
