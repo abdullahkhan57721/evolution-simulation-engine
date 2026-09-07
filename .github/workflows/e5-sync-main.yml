@@ -20,5 +20,24 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git fetch origin main
-          git merge --no-edit origin/main
+          set +e
+          git merge --no-edit --no-commit origin/main
+          merge_status=$?
+          set -e
+          if [ "$merge_status" -ne 0 ]; then
+            git checkout --ours -- \
+              docs/development/current_state.md \
+              docs/development/roadmap.md \
+              mkdocs.yml
+            git add \
+              docs/development/current_state.md \
+              docs/development/roadmap.md \
+              mkdocs.yml
+          fi
+          if git diff --name-only --diff-filter=U | grep -q .; then
+            echo "Unresolved conflicts remain:" >&2
+            git diff --name-only --diff-filter=U >&2
+            exit 1
+          fi
+          git commit --no-edit
           git push origin HEAD:e5/drift-weak-selection
