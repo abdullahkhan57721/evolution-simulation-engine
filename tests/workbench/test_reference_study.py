@@ -10,6 +10,7 @@ from evo_engine.workbench.reference_ecology import (
     PEDIGREE_EVIDENCE_ID,
     POPULATION_EVIDENCE_ID,
     SPATIAL_EVIDENCE_ID,
+    ReferenceEcologyIntent,
     ReferenceEvidencePlan,
     default_reference_ecology_intent,
 )
@@ -22,7 +23,7 @@ from evo_engine.workbench.reference_study import (
 )
 
 
-def _intent():
+def _intent() -> ReferenceEcologyIntent:
     return attrs.evolve(
         default_reference_ecology_intent(),
         horizon=2,
@@ -45,7 +46,7 @@ def _intent():
     )
 
 
-def test_reference_study_round_trip_preserves_exact_manifest_and_stale_intent() -> None:
+def test_reference_study_round_trip_removes_inactive_stale_intent() -> None:
     revision = create_reference_study_revision(
         revision_id="reference-1",
         intent=_intent(),
@@ -53,9 +54,10 @@ def test_reference_study_round_trip_preserves_exact_manifest_and_stale_intent() 
     loaded = ReferenceStudyRevision.from_json(revision.to_json())
     assert loaded == revision
     assert loaded.manifest.to_json() == revision.manifest.to_json()
-    assert loaded.intent.gaussian_standard_deviation == 9
-    assert loaded.intent.patch_1_center_x == 2
-    assert loaded.intent.mutation_probability_ppm == 99_999
+    assert loaded.intent.gaussian_standard_deviation is None
+    assert loaded.intent.patch_1_center_x is None
+    assert loaded.intent.mutation_probability_ppm is None
+    assert loaded.intent.mutation_max_change is None
 
 
 def test_reference_fork_is_immutable_and_semantic() -> None:
