@@ -52,19 +52,26 @@ from evo_engine.workbench.experiments import (
 )
 from evo_engine.workbench.reference_ecology import (
     EVENT_EVIDENCE_ID as REFERENCE_EVENT_EVIDENCE_ID,
+)
+from evo_engine.workbench.reference_ecology import (
     GENETIC_EVIDENCE_ID as REFERENCE_GENETIC_EVIDENCE_ID,
+)
+from evo_engine.workbench.reference_ecology import (
     MAX_SPEED_SLOT as REFERENCE_MAX_SPEED_SLOT,
+)
+from evo_engine.workbench.reference_ecology import (
     PEDIGREE_EVIDENCE_ID as REFERENCE_PEDIGREE_EVIDENCE_ID,
+)
+from evo_engine.workbench.reference_ecology import (
     POPULATION_EVIDENCE_ID as REFERENCE_POPULATION_EVIDENCE_ID,
+)
+from evo_engine.workbench.reference_ecology import (
     REFERENCE_EXPERT_SLOT_IDS,
     REFERENCE_EXTENSION_CAPABILITIES,
     REFERENCE_RECIPE_ID,
     REFERENCE_RECIPE_VERSION,
     REFERENCE_SLOT_METADATA,
     REFERENCE_SUPPORT_TIERS,
-    RESOURCE_GEOGRAPHY_SLOT as REFERENCE_RESOURCE_GEOGRAPHY_SLOT,
-    SEED_SLOT as REFERENCE_SEED_SLOT,
-    SPATIAL_EVIDENCE_ID as REFERENCE_SPATIAL_EVIDENCE_ID,
     CompiledReferenceEcology,
     EvidenceAdvisory,
     ReferenceEcologyDiff,
@@ -80,6 +87,15 @@ from evo_engine.workbench.reference_ecology import (
     is_slot_applicable,
     resolve_reference_ecology,
     semantic_reference_diff,
+)
+from evo_engine.workbench.reference_ecology import (
+    RESOURCE_GEOGRAPHY_SLOT as REFERENCE_RESOURCE_GEOGRAPHY_SLOT,
+)
+from evo_engine.workbench.reference_ecology import SEED_SLOT as REFERENCE_SEED_SLOT
+from evo_engine.workbench.reference_ecology import (
+    SPATIAL_EVIDENCE_ID as REFERENCE_SPATIAL_EVIDENCE_ID,
+)
+from evo_engine.workbench.reference_ecology import (
     slot_metadata as reference_slot_metadata,
 )
 from evo_engine.workbench.reference_study import (
