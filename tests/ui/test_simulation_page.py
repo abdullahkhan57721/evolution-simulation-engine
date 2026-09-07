@@ -57,9 +57,7 @@ def test_reference_guided_and_advanced_are_disclosure_levels_of_same_study() -> 
 
     disclosure = next(radio for radio in app.radio if radio.label == "Disclosure")
     assert disclosure.value == "Guided"
-    assert "Renewable resource amount" not in {
-        item.label for item in app.number_input
-    }
+    assert "Renewable resource amount" not in {item.label for item in app.number_input}
 
     disclosure.set_value("Advanced")
     app.run(timeout=30)
