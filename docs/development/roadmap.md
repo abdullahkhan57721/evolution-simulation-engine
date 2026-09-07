@@ -25,8 +25,8 @@ The project should continue toward a simulation engine in which:
    than by broadening lower layers speculatively;
 5. observation, experiments, and presentation remain downstream of committed
    simulation evidence;
-6. scientific-study authoring compiles down into existing typed composition rather
-   than becoming a second simulation architecture;
+6. scientific-study authoring compiles down into existing typed/scenario
+   composition rather than becoming a second simulation architecture;
 7. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
@@ -142,7 +142,7 @@ reproductive contribution, a bounded founder-label counterbalance, and a radius-
 geometry sensitivity support the environment-dependent mechanism.
 
 Representative storytelling seed `5` and its real committed episodes were chosen
-by the predeclared scientific rule, not by the renderer. The complete
+by the predeclared scientific rule, not by the renderer or Workbench. The complete
 claim/nonclaim boundary and renderer-neutral storyboard live in
 `docs/flagship_evolution_demo.md`.
 
@@ -240,35 +240,74 @@ retroactively simplify B3.
 
 ## Experiment Workbench product front
 
-WB1 and WB3 establish the first completed product-layer foundations for
-scientific-study and controlled-experiment authoring above existing typed
+WB1, WB2, and WB3 establish three concrete product-layer foundations for study,
+curated-scenario, and controlled-experiment authoring above existing typed/scenario
 composition:
 
 ```text
-semantic study / experiment authoring
+semantic study / curated scenario / experiment authoring
         ↓
 bounded recipe or concrete experiment-pattern resolution
         ↓
 immutable manifest / concrete treatment specification
         ↓
-existing typed simulation composition
+existing typed or scenario-specific composition
         ↓
-authoritative biological/generic preflight
+authoritative scientific validation / biological preflight
         ↓
 frozen kernel
 ```
 
-WB1's first recipe is `controlled-clonal-locomotion` v1, bounded to the
-characterized E3 `max_speed` range `1..10`, the E3 `local_resource` and
-`separated_corridor` geographies, a reproducibility seed, and explicit evidence
-intent. Its manifest uses stable scientific IDs, records explicit selections
-separately from derived assumptions, and is canonical, immutable,
-compatibility-pinned, and separate from mutable runtime/spec graphs.
+### WB1 — bounded controlled-locomotion study
+
+WB1's recipe is `controlled-clonal-locomotion` v1, bounded to the characterized E3
+`max_speed` range `1..10`, the E3 `local_resource` and `separated_corridor`
+geographies, a reproducibility seed, and explicit evidence intent. Its manifest
+uses stable scientific IDs, records explicit selections separately from derived
+assumptions, and is canonical, immutable, compatibility-pinned, and separate from
+mutable runtime/spec graphs.
 
 Evidence intent remains separate from the manifest. Compilation reconstructs the
 existing E1-capable recorders before existing lower preflight. Saved revisions keep
 the exact manifest, lineage, and run-to-manifest provenance; forks are immutable,
 and diffing remains recipe-scoped.
+
+### WB2 — trusted curated B3, exact reproduction, and lineage
+
+WB2 adds `curated-b3-flagship` v1 rather than widening WB1 into a universal study
+schema. Canonical B3 is represented as a trusted frozen multi-run scientific study
+whose resolved manifest makes the complete scientific assumptions inspectable
+while leaving them non-editable. The manifest records the frozen matched design,
+resource geometry, balanced `max_speed = 1/4` standing variation, seed roles,
+primary step-30 readout, explicit reference-ecology configuration, mutation and
+recombination, ordinary sexual inheritance, required evidence, treatment-integrity
+and founder-counterbalance semantics, and the authority of the existing B3 handoff
+for representative-run selection and bounded claims.
+
+WB2 establishes a durable curated-study distinction:
+
+```text
+scenario identity = exact validated frozen scenario
+scenario origin   = scientific lineage from that scenario
+```
+
+Canonical radius-1 B3 retains validated identity. The only supported WB2 fork is
+the already-established B3 radius-2 geometry sensitivity. That fork retains B3
+origin, loses exact B3 validated identity, promotes broad geometry to the primary
+treatment, and does not automatically inherit the original headline claim or
+representative-story semantics.
+
+Exact reproduction deserializes the stored resolved manifest rather than
+re-resolving historical intent or future preset defaults. Compatible recipe,
+compiler, and software identity is required; stale or tampered manifests fail
+explicitly. Compilation and execution reuse `build_b3_flagship_specification()`,
+B3 treatment-integrity authority, ordinary reference-ecology execution, and the
+existing `B3RunEvidence`, `B3RunSummary`, and `B3MatchedPairSummary` contracts.
+Workbench does not independently calculate B3 allele/genotype composition, founder
+reproductive contribution, mechanism evidence, robustness analysis,
+representative-run selection, or claim boundaries.
+
+### WB3 — controlled experiment authoring
 
 WB3 adds two concrete persisted experiment patterns without a generic experiment
 DSL:
@@ -290,20 +329,23 @@ integrity and scientific results remain authoritative; Workbench authoring does 
 replace them with generic configuration diffing, factor registries, evidence
 solving, metric registries, or statistics infrastructure.
 
-The next Workbench integration pressure is results/presentation and broader study
-workflows, not generic experiment abstraction. A downstream results layer may rely
-on stable experiment pattern/factor IDs, deterministic treatment ordering,
-per-treatment seed/factor/counterbalance metadata, and unchanged typed E3/E4
-replicate outcomes and treatment/environment summaries. It should preserve primary
-outcome, mechanism evidence, diagnostics, replicate-level values, and summaries as
-distinct meanings rather than flattening them into scalar fitness.
+### Workbench direction after WB3
 
-Lower packages do not depend on the Workbench. Parallel Workbench milestones must
-continue outside-in from concrete product needs and integrate against current
-`main`. Durable contracts live in `docs/evolution_experiment_workbench.md`.
-Generalization should wait until repeated concrete consumers demonstrate repeated
-responsibility; WB1/WB3 do not authorize a universal Blueprint, registry, solver,
-schema system, experiment hierarchy, or statistics DSL.
+The next Workbench integration pressure is results/presentation and broader study
+workflows, not generic abstraction. A downstream results layer may rely on WB2's
+scenario-origin/validated-identity distinction and WB3's stable experiment
+pattern/factor IDs, deterministic treatment ordering, per-treatment
+seed/factor/counterbalance metadata, and unchanged typed scientific results. It
+should preserve primary outcome, mechanism evidence, diagnostics, replicate-level
+values, summaries, validation status, and presentation meaning as distinct
+scientific concepts rather than flattening them into scalar fitness.
+
+Lower packages do not depend on the Workbench. Scientific manifests remain
+renderer-neutral. Generalization should wait until repeated concrete consumers
+demonstrate repeated responsibility: WB1/WB2/WB3 do not authorize a universal
+Blueprint, persisted study root, registry, capability solver, schema system,
+experiment hierarchy, generic sensitivity framework, migration system,
+claim-inference engine, or statistics DSL.
 
 The Workbench product track is orthogonal to the next controlled-science pressure;
 neither should be made an artificial prerequisite for the other.
@@ -525,13 +567,17 @@ the stable subset worth compiling.
   derived measurements, representative examples, and robustness evidence.
 - Preserve run/seed as the experimental replicate for current stochastic treatment
   comparisons unless a later concrete design justifies another unit.
-- Keep Workbench authoring above existing typed composition and authoritative
-  preflight; lower simulation/domain packages must not depend on Workbench code.
+- Keep Workbench authoring above existing typed/scenario composition and
+  authoritative validation/preflight; lower simulation/domain packages must not
+  depend on Workbench code.
 - Keep persisted Workbench manifests separate from mutable runtime recorder/spec
   graphs; reconstruct runtime evidence and compiled specifications afresh.
+- Preserve curated scenario origin separately from validated scenario identity;
+  scientific lineage alone must not imply validation or claim status.
 - Preserve semantic factor identity separately from implementation field paths, and
   keep experimental counterbalancing/blocking metadata separate from primary-factor
   meaning.
+- Keep Workbench scientific manifests renderer-neutral.
 - Prefer readable, maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 

@@ -250,22 +250,23 @@ rare founder as the control. See `docs/e5_drift_weak_selection.md`.
 
 ## Experiment Workbench authoring foundation
 
-WB1 established the bounded controlled-locomotion study recipe; WB3 adds the first
-user-authored controlled experiment patterns above that foundation without turning
-the Workbench into a universal simulation or experiment language.
+WB1 establishes the bounded controlled-locomotion study recipe. WB2 adds the first
+trusted curated-scenario workflow using the confirmed B3 flagship. WB3 adds the
+first user-authored controlled experiment patterns. Together they expand the
+Workbench without turning it into a universal simulation or experiment language.
 
 The durable authoring direction remains:
 
 ```text
-semantic study / experiment authoring
+semantic study / curated scenario / experiment authoring
         ↓
-recipe or concrete experiment-pattern resolution
+bounded recipe or concrete experiment-pattern resolution
         ↓
 immutable scientific manifest / treatment specification
         ↓
-existing typed simulation composition
+existing typed or scenario-specific simulation composition
         ↓
-authoritative biological/generic preflight
+authoritative biological/scientific validation and preflight
         ↓
 frozen kernel
 ```
@@ -277,6 +278,33 @@ an exact canonical manifest, evidence intent, lineage, and run-to-manifest
 provenance. Loading deserializes the stored manifest rather than silently
 re-resolving historical defaults; compilation reconstructs fresh existing recorders
 before lower preflight; forks remain immutable and diffing remains recipe-scoped.
+
+WB2 adds the explicit `curated-b3-flagship` recipe for the confirmed B3 reference-
+ecology study. Canonical B3 persists a rich resolved manifest containing the frozen
+study design, matched resource geography, balanced `max_speed = 1/4` standing
+variation, seed roles, primary step-30 readout, explicit reference-ecology
+configuration, mutation/recombination, ordinary sexual inheritance, treatment-
+integrity and counterbalance semantics, and the authority of the existing B3
+scientific handoff for representative-run selection and bounded claims. Those
+assumptions are derived through the authoritative B3 builder rather than duplicated
+as a second scientific implementation.
+
+WB2 establishes the distinction:
+
+```text
+scenario identity = this exact saved revision is the validated frozen B3 scenario
+scenario origin   = this study descends scientifically from B3
+```
+
+The only supported B3 fork is its already-established radius-2 resource-geometry
+sensitivity. The fork retains B3 origin, loses validated radius-1 identity, and does
+not automatically inherit the original B3 headline claim or representative-story
+semantics. Exact reproduction loads the stored resolved manifest, requires
+compatible recipe/compiler/software identity, and fails explicitly rather than
+silently inheriting future `ReferenceEcologyConfig` defaults or migrating old
+intent. Execution returns existing B3 evidence and summary contracts; Workbench
+does not recalculate authoritative B3 genetics, founder reproductive contribution,
+mechanism evidence, robustness, representative-run selection, or claim boundaries.
 
 WB3 adds two concrete persisted experiment definitions:
 
@@ -296,11 +324,13 @@ the concrete pattern. In particular, E4's individual focal-trait evidence is
 satisfied through the existing E4 recorder path rather than by widening WB1's
 monomorphic manifest.
 
-This is not a plugin system, universal configuration graph, generic factor or
-experiment hierarchy, capability/evidence solver, path-based treatment-diff
-language, metric/statistics registry, or alternate simulation engine. Lower
-engine/domain packages remain independent of `workbench`. See
-`docs/evolution_experiment_workbench.md`.
+The Workbench remains recipe/pattern-specific where concrete consumers differ. WB2
+and WB3 do not yet justify a universal persisted study root, plugin system,
+configuration graph, generic factor/experiment hierarchy, capability/evidence
+solver, path-based treatment-diff language, migration framework, claim-inference
+engine, metric/statistics registry, or alternate simulation engine. Lower
+engine/domain packages remain independent of `workbench`. Scientific manifests
+remain renderer-neutral. See `docs/evolution_experiment_workbench.md`.
 
 ## Confirmed B3 scientific flagship
 
@@ -381,15 +411,17 @@ introduction mechanism/state, initial rarity, population context, ecology, horiz
 and censoring semantics. Do not retrofit mortality or generic population-genetics
 machinery merely to obtain textbook fixation behavior.
 
-The Workbench product front now has both the WB1 exact study/manifest foundation and
-WB3 controlled-experiment authoring. The next Workbench milestones may rely on
-stable experiment pattern/factor identities, deterministic treatment expansion,
-explicit per-treatment seed/factor/counterbalance metadata, and unchanged typed
-E3/E4 replicate outcomes and summaries. Results/presentation work should preserve
-primary outcomes, mechanism evidence, diagnostics, replicate values, and summaries
-as distinct scientific meanings rather than inventing scalar fitness or a generic
-metric/statistics layer. Parallel Workbench work must continue to treat current
-`main` and the authoritative Workbench architecture as the integration boundary.
+The Workbench product front now includes WB1 exact study/manifest foundations, WB2
+trusted curated-B3 exact reproduction and fork lineage, and WB3 controlled-
+experiment authoring. Later milestones may rely on scenario origin versus validated
+identity, stable experiment pattern/factor IDs, deterministic treatment expansion,
+explicit seed/factor/counterbalance metadata, immutable resolved manifests, and
+unchanged typed scenario/experiment results. Results/presentation work should keep
+primary outcomes, mechanism evidence, diagnostics, replicate values, summaries,
+scenario validation status, and presentation meaning distinct rather than
+flattening them into scalar fitness or a generic metric/statistics layer. Future
+generalization should be earned by repeated consumers rather than inferred merely
+because three Workbench milestones now exist.
 
 The B3 cinematic continuation is implemented as the V3 flagship path. The remaining
 presentation continuation is the interactive matched-comparison experience:
@@ -436,6 +468,16 @@ software/modeling demonstrations. They are not species-calibrated predictive
 ecological models. The controlled E2–E5 program remains intentionally distinct
 from the integrated reference-ecology flagship.
 
+### Workbench persistence remains intentionally concrete
+
+WB1's saved revision is controlled-locomotion-specific, WB2 uses a B3-specific
+curated revision, and WB3 uses concrete persisted experiment definitions. These
+milestones establish repeated principles—stable semantic identity, immutable
+resolved values, exact load, provenance, and explicit lineage/design metadata—but
+not yet enough repeated shape to justify a universal persisted study/experiment
+root. Later concrete consumers should determine whether that generalization is
+earned.
+
 ### Public presentation naming still contains v0.1 history
 
 Some dashboard/helper names still call the older `max_intake_rate` demonstration
@@ -467,6 +509,13 @@ Newest first; this is a capability summary, not a changelog.
   existing treatment-integrity helpers, unchanged E3/E4 scientific result types,
   and E4 counterbalancing kept separate from primary factor meaning without a
   generic experiment DSL, factor registry, or statistics framework.
+- **WB2 curated B3 exact reproduction and fork lineage:** represented the confirmed
+  B3 flagship as a trusted Workbench study with a rich immutable resolved manifest,
+  explicit scenario origin versus validated scenario identity, exact compatible
+  save/load/reproduction, authoritative B3 evidence/result reuse, and one bounded
+  radius-1→radius-2 scientific fork that retains origin while losing validated B3
+  identity and automatic headline-claim/story inheritance. The Workbench does not
+  become authoritative for B3 representative-run selection, robustness, or claims.
 - **WB1 controlled-locomotion Workbench foundation:** added bounded semantic study
   authoring above existing E3/E2 composition, immutable explicit/derived manifests,
   exact persistence and compatibility identity, evidence reconstruction before
