@@ -8,7 +8,7 @@ readiness, and exact-reproduction semantics with the concrete Workbench contract
 from __future__ import annotations
 
 import json
-from typing import Literal, TypeAlias
+from typing import Literal, TypeAlias, TypeGuard
 
 from evo_engine.experiments.e3_performance import E3_CONFIRMATION_SEEDS
 from evo_engine.experiments.e4_selection import E4_CONFIRMATION_SEEDS
@@ -148,10 +148,10 @@ def load_concrete_artifact(value: str) -> ConcreteWorkbenchArtifact:
     raise UnsupportedStudyArtifactError("Unsupported Workbench Study format identity.")
 
 
-def serialize_concrete_artifact(artifact: ConcreteWorkbenchArtifact) -> str:
-    """Return the concrete artifact's own canonical persistence representation."""
-    if isinstance(
-        artifact,
+def is_concrete_artifact(value: object) -> TypeGuard[ConcreteWorkbenchArtifact]:
+    """Return whether session state holds one of WU1's exact supported artifacts."""
+    return isinstance(
+        value,
         (
             StudyRevision,
             MaxSpeedSweepDefinition,
@@ -159,9 +159,12 @@ def serialize_concrete_artifact(artifact: ConcreteWorkbenchArtifact) -> str:
             B3StudyRevision,
             ReferenceStudyRevision,
         ),
-    ):
-        return artifact.to_json()
-    raise TypeError("Unsupported Workbench artifact type.")
+    )
+
+
+def serialize_concrete_artifact(artifact: ConcreteWorkbenchArtifact) -> str:
+    """Return the concrete artifact's own canonical persistence representation."""
+    return artifact.to_json()
 
 
 def artifact_kind(artifact: ConcreteWorkbenchArtifact) -> ArtifactKind:
@@ -236,6 +239,7 @@ __all__ = [
     "artifact_run_count",
     "artifact_title",
     "artifact_type_label",
+    "is_concrete_artifact",
     "load_concrete_artifact",
     "new_b3_flagship",
     "new_controlled_run",
