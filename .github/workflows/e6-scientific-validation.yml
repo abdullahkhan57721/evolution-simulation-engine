@@ -18,7 +18,8 @@ on:
 permissions:
   contents: read
 
-# Discovery remains manual; CI reruns only the frozen independent confirmation matrix.
+# Discovery is intentionally excluded from CI after scientific freeze. This
+# workflow reruns only the frozen, disjoint-seed confirmation matrix.
 jobs:
   confirmation-e6:
     name: Independent E6 confirmation
