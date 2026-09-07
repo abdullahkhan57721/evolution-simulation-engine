@@ -15,13 +15,17 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: e5/drift-weak-selection
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - run: python scripts/_e5_finalize_docs_v2.py
+      - run: |
+          git fetch origin main
+          git checkout origin/main -- docs/development/current_state.md docs/development/roadmap.md mkdocs.yml
+      - run: python scripts/_e5_finalize_docs.py
       - run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/development/current_state.md docs/development/roadmap.md mkdocs.yml
-          git commit -m "E5: integrate confirmed results into project orientation"
+          git commit -m "E5: reconcile V3 and integrate confirmed E5 orientation"
           git push origin HEAD:e5/drift-weak-selection
