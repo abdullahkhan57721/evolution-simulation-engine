@@ -259,7 +259,7 @@ without a future concrete requirement.
 
 ## Current cinematic preparation contract
 
-The cinematic path now has a concrete renderer-owned preparation layer over the
+The cinematic path has a concrete renderer-owned preparation layer over the
 shared evidence boundary. Its responsibility is deliberately narrower than a
 generic replay or film-description system:
 
@@ -275,7 +275,7 @@ small renderer-neutral scientific encoding values
 cinematic prepared primitives / timeline
         |
         v
-cinematic renderer and later scenario-specific director
+cinematic renderer or concrete scenario director
 ```
 
 `ContinuousTraitEncoding` is the first shared scientific-encoding value justified
@@ -299,11 +299,62 @@ Position interpolation is renderer-owned presentation geometry. Its committed
 endpoints are exact, intermediate values are not simulation states, and the
 interpolation result is never an input to scientific analysis.
 
-The generic cinematic mode remains valid without a focal scientific encoding. A
-scenario-directed flagship film is a later choreography concern: representative
-episodes, comparison framing, camera movement, act structure, and final claims
-must come from the scenario's authoritative scientific storyboard rather than from
-this preparation layer.
+The generic cinematic mode remains valid without a focal scientific encoding.
+
+## Concrete B3 flagship director
+
+The confirmed B3 scenario is the first concrete scenario-directed film built above
+the generic preparation contract. It deliberately does **not** generalize into a
+camera DSL, movie DSL, shared scene graph, or broad scenario-presentation schema.
+
+Its ownership chain is:
+
+```text
+completed B3 simulation
+        ↓
+committed B3 evidence
+        ↓
+renderer-neutral B3 storyboard / claim boundary
+        ↓
+B3FlagshipDirectorPlan
+        ↓
+existing cinematic timelines + B3 chart-ready summaries
+        ↓
+Manim-only choreography
+```
+
+The director validates and consumes the B3-declared representative seed and real
+representative movement/resource-consumption episodes. It may decide scene order,
+framing, temporal compression, camera focus, annotations, and reveal timing, but it
+may not select a new seed, new representative organism, new scientific scale, new
+treatment meaning, or new conclusion.
+
+The B3 visual grammar is intentionally explicit:
+
+- organism fill = fixed `max_speed` capacity encoding over `1..4`;
+- organism size = authoritative committed body mass;
+- focus = separate halo/camera/annotation channel;
+- resources = committed resource deposits;
+- causal labels = committed telemetry/derived B3 evidence;
+- appearance/departure = non-causal continuity metadata;
+- matched worlds/charts = common scientific scales and terminology.
+
+When the camera follows a representative organism between committed endpoints,
+only position is interpolated. A changed authoritative body mass appears at the
+committed endpoint rather than being smoothed as pseudo-state. Repeated-interaction
+beats use explicitly labeled committed snapshots and do not imply that omitted
+scientific timesteps were rendered or simulated differently.
+
+The full B3 film combines one illustrative representative seed with separate
+run-level confirmation, founder reproductive-contribution, and geometry-sensitivity
+evidence. Organisms are not treated as independent experimental replicates. This
+preserves the scientific distinction between mechanistic storytelling and
+robustness evidence.
+
+Routine CI keeps the generic and science-aware cinematic smokes and adds a reduced
+real-B3 director smoke. The full high-quality flagship is a deliberate artifact
+workflow with a scalar reproducibility manifest rather than an every-commit render.
+See `docs/cinematic_flagship.md` for reproduction and review guidance.
 
 ## Renderer independence
 
