@@ -249,6 +249,24 @@ prose into Workbench codes.
 See `docs/workbench_architecture_review.md` for the complete post-WB6 architecture
 review.
 
+## Workbench application shell
+
+WU1 integrates the settled Workbench into the Streamlit application without adding
+another scientific schema. The application now enters through Home, then opens a
+persistent Study shell with `Simulation / Evidence / Experiment / Results /
+Presentation`; `Run` is an action rather than a sixth page.
+
+New Study exposes only current supported concrete families: canonical radius-1 B3,
+controlled single-run/max-speed-sweep/environment-selection workflows, and bounded
+Reference Ecology. Open/Save dispatches directly through the concrete Workbench
+format and pattern identities and each owning `from_json()` / `to_json()` contract.
+The UI does not re-resolve stored intent, migrate unknown formats, wrap artifacts in
+a universal Study envelope, or reconstruct unavailable historical result payloads.
+
+The prior world-centered V2 workspace and renderer implementation remain available
+for later integration rather than being redefined by the shell. See
+`docs/workbench_ui.md`.
+
 ## Official Workbench support envelope
 
 The distinction remains:
@@ -312,21 +330,11 @@ charts, and animation remain presentation concerns.
 The Workbench foundation and the first E-series controlled-science program are both
 settled enough to move out of foundational architecture mode.
 
-Future Workbench work should normally be one of:
-
-```text
-add bounded recipe
-or
-add semantic choice
-or
-add evidence option
-or
-add concrete experiment pattern
-or
-promote a support tier with evidence
-or
-add a downstream result/presentation consumer
-```
+The UI integration sequence now builds incrementally on WU1. The next product
+milestone is **WU2 — Simulation Authoring, Guided/Advanced, Forks, and Semantic
+Diff**: expose bounded existing semantic choices inside the persistent Study shell,
+preserve support-tier/applicability rules, and add explicit fork/diff workflows
+without creating a universal form/schema system.
 
 E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
 result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
@@ -345,8 +353,8 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities
-still differ. WB5/WB6 do not reveal enough identical persistence responsibility to
-earn a universal saved Study/Experiment/Results root.
+still differ. WB5/WB6 and WU1 do not reveal enough identical persistence
+responsibility to earn a universal saved Study/Experiment/Results root.
 
 ### Broader Workbench diagnostics remain bounded
 

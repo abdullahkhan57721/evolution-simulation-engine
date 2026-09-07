@@ -162,6 +162,7 @@ validation path.
 Read:
 
 - [Evolution Experiment Workbench Architecture](../evolution_experiment_workbench.md)
+- [Workbench UI](../workbench_ui.md)
 - [Workbench Architecture Review](../workbench_architecture_review.md)
 - [WB4 Bounded Reference-Ecology Recipe](../wb4_bounded_reference_ecology.md)
 - [WB5 Results and Presentation](../wb5_results_presentation.md)
@@ -176,6 +177,13 @@ support tiers and recipe-local applicability/normalization. WB5 integrated Resul
 and downstream V2/V3 presentation without duplicate science. WB6 audits the whole
 implementation and moves the Workbench foundation into maintenance-and-extension
 mode.
+
+WU1 adds the downstream Streamlit application shell over those settled contracts:
+Home → New/Open Study → a persistent five-section Study frame, with Run as an action.
+The UI dispatches explicitly over existing concrete Workbench artifacts and their
+canonical persistence/readiness contracts; it does not introduce a universal Study
+schema or move scientific validation into the UI. Existing V2 world/workspace
+components remain retained for later WU integration.
 
 The WB6 review found one genuinely earned shared abstraction: a small
 Workbench-owned diagnostic value with stable code, severity, optional semantic

@@ -27,7 +27,8 @@ The project should continue toward a simulation engine in which:
    simulation evidence;
 6. scientific-study authoring compiles down into existing typed/scenario
    composition rather than becoming a second simulation architecture;
-7. Workbench growth is now primarily incremental rather than foundational;
+7. Workbench foundation growth is incremental, while application integration builds
+   concrete product workflows over those settled contracts;
 8. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
@@ -188,8 +189,8 @@ The final review is in `docs/workbench_architecture_review.md`.
 
 The Workbench foundation is now in **maintenance-and-extension mode**.
 
-Future Workbench work should normally begin from a real scientific/product use case
-and take one of these forms:
+Future foundation changes should normally begin from a real scientific/product use
+case and take one of these forms:
 
 ```text
 add bounded recipe
@@ -246,6 +247,43 @@ No migration engine is currently justified. If future saved-study incompatibilit
 creates a real migration need, migration must create new scientific identity rather
 than masquerade as exact reproduction.
 
+## Workbench UI integration sequence
+
+WU1 establishes the concrete Streamlit product shell over the completed backend:
+
+```text
+HOME
+├── New Study
+└── Open Study
+
+STUDY
+├── Simulation
+├── Evidence
+├── Experiment
+├── Results
+└── Presentation
+
+Run = action
+```
+
+The shell uses explicit dispatch over existing concrete persisted artifacts rather
+than a universal Study schema. Canonical B3, controlled single-run, E3 max-speed
+sweep, E4 environment-selection comparison, and bounded Reference Ecology share the
+same product frame while retaining their existing serializers/loaders, readiness,
+manifest meaning, and revision semantics. The prior world workspace stays available
+for later integration. See `docs/workbench_ui.md`.
+
+The next sequential product milestone is **WU2 — Simulation Authoring,
+Guided/Advanced, Forks, and Semantic Diff**. WU2 should expose the already-supported
+semantic simulation choices inside the Study shell, including support-tier and
+applicability behavior, and make scientific forks/diffs explicit. It must not create
+a generic form generator, arbitrary engine introspection, universal Study schema,
+or silently reinterpret saved manifests.
+
+Later WU milestones should continue filling Evidence, Experiment, Results, execution,
+and Presentation through the same shell while preserving existing Workbench and
+scientific ownership rather than reopening the backend architecture.
+
 ## Controlled-science direction after E7
 
 E7 closes the first planned E-series causal sequence. There is no automatic E8.
@@ -274,8 +312,9 @@ a dependency of it.
 
 ## Presentation continuation
 
-WB5 provides the architecture seam for Workbench→V2/V3. Future interactive work may
-improve the concrete B3 matched-comparison experience while preserving:
+WB5 provides the architecture seam for Workbench→V2/V3. The WU sequence should
+integrate those consumers only after Study execution/result ownership is concrete,
+while preserving:
 
 - exact Study/run/treatment/replicate identity;
 - B3 control/treatment semantics;

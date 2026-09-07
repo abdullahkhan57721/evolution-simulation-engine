@@ -42,6 +42,7 @@ nav:
       - Overview: architecture/index.md
       - Scientific Visualization: architecture/scientific_visualization.md
       - Evolution Experiment Workbench: evolution_experiment_workbench.md
+      - Workbench UI: workbench_ui.md
       - Workbench Architecture Review: workbench_architecture_review.md
       - WB4 Bounded Reference Ecology: wb4_bounded_reference_ecology.md
       - WB5 Results and Presentation: wb5_results_presentation.md
