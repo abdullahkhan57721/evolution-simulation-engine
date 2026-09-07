@@ -23,6 +23,7 @@ from evo_engine.workbench import (
     B3CuratedRunResult,
     B3MatchedRunArtifacts,
     B3SingleRunArtifacts,
+    B3StudyRevision,
     WorkbenchRunProvenance,
     create_b3_study_revision,
     fork_b3_study_revision,
@@ -30,7 +31,7 @@ from evo_engine.workbench import (
 
 
 @pytest.fixture(scope="module")
-def canonical_b3_workbench_result() -> tuple[object, B3CuratedRunResult]:
+def canonical_b3_workbench_result() -> tuple[B3StudyRevision, B3CuratedRunResult]:
     """Build enough real representative evidence for the existing B3 director."""
     revision = create_b3_study_revision(revision_id="b3-cinematic")
     control_evidence = run_b3_flagship(
@@ -102,26 +103,28 @@ def canonical_b3_workbench_result() -> tuple[object, B3CuratedRunResult]:
 
 
 def test_validated_b3_workbench_result_reuses_existing_director_handoff(
-    canonical_b3_workbench_result: tuple[object, B3CuratedRunResult],
+    canonical_b3_workbench_result: tuple[B3StudyRevision, B3CuratedRunResult],
 ) -> None:
     revision, result = canonical_b3_workbench_result
 
-    plan = prepare_b3_workbench_cinematic(revision, result)  # type: ignore[arg-type]
+    plan = prepare_b3_workbench_cinematic(revision, result)
 
     assert plan.control.evidence is result.confirmation[0].control_evidence
     assert plan.treatment.evidence is result.confirmation[0].treatment_evidence
     assert plan.control.summary.seed == B3_REPRESENTATIVE_SEED
     assert plan.treatment.summary.seed == B3_REPRESENTATIVE_SEED
-    assert tuple(point.seed for point in plan.confirmation_points) == B3_CONFIRMATION_SEEDS
+    assert (
+        tuple(point.seed for point in plan.confirmation_points) == B3_CONFIRMATION_SEEDS
+    )
     assert plan.is_full_flagship
 
 
 def test_b3_derived_fork_does_not_inherit_validated_cinematic_claim_handoff(
-    canonical_b3_workbench_result: tuple[object, B3CuratedRunResult],
+    canonical_b3_workbench_result: tuple[B3StudyRevision, B3CuratedRunResult],
 ) -> None:
     canonical, result = canonical_b3_workbench_result
     fork = fork_b3_study_revision(
-        canonical,  # type: ignore[arg-type]
+        canonical,
         revision_id="b3-radius-two",
     )
     fork_result = attrs.evolve(
