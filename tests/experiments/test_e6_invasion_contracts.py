@@ -65,7 +65,10 @@ def test_exact_fork_and_admission_provenance_are_matched(
     assert len(neutral.burn_in_checkpoint.rng_state_sha256) == 64
 
     assert neutral.intervention.organism_id == mutant.intervention.organism_id
-    assert neutral.intervention.anchor_resident_id == mutant.intervention.anchor_resident_id
+    assert (
+        neutral.intervention.anchor_resident_id
+        == mutant.intervention.anchor_resident_id
+    )
     assert (neutral.intervention.x, neutral.intervention.y) == (
         mutant.intervention.x,
         mutant.intervention.y,
@@ -75,7 +78,9 @@ def test_exact_fork_and_admission_provenance_are_matched(
     assert neutral.intervention.age == mutant.intervention.age == 0
     assert neutral.intervention.energy == mutant.intervention.energy == 20
     assert neutral.intervention.body_mass == mutant.intervention.body_mass == 1
-    assert neutral.intervention.mating_type == mutant.intervention.mating_type == "clonal"
+    assert (
+        neutral.intervention.mating_type == mutant.intervention.mating_type == "clonal"
+    )
     assert neutral.intervention.entrant_speed == 4
     assert mutant.intervention.entrant_speed == 3
 
