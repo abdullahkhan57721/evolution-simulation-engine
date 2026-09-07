@@ -29,12 +29,14 @@ from evo_engine.workbench.experiments import (
 from evo_engine.workbench.reference_ecology import (
     POPULATION_EVIDENCE_ID as REFERENCE_POPULATION_EVIDENCE_ID,
 )
-from evo_engine.workbench.reference_ecology import ReferenceEvidencePlan
+from evo_engine.workbench.reference_ecology import (
+    ReferenceEvidencePlan,
+    default_reference_ecology_intent,
+)
 from evo_engine.workbench.reference_study import (
     ReferenceRunResult,
     create_reference_study_revision,
 )
-from evo_engine.workbench.reference_ecology import default_reference_ecology_intent
 from evo_engine.workbench.results import (
     inspect_b3_results,
     inspect_controlled_locomotion_results,
@@ -103,7 +105,9 @@ def test_unrecorded_controlled_analysis_is_unavailable_not_reconstructed() -> No
     assert view.locomotion is None
 
 
-def test_reference_result_navigation_reports_missing_spatial_and_other_evidence() -> None:
+def test_reference_result_navigation_reports_missing_spatial_and_other_evidence() -> (
+    None
+):
     plan = ReferenceEvidencePlan(requested=(REFERENCE_POPULATION_EVIDENCE_ID,))
     revision = create_reference_study_revision(
         revision_id="reference-population-only",
@@ -176,9 +180,16 @@ def test_e4_navigation_preserves_full_composition_and_counterbalance_identity() 
         "separated_corridor",
     )
     assert all(item.standing_focal_composition == (1, 3, 9) for item in view.replicates)
-    assert view.replicates[0].founder_speed_order == view.replicates[1].founder_speed_order
-    assert view.replicates[0].outcome.focal_trajectory is result.replicate_outcomes[0].focal_trajectory
-    assert view.replicates[1].outcome.mechanisms is result.replicate_outcomes[1].mechanisms
+    assert (
+        view.replicates[0].founder_speed_order == view.replicates[1].founder_speed_order
+    )
+    assert (
+        view.replicates[0].outcome.focal_trajectory
+        is result.replicate_outcomes[0].focal_trajectory
+    )
+    assert (
+        view.replicates[1].outcome.mechanisms is result.replicate_outcomes[1].mechanisms
+    )
 
 
 def test_b3_navigation_keeps_representative_support_artifact_roles_separate() -> None:
