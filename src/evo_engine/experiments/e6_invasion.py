@@ -128,8 +128,7 @@ class E6TreatmentSpecification:
     def treatment_id(self) -> str:
         """Return a stable E6 treatment identifier."""
         return (
-            f"{self.role}-resident-{self.resident_speed}-"
-            f"entrant-{self.entrant_speed}"
+            f"{self.role}-resident-{self.resident_speed}-entrant-{self.entrant_speed}"
         )
 
     @property
@@ -195,8 +194,12 @@ class E6BurnInCheckpoint:
         if self.resident_speed not in _E6_RESIDENT_SPEEDS:
             raise ValueError("resident_speed must be 3 or 4.")
         if self.step_index != E6_BURN_IN_STEPS:
-            raise ValueError("E6 burn-in checkpoint must use the candidate burn-in step.")
-        validators.validate_int_ge(self.population_size, bound=1, name="population_size")
+            raise ValueError(
+                "E6 burn-in checkpoint must use the candidate burn-in step."
+            )
+        validators.validate_int_ge(
+            self.population_size, bound=1, name="population_size"
+        )
         validators.validate_int_ge(self.resource_total, bound=0, name="resource_total")
         _validate_checkpoint_ids(self.organism_ids, self.population_size)
         _validate_sha256(self.world_state_sha256, name="world_state_sha256")
@@ -299,7 +302,9 @@ class E6ReplicateOutcome:
         _validate_replicate_types(self)
         _validate_replicate_trajectory(self)
         _validate_replicate_events(self)
-        validators.validate_int_ge(self.rare_birth_count, bound=0, name="rare_birth_count")
+        validators.validate_int_ge(
+            self.rare_birth_count, bound=0, name="rare_birth_count"
+        )
 
     @property
     def initial_composition(self) -> E6LineageCompositionPoint:
@@ -451,7 +456,9 @@ def run_e6_invasion_pair(
     )
     validate_e6_matched_arm_integrity(neutral, mutant)
 
-    compiled = build_controlled_locomotion_spec(neutral.to_burn_in_config(seed=seed)).compile()
+    compiled = build_controlled_locomotion_spec(
+        neutral.to_burn_in_config(seed=seed)
+    ).compile()
     compiled.engine.run(compiled.simulation)
     checkpoint_state = compiled.simulation.state.copy()
     checkpoint = _burn_in_checkpoint(
@@ -517,11 +524,15 @@ def summarize_e6_arm(outcomes: Sequence[E6ReplicateOutcome]) -> E6ArmSummary:
         rare_increase_proportion=_direction_proportion(defined, direction="increase"),
         rare_decrease_proportion=_direction_proportion(defined, direction="decrease"),
         rare_unchanged_proportion=_direction_proportion(defined, direction="unchanged"),
-        rare_expansion_proportion=_event_proportion(values, event_name="rare_expansion"),
+        rare_expansion_proportion=_event_proportion(
+            values, event_name="rare_expansion"
+        ),
         rare_loss_proportion=_event_proportion(values, event_name="rare_loss"),
         fixation_proportion=_event_proportion(values, event_name="fixation"),
         extinction_proportion=_event_proportion(values, event_name="extinction"),
-        mean_rare_birth_count=statistics.fmean(value.rare_birth_count for value in values),
+        mean_rare_birth_count=statistics.fmean(
+            value.rare_birth_count for value in values
+        ),
     )
 
 
@@ -616,8 +627,9 @@ def _run_from_checkpoint(
         ),
         rare_loss=_time_to_event(
             trajectory,
-            predicate=lambda point: point.count("rare") == 0
-            and point.count("resident") > 0,
+            predicate=lambda point: (
+                point.count("rare") == 0 and point.count("resident") > 0
+            ),
         ),
         fixation=fixation,
         fixation_winner=winner,
@@ -669,7 +681,9 @@ def _admit_rare_entrant(
     anchor = world.organisms[anchor_id]
     architecture = state.context.require(GENETIC_ARCHITECTURE)
     if not isinstance(architecture, GeneticArchitecture):
-        raise TypeError("controlled locomotion context must contain GeneticArchitecture.")
+        raise TypeError(
+            "controlled locomotion context must contain GeneticArchitecture."
+        )
     genome = build_controlled_locomotion_founder_genome(
         architecture,
         max_speed=treatment.entrant_speed,
@@ -805,7 +819,9 @@ def _composition_point(
     for individual in observation.individuals:
         lineage = _required_lineage(lineage_by_id, individual.organism_id)
         expected_speed = (
-            treatment.resident_speed if lineage == "resident" else treatment.entrant_speed
+            treatment.resident_speed
+            if lineage == "resident"
+            else treatment.entrant_speed
         )
         if individual.trait_values[0] != expected_speed:
             raise ValueError("committed max_speed disagrees with resolved E6 ancestry.")
@@ -950,8 +966,7 @@ def _world_state_sha256(world: WorldState, *, state: SimulationState) -> str:
             for organism_id, organism in sorted(world.organisms.items())
         ],
         "resources": [
-            [x, y, amount]
-            for (x, y), amount in sorted(world.resources.items())
+            [x, y, amount] for (x, y), amount in sorted(world.resources.items())
         ],
     }
     encoded = json.dumps(
@@ -983,15 +998,18 @@ def _validate_matched_interventions(
         entrant_speed=neutral.entrant_speed,
     )
     if normalized != neutral:
-        raise ValueError("matched interventions differ outside entrant max_speed and role.")
+        raise ValueError(
+            "matched interventions differ outside entrant max_speed and role."
+        )
 
 
 def _validate_outcome_event_consistency(outcome: E6ReplicateOutcome) -> None:
     _validate_observed_event(
         outcome,
         event=outcome.rare_loss,
-        predicate=lambda point: point.count("rare") == 0
-        and point.count("resident") > 0,
+        predicate=lambda point: (
+            point.count("rare") == 0 and point.count("resident") > 0
+        ),
         name="rare loss",
     )
     _validate_observed_event(
@@ -1040,7 +1058,9 @@ def _validate_role(role: object) -> None:
         raise ValueError("role must be 'neutral' or 'mutant'.")
 
 
-def _validate_speed_pair(*, role: E6ArmRole, resident_speed: int, entrant_speed: int) -> None:
+def _validate_speed_pair(
+    *, role: E6ArmRole, resident_speed: int, entrant_speed: int
+) -> None:
     if resident_speed not in _E6_RESIDENT_SPEEDS:
         raise ValueError("resident_speed must be 3 or 4.")
     if role == "neutral" and entrant_speed != resident_speed:
@@ -1049,7 +1069,9 @@ def _validate_speed_pair(*, role: E6ArmRole, resident_speed: int, entrant_speed:
         raise ValueError("mutant arm must use one candidate reciprocal 3↔4 pair.")
 
 
-def _validate_checkpoint_ids(organism_ids: tuple[int, ...], population_size: int) -> None:
+def _validate_checkpoint_ids(
+    organism_ids: tuple[int, ...], population_size: int
+) -> None:
     validators.validate_tuple(organism_ids, name="organism_ids")
     if len(organism_ids) != population_size:
         raise ValueError("organism_ids must represent the complete burn-in population.")
@@ -1149,12 +1171,17 @@ def _validate_initial_composition(outcome: E6ReplicateOutcome) -> None:
     initial = outcome.trajectory[0]
     if initial.count("rare") != 1:
         raise ValueError("E6 must begin post-intervention with one rare organism.")
-    if initial.count("resident") != outcome.intervention.resident_population_size_before:
+    if (
+        initial.count("resident")
+        != outcome.intervention.resident_population_size_before
+    ):
         raise ValueError("initial resident count must match intervention provenance.")
     observed_frequency = initial.frequency("rare")
     if observed_frequency is None:
         raise ValueError("post-intervention baseline cannot be extinct.")
-    if not math.isclose(observed_frequency, outcome.intervention.initial_rare_frequency):
+    if not math.isclose(
+        observed_frequency, outcome.intervention.initial_rare_frequency
+    ):
         raise ValueError("initial rare frequency must match intervention provenance.")
 
 
@@ -1170,7 +1197,9 @@ def _validate_replicate_events(outcome: E6ReplicateOutcome) -> None:
             raise TypeError(f"{name} must be a FixedHorizonTimeToEvent.")
     if outcome.fixation.right_censored == (outcome.fixation_winner is None):
         return
-    raise ValueError("fixation winner must be present exactly when fixation is observed.")
+    raise ValueError(
+        "fixation winner must be present exactly when fixation is observed."
+    )
 
 
 def _validate_pair_outcome_types(
@@ -1265,14 +1294,13 @@ def _direction_proportion(
 ) -> float | None:
     if not values:
         return None
-    predicate: Callable[[float], bool]
     if direction == "increase":
-        predicate = lambda value: value > 0.0
+        matching_count = sum(value > 0.0 for value in values)
     elif direction == "decrease":
-        predicate = lambda value: value < 0.0
+        matching_count = sum(value < 0.0 for value in values)
     else:
-        predicate = lambda value: value == 0.0
-    return sum(1 for value in values if predicate(value)) / len(values)
+        matching_count = sum(value == 0.0 for value in values)
+    return matching_count / len(values)
 
 
 def _event_proportion(
@@ -1281,9 +1309,7 @@ def _event_proportion(
     event_name: Literal["rare_expansion", "rare_loss", "fixation", "extinction"],
 ) -> float:
     return sum(
-        1
-        for value in values
-        if not getattr(value, event_name).right_censored
+        1 for value in values if not getattr(value, event_name).right_censored
     ) / len(values)
 
 

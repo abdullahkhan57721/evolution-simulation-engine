@@ -56,7 +56,10 @@ def test_real_e6_pair_uses_exact_checkpoint_and_matched_admission() -> None:
     assert neutral.burn_in_checkpoint == mutant.burn_in_checkpoint
     assert neutral.burn_in_checkpoint.step_index == E6_BURN_IN_STEPS
     assert neutral.intervention.organism_id == mutant.intervention.organism_id
-    assert neutral.intervention.anchor_resident_id == mutant.intervention.anchor_resident_id
+    assert (
+        neutral.intervention.anchor_resident_id
+        == mutant.intervention.anchor_resident_id
+    )
     assert (neutral.intervention.x, neutral.intervention.y) == (
         mutant.intervention.x,
         mutant.intervention.y,
