@@ -230,7 +230,9 @@ def test_intervention_validation_guards_external_admission_contract(
             attrs.evolve(intervention, **{field_name: value})
 
 
-def test_lineage_composition_validation_guards_complete_counts_and_frequencies() -> None:
+def test_lineage_composition_validation_guards_complete_counts_and_frequencies() -> (
+    None
+):
     with pytest.raises(ValueError, match="resident and rare"):
         e6.E6LineageCompositionPoint(
             step_index=10,
@@ -375,14 +377,14 @@ def test_pair_validation_guards_exact_checkpoint_seed_and_intervention(
         pair.mutant.burn_in_checkpoint,
         resource_total=pair.mutant.burn_in_checkpoint.resource_total + 1,
     )
-    with pytest.raises(ValueError, match="same exact burn-in checkpoint"):
+    with pytest.raises(ValueError, match="share one exact burn-in checkpoint"):
         e6.E6InvasionPairOutcome(
             neutral=pair.neutral,
             mutant=attrs.evolve(pair.mutant, burn_in_checkpoint=changed_checkpoint),
         )
 
     changed_provenance = attrs.evolve(pair.mutant.provenance, seed=31)
-    with pytest.raises(ValueError, match="same seed"):
+    with pytest.raises(ValueError, match="share one seed"):
         e6.E6InvasionPairOutcome(
             neutral=pair.neutral,
             mutant=attrs.evolve(pair.mutant, provenance=changed_provenance),
@@ -550,3 +552,38 @@ def test_small_validation_helpers_cover_extinction_safe_edge_contracts() -> None
     with pytest.raises(ValueError, match="SHA-256"):
         e6._validate_sha256("z" * 64, name="digest")
     assert e6._validate_sha256("a" * 64, name="digest") == "a" * 64
+
+
+def test_additional_e6_guard_branches(
+    pair: e6.E6InvasionPairOutcome,
+) -> None:
+    outcome = pair.neutral
+
+    wrong_types = (
+        ("provenance", "provenance"),
+        ("burn_in_checkpoint", "burn_in_checkpoint"),
+        ("intervention", "intervention"),
+    )
+    for field_name, match in wrong_types:
+        with pytest.raises(TypeError, match=match):
+            attrs.evolve(outcome, **{field_name: cast(Any, object())})
+
+    with pytest.raises(TypeError, match="rare_expansion"):
+        attrs.evolve(outcome, rare_expansion=cast(Any, object()))
+
+    with pytest.raises(TypeError, match="mutant"):
+        e6.E6InvasionPairOutcome(
+            neutral=pair.neutral,
+            mutant=cast(Any, object()),
+        )
+
+    with pytest.raises(ValueError, match="absent from pedigree"):
+        e6._required_pedigree_record({}, 12345)
+    with pytest.raises(ValueError, match="absent from pedigree"):
+        e6._required_lineage({}, 12345)
+
+    with pytest.raises(ValueError, match="every post-introduction committed state"):
+        e6._validated_trait_observations(())
+
+    with pytest.raises(TypeError, match="SimulationState"):
+        e6._world_state(cast(Any, object()))
