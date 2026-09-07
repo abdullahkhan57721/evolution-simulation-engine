@@ -14,6 +14,7 @@ from evo_engine.ui.study_shell import (
     artifact_run_count,
     artifact_title,
     artifact_type_label,
+    is_concrete_artifact,
     load_concrete_artifact,
     new_b3_flagship,
     new_controlled_run,
@@ -193,11 +194,10 @@ def _render_open_study() -> None:
 
 def _render_study_shell() -> None:
     artifact = st.session_state.get(_ACTIVE_ARTIFACT_KEY)
-    if not _is_supported_artifact(artifact):
+    if not is_concrete_artifact(artifact):
         _go_home()
         st.rerun()
 
-    artifact = artifact
     home, heading, actions = st.columns((1, 5, 4))
     with home:
         if st.button("← Home"):
@@ -355,13 +355,7 @@ def _clear_active_context() -> None:
 
 
 def _has_active_artifact() -> bool:
-    return _is_supported_artifact(st.session_state.get(_ACTIVE_ARTIFACT_KEY))
-
-
-def _is_supported_artifact(value: object) -> bool:
-    return hasattr(value, "to_json") and type(value).__module__.startswith(
-        "evo_engine.workbench"
-    )
+    return is_concrete_artifact(st.session_state.get(_ACTIVE_ARTIFACT_KEY))
 
 
 def _new_revision_id(prefix: str) -> str:
