@@ -537,23 +537,37 @@ def run_e7_seed_set(
     run_role: RunRole | None,
 ) -> tuple[E7ReplicateOutcome, ...]:
     """Run one E7 starting condition over independent seed-level replicates."""
-    validators.validate_tuple(tuple(seeds), name="seeds")
+    if not isinstance(treatment, E7TreatmentSpecification):
+        raise TypeError("treatment must be an E7TreatmentSpecification.")
+    validated_seeds = _validated_unique_seeds(seeds)
     return tuple(
-        run_e7_replicate(treatment, seed=seed, run_role=run_role) for seed in seeds
+        run_e7_replicate(treatment, seed=seed, run_role=run_role)
+        for seed in validated_seeds
     )
 
 
 def summarize_e7_starting_condition(
     outcomes: Sequence[E7ReplicateOutcome],
 ) -> E7StartingConditionSummary:
-    """Summarize endpoint distributions with equal weight per run/seed."""
+    """Summarize endpoint distributions with equal weight per unique run/seed."""
     runs = tuple(outcomes)
     if not runs:
         raise ValueError("outcomes must contain at least one E7 replicate.")
-    starting_speed = runs[0].treatment.starting_speed
-    if any(run.treatment.starting_speed != starting_speed for run in runs):
-        raise ValueError("all outcomes must share one E7 starting speed.")
+    first = runs[0]
+    if not isinstance(first, E7ReplicateOutcome):
+        raise TypeError("outcomes[0] must be an E7ReplicateOutcome.")
+    treatment = first.treatment
+    seeds: list[int] = []
+    for index, run in enumerate(runs):
+        if not isinstance(run, E7ReplicateOutcome):
+            raise TypeError(f"outcomes[{index}] must be an E7ReplicateOutcome.")
+        if run.treatment != treatment:
+            raise ValueError("all outcomes must belong to the same E7 treatment.")
+        if run.provenance.seed in seeds:
+            raise ValueError("outcomes must not contain duplicate replicate seeds.")
+        seeds.append(run.provenance.seed)
 
+    starting_speed = treatment.starting_speed
     defined = tuple(run for run in runs if run.final_distribution.population_size > 0)
     endpoint_distribution: tuple[float | None, ...]
     if defined:
@@ -568,7 +582,7 @@ def summarize_e7_starting_condition(
     return E7StartingConditionSummary(
         starting_speed=starting_speed,
         replicate_count=len(runs),
-        seeds=tuple(run.provenance.seed for run in runs),
+        seeds=tuple(seeds),
         defined_endpoint_count=len(defined),
         extinction_count=len(runs) - len(defined),
         mean_final_mean_speed=_mean_optional(
@@ -871,6 +885,19 @@ def _defined_frequency(point: E7TraitDistributionPoint, speed: int) -> float:
     if value is None:
         raise ValueError("frequency is undefined after extinction.")
     return value
+
+
+def _validated_unique_seeds(seeds: Sequence[int]) -> tuple[int, ...]:
+    values = tuple(seeds)
+    if not values:
+        raise ValueError("seeds must contain at least one replicate seed.")
+    result: list[int] = []
+    for index, seed in enumerate(values):
+        validated = validators.validate_int(seed, name=f"seeds[{index}]")
+        if validated in result:
+            raise ValueError("seeds must not contain duplicates.")
+        result.append(validated)
+    return tuple(result)
 
 
 def _validate_distribution_shape(point: E7TraitDistributionPoint) -> None:
