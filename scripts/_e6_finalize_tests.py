@@ -22,6 +22,11 @@ def main() -> None:
         'match="share one exact burn-in checkpoint"',
         1,
     )
+    text = text.replace(
+        'match="same seed"',
+        'match="share one seed"',
+        1,
+    )
 
     marker = "def test_additional_e6_guard_branches("
     if marker not in text:
