@@ -273,16 +273,36 @@ same product frame while retaining their existing serializers/loaders, readiness
 manifest meaning, and revision semantics. The prior world workspace stays available
 for later integration. See `docs/workbench_ui.md`.
 
-The next sequential product milestone is **WU2 — Simulation Authoring,
-Guided/Advanced, Forks, and Semantic Diff**. WU2 should expose the already-supported
-semantic simulation choices inside the Study shell, including support-tier and
-applicability behavior, and make scientific forks/diffs explicit. It must not create
-a generic form generator, arbitrary engine introspection, universal Study schema,
-or silently reinterpret saved manifests.
+WU2 fills the Simulation section with concrete authoring instead of a generic form
+system. Controlled single-run Studies expose only their stable max-speed,
+resource-geography, and seed slots. Reference Ecology consumes the existing WB4
+Guided/Advanced metadata, applicability, normalization, and readiness contracts;
+Advanced is disclosure over the same intent, Expert remains empty, and
+Extension/Internal capabilities remain outside official authoring. The page keeps
+explicit authoring intent visibly separate from derived and frozen recipe meaning.
 
-Later WU milestones should continue filling Evidence, Experiment, Results, execution,
-and Presentation through the same shell while preserving existing Workbench and
-scientific ownership rather than reopening the backend architecture.
+WU2 also makes existing scientific revision semantics visible. A private UI draft
+never mutates the active saved revision; Save creates a child through the existing
+concrete fork API. Controlled/reference/B3 differences are rendered through their
+existing recipe-scoped semantic-diff contracts. Canonical B3 remains curated and
+read-only except for the explicit supported radius-2 sensitivity fork, whose child
+preserves B3 origin while losing the validated radius-1 identity.
+
+The next sequential product milestone is **WU3 — Evidence, Experiment Design,
+Readiness, and Run Execution**. It should make current evidence choices and concrete
+E3/E4 experiment patterns authorable in the existing Study shell, connect the
+reserved Run action to authoritative concrete execution/preflight paths, and present
+cross-page readiness without inventing a universal validation state machine.
+
+WU3 must continue to preserve the existing distinctions among simulation intent,
+evidence plan, factor/treatment design, replicate planning, authoritative lower
+preflight, committed results, and presentation. It must not create a generic
+experiment DSL, statistics framework, universal Study schema, or duplicate scientific
+validation merely to simplify UI orchestration.
+
+Later WU milestones should continue Results/world/presentation integration through
+the same shell after execution/result ownership is concrete, rather than reopening
+the Workbench backend architecture.
 
 ## Controlled-science direction after E7
 
