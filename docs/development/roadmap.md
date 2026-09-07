@@ -240,15 +240,16 @@ retroactively simplify B3.
 
 ## Experiment Workbench product front
 
-WB1 establishes the first completed product-layer foundation for scientific-study
-authoring above existing typed composition:
+WB1 and WB3 establish the first completed product-layer foundations for
+scientific-study and controlled-experiment authoring above existing typed
+composition:
 
 ```text
-semantic study authoring
+semantic study / experiment authoring
         ↓
-bounded recipe resolution
+bounded recipe or concrete experiment-pattern resolution
         ↓
-immutable resolved manifest
+immutable manifest / concrete treatment specification
         ↓
 existing typed simulation composition
         ↓
@@ -257,23 +258,52 @@ authoritative biological/generic preflight
 frozen kernel
 ```
 
-The first recipe is `controlled-clonal-locomotion` v1, bounded to the characterized
-E3 `max_speed` range `1..10`, the E3 `local_resource` and `separated_corridor`
-geographies, a reproducibility seed, and explicit evidence intent. The manifest
-uses stable scientific IDs, records explicit selections separately from derived
-assumptions, and is canonical, immutable, compatibility-pinned, and separate from
-mutable runtime/spec graphs.
+WB1's first recipe is `controlled-clonal-locomotion` v1, bounded to the
+characterized E3 `max_speed` range `1..10`, the E3 `local_resource` and
+`separated_corridor` geographies, a reproducibility seed, and explicit evidence
+intent. Its manifest uses stable scientific IDs, records explicit selections
+separately from derived assumptions, and is canonical, immutable,
+compatibility-pinned, and separate from mutable runtime/spec graphs.
 
 Evidence intent remains separate from the manifest. Compilation reconstructs the
 existing E1-capable recorders before existing lower preflight. Saved revisions keep
 the exact manifest, lineage, and run-to-manifest provenance; forks are immutable,
 and diffing remains recipe-scoped.
 
-Lower packages do not depend on the Workbench. Future Workbench milestones should
-continue outside-in from concrete product needs. Durable WB2/WB3/WB4 handoff
-contracts live in `docs/evolution_experiment_workbench.md`. Generalization should
-wait until multiple concrete recipes demonstrate repeated structure; WB1 is not a
-universal Blueprint, registry, solver, schema system, or statistics DSL.
+WB3 adds two concrete persisted experiment patterns without a generic experiment
+DSL:
+
+- an E3-style one-factor max-speed sweep using stable factor identity
+  `controlled-locomotion.max-speed`, declared levels and unique replicate seeds,
+  deterministic expansion into exact WB1 treatment manifests, existing E3
+  treatment-integrity validation, and unchanged E3 replicate outcomes/summaries;
+- an E4-style matched environment comparison using stable primary factor identity
+  `controlled-locomotion.resource-geography`, the frozen local-resource control and
+  separated-corridor treatment, complete standing composition `(1, 3, 9)`, and the
+  existing cyclic speed-to-founder-ID counterbalance kept explicitly separate from
+  primary factor meaning.
+
+One simulation run/seed remains the replicate. E4's required individual focal-trait
+evidence continues through its existing recorder/analysis path rather than widening
+WB1's monomorphic recipe to arbitrary founder composition. Existing E3/E4 treatment
+integrity and scientific results remain authoritative; Workbench authoring does not
+replace them with generic configuration diffing, factor registries, evidence
+solving, metric registries, or statistics infrastructure.
+
+The next Workbench integration pressure is results/presentation and broader study
+workflows, not generic experiment abstraction. A downstream results layer may rely
+on stable experiment pattern/factor IDs, deterministic treatment ordering,
+per-treatment seed/factor/counterbalance metadata, and unchanged typed E3/E4
+replicate outcomes and treatment/environment summaries. It should preserve primary
+outcome, mechanism evidence, diagnostics, replicate-level values, and summaries as
+distinct meanings rather than flattening them into scalar fitness.
+
+Lower packages do not depend on the Workbench. Parallel Workbench milestones must
+continue outside-in from concrete product needs and integrate against current
+`main`. Durable contracts live in `docs/evolution_experiment_workbench.md`.
+Generalization should wait until repeated concrete consumers demonstrate repeated
+responsibility; WB1/WB3 do not authorize a universal Blueprint, registry, solver,
+schema system, experiment hierarchy, or statistics DSL.
 
 The Workbench product track is orthogonal to the next controlled-science pressure;
 neither should be made an artificial prerequisite for the other.
@@ -349,8 +379,8 @@ implementations.
 
 The Workbench product track proceeds independently from this scientific sequence.
 A scientific milestone should not acquire Workbench dependencies merely because
-WB1 exists, and Workbench expansion should continue to compile into already settled
-simulation/science contracts.
+the Workbench exists, and Workbench expansion should continue to compile into
+already settled simulation/science contracts.
 
 ## Front A — Richer genetic expression
 
@@ -499,6 +529,9 @@ the stable subset worth compiling.
   preflight; lower simulation/domain packages must not depend on Workbench code.
 - Keep persisted Workbench manifests separate from mutable runtime recorder/spec
   graphs; reconstruct runtime evidence and compiled specifications afresh.
+- Preserve semantic factor identity separately from implementation field paths, and
+  keep experimental counterbalancing/blocking metadata separate from primary-factor
+  meaning.
 - Prefer readable, maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
 
