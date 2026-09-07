@@ -298,57 +298,13 @@ focal mutation experiment now needs one concrete mutation policy.
               label="MkDocs E6 navigation",
           )
           mkdocs_path.write_text(mkdocs, encoding="utf-8")
-
-          workflow = Path(".github/workflows/e6-scientific-validation.yml")
-          workflow.write_text('''name: E6 Scientific Validation
-
-on:
-  pull_request:
-    paths:
-      - "src/evo_engine/experiments/e6_invasion.py"
-      - "src/evo_engine/experiments/__init__.py"
-      - "scripts/e6_invasion.py"
-      - "tests/experiments/test_e6_invasion.py"
-      - "tests/experiments/test_e6_invasion_contracts.py"
-      - "docs/e6_rare_lineage_invasion.md"
-      - "docs/development/current_state.md"
-      - "docs/development/roadmap.md"
-      - "mkdocs.yml"
-      - ".github/workflows/e6-scientific-validation.yml"
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  confirmation-e6:
-    name: Independent E6 confirmation
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-quality
-      - name: Run frozen disjoint-seed reciprocal invasion matrix
-        run: |
-          venv/bin/python scripts/e6_invasion.py \\
-            --mode confirmation \\
-            --output outputs/e6-validation/e6-confirmation.json
-      - name: Upload E6 confirmation evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e6-confirmation-${{ github.run_id }}
-          path: outputs/e6-validation/e6-confirmation.json
-          retention-days: 30
-          if-no-files-found: warn
-''', encoding="utf-8")
           PY
           git diff --check
       - name: Commit final E6 handoff documentation
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/e6_rare_lineage_invasion.md docs/development/current_state.md docs/development/roadmap.md mkdocs.yml .github/workflows/e6-scientific-validation.yml
+          git add docs/e6_rare_lineage_invasion.md docs/development/current_state.md docs/development/roadmap.md mkdocs.yml
           if git diff --cached --quiet; then
             exit 0
           fi
