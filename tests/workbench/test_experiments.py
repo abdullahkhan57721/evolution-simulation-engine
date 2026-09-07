@@ -47,9 +47,7 @@ def _sweep(
     seeds: tuple[int, ...] = (17, 29),
 ) -> MaxSpeedSweepDefinition:
     return MaxSpeedSweepDefinition(
-        base_intent=ControlledLocomotionIntent(
-            resource_geography="separated_corridor"
-        ),
+        base_intent=ControlledLocomotionIntent(resource_geography="separated_corridor"),
         levels=levels,
         seeds=seeds,
     )
@@ -119,9 +117,7 @@ def test_e3_sweep_requires_exact_analysis_evidence() -> None:
             ),
             levels=(3,),
             seeds=(17,),
-            evidence_plan=EvidencePlan(
-                requested=(POPULATION_EVIDENCE_ID,)
-            ),
+            evidence_plan=EvidencePlan(requested=(POPULATION_EVIDENCE_ID,)),
         )
     with pytest.raises(ValueError, match="does not support evidence"):
         MaxSpeedSweepDefinition(
@@ -158,16 +154,11 @@ def test_e3_sweep_expands_deterministically_before_compilation() -> None:
         item.manifest.explicit_value(MAX_SPEED_SLOT) == item.factor_level
         for item in first
     )
-    assert all(
-        item.manifest.explicit_value(SEED_SLOT) == item.seed
-        for item in first
-    )
+    assert all(item.manifest.explicit_value(SEED_SLOT) == item.seed for item in first)
 
 
 def test_e3_same_seed_manifests_differ_only_by_declared_factor() -> None:
-    expanded = expand_max_speed_sweep(
-        _sweep(levels=(1, 3, 9), seeds=(17,))
-    )
+    expanded = expand_max_speed_sweep(_sweep(levels=(1, 3, 9), seeds=(17,)))
     reference = expanded[0]
 
     for candidate in expanded[1:]:
@@ -175,10 +166,9 @@ def test_e3_same_seed_manifests_differ_only_by_declared_factor() -> None:
             reference.manifest,
             candidate.manifest,
         )
-        assert {
-            change.slot_id
-            for change in difference.explicit_changes
-        } == {MAX_SPEED_SLOT}
+        assert {change.slot_id for change in difference.explicit_changes} == {
+            MAX_SPEED_SLOT
+        }
 
 
 def test_e3_expansion_calls_concrete_treatment_integrity(
@@ -216,9 +206,7 @@ def test_e3_workbench_execution_reuses_existing_scientific_results() -> None:
     )
 
     assert result.replicate_outcomes == (direct,)
-    assert result.treatment_summaries == (
-        summarize_e3_treatment((direct,)),
-    )
+    assert result.treatment_summaries == (summarize_e3_treatment((direct,)),)
     assert result.replicate_outcomes[0].provenance.seed == 17
 
 
@@ -231,23 +219,16 @@ def test_e3_definition_round_trip_preserves_factor_identity_and_meaning() -> Non
     assert loaded == definition
     assert loaded.to_json() == encoded
     assert loaded.factor_slot_id == MAX_SPEED_SLOT
-    assert expand_max_speed_sweep(loaded) == expand_max_speed_sweep(
-        definition
-    )
+    assert expand_max_speed_sweep(loaded) == expand_max_speed_sweep(definition)
 
 
 def test_e4_comparison_uses_resource_geography_as_only_primary_factor() -> None:
-    definition = EnvironmentSelectionComparisonDefinition(
-        seeds=(5, 17, 29)
-    )
+    definition = EnvironmentSelectionComparisonDefinition(seeds=(5, 17, 29))
 
     assert definition.factor_slot_id == RESOURCE_GEOGRAPHY_SLOT
     assert definition.focal_speeds == E4_FOCAL_SPEEDS
     encoded = json.loads(definition.to_json())
-    assert (
-        encoded["factor_slot_id"]
-        == "controlled-locomotion.resource-geography"
-    )
+    assert encoded["factor_slot_id"] == "controlled-locomotion.resource-geography"
     assert encoded["counterbalance_id"] == E4_COUNTERBALANCE_ID
 
     with pytest.raises(ValueError, match="manipulates only"):
@@ -297,9 +278,7 @@ def test_e4_comparison_requires_complete_focal_and_mechanism_evidence() -> None:
 
 
 def test_e4_expansion_keeps_counterbalance_separate_from_factor_meaning() -> None:
-    definition = EnvironmentSelectionComparisonDefinition(
-        seeds=(5, 17, 29)
-    )
+    definition = EnvironmentSelectionComparisonDefinition(seeds=(5, 17, 29))
 
     expanded = expand_environment_selection_comparison(definition)
 
@@ -394,16 +373,14 @@ def test_e4_workbench_execution_reuses_existing_scientific_results() -> None:
         summarize_e4_environment((direct_control,)),
         summarize_e4_environment((direct_treatment,)),
     )
-    assert tuple(
-        outcome.provenance.seed
-        for outcome in result.replicate_outcomes
-    ) == (5, 5)
+    assert tuple(outcome.provenance.seed for outcome in result.replicate_outcomes) == (
+        5,
+        5,
+    )
 
 
 def test_e4_definition_round_trip_preserves_counterbalance_and_factor() -> None:
-    definition = EnvironmentSelectionComparisonDefinition(
-        seeds=(5, 17, 29)
-    )
+    definition = EnvironmentSelectionComparisonDefinition(seeds=(5, 17, 29))
     encoded = definition.to_json()
 
     loaded = EnvironmentSelectionComparisonDefinition.from_json(encoded)
@@ -411,10 +388,9 @@ def test_e4_definition_round_trip_preserves_counterbalance_and_factor() -> None:
     assert loaded == definition
     assert loaded.to_json() == encoded
     assert loaded.factor_slot_id == RESOURCE_GEOGRAPHY_SLOT
-    assert (
-        expand_environment_selection_comparison(loaded)
-        == expand_environment_selection_comparison(definition)
-    )
+    assert expand_environment_selection_comparison(
+        loaded
+    ) == expand_environment_selection_comparison(definition)
 
 
 def test_e4_definition_rejects_tampered_counterbalance_identity() -> None:
@@ -423,9 +399,7 @@ def test_e4_definition_rejects_tampered_counterbalance_identity() -> None:
     mapping["counterbalance_id"] = "different-scheme"
 
     with pytest.raises(ValueError, match="counterbalance identity"):
-        EnvironmentSelectionComparisonDefinition.from_json(
-            json.dumps(mapping)
-        )
+        EnvironmentSelectionComparisonDefinition.from_json(json.dumps(mapping))
 
 
 def test_wb3_does_not_add_generic_experiment_or_statistics_machinery() -> None:
@@ -440,8 +414,7 @@ def test_wb3_does_not_add_generic_experiment_or_statistics_machinery() -> None:
         "FactorialExperiment",
     }
     source = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in package_root.glob("*.py")
+        path.read_text(encoding="utf-8") for path in package_root.glob("*.py")
     )
 
     for forbidden in forbidden_names:
