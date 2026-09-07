@@ -31,6 +31,7 @@ from evo_engine.workbench.reference_ecology import (
     ReferenceEcologyIntent,
     ReferenceEcologyManifest,
     ReferenceEvidencePlan,
+    assess_reference_readiness,
     compile_reference_ecology,
     normalized_reference_explicit_values,
     resolve_reference_ecology,
@@ -67,6 +68,9 @@ class ReferenceStudyRevision:
                 raise ValueError("parent_revision_id must differ from revision_id.")
         if _normalize_saved_intent(self.intent) != self.intent:
             raise ValueError("Stored reference intent contains inactive stale values.")
+        readiness = assess_reference_readiness(self.intent, self.evidence_plan)
+        if readiness.state != "ready":
+            raise ValueError("Stored reference intent is outside the WB4 support envelope.")
         if (
             normalized_reference_explicit_values(self.intent)
             != self.manifest.explicit_values
