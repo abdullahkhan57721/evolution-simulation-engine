@@ -7,6 +7,8 @@ from typing import Literal, TypeAlias, cast
 import attrs
 
 from evo_engine.workbench import (
+    REFERENCE_EXPERT_SLOT_IDS,
+    REFERENCE_SLOT_METADATA,
     B3CuratedDiff,
     B3StudyRevision,
     ControlledLocomotionDiff,
@@ -28,8 +30,6 @@ from evo_engine.workbench import (
     fork_study_revision,
     is_slot_applicable,
     reference_slot_metadata,
-    REFERENCE_EXPERT_SLOT_IDS,
-    REFERENCE_SLOT_METADATA,
 )
 from evo_engine.workbench.reference_ecology import (
     GAUSSIAN_STDDEV_SLOT,
