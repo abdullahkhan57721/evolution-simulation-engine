@@ -28,7 +28,7 @@ jobs:
       - uses: ./.github/actions/setup-quality
       - name: Generate mechanical Ruff cleanup copies
         run: |
-          venv/bin/ruff check --fix src/evo_engine/experiments/e6_invasion.py tests/experiments/test_e6_invasion.py
+          venv/bin/ruff check --fix --unsafe-fixes src/evo_engine/experiments/e6_invasion.py tests/experiments/test_e6_invasion.py
           venv/bin/ruff format src/evo_engine/experiments/e6_invasion.py tests/experiments/test_e6_invasion.py
       - name: Upload mechanical cleanup copies
         uses: actions/upload-artifact@v4
