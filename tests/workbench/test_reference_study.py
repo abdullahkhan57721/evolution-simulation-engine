@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
+
 import attrs
+import pytest
 
 from evo_engine.workbench.reference_ecology import (
     EVENT_EVIDENCE_ID,
@@ -58,6 +61,33 @@ def test_reference_study_round_trip_removes_inactive_stale_intent() -> None:
     assert loaded.intent.patch_1_center_x is None
     assert loaded.intent.mutation_probability_ppm is None
     assert loaded.intent.mutation_max_change is None
+
+
+def test_reference_study_rejects_tampered_out_of_support_saved_intent() -> None:
+    revision = create_reference_study_revision(
+        revision_id="tampered-support",
+        intent=_intent(),
+    )
+    payload = json.loads(revision.to_json())
+    assert isinstance(payload, dict)
+    intent = payload["intent"]
+    assert isinstance(intent, dict)
+    intent["max_speed"] = 5
+
+    manifest = json.loads(payload["manifest_json"])
+    assert isinstance(manifest, dict)
+    explicit_values = manifest["explicit_values"]
+    assert isinstance(explicit_values, list)
+    max_speed_pair = next(
+        pair
+        for pair in explicit_values
+        if pair[0] == "reference-ecology.founder-max-speed"
+    )
+    max_speed_pair[1] = 5
+    payload["manifest_json"] = json.dumps(manifest)
+
+    with pytest.raises(ValueError, match="outside the WB4 support envelope"):
+        ReferenceStudyRevision.from_json(json.dumps(payload))
 
 
 def test_reference_fork_is_immutable_and_semantic() -> None:
