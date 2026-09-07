@@ -81,7 +81,9 @@ def test_treatment_specification_rejects_out_of_scope_values() -> None:
         )
 
 
-def test_treatment_resource_budget_and_seed_guards(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_treatment_resource_budget_and_seed_guards(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     treatment = e5.build_e5_treatment(mode="weak_selection", founder_count=2)
     assert treatment.group_speeds == e5.E5_WEAK_PAIR
     assert treatment.treatment_id.endswith("phase-0")
@@ -159,7 +161,9 @@ def test_composition_point_validates_extinction_and_frequency_semantics() -> Non
         _point(0, 1, 1).count(cast(Any, "C"))
 
 
-def test_replicate_outcome_constructor_guards(neutral_outcome: e5.E5ReplicateOutcome) -> None:
+def test_replicate_outcome_constructor_guards(
+    neutral_outcome: e5.E5ReplicateOutcome,
+) -> None:
     p0 = _point(0, 1, 1)
     p60 = _point(e5.E5_HORIZON, 1, 1)
 
@@ -217,7 +221,6 @@ def test_assignment_and_treatment_integrity_guards() -> None:
         e5.assignment_phase_for_replicate(-1)
 
     neutral = e5.build_e5_treatment(mode="neutral", founder_count=2)
-    weak = e5.build_e5_treatment(mode="weak_selection", founder_count=2)
     with pytest.raises(ValueError, match="neutral control"):
         e5.validate_e5_mode_integrity(neutral, neutral)
     with pytest.raises(ValueError, match="founder count"):
@@ -299,7 +302,11 @@ def test_ancestry_resolution_covers_valid_and_invalid_clonal_pedigrees() -> None
         e5._resolve_ancestry_groups((founder_a,), founder_group_map={})
     with pytest.raises(ValueError, match="exactly one recorded parent"):
         e5._resolve_ancestry_groups(
-            (founder_a, founder_b, IndividualLifeHistory(organism_id=3, parent_ids=(1, 2))),
+            (
+                founder_a,
+                founder_b,
+                IndividualLifeHistory(organism_id=3, parent_ids=(1, 2)),
+            ),
             founder_group_map={1: "A", 2: "B"},
         )
     with pytest.raises(ValueError, match="absent from pedigree records"):
@@ -372,7 +379,9 @@ def test_loss_fixation_and_extinction_helpers_preserve_censoring() -> None:
     assert e5._extinction_outcome((p0, balanced)).right_censored
 
 
-def test_loss_fixation_consistency_guard(neutral_outcome: e5.E5ReplicateOutcome) -> None:
+def test_loss_fixation_consistency_guard(
+    neutral_outcome: e5.E5ReplicateOutcome,
+) -> None:
     e5._validate_loss_fixation_consistency(neutral_outcome)
     observed_fixation = FixedHorizonTimeToEvent(
         start_step_index=0,
@@ -461,9 +470,15 @@ def test_descriptive_statistics_helpers_cover_empty_and_directional_cases() -> N
     assert e5._variance_or_none((1.0, 3.0)) == pytest.approx(2.0)
     assert e5._stddev_or_none((1.0, 3.0)) == pytest.approx(2.0**0.5)
     assert e5._direction_proportion((), direction="increase") is None
-    assert e5._direction_proportion((1.0, -1.0, 0.0), direction="increase") == pytest.approx(1 / 3)
-    assert e5._direction_proportion((1.0, -1.0, 0.0), direction="decrease") == pytest.approx(1 / 3)
-    assert e5._direction_proportion((1.0, -1.0, 0.0), direction="unchanged") == pytest.approx(1 / 3)
+    assert e5._direction_proportion(
+        (1.0, -1.0, 0.0), direction="increase"
+    ) == pytest.approx(1 / 3)
+    assert e5._direction_proportion(
+        (1.0, -1.0, 0.0), direction="decrease"
+    ) == pytest.approx(1 / 3)
+    assert e5._direction_proportion(
+        (1.0, -1.0, 0.0), direction="unchanged"
+    ) == pytest.approx(1 / 3)
     with pytest.raises(ValueError, match="must not be empty"):
         e5._proportion((), lambda _: True)
 
