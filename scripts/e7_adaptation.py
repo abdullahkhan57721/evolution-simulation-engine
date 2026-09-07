@@ -26,7 +26,6 @@ E7RunMode = Literal["discovery", "confirmation"]
 def run(mode: E7RunMode) -> dict[str, Any]:
     """Run all predeclared E7 starting conditions on the selected seed set."""
     seeds = E7_DISCOVERY_SEEDS if mode == "discovery" else E7_CONFIRMATION_SEEDS
-    outcomes_by_start: dict[int, tuple[Any, ...]] = {}
     summaries: dict[int, Any] = {}
     starting_conditions: dict[str, Any] = {}
 
@@ -38,7 +37,6 @@ def run(mode: E7RunMode) -> dict[str, Any]:
             run_role=mode,
         )
         summary = summarize_e7_starting_condition(outcomes)
-        outcomes_by_start[starting_speed] = outcomes
         summaries[starting_speed] = summary
         starting_conditions[str(starting_speed)] = {
             "summary": attrs.asdict(summary),
@@ -84,9 +82,7 @@ def _print_summary(payload: dict[str, Any]) -> None:
         for replicate in result["replicates"]:
             final = replicate["trait_trajectory"][-1]
             nonzero = [
-                [speed, count]
-                for speed, count in enumerate(final["counts"])
-                if count
+                [speed, count] for speed, count in enumerate(final["counts"]) if count
             ]
             print(
                 f"  seed={replicate['provenance']['seed']} "
