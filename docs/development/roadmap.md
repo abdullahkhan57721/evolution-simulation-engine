@@ -27,7 +27,8 @@ The project should continue toward a simulation engine in which:
    simulation evidence;
 6. scientific-study authoring compiles down into existing typed/scenario
    composition rather than becoming a second simulation architecture;
-7. performance/native-backend work begins only from measured need.
+7. Workbench growth is now primarily incremental rather than foundational;
+8. performance/native-backend work begins only from measured need.
 
 The kernel is not the development frontier. New modeled behavior normally belongs
 above it unless a genuine generic deficiency is demonstrated.
@@ -76,8 +77,8 @@ evidence.
 
 ## Completed scientific flagship sequence
 
-The richer B-series flagship established a robust environment-dependent selection
-story without kernel changes or scalar fitness:
+The B-series flagship established a robust environment-dependent selection story
+without kernel changes or scalar fitness:
 
 ```text
 B1 spatial resource geography
@@ -93,20 +94,10 @@ renderer-neutral B3 scientific handoff
 concrete B3 flagship cinematic director
 ```
 
-Canonical B3 compares uniform renewable-resource placement with two equal-weight
-radius-1 patches at `(2, 5)` and `(9, 5)` while keeping nonfocal biology, founder
-construction, resource quantity, sexual inheritance, and horizon matched. Founders
-begin with balanced homozygous `max_speed = 1 / 4` standing variation.
-
-Independent confirmation uses seeds `5, 17, 29, 43, 61, 79, 97, 113`. Compact
-treatment exceeds matched uniform control in all eight seeds at the predeclared
-step-30 high-speed allele-frequency readout. Founder reproductive contribution,
-founder-label counterbalancing, and radius-2 geometry sensitivity support and bound
-the interpretation. Representative seed 5 and its real committed mechanism
-episodes are chosen by B3 science, not by presentation code.
-
-The old `max_intake_rate` v0.1 example remains a secondary historical
-regression/integration path.
+Canonical B3 remains the richer integrated reference-ecology demonstration. Its
+representative run, bounded claim, counterbalance, and sensitivity are selected and
+interpreted by science rather than by UI/cinematic code. A B3-derived radius-2 fork
+retains scenario origin but not canonical validated identity.
 
 ## Completed E1–E6 controlled-science sequence
 
@@ -126,33 +117,15 @@ E5 finite-population drift and weak selection
 E6 rare-lineage invasion and candidate stability
 ```
 
-- **E1** established exact event/state alignment, scientific provenance,
-  fixed-horizon censoring, thin treatment-integrity checks, and pure measurements
-  from committed evidence without a universal metrics/statistics framework.
-- **E2** validated capacity-limited targeted movement, locomotion-use cost,
-  endpoint feeding, scarce-resource competition, exact clonal propagation, and
-  known grid anisotropy in a minimal one-locus system.
-- **E3** independently confirmed local-resource speed neutrality and an interior
-  speed-3 corridor performance maximum; removing locomotion cost removes the
-  canonical high-speed penalty.
-- **E4** independently confirmed that the corridor increases speed-3 frequency
-  from `1/3` to `2/3` from equal standing variation while the local arm remains
-  neutral; complete focal composition and strategy-specific mechanism evidence are
-  preserved, with founder-order counterbalancing kept separate from treatment.
-- **E5** showed neutral frequency-change spread contracting with founder count and
-  weak 3-vs-4 selection reversing in some small-population runs. Unobserved
-  loss/fixation/extinction remains right-censored.
-- **E6** uses exact resident-state/RNG forking and matched rare external admission.
-  Speed-3 mutants can reproduce and expand against speed-4 residents while
-  reciprocal speed-4 mutants do not expand. The claim remains bounded to candidate
-  invasion stability against reciprocal speed 4.
+The sequence now establishes a causal chain from locomotion mechanics through
+performance, standing-variation selection, finite-population stochasticity, and a
+bounded reciprocal rare-lineage invasion assay. It remains separate from B3 and
+does not authorize universal fitness/statistics/population-genetics abstractions.
 
-E1–E6 remain separate from B3. The controlled sequence isolates causal mechanics;
-B3 remains the richer integrated reference-ecology flagship.
+## Completed Workbench foundation: WB1–WB6
 
-## Experiment Workbench product sequence
-
-WB1–WB5 now establish the first complete concrete Workbench Study workflow:
+WB1–WB6 establish and review the first complete Evolution Experiment Workbench
+architecture:
 
 ```text
 semantic Study / curated scenario / concrete experiment definition
@@ -174,144 +147,96 @@ Study-facing Results navigation
 interactive / cinematic Presentation
 ```
 
-### WB1 — Controlled Locomotion Study Core
+### What is now settled
 
-WB1 established bounded semantic authoring, stable scientific IDs, explicit versus
-derived manifest meaning, EvidencePlan persistence, exact compatibility-aware
-save/load, fresh runtime reconstruction, run-to-manifest provenance, immutable fork
-lineage, and recipe-scoped semantic diff over the characterized E3 locomotion
-surface.
+- WB1 established bounded semantic authoring, immutable manifest meaning,
+  EvidencePlan persistence, exact compatibility-aware reproduction, run provenance,
+  immutable fork lineage, and recipe-scoped semantic diff.
+- WB2 pressure-tested those contracts against canonical B3 and established scenario
+  origin versus validated scenario identity.
+- WB3 added concrete E3/E4 experiment authoring while keeping factor, treatment,
+  counterbalance, replicate, and measurement distinct.
+- WB4 added richer bounded reference-ecology authoring with explicit
+  Guided/Advanced/Expert/Extension support, recipe-local applicability and
+  normalization, and concrete evidence options.
+- WB5 added Results navigation and downstream V2/V3 presentation integration without
+  a universal result/presentation framework.
+- WB6 audited the complete implementation and found the foundation stable. It
+  promoted only one genuinely repeated responsibility: a small Workbench-owned
+  diagnostic value with code, severity, optional semantic context, message, and
+  remediation.
 
-### WB2 — Curated B3 Study, Exact Reproduction, and Fork Lineage
+The final review is in `docs/workbench_architecture_review.md`.
 
-WB2 represented the confirmed B3 flagship as a trusted frozen Workbench Study with
-a rich resolved manifest and existing B3 science as authority. It established:
+## Workbench direction after WB6
+
+The Workbench foundation is now in **maintenance-and-extension mode**.
+
+Future Workbench work should normally begin from a real scientific/product use case
+and take one of these forms:
 
 ```text
-scenario identity = exact validated frozen scenario
-scenario origin   = scientific lineage from that scenario
+add bounded recipe
+or
+add semantic choice to an existing recipe
+or
+add evidence option backed by an existing recorder
+or
+add concrete experiment pattern
+or
+promote a support tier with evidence
+or
+add a downstream result/presentation consumer
 ```
 
-The supported radius-2 sensitivity fork retains B3 origin but loses canonical
-radius-1 validated identity and does not automatically inherit the original
-headline claim or representative-story semantics. Exact reproduction loads the
-stored resolved manifest rather than re-resolving modern defaults.
+A new shared abstraction should require repeated consumers demonstrating the same
+responsibility. Architecture redesign is no longer the default milestone shape.
 
-### WB3 — Controlled Experiment Authoring
+### Support boundary that must remain explicit
 
-WB3 added two concrete persisted experiment patterns without a generic experiment
-DSL:
+```text
+engine-valid
+    ≠ Workbench-supported
+    ≠ Guided
+    ≠ experiment factor levels
+```
 
-- E3-style one-factor max-speed sweep using stable factor identity
-  `controlled-locomotion.max-speed`;
-- E4-style matched environment comparison using stable factor identity
-  `controlled-locomotion.resource-geography` while keeping founder-order
-  counterbalancing separate from primary factor meaning.
+The current bounded reference-ecology recipe keeps its existing tier assignment:
+Guided stable core; Advanced selected richer movement/resource/mutation/
+recombination controls; Expert empty; arbitrary policy/genetics/inheritance/
+reproduction/lifecycle/development composition Extension/Internal. WB6 performs no
+support promotion merely because lower engine validators allow broader values.
 
-Treatment expansion occurs before compilation. One run/seed remains a replicate.
-Existing E3/E4 treatment-integrity checks, outcomes, summaries, and evidence remain
-authoritative.
+### Diagnostics boundary
 
-### WB4 — Bounded Reference-Ecology Custom Study
+Workbench diagnostics cover only Workbench-owned support/status facts demonstrated
+by real workflows. Lower validators remain authoritative:
 
-WB4 added `bounded-reference-ecology` v1 over existing reference composition.
-Guided authoring covers the stable core; Advanced authoring covers selected richer
-movement/resource/mutation/recombination controls; Expert remains deliberately
-empty. Arbitrary policy graphs, genetics, inheritance, reproduction, lifecycle,
-and development/G×E stay Extension/Internal.
+- `DependencyReport` + `SimulationSpecValidator` for generic preflight;
+- `BiologicalSimulationSpec` for biological preflight;
+- `GeneticArchitecture` for genetic coherence;
+- concrete experiment integrity checks for scientific treatment validity.
 
-Conditional state is recipe-local and inactive values are normalized out before
-persistence. Exact manifests include stable semantic identity plus compatibility
-fingerprinting for non-editable scientific assumptions. Population, event,
-pedigree, genetic-composition, and spatial evidence reuse existing recorders;
-spatial replay is opt-in with a volume advisory.
+Do not create a universal diagnostic conversion layer or parse arbitrary exception
+prose into Workbench semantics.
 
-### WB5 — Scientific Results and Presentation Integration
+### Persistence and migration boundary
 
-WB5 establishes the post-execution Study boundary without creating a universal
-Results object or presentation framework.
+Exact reproduction continues to mean stored immutable manifest plus compatible
+recipe/compiler/software identity. It does not mean re-resolving old intent under
+current defaults.
 
-`workbench.results` organizes existing WB1, E3, E4, WB4, and B3 artifacts by exact
-Study revision, manifest, EvidencePlan, treatment/factor, seed/replicate, and
-counterbalance identity. Missing evidence is reported as unavailable rather than
-reconstructed. Existing scientific outcomes pass through unchanged.
-
-Downstream adapters integrate with existing media:
-
-- V2 builds existing `WorldPresentationFrame` values from recorded WB4/B3 evidence
-  while preserving exact Workbench run/seed/arm context;
-- V3 accepts validated canonical B3 Workbench results into the existing B3-specific
-  cinematic director;
-- a B3 radius-2 derived fork remains inspectable but cannot inherit the canonical
-  headline/story cinematic handoff merely from scenario origin.
-
-WB5 confirms that the WD2 labels `Study / Simulation / Evidence / Experiment /
-Results / Presentation` are a **product/navigation model**, not a one-class-per-
-section architecture. Persisted scientific identity remains recipe/pattern-specific;
-Results is mainly a view over existing artifacts; Presentation remains downstream.
-No new universal renderer-neutral presentation abstraction is earned beyond the
-existing `ContinuousTraitEncoding` and concrete scientific handoffs.
-
-See `docs/wb5_results_presentation.md`.
-
-## Next Workbench milestone: WB6
-
-### WB6 — Diagnostics and Support-Envelope Hardening
-
-WB6 should improve only diagnostics and support behavior demonstrated by WB1–WB5.
-The concrete pressure now includes:
-
-- incomplete and unsupported authoring choices;
-- irrelevant conditional parameters and normalized stale state;
-- missing evidence with explicit rerun remediation;
-- loss of validated scenario identity while retaining scenario origin;
-- exact-reproduction compatibility failures;
-- experiment-specific factor/treatment-integrity failures;
-- distinction between blocking readiness and advisory conditions;
-- support-tier promotion only where real usage demonstrates stable semantics.
-
-The Workbench must not parse arbitrary Python exception prose to invent scientific
-remediation. Lower biological, generic dependency, and scientific validators remain
-authoritative.
-
-WB6 is **not** a generic Workbench-framework milestone. Do not introduce a
-capability graph, reflection-based form system, evidence solver, plugin registry,
-universal Study/Result schema, migration framework, claim inference engine, or
-statistics DSL merely because five Workbench milestones now exist.
-
-See `docs/development/wb6_workbench_handoff.md`.
-
-## Presentation continuation
-
-WB5 implements the architectural integration seam for Workbench→V2/V3, while the
-concrete user-facing interactive B3 matched-comparison experience can continue to
-improve on top of it.
-
-Preserve across media:
-
-- B3 control/treatment semantics;
-- fixed shared `max_speed` scientific scale;
-- matched committed timestep convention;
-- exact Study/run/treatment/replicate identity;
-- primary versus mechanism versus diagnostic evidence;
-- representative storytelling versus multi-seed robustness;
-- bounded claim/nonclaim status.
-
-Renderer-specific controls, layout, charts, selection, animation rate,
-accessibility, camera, timing, and export quality remain presentation
-responsibilities.
-
-The B3 cinematic director remains concrete. Do not generalize it into a camera DSL,
-universal storyboard, or `ScenarioPresentationSpec` without multiple future films
-demonstrating a repeated responsibility.
+No migration engine is currently justified. If future saved-study incompatibility
+creates a real migration need, migration must create new scientific identity rather
+than masquerade as exact reproduction.
 
 ## Next controlled-science milestone: E7
 
 ### E7 — Mutation-Driven Adaptation and Convergence
 
-E7 is sequential after E6 and orthogonal to WB6. Its central question is whether
-independent populations with **focal-only `max_speed` mutation** converge toward the
-performance/selection/invasion region identified by E3–E6.
+E7 is the next sequential controlled-science pressure. Its central question is
+whether independent populations with **focal-only `max_speed` mutation** converge
+toward the performance/selection/invasion region identified by E3–E6.
 
 Use multiple predeclared low/near/high starting conditions, multiple independent
 seeds, an explicit mutation rate and step distribution, a legal speed range wider
@@ -322,16 +247,37 @@ is not an optimum.
 
 Do not enable mutation across the richer reference genome merely for convenience.
 E7 should remain above the frozen kernel and should not acquire Workbench
-dependencies merely because both tracks exist.
+dependencies merely because the Workbench exists.
+
+A later product milestone may expose E7 through a concrete Workbench experiment
+pattern only after E7 science is settled.
+
+## Presentation continuation
+
+WB5 provides the architecture seam for Workbench→V2/V3. Future interactive work may
+improve the concrete B3 matched-comparison experience while preserving:
+
+- exact Study/run/treatment/replicate identity;
+- B3 control/treatment semantics;
+- fixed shared scientific trait scales;
+- matched committed timestep convention;
+- primary versus mechanism versus diagnostic evidence;
+- representative storytelling versus multi-seed robustness;
+- bounded claim/nonclaim status.
+
+Renderer-specific controls, layout, charts, selection, accessibility, animation,
+camera, timing, and export remain presentation responsibilities.
+
+The B3 cinematic director remains concrete. Do not generalize it into a camera DSL,
+universal storyboard, scene graph, or broad `ScenarioPresentationSpec` without
+multiple future scenarios demonstrating a repeated responsibility.
 
 ## Longer-term modeled fronts
 
 ### Front A — richer genetic expression
 
-Extend current copy-count-aware, multi-locus expression only through concrete
-biological consumers: incomplete dominance, codominance, epistasis,
-dosage-sensitive expression, or richer quantitative architectures where earned.
-Preserve:
+Potential directions include incomplete dominance, codominance, epistasis,
+dosage-sensitive expression, and richer quantitative architectures. Preserve:
 
 ```text
 genome
@@ -345,43 +291,40 @@ development / environment-dependent realization
 current physiological state
 ```
 
-Do not collapse these layers into a catch-all phenotype object.
-
 ### Front B — richer chromosome pairing and recombination
 
 Current responsibilities already separate chromosome-copy structure, pairing,
 recombination eligibility, segregation, and gamete formation. Future biology may
-earn higher-copy pairing, preferential/random bivalents, multivalents,
-chromosome-specific crossover behavior, or multiple crossovers. Keep meiosis
-vocabulary out of the kernel/general propagation contracts.
+earn higher-copy pairing, multivalents, chromosome-specific crossover behavior, or
+multiple crossovers. Keep meiosis vocabulary outside the kernel/general propagation
+contracts.
 
 ### Front C — richer mating systems
 
 Shared reproduction already separates participants, investors, genetic
 contributors, and production sources. Future cases may explore ordered/asymmetric
-roles, multi-participant groups, hermaphroditic systems, role-sensitive choice, or
-contributor/investor subsets. Keep mating-system composition separate from
-low-level inheritance.
+roles, multi-participant groups, hermaphroditic systems, or role-sensitive choice.
+Keep mating-system composition separate from low-level inheritance.
 
 ### Front D — richer development and G×E
 
 Possible directions include nonlinear reaction norms, developmental history/stages,
-richer developmental stochasticity, and reversible adult plasticity distinct from
-lifetime developmental targets. Preserve inheritance, expression, development,
-environment, and current mutable state as separate responsibilities.
+richer developmental stochasticity, and reversible adult plasticity. Preserve
+inheritance, expression, development, environment, and current mutable state as
+separate responsibilities.
 
 ### Front E — richer evolutionary ecology
 
 Possible directions include richer resource competition, movement/behavior
 tradeoffs, predation/prey coevolution, life-history tradeoffs, spatial population
-structure, and fluctuating or heterogeneous selection. Selection should continue to
+structure, and fluctuating/heterogeneous selection. Selection should continue to
 emerge from differential persistence/propagation rather than a kernel-owned scalar
 `fitness` field.
 
 ## Observation and statistical analysis
 
 E1–E6 provide concrete consumers for scientific measurement without justifying a
-broad statistics framework. Repeated future experiment patterns may earn reusable
+broad statistics framework. Future repeated experiment patterns may earn reusable
 statistical contracts only after multiple concrete consumers show what actually
 repeats.
 
@@ -416,39 +359,29 @@ exist.
   demonstrated.
 - Preserve simulation-owned RNG and materialize-before-apply semantics.
 - Preserve domain-neutral general-evolution vocabulary.
-- Keep reproduction participant/investor/contributor/production-source roles
-  separate.
 - Keep chromosome structure, pairing, recombination, and segregation separate.
+- Keep reproduction participants, investors, contributors, and production sources
+  separate.
 - Keep genetic expression, development, environment, and current state separate.
 - Keep scientific measurement downstream of committed evidence and upstream of
   reporting/presentation.
-- Keep presentation downstream of scientific meaning; presentation interpolation
-  is never evidence.
+- Keep presentation downstream of scientific meaning; interpolation is never
+  evidence.
 - Keep run/seed as the current experimental replicate unless a later concrete
   design justifies another unit.
-- Keep Workbench authoring above existing typed/scenario composition and lower
+- Keep Workbench above existing typed/scenario composition and lower
   validation/preflight.
 - Keep persisted Workbench values separate from mutable recorder/spec/runtime
-  graphs; reconstruct runtime values afresh.
+  graphs.
 - Preserve scenario origin separately from validated scenario identity.
-- Preserve semantic factor identity separately from implementation field paths and
+- Preserve semantic factor identity separately from implementation paths and
   counterbalancing metadata.
-- Normalize inapplicable Workbench authoring state before persistence.
+- Normalize inapplicable authoring state before persistence.
 - Keep Workbench scientific manifests renderer-neutral.
-- Allow UI/cinematic to consume Workbench downstream while preventing Workbench or
-  model/science from importing renderer packages.
+- Allow UI/cinematic to consume Workbench downstream while preventing reverse
+  dependencies.
 - Prefer readable maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
-
-## ChatGPT versus Codex allocation
-
-Use ChatGPT primarily for architecture-heavy work, consequential public contracts,
-tightly scoped sequential implementation, roadmap sequencing, and independent
-review/merge decisions.
-
-Use Codex selectively for execution-heavy work behind settled contracts, broad
-analogous migrations, repetitive test expansion, validation/debug cycles, and
-independently parallelizable repository iteration.
 
 ## Planning rule
 
@@ -456,12 +389,12 @@ Before opening each new milestone Issue:
 
 1. re-read current `main` and `docs/development/current_state.md`;
 2. verify whether earlier work changed assumptions in this roadmap;
-3. start from a concrete modeled or product/presentation use case;
+3. start from a concrete modeled, scientific, or product/presentation use case;
 4. settle consequential public architecture in Chat when needed;
 5. create one focused Issue with boundaries, traps, acceptance criteria, tests, and
    manual verification where material;
-6. update this roadmap in the same PR only when ordering or architectural direction
-   materially changes.
+6. update this roadmap only when ordering or architectural direction materially
+   changes.
 
 A roadmap is a hypothesis about the best sequence. Repository evidence may change
 it.
