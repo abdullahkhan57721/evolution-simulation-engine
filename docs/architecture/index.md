@@ -143,6 +143,13 @@ kernel carries context but does not assign modeled meaning to values.
 `SimulationSpec` is the generic compilation/preflight boundary. Domain-specific
 configuration layers may build on it and add domain validation.
 
+`DependencyReport` already provides the structured generic dependency facts needed
+by lower preflight: required/provided dependencies, missing dependencies, and the
+requiring component type. `SimulationSpecValidator` owns the generic raising
+boundary. `BiologicalSimulationSpec` and `GeneticArchitecture` retain biological
+and genetic validation authority respectively; higher product layers should not
+reimplement those checks.
+
 ## Evolution Experiment Workbench
 
 The Workbench is a scientific-study authoring layer over existing typed
@@ -155,20 +162,39 @@ validation path.
 Read:
 
 - [Evolution Experiment Workbench Architecture](../evolution_experiment_workbench.md)
+- [Workbench Architecture Review](../workbench_architecture_review.md)
 - [WB4 Bounded Reference-Ecology Recipe](../wb4_bounded_reference_ecology.md)
+- [WB5 Results and Presentation](../wb5_results_presentation.md)
 - `src/evo_engine/workbench/`
 - `tests/workbench/`
 
-WB1 established the first bounded controlled-locomotion recipe; WB2 pressure-tested
-exact reproduction against the trusted B3 flagship; WB3 added concrete controlled-
-experiment authoring; WB4 proves the same principles scale to a richer editable
-reference ecology through recipe-local support tiers, applicability/normalization,
-a broader curated evidence plan, and compatibility-fingerprinted non-editable
-assumptions. None of these milestones inserts Workbench between
-`BiologicalSimulationSpec` and `SimulationSpec` or authorizes a universal schema,
-registry, capability solver, or generic policy editor.
+WB1 established bounded controlled-locomotion authoring. WB2 pressure-tested exact
+reproduction against trusted B3 and established scenario origin versus validated
+scenario identity. WB3 added concrete controlled-experiment authoring. WB4 proved
+the same principles scale to richer bounded reference ecology through explicit
+support tiers and recipe-local applicability/normalization. WB5 integrated Results
+and downstream V2/V3 presentation without duplicate science. WB6 audits the whole
+implementation and moves the Workbench foundation into maintenance-and-extension
+mode.
 
-Lower engine/domain packages must not depend on `evo_engine.workbench`.
+The WB6 review found one genuinely earned shared abstraction: a small
+Workbench-owned diagnostic value with stable code, severity, optional semantic
+slot/context, concise message, and optional remediation. It covers only Workbench-
+owned support/status facts demonstrated across WB1–WB5. It does not replace lower
+validation and is not a universal diagnostic framework.
+
+The durable Workbench distinction remains:
+
+```text
+engine-valid
+    ≠ Workbench-supported
+    ≠ Guided
+    ≠ experiment factor levels
+```
+
+Lower engine/domain/science packages must not depend on `evo_engine.workbench`.
+Workbench must not depend on renderer packages. UI and cinematic code may consume
+Workbench downstream.
 
 ## Observation and telemetry
 
@@ -208,6 +234,11 @@ scenario-specific scientific encoding
 renderer-specific primitives and choreography
 ```
 
+Workbench result/presentation integration follows the same rule. Missing evidence
+can produce structured Workbench remediation, but UI/cinematic code must never
+reconstruct scientific events, genetics, pedigree, or spatial history that were not
+recorded.
+
 Do not put renderer metadata into modeled entities or committed scientific records,
 and do not introduce a universal scene/replay abstraction merely because multiple
 renderers share a conceptual visual vocabulary.
@@ -217,6 +248,10 @@ renderers share a conceptual visual vocabulary.
 Use synthetic domain-neutral kernel benchmarks for claims about generic kernel
 performance. Reference-ecology profiles intentionally remain useful integration
 signals, but their timings include domain-process costs.
+
+WB6 found no measured Workbench bottleneck requiring optimization. Spatial replay
+already carries a bounded evidence-volume advisory; do not optimize Workbench or
+kernel behavior speculatively.
 
 Read:
 
