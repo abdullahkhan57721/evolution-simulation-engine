@@ -83,7 +83,9 @@ def test_b3_entry_opens_common_study_shell_with_run_as_action() -> None:
     assert not app.exception
     assert app.title[0].value == "B3 Flagship"
     assert isinstance(app.session_state["wu1_active_artifact"], B3StudyRevision)
-    navigation = next(radio for radio in app.radio if radio.label == "Study section")
+    navigation = next(
+        radio for radio in app.radio if radio.label == "Study section"
+    )
     assert navigation.options == _STUDY_SECTIONS
     assert navigation.value == "Simulation"
     assert {"← Home", "Run", "More"} <= {button.label for button in app.button}
@@ -104,7 +106,9 @@ def test_all_new_study_families_enter_the_same_shell() -> None:
 
         assert not app.exception
         assert isinstance(app.session_state["wu1_active_artifact"], artifact_type)
-        navigation = next(radio for radio in app.radio if radio.label == "Study section")
+        navigation = next(
+            radio for radio in app.radio if radio.label == "Study section"
+        )
         assert navigation.options == _STUDY_SECTIONS
         assert "Run" in {button.label for button in app.button}
         assert "Configuration path" not in {radio.label for radio in app.radio}
