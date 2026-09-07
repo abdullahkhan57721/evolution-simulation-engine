@@ -50,9 +50,7 @@ def reference_normalization_diagnostics(
         )
 
     if intent.resource_geography != "two_patches":
-        diagnostics.extend(
-            _present_irrelevant_patch_values(intent)
-        )
+        diagnostics.extend(_present_irrelevant_patch_values(intent))
 
     if intent.mutation_enabled is not True:
         for slot_id, value, label in (
