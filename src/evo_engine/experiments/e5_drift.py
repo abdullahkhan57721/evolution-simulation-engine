@@ -210,19 +210,10 @@ class E5LineageCompositionPoint:
             validators.validate_int_ge(count, bound=0, name=f"counts[{index}]")
         if sum(self.counts) != self.population_size:
             raise ValueError("lineage counts must equal complete population size.")
-        if self.population_size == 0:
-            if any(value is not None for value in self.frequencies):
-                raise ValueError("extinct lineage frequencies must be undefined.")
-            return
-        if any(value is None for value in self.frequencies):
-            raise ValueError("nonempty lineage frequencies must be defined.")
-        defined = tuple(value for value in self.frequencies if value is not None)
-        if any(
-            not math.isfinite(value) or not 0.0 <= value <= 1.0 for value in defined
-        ):
-            raise ValueError("defined lineage frequencies must be finite in [0, 1].")
-        if not math.isclose(sum(defined), 1.0):
-            raise ValueError("defined lineage frequencies must sum to one.")
+        _validate_lineage_frequencies(
+            population_size=self.population_size,
+            frequencies=self.frequencies,
+        )
 
     def count(self, group: E5Group) -> int:
         """Return the committed count for one analysis group."""
@@ -231,6 +222,31 @@ class E5LineageCompositionPoint:
     def frequency(self, group: E5Group) -> float | None:
         """Return the committed frequency for one analysis group."""
         return self.frequencies[_group_index(group)]
+
+
+def _validate_lineage_frequencies(
+    *,
+    population_size: int,
+    frequencies: tuple[float | None, float | None],
+) -> None:
+    """Validate extinction-aware E5 lineage-frequency semantics."""
+    if population_size == 0:
+        if frequencies != (None, None):
+            raise ValueError("extinct lineage frequencies must be undefined.")
+        return
+    if frequencies[0] is None or frequencies[1] is None:
+        raise ValueError("nonempty lineage frequencies must be defined.")
+    _validate_defined_lineage_frequencies((frequencies[0], frequencies[1]))
+
+
+def _validate_defined_lineage_frequencies(frequencies: tuple[float, float]) -> None:
+    """Validate defined E5 lineage frequencies."""
+    if any(
+        not math.isfinite(value) or not 0.0 <= value <= 1.0 for value in frequencies
+    ):
+        raise ValueError("defined lineage frequencies must be finite in [0, 1].")
+    if not math.isclose(sum(frequencies), 1.0):
+        raise ValueError("defined lineage frequencies must sum to one.")
 
 
 @attrs.frozen(slots=True, kw_only=True)
