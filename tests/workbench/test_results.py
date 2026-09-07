@@ -28,8 +28,6 @@ from evo_engine.workbench.experiments import (
 )
 from evo_engine.workbench.reference_ecology import (
     POPULATION_EVIDENCE_ID as REFERENCE_POPULATION_EVIDENCE_ID,
-)
-from evo_engine.workbench.reference_ecology import (
     ReferenceEvidencePlan,
     default_reference_ecology_intent,
 )
@@ -105,9 +103,7 @@ def test_unrecorded_controlled_analysis_is_unavailable_not_reconstructed() -> No
     assert view.locomotion is None
 
 
-def test_reference_result_navigation_reports_missing_spatial_and_other_evidence() -> (
-    None
-):
+def test_reference_results_report_missing_evidence() -> None:
     plan = ReferenceEvidencePlan(requested=(REFERENCE_POPULATION_EVIDENCE_ID,))
     revision = create_reference_study_revision(
         revision_id="reference-population-only",
