@@ -79,7 +79,7 @@ E7_CONFIRMATION_SEEDS: tuple[int, ...] = (
 E7_FOUNDER_COUNT = 8
 E7_RESOURCE_PER_FOUNDER = 420
 E7_HORIZON = 60
-E7_MUTATION_PROBABILITY_PPM = 100_000
+E7_MUTATION_PROBABILITY_PPM = 1_000_000
 E7_MUTATION_MAX_CHANGE = 1
 E7_REFERENCE_REGION: tuple[int, int, int] = (2, 3, 4)
 E7_SPEED_DOMAIN: tuple[int, ...] = tuple(range(CONTROLLED_MAX_SPEED_MAXIMUM + 1))
@@ -115,9 +115,7 @@ class E7TreatmentSpecification:
         """Validate the predeclared E7 focal starting condition and resource split."""
         validators.validate_int(self.starting_speed, name="starting_speed")
         if self.starting_speed not in E7_STARTING_SPEEDS:
-            raise ValueError(
-                f"starting_speed must be one of {E7_STARTING_SPEEDS!r}."
-            )
+            raise ValueError(f"starting_speed must be one of {E7_STARTING_SPEEDS!r}.")
         if self.total_resources % 4 != 0:
             raise ValueError(
                 "founder_count * resource_per_founder must divide equally across "
@@ -203,29 +201,11 @@ class E7TraitDistributionPoint:
 
     def __attrs_post_init__(self) -> None:
         """Validate complete-domain counts and explicit extinction semantics."""
-        if len(self.counts) != len(E7_SPEED_DOMAIN):
-            raise ValueError("counts must contain one value for every legal speed.")
-        if len(self.frequencies) != len(E7_SPEED_DOMAIN):
-            raise ValueError(
-                "frequencies must contain one value for every legal speed."
-            )
-        for index, count in enumerate(self.counts):
-            validators.validate_int_ge(count, bound=0, name=f"counts[{index}]")
-        if sum(self.counts) != self.population_size:
-            raise ValueError("speed counts must sum to population_size.")
+        _validate_distribution_shape(self)
         if self.population_size == 0:
-            if any(value is not None for value in self.frequencies):
-                raise ValueError("extinct trait frequencies must be undefined.")
-            if self.total_population_energy != 0:
-                raise ValueError("extinct population energy must be zero.")
-            return
-        for index, frequency in enumerate(self.frequencies):
-            if frequency is None:
-                raise ValueError("nonempty trait frequencies must be defined.")
-            if not 0.0 <= frequency <= 1.0:
-                raise ValueError(f"frequencies[{index}] must lie in [0, 1].")
-        if not math.isclose(sum(value or 0.0 for value in self.frequencies), 1.0):
-            raise ValueError("defined speed frequencies must sum to one.")
+            _validate_extinct_distribution(self)
+        else:
+            _validate_living_distribution(self)
 
     def count(self, max_speed: int) -> int:
         """Return the committed count at one legal focal speed."""
@@ -242,7 +222,10 @@ class E7TraitDistributionPoint:
         """Return the secondary population-mean location summary."""
         if self.population_size == 0:
             return None
-        return sum(speed * count for speed, count in enumerate(self.counts)) / self.population_size
+        return (
+            sum(speed * count for speed, count in enumerate(self.counts))
+            / self.population_size
+        )
 
     @property
     def median_speed(self) -> float | None:
@@ -268,7 +251,10 @@ class E7TraitDistributionPoint:
         """Return population mass in the predeclared E3–E6 reference region 2..4."""
         if self.population_size == 0:
             return None
-        return sum(self.count(speed) for speed in E7_REFERENCE_REGION) / self.population_size
+        return (
+            sum(self.count(speed) for speed in E7_REFERENCE_REGION)
+            / self.population_size
+        )
 
     @property
     def boundary_frequency(self) -> float | None:
@@ -311,7 +297,9 @@ class E7MutationTransition:
         _validate_legal_speed(self.parent_speed)
         _validate_legal_speed(self.offspring_speed)
         if abs(self.offspring_speed - self.parent_speed) > E7_MUTATION_MAX_CHANGE:
-            raise ValueError("observed focal inheritance change exceeds E7 max_change=1.")
+            raise ValueError(
+                "observed focal inheritance change exceeds E7 max_change=1."
+            )
 
     @property
     def changed(self) -> bool:
@@ -434,15 +422,21 @@ class E7StartingConditionSummary:
         """Validate summary identity and full-domain endpoint distribution."""
         if self.starting_speed not in E7_STARTING_SPEEDS:
             raise ValueError("starting_speed must be a predeclared E7 start.")
-        validators.validate_int_ge(self.replicate_count, bound=1, name="replicate_count")
+        validators.validate_int_ge(
+            self.replicate_count, bound=1, name="replicate_count"
+        )
         validators.validate_int_ge(
             self.defined_endpoint_count,
             bound=0,
             name="defined_endpoint_count",
         )
-        validators.validate_int_ge(self.extinction_count, bound=0, name="extinction_count")
+        validators.validate_int_ge(
+            self.extinction_count, bound=0, name="extinction_count"
+        )
         if self.defined_endpoint_count + self.extinction_count != self.replicate_count:
-            raise ValueError("defined endpoints plus extinctions must equal replicates.")
+            raise ValueError(
+                "defined endpoints plus extinctions must equal replicates."
+            )
         if len(self.endpoint_distribution) != len(E7_SPEED_DOMAIN):
             raise ValueError("endpoint_distribution must cover every legal speed.")
 
@@ -564,9 +558,7 @@ def summarize_e7_starting_condition(
     endpoint_distribution: tuple[float | None, ...]
     if defined:
         endpoint_distribution = tuple(
-            sum(
-                _defined_frequency(run.final_distribution, speed) for run in defined
-            )
+            sum(_defined_frequency(run.final_distribution, speed) for run in defined)
             / len(defined)
             for speed in E7_SPEED_DOMAIN
         )
@@ -608,15 +600,15 @@ def e7_distribution_overlap(
         E7StartingConditionSummary,
     ):
         raise TypeError("left and right must be E7StartingConditionSummary values.")
-    if any(value is None for value in left.endpoint_distribution) or any(
-        value is None for value in right.endpoint_distribution
-    ):
+    left_distribution = _defined_endpoint_distribution(left)
+    right_distribution = _defined_endpoint_distribution(right)
+    if left_distribution is None or right_distribution is None:
         return None
     return sum(
-        min(float(left_value), float(right_value))
+        min(left_value, right_value)
         for left_value, right_value in zip(
-            left.endpoint_distribution,
-            right.endpoint_distribution,
+            left_distribution,
+            right_distribution,
             strict=True,
         )
     )
@@ -640,7 +632,10 @@ def _build_distribution_point(
     else:
         frequencies = tuple(count / population_size for count in counts)
     recorded_counts = population_observation.trait(MAX_SPEED).value_counts
-    if tuple((speed, count) for speed, count in enumerate(counts) if count) != recorded_counts:
+    if (
+        tuple((speed, count) for speed, count in enumerate(counts) if count)
+        != recorded_counts
+    ):
         raise ValueError("individual and population max_speed evidence disagree.")
     return E7TraitDistributionPoint(
         step_index=trait_observation.step_index,
@@ -662,7 +657,9 @@ def _derive_mutation_transitions(
         if record.is_founder:
             continue
         if len(record.parent_ids) != 1:
-            raise ValueError("E7 descendants must have exactly one clonal genetic parent.")
+            raise ValueError(
+                "E7 descendants must have exactly one clonal genetic parent."
+            )
         if record.entry_step < 1:
             raise ValueError("E7 biological offspring must enter after step zero.")
         parent_id = record.parent_ids[0]
@@ -677,7 +674,9 @@ def _derive_mutation_transitions(
             organism_id=record.organism_id,
         )
         if abs(offspring_speed - parent_speed) > E7_MUTATION_MAX_CHANGE:
-            raise ValueError("offspring focal transition exceeds declared E7 step size.")
+            raise ValueError(
+                "offspring focal transition exceeds declared E7 step size."
+            )
         counts[(parent_speed, offspring_speed)] += 1
     return tuple(
         E7MutationTransition(
@@ -856,11 +855,52 @@ def _mean_optional(values: Sequence[float | None]) -> float | None:
     return sum(defined) / len(defined)
 
 
+def _defined_endpoint_distribution(
+    summary: E7StartingConditionSummary,
+) -> tuple[float, ...] | None:
+    values: list[float] = []
+    for value in summary.endpoint_distribution:
+        if value is None:
+            return None
+        values.append(value)
+    return tuple(values)
+
+
 def _defined_frequency(point: E7TraitDistributionPoint, speed: int) -> float:
     value = point.frequency(speed)
     if value is None:
         raise ValueError("frequency is undefined after extinction.")
     return value
+
+
+def _validate_distribution_shape(point: E7TraitDistributionPoint) -> None:
+    if len(point.counts) != len(E7_SPEED_DOMAIN):
+        raise ValueError("counts must contain one value for every legal speed.")
+    if len(point.frequencies) != len(E7_SPEED_DOMAIN):
+        raise ValueError("frequencies must contain one value for every legal speed.")
+    for index, count in enumerate(point.counts):
+        validators.validate_int_ge(count, bound=0, name=f"counts[{index}]")
+    if sum(point.counts) != point.population_size:
+        raise ValueError("speed counts must sum to population_size.")
+
+
+def _validate_extinct_distribution(point: E7TraitDistributionPoint) -> None:
+    if any(value is not None for value in point.frequencies):
+        raise ValueError("extinct trait frequencies must be undefined.")
+    if point.total_population_energy != 0:
+        raise ValueError("extinct population energy must be zero.")
+
+
+def _validate_living_distribution(point: E7TraitDistributionPoint) -> None:
+    total = 0.0
+    for index, frequency in enumerate(point.frequencies):
+        if frequency is None:
+            raise ValueError("nonempty trait frequencies must be defined.")
+        if not 0.0 <= frequency <= 1.0:
+            raise ValueError(f"frequencies[{index}] must lie in [0, 1].")
+        total += frequency
+    if not math.isclose(total, 1.0):
+        raise ValueError("defined speed frequencies must sum to one.")
 
 
 def _validate_legal_speed(value: int) -> None:
