@@ -150,12 +150,18 @@ def test_reference_world_replay_is_unavailable_without_spatial_evidence() -> Non
     with pytest.raises(
         WorkbenchPresentationUnavailableError,
         match="spatial.*Rerun",
-    ):
+    ) as captured:
         build_reference_workbench_world_presentation(
             revision,
             result,
             step_index=0,
         )
+
+    diagnostic = captured.value.diagnostic
+    assert diagnostic.code == "missing-required-evidence"
+    assert diagnostic.context == "reference-ecology.spatial-replay"
+    assert diagnostic.remediation is not None
+    assert "Do not reconstruct" in diagnostic.remediation
 
 
 def _scientific_provenance() -> ScientificRunProvenance:
