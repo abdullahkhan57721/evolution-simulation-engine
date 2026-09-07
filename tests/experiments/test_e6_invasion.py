@@ -34,12 +34,16 @@ def test_e6_matched_integrity_rejects_hidden_resident_change() -> None:
     mutant = build_e6_treatment(role="mutant", resident_speed=4, entrant_speed=3)
     validate_e6_matched_arm_integrity(neutral, mutant)
 
-    hidden_change = attrs.evolve(mutant, resident_speed=3, entrant_speed=4)
+    hidden_change = attrs.evolve(
+        mutant,
+        resident_speed=3,
+        entrant_speed=4,
+    )
     with pytest.raises(ValueError):
         validate_e6_matched_arm_integrity(neutral, hidden_change)
 
 
-def test_real_e6_pair_uses_exact_checkpoint_and_explicit_admission() -> None:
+def test_real_e6_pair_uses_exact_checkpoint_and_matched_admission() -> None:
     pair = run_e6_invasion_pair(
         resident_speed=4,
         mutant_speed=3,
@@ -47,16 +51,23 @@ def test_real_e6_pair_uses_exact_checkpoint_and_explicit_admission() -> None:
         run_role="discovery",
     )
 
-    assert pair.neutral.burn_in_checkpoint == pair.mutant.burn_in_checkpoint
-    assert pair.neutral.burn_in_checkpoint.step_index == E6_BURN_IN_STEPS
-    assert pair.neutral.intervention.organism_id == pair.mutant.intervention.organism_id
-    assert pair.neutral.intervention.mechanism == (
+    neutral = pair.neutral
+    mutant = pair.mutant
+    assert neutral.burn_in_checkpoint == mutant.burn_in_checkpoint
+    assert neutral.burn_in_checkpoint.step_index == E6_BURN_IN_STEPS
+    assert neutral.intervention.organism_id == mutant.intervention.organism_id
+    assert neutral.intervention.anchor_resident_id == mutant.intervention.anchor_resident_id
+    assert (neutral.intervention.x, neutral.intervention.y) == (
+        mutant.intervention.x,
+        mutant.intervention.y,
+    )
+    assert neutral.intervention.mechanism == (
         "experiment_external_newborn_like_admission"
     )
-    assert pair.neutral.intervention.entrant_speed == 4
-    assert pair.mutant.intervention.entrant_speed == 3
-    assert pair.neutral.trajectory[0].count("rare") == 1
-    assert pair.mutant.trajectory[0].count("rare") == 1
-    assert pair.neutral.trajectory[0].step_index == E6_BURN_IN_STEPS
-    assert pair.neutral.trajectory[-1].step_index == E6_HORIZON
-    assert pair.mutant.trajectory[-1].step_index == E6_HORIZON
+    assert neutral.intervention.entrant_speed == 4
+    assert mutant.intervention.entrant_speed == 3
+    assert neutral.trajectory[0].count("rare") == 1
+    assert mutant.trajectory[0].count("rare") == 1
+    assert neutral.trajectory[0].step_index == E6_BURN_IN_STEPS
+    assert neutral.trajectory[-1].step_index == E6_HORIZON
+    assert mutant.trajectory[-1].step_index == E6_HORIZON
