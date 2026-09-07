@@ -65,6 +65,8 @@ class ReferenceStudyRevision:
             _require_nonempty(self.parent_revision_id, name="parent_revision_id")
             if self.parent_revision_id == self.revision_id:
                 raise ValueError("parent_revision_id must differ from revision_id.")
+        if _normalize_saved_intent(self.intent) != self.intent:
+            raise ValueError("Stored reference intent contains inactive stale values.")
         if (
             normalized_reference_explicit_values(self.intent)
             != self.manifest.explicit_values
@@ -151,10 +153,11 @@ def create_reference_study_revision(
     """Resolve authoring intent into one immutable saved reference study."""
     _require_nonempty(revision_id, name="revision_id")
     plan = ReferenceEvidencePlan() if evidence_plan is None else evidence_plan
-    manifest = resolve_reference_ecology(intent, plan)
+    normalized_intent = _normalize_saved_intent(intent)
+    manifest = resolve_reference_ecology(normalized_intent, plan)
     return ReferenceStudyRevision(
         revision_id=revision_id,
-        intent=intent,
+        intent=normalized_intent,
         manifest=manifest,
         evidence_plan=plan,
     )
@@ -174,11 +177,12 @@ def fork_reference_study_revision(
     if revision_id == parent.revision_id:
         raise ValueError("A fork must use a new revision_id.")
     plan = parent.evidence_plan if evidence_plan is None else evidence_plan
-    manifest = resolve_reference_ecology(intent, plan)
+    normalized_intent = _normalize_saved_intent(intent)
+    manifest = resolve_reference_ecology(normalized_intent, plan)
     return ReferenceStudyRevision(
         revision_id=revision_id,
         parent_revision_id=parent.revision_id,
-        intent=intent,
+        intent=normalized_intent,
         manifest=manifest,
         evidence_plan=plan,
     )
@@ -317,6 +321,31 @@ def _focal_variables(plan: ReferenceEvidencePlan) -> tuple[str, ...]:
         if evidence_id in plan.requested:
             variables.append(variable)
     return tuple(variables)
+
+
+def _normalize_saved_intent(intent: ReferenceEcologyIntent) -> ReferenceEcologyIntent:
+    if not isinstance(intent, ReferenceEcologyIntent):
+        raise TypeError("intent must be a ReferenceEcologyIntent.")
+    patch_enabled = intent.resource_geography == "two_patches"
+    mutation_enabled = intent.mutation_enabled is True
+    return attrs.evolve(
+        intent,
+        gaussian_standard_deviation=(
+            intent.gaussian_standard_deviation
+            if intent.exploration_movement == "gaussian"
+            else None
+        ),
+        patch_1_center_x=intent.patch_1_center_x if patch_enabled else None,
+        patch_1_center_y=intent.patch_1_center_y if patch_enabled else None,
+        patch_1_radius=intent.patch_1_radius if patch_enabled else None,
+        patch_2_center_x=intent.patch_2_center_x if patch_enabled else None,
+        patch_2_center_y=intent.patch_2_center_y if patch_enabled else None,
+        patch_2_radius=intent.patch_2_radius if patch_enabled else None,
+        mutation_probability_ppm=(
+            intent.mutation_probability_ppm if mutation_enabled else None
+        ),
+        mutation_max_change=intent.mutation_max_change if mutation_enabled else None,
+    )
 
 
 def _validate_runs(revision: ReferenceStudyRevision) -> None:
