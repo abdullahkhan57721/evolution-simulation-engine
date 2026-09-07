@@ -240,9 +240,9 @@ retroactively simplify B3.
 
 ## Experiment Workbench product front
 
-WB1, WB2, and WB3 establish three concrete product-layer foundations for study,
-curated-scenario, and controlled-experiment authoring above existing typed/scenario
-composition:
+WB1, WB2, WB3, and WB4 establish four concrete product-layer foundations for
+bounded studies, trusted curated scenarios, controlled experiments, and richer
+custom biological studies above existing typed/scenario composition:
 
 ```text
 semantic study / curated scenario / experiment authoring
@@ -329,23 +329,50 @@ integrity and scientific results remain authoritative; Workbench authoring does 
 replace them with generic configuration diffing, factor registries, evidence
 solving, metric registries, or statistics infrastructure.
 
-### Workbench direction after WB3
+### WB4 — bounded rich reference-ecology custom study
+
+WB4 adds `bounded-reference-ecology` v1 as a sibling recipe over ordinary
+`ReferenceEcologyConfig` and `build_reference_spec()` rather than turning that
+configuration object into a generic form. Guided authoring covers world/founder/run
+settings, founder `max_speed`/sensing traits, exploration movement, and uniform
+versus bounded two-patch resource geography. Advanced authoring covers Gaussian
+spread, renewable resource quantity/cadence, patch geometry, mutation controls, and
+recombination probability. Expert is deliberately empty; arbitrary policy graphs,
+reference traits/tradeoffs, genetics/expression, inheritance, reproduction,
+lifecycle, and development/G×E remain extension/internal capability.
+
+Conditional controls are recipe-local. Non-Gaussian movement, disabled mutation,
+and uniform geography normalize inactive Gaussian, mutation, and patch values out
+of both the resolved manifest and saved editable intent. Exact manifests use stable
+semantic IDs and include a compatibility fingerprint for every non-editable numeric
+reference assumption that could otherwise drift with future preset defaults. Saved
+revision load rechecks the v1 support envelope and exact intent/manifest agreement.
+Compilation reconstructs fresh existing reference configuration and recorders before
+authoritative lower preflight.
+
+WB4 exposes concrete population, committed-event, pedigree/life-history,
+genetic-composition, and spatial evidence. Spatial replay is opt-in with a volume
+advisory rather than a generic evidence solver. Forking remains immutable, semantic
+diff remains recipe-scoped, and runs carry exact Workbench plus E1 scientific
+provenance. See `docs/wb4_bounded_reference_ecology.md`.
+
+### Workbench direction after WB4
 
 The next Workbench integration pressure is results/presentation and broader study
 workflows, not generic abstraction. A downstream results layer may rely on WB2's
-scenario-origin/validated-identity distinction and WB3's stable experiment
-pattern/factor IDs, deterministic treatment ordering, per-treatment
-seed/factor/counterbalance metadata, and unchanged typed scientific results. It
-should preserve primary outcome, mechanism evidence, diagnostics, replicate-level
-values, summaries, validation status, and presentation meaning as distinct
+scenario-origin/validated-identity distinction, WB3's stable experiment
+pattern/factor IDs and deterministic treatment ordering, and WB4's normalized rich
+reference manifests plus concrete evidence/provenance. It should preserve primary
+outcome, mechanism evidence, diagnostics, replicate-level values, summaries,
+validation status, authoring support status, and presentation meaning as distinct
 scientific concepts rather than flattening them into scalar fitness.
 
 Lower packages do not depend on the Workbench. Scientific manifests remain
 renderer-neutral. Generalization should wait until repeated concrete consumers
-demonstrate repeated responsibility: WB1/WB2/WB3 do not authorize a universal
-Blueprint, persisted study root, registry, capability solver, schema system,
-experiment hierarchy, generic sensitivity framework, migration system,
-claim-inference engine, or statistics DSL.
+demonstrate repeated responsibility: WB1/WB2/WB3/WB4 do not authorize a universal
+Blueprint, persisted study root, registry, reflection-based form system, capability
+solver, schema system, experiment hierarchy, generic sensitivity framework,
+migration system, claim-inference engine, or statistics DSL.
 
 The Workbench product track is orthogonal to the next controlled-science pressure;
 neither should be made an artificial prerequisite for the other.
@@ -577,6 +604,8 @@ the stable subset worth compiling.
 - Preserve semantic factor identity separately from implementation field paths, and
   keep experimental counterbalancing/blocking metadata separate from primary-factor
   meaning.
+- Normalize inapplicable Workbench authoring state before persistence so hidden
+  inactive values cannot later reappear as scientific changes.
 - Keep Workbench scientific manifests renderer-neutral.
 - Prefer readable, maintainable architecture over micro-optimization.
 - Require evidence before performance/backend work.
