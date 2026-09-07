@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from importlib import metadata
-from typing import Literal, cast
+from typing import cast
 
 import attrs
 
@@ -27,6 +27,12 @@ from evo_engine.experiments.e3_performance import (
 from evo_engine.genetics import MAX_SPEED
 from evo_engine.observation import EventRecorder, PopulationRecorder
 from evo_engine.presets.controlled_locomotion import build_controlled_locomotion_spec
+from evo_engine.workbench.diagnostics import (
+    IncompatibleManifestError,
+    WorkbenchDiagnostic,
+    WorkbenchNotReadyError,
+    WorkbenchReadiness,
+)
 
 RECIPE_ID = "controlled-clonal-locomotion"
 RECIPE_VERSION = 1
@@ -46,7 +52,6 @@ SUPPORTED_MAX_SPEED_MINIMUM = 1
 SUPPORTED_MAX_SPEED_MAXIMUM = 10
 SUPPORTED_RESOURCE_GEOGRAPHIES = frozenset({"local_resource", "separated_corridor"})
 
-ReadinessState = Literal["draft", "blocked", "ready"]
 ManifestScalar = str | int | bool
 ValuePairs = tuple[tuple[str, ManifestScalar], ...]
 
@@ -88,23 +93,6 @@ class EvidencePlan:
                 raise TypeError(f"requested[{index}] must be a non-empty string.")
         if len(self.requested) != len(set(self.requested)):
             raise ValueError("requested must not contain duplicate evidence IDs.")
-
-
-@attrs.frozen(slots=True, kw_only=True)
-class WorkbenchDiagnostic:
-    """Describe one recipe-owned readiness problem without replacing preflight."""
-
-    code: str
-    message: str
-    slot_id: str | None = None
-
-
-@attrs.frozen(slots=True, kw_only=True)
-class WorkbenchReadiness:
-    """Report the small user-facing WB1 readiness state."""
-
-    state: ReadinessState
-    diagnostics: tuple[WorkbenchDiagnostic, ...] = ()
 
 
 @attrs.frozen(slots=True, kw_only=True)
@@ -227,18 +215,6 @@ class ControlledLocomotionDiff:
     derived_changes: tuple[SemanticChange, ...]
 
 
-class WorkbenchNotReadyError(ValueError):
-    """Raised when resolution is requested for Draft or Blocked authoring state."""
-
-    def __init__(self, readiness: WorkbenchReadiness) -> None:
-        self.readiness = readiness
-        super().__init__(f"Workbench study is {readiness.state}.")
-
-
-class IncompatibleManifestError(ValueError):
-    """Raised when exact compilation cannot honor persisted manifest semantics."""
-
-
 def assess_readiness(
     intent: ControlledLocomotionIntent,
     evidence_plan: EvidencePlan | None = None,
@@ -263,10 +239,15 @@ def assess_readiness(
             WorkbenchDiagnostic(
                 code="unsupported-value",
                 slot_id=MAX_SPEED_SLOT,
+                context=RECIPE_ID,
                 message=(
                     "WB1 supports max_speed from "
                     f"{SUPPORTED_MAX_SPEED_MINIMUM} through "
                     f"{SUPPORTED_MAX_SPEED_MAXIMUM}."
+                ),
+                remediation=(
+                    "Choose a max_speed inside the characterized WB1 range; the "
+                    "broader engine-valid range is not automatically Workbench support."
                 ),
             )
         )
@@ -283,7 +264,9 @@ def assess_readiness(
             WorkbenchDiagnostic(
                 code="unsupported-value",
                 slot_id=RESOURCE_GEOGRAPHY_SLOT,
+                context=RECIPE_ID,
                 message="WB1 supports only local_resource and separated_corridor.",
+                remediation="Choose one of the two characterized WB1 geographies.",
             )
         )
     if intent.seed is None:
@@ -294,7 +277,11 @@ def assess_readiness(
         missing.append(
             WorkbenchDiagnostic(
                 code="missing-evidence",
+                context=RECIPE_ID,
                 message="Select at least one supported evidence stream.",
+                remediation=(
+                    "Request population focal-trait evidence, committed events, or both."
+                ),
             )
         )
     for evidence_id in plan.requested:
@@ -302,7 +289,9 @@ def assess_readiness(
             blocked.append(
                 WorkbenchDiagnostic(
                     code="unsupported-evidence",
+                    context=evidence_id,
                     message=f"WB1 does not support evidence request {evidence_id!r}.",
+                    remediation="Remove the unsupported evidence request for this recipe.",
                 )
             )
 
@@ -361,21 +350,25 @@ def compile_controlled_locomotion(
         manifest.explicit_value(MAX_SPEED_SLOT), MAX_SPEED_SLOT
     )
     if not (SUPPORTED_MAX_SPEED_MINIMUM <= max_speed <= SUPPORTED_MAX_SPEED_MAXIMUM):
-        raise IncompatibleManifestError("Persisted max_speed is outside WB1 support.")
+        raise IncompatibleManifestError(
+            "Persisted max_speed is outside WB1 support.", context=RECIPE_ID
+        )
     geography_value = manifest.explicit_value(RESOURCE_GEOGRAPHY_SLOT)
     if (
         type(geography_value) is not str
         or geography_value not in SUPPORTED_RESOURCE_GEOGRAPHIES
     ):
         raise IncompatibleManifestError(
-            "Persisted resource geography is not supported by this recipe version."
+            "Persisted resource geography is not supported by this recipe version.",
+            context=RECIPE_ID,
         )
     geography = cast(E3Environment, geography_value)
     seed = _require_exact_int(manifest.explicit_value(SEED_SLOT), SEED_SLOT)
     expected_derived = _derived_values(max_speed=max_speed, geography=geography)
     if manifest.derived_values != expected_derived:
         raise IncompatibleManifestError(
-            "Persisted derived values do not match this recipe/compiler version."
+            "Persisted derived values do not match this recipe/compiler version.",
+            context=RECIPE_ID,
         )
 
     treatment = build_e3_treatment(max_speed=max_speed, environment=geography)
@@ -472,7 +465,11 @@ def _resolve_runtime_evidence(plan: EvidencePlan) -> RuntimeEvidence:
 
 def _missing(slot_id: str, message: str) -> WorkbenchDiagnostic:
     return WorkbenchDiagnostic(
-        code="missing-selection", slot_id=slot_id, message=message
+        code="missing-selection",
+        slot_id=slot_id,
+        context=RECIPE_ID,
+        message=message,
+        remediation="Provide this required semantic selection before resolving the Study.",
     )
 
 
@@ -505,7 +502,8 @@ def _require_current_compatibility(manifest: ControlledLocomotionManifest) -> No
         raise IncompatibleManifestError(
             "Persisted manifest requires "
             f"{manifest.engine_distribution}=={manifest.engine_version}; "
-            f"current version is {current}."
+            f"current version is {current}.",
+            context=RECIPE_ID,
         )
 
 
@@ -526,7 +524,8 @@ def _validate_manifest_identity(manifest: ControlledLocomotionManifest) -> None:
     )
     if actual != expected:
         raise IncompatibleManifestError(
-            "Manifest recipe/compiler identity is not supported by WB1."
+            "Manifest recipe/compiler identity is not supported by WB1.",
+            context=RECIPE_ID,
         )
     if type(manifest.engine_version) is not str or not manifest.engine_version:
         raise TypeError("engine_version must be a non-empty string.")
@@ -589,7 +588,9 @@ def _decode_pairs(mapping: dict[object, object], key: str) -> ValuePairs:
 
 def _require_exact_int(value: ManifestScalar, name: str) -> int:
     if type(value) is not int:
-        raise IncompatibleManifestError(f"{name} must remain an integer.")
+        raise IncompatibleManifestError(
+            f"{name} must remain an integer.", context=RECIPE_ID
+        )
     return value
 
 
