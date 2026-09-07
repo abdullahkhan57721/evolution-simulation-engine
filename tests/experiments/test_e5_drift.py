@@ -9,6 +9,7 @@ from evo_engine.experiments.e5_drift import (
     E5_FOUNDER_COUNTS,
     E5_NEUTRAL_SPEED,
     E5_RESOURCE_PER_FOUNDER,
+    E5_WEAK_PAIR,
     assignment_phase_for_replicate,
     build_e5_treatment,
     compare_e5_weak_to_neutral,
