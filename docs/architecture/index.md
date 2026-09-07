@@ -143,6 +143,25 @@ kernel carries context but does not assign modeled meaning to values.
 `SimulationSpec` is the generic compilation/preflight boundary. Domain-specific
 configuration layers may build on it and add domain validation.
 
+## Evolution Experiment Workbench
+
+The Workbench is a scientific-study authoring layer over existing typed
+composition, not an alternate simulation engine. It persists human-visible semantic
+intent, an immutable resolved scientific manifest, evidence intent, lineage, and
+run-to-manifest provenance, then compiles through existing preset/domain builders
+and the ordinary biological/generic preflight path.
+
+Read:
+
+- [Evolution Experiment Workbench Architecture](../evolution_experiment_workbench.md)
+- `src/evo_engine/workbench/`
+- `tests/workbench/`
+
+WB1's first recipe is deliberately bounded to the controlled clonal locomotion
+system and reuses E3/E2 composition. Lower engine/domain packages must not depend
+on `evo_engine.workbench`, and the Workbench must not introduce a new layer between
+`BiologicalSimulationSpec` and `SimulationSpec`.
+
 ## Observation and telemetry
 
 Committed telemetry records what the kernel applied and opaque domain effects.
