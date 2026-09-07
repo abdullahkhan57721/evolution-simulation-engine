@@ -48,7 +48,9 @@ def test_shared_readiness_diagnostic_has_actionable_remediation() -> None:
     )
 
     assert readiness.state == "blocked"
-    diagnostic = next(item for item in readiness.diagnostics if item.slot_id == MAX_SPEED_SLOT)
+    diagnostic = next(
+        item for item in readiness.diagnostics if item.slot_id == MAX_SPEED_SLOT
+    )
     assert isinstance(diagnostic, WorkbenchDiagnostic)
     assert diagnostic.__class__.__module__ == "evo_engine.workbench.diagnostics"
     assert diagnostic.code == "unsupported-value"
@@ -123,7 +125,9 @@ def test_b3_identity_loss_is_warning_not_claim_inference() -> None:
     assert "B3-derived custom Study" in diagnostic.remediation
 
 
-def test_missing_evidence_analysis_diagnostic_requires_rerun_not_reconstruction() -> None:
+def test_missing_evidence_analysis_diagnostic_requires_rerun_not_reconstruction() -> (
+    None
+):
     availability = AnalysisAvailability(
         analysis_id="reference-ecology.spatial-replay",
         source_contract="SpatialObservation",
@@ -171,7 +175,11 @@ def test_diagnostic_rejects_empty_or_nonblocking_readiness_payloads() -> None:
     with pytest.raises(TypeError, match="code"):
         WorkbenchDiagnostic(code="", message="message")
     with pytest.raises(ValueError, match="severity"):
-        WorkbenchDiagnostic(code="x", message="message", severity="info")  # type: ignore[arg-type]
+        WorkbenchDiagnostic(
+            code="x",
+            message="message",
+            severity="info",  # type: ignore[arg-type]
+        )
 
 
 def test_exact_reproduction_diagnostic_preserves_original_error_message() -> None:
