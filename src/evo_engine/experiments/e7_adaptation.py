@@ -550,39 +550,16 @@ def summarize_e7_starting_condition(
     outcomes: Sequence[E7ReplicateOutcome],
 ) -> E7StartingConditionSummary:
     """Summarize endpoint distributions with equal weight per unique run/seed."""
-    runs = tuple(outcomes)
-    if not runs:
-        raise ValueError("outcomes must contain at least one E7 replicate.")
-    first = runs[0]
-    if not isinstance(first, E7ReplicateOutcome):
-        raise TypeError("outcomes[0] must be an E7ReplicateOutcome.")
-    treatment = first.treatment
-    seeds: list[int] = []
-    for index, run in enumerate(runs):
-        if not isinstance(run, E7ReplicateOutcome):
-            raise TypeError(f"outcomes[{index}] must be an E7ReplicateOutcome.")
-        if run.treatment != treatment:
-            raise ValueError("all outcomes must belong to the same E7 treatment.")
-        if run.provenance.seed in seeds:
-            raise ValueError("outcomes must not contain duplicate replicate seeds.")
-        seeds.append(run.provenance.seed)
-
-    starting_speed = treatment.starting_speed
+    runs = _validated_summary_runs(outcomes)
+    treatment = runs[0].treatment
+    seeds = _validated_summary_seeds(runs)
     defined = tuple(run for run in runs if run.final_distribution.population_size > 0)
-    endpoint_distribution: tuple[float | None, ...]
-    if defined:
-        endpoint_distribution = tuple(
-            sum(_defined_frequency(run.final_distribution, speed) for run in defined)
-            / len(defined)
-            for speed in E7_SPEED_DOMAIN
-        )
-    else:
-        endpoint_distribution = tuple(None for _ in E7_SPEED_DOMAIN)
+    endpoint_distribution = _mean_endpoint_distribution(defined)
 
     return E7StartingConditionSummary(
-        starting_speed=starting_speed,
+        starting_speed=treatment.starting_speed,
         replicate_count=len(runs),
-        seeds=tuple(seeds),
+        seeds=seeds,
         defined_endpoint_count=len(defined),
         extinction_count=len(runs) - len(defined),
         mean_final_mean_speed=_mean_optional(
@@ -867,6 +844,45 @@ def _mean_optional(values: Sequence[float | None]) -> float | None:
     if not defined:
         return None
     return sum(defined) / len(defined)
+
+
+def _validated_summary_runs(
+    outcomes: Sequence[E7ReplicateOutcome],
+) -> tuple[E7ReplicateOutcome, ...]:
+    runs = tuple(outcomes)
+    if not runs:
+        raise ValueError("outcomes must contain at least one E7 replicate.")
+    first = runs[0]
+    if not isinstance(first, E7ReplicateOutcome):
+        raise TypeError("outcomes[0] must be an E7ReplicateOutcome.")
+    treatment = first.treatment
+    for index, run in enumerate(runs[1:], start=1):
+        if not isinstance(run, E7ReplicateOutcome):
+            raise TypeError(f"outcomes[{index}] must be an E7ReplicateOutcome.")
+        if run.treatment != treatment:
+            raise ValueError("all outcomes must belong to the same E7 treatment.")
+    return runs
+
+
+def _validated_summary_seeds(
+    runs: Sequence[E7ReplicateOutcome],
+) -> tuple[int, ...]:
+    seeds = tuple(run.provenance.seed for run in runs)
+    if len(set(seeds)) != len(seeds):
+        raise ValueError("outcomes must not contain duplicate replicate seeds.")
+    return seeds
+
+
+def _mean_endpoint_distribution(
+    defined: Sequence[E7ReplicateOutcome],
+) -> tuple[float | None, ...]:
+    if not defined:
+        return tuple(None for _ in E7_SPEED_DOMAIN)
+    return tuple(
+        sum(_defined_frequency(run.final_distribution, speed) for run in defined)
+        / len(defined)
+        for speed in E7_SPEED_DOMAIN
+    )
 
 
 def _defined_endpoint_distribution(
