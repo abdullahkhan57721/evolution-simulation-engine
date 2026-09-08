@@ -63,9 +63,7 @@ def parse_integer_sequence(value: str, *, name: str) -> tuple[int, ...]:
         try:
             result.append(int(candidate))
         except ValueError as exc:
-            raise ValueError(
-                f"{name} value {candidate!r} is not an integer."
-            ) from exc
+            raise ValueError(f"{name} value {candidate!r} is not an integer.") from exc
     return tuple(result)
 
 
@@ -139,9 +137,7 @@ def b3_case_counts(revision: B3StudyRevision) -> B3CaseCounts:
         radius_sensitivity_runs=radius_sensitivity_runs,
         counterbalanced_pairs=counterbalanced_pairs,
         total_simulations=(
-            confirmation_pairs * 2
-            + radius_sensitivity_runs
-            + counterbalanced_pairs * 2
+            confirmation_pairs * 2 + radius_sensitivity_runs + counterbalanced_pairs * 2
         ),
     )
 
