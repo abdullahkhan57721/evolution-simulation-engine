@@ -84,9 +84,7 @@ class _FakeStreamlit(_Context):
         self.reruns += 1
 
 
-def _patch_streamlit(
-    monkeypatch: pytest.MonkeyPatch,
-) -> _FakeStreamlit:
+def _patch_streamlit(monkeypatch: pytest.MonkeyPatch) -> _FakeStreamlit:
     fake = _FakeStreamlit()
     monkeypatch.setattr(world_explorer, "st", fake)
     return fake
@@ -226,7 +224,9 @@ def test_view_controls_update_only_renderer_state(
 
     assert fake.session_state["wu5_presentation_world_playing"] is True
     assert fake.session_state["wu5_presentation_world_speed"] == 2.0
-    assert fake.session_state["wu5_presentation_world_next_advance"] == pytest.approx(10.3)
+    assert fake.session_state["wu5_presentation_world_next_advance"] == pytest.approx(
+        10.3
+    )
     assert options == world_explorer.WorldViewOptions(
         show_resources=False,
         show_carcasses=False,
@@ -273,18 +273,27 @@ def test_organism_selection_and_recorded_history_helpers(
         (
             SimpleNamespace(
                 step_index=0,
-                organisms=(SimpleNamespace(organism_id=3), SimpleNamespace(organism_id=1)),
+                organisms=(
+                    SimpleNamespace(organism_id=3),
+                    SimpleNamespace(organism_id=1),
+                ),
             ),
             SimpleNamespace(
                 step_index=2,
-                organisms=(SimpleNamespace(organism_id=2), SimpleNamespace(organism_id=3)),
+                organisms=(
+                    SimpleNamespace(organism_id=2),
+                    SimpleNamespace(organism_id=3),
+                ),
             ),
             SimpleNamespace(step_index=4, organisms=()),
         ),
     )
     right = cast(
         tuple[SpatialObservation, ...],
-        (SimpleNamespace(step_index=2, organisms=()), SimpleNamespace(step_index=4, organisms=())),
+        (
+            SimpleNamespace(step_index=2, organisms=()),
+            SimpleNamespace(step_index=4, organisms=()),
+        ),
     )
     assert world_explorer.observed_organism_ids(left) == (1, 2, 3)
     assert world_explorer.common_step_indices(left, right) == (2, 4)
@@ -316,7 +325,9 @@ def test_playback_advances_only_across_recorded_committed_steps(
     world_explorer.advance_playback_if_due(steps)
     assert fake.session_state["wu5_presentation_world_step"] == 3
 
-    clock["now"] = cast(float, fake.session_state["wu5_presentation_world_next_advance"]) + 0.1
+    clock["now"] = (
+        cast(float, fake.session_state["wu5_presentation_world_next_advance"]) + 0.1
+    )
     world_explorer.advance_playback_if_due(steps)
     assert fake.session_state["wu5_presentation_world_step"] == 8
     assert fake.session_state["wu5_presentation_world_playing"] is False
