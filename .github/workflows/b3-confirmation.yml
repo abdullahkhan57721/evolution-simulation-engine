@@ -35,7 +35,7 @@ jobs:
             --output outputs/b3-confirmation/b3-confirmation.json
       - name: Upload confirmation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: b3-confirmation-${{ github.run_id }}
           path: outputs/b3-confirmation/b3-confirmation.json

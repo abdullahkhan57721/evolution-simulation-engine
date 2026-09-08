@@ -36,7 +36,7 @@ jobs:
             --output outputs/e4-validation/e4-confirmation.json
       - name: Upload E4 confirmation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e4-confirmation-${{ github.run_id }}
           path: outputs/e4-validation/e4-confirmation.json
@@ -58,7 +58,7 @@ jobs:
             --output outputs/e4-validation/e4-founder-order-sanity.json
       - name: Upload E4 founder-order sanity evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e4-founder-order-sanity-${{ github.run_id }}
           path: outputs/e4-validation/e4-founder-order-sanity.json

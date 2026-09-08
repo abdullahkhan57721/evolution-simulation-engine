@@ -36,7 +36,7 @@ jobs:
             --output outputs/e3-validation/e3-confirmation.json
       - name: Upload E3 confirmation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e3-confirmation-${{ github.run_id }}
           path: outputs/e3-validation/e3-confirmation.json
@@ -58,7 +58,7 @@ jobs:
             --output outputs/e3-validation/e3-sensitivity.json
       - name: Upload E3 sensitivity evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e3-sensitivity-${{ github.run_id }}
           path: outputs/e3-validation/e3-sensitivity.json
