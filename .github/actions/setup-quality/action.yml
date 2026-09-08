@@ -10,6 +10,10 @@ inputs:
     description: Install performance-profile dependencies.
     required: false
     default: "false"
+  ui:
+    description: Install Streamlit/Plotly UI dependencies.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -29,20 +33,19 @@ runs:
       run: python -m venv venv
 
     - name: Install project and quality tools
-      if: ${{ inputs.docs != 'true' }}
       shell: bash
       run: |
+        extras="dev"
+        if [[ "${{ inputs.docs }}" == "true" ]]; then
+          extras="dev,docs"
+        fi
         venv/bin/python -m pip install --upgrade pip
-        venv/bin/python -m pip install -e ".[dev]"
-        venv/bin/python -m pip install -r requirements-ui.txt
+        venv/bin/python -m pip install -e ".[${extras}]"
 
-    - name: Install project, quality, and documentation tools
-      if: ${{ inputs.docs == 'true' }}
+    - name: Install UI tools
+      if: ${{ inputs.ui == 'true' }}
       shell: bash
-      run: |
-        venv/bin/python -m pip install --upgrade pip
-        venv/bin/python -m pip install -e ".[dev,docs]"
-        venv/bin/python -m pip install -r requirements-ui.txt
+      run: venv/bin/python -m pip install -r requirements-ui.txt
 
     - name: Install performance tools
       if: ${{ inputs.performance == 'true' }}
