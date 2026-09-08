@@ -104,8 +104,8 @@ B3 and E3-E7 validation should answer a scientific regression question: **could 
 change alter the frozen simulation/evidence result?**
 
 Their pull-request path filters therefore conservatively include modeled/scientific
-source changes while excluding downstream-only UI, Workbench, presentation, and
-cinematic source changes. They also include their owning experiment scripts and
+source changes while excluding downstream-only UI, Workbench, desktop, presentation,
+and cinematic source changes. They also include their owning experiment scripts and
 workflow files.
 
 Orientation/navigation-only changes such as:

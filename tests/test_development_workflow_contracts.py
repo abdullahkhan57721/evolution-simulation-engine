@@ -63,6 +63,7 @@ def test_frozen_scientific_workflows_follow_science_affecting_paths() -> None:
         assert '"src/evo_engine/**"' in workflow
         assert "!src/evo_engine/ui/**" in workflow
         assert "!src/evo_engine/workbench/**" in workflow
+        assert "!src/evo_engine/desktop/**" in workflow
         assert "!src/evo_engine/presentation/**" in workflow
         assert "!src/evo_engine/cinematic/**" in workflow
         assert "ready_for_review" in workflow
