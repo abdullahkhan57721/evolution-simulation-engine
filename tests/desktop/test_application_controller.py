@@ -117,22 +117,32 @@ def test_new_and_open_routes_are_transient_navigation_not_scientific_artifacts()
     assert not controller.hasStudy
 
 
-def test_new_and_open_choosers_preserve_active_science_until_replacement() -> None:
+def test_new_chooser_preserves_active_science_until_explicit_exit_or_replacement() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("b3-flagship")
     before = serialize_concrete_artifact(_active(controller))
 
     controller.showNewStudy()
-    assert controller.route == "new"
-    assert serialize_concrete_artifact(_active(controller)) == before
 
-    controller.showOpenStudy()
-    assert controller.route == "open"
+    assert controller.route == "new"
     assert serialize_concrete_artifact(_active(controller)) == before
 
     controller.goHome()
     assert controller.route == "home"
     assert not controller.hasStudy
+
+
+def test_open_chooser_from_active_study_preserves_owner_and_study_route() -> None:
+    controller = _controller()
+    assert controller.createStudy("b3-flagship")
+    before = serialize_concrete_artifact(_active(controller))
+
+    controller.showOpenStudy()
+
+    assert controller.route == "study"
+    assert serialize_concrete_artifact(_active(controller)) == before
 
 
 def test_section_navigation_never_mutates_active_science() -> None:
@@ -189,6 +199,7 @@ def test_open_unknown_experiment_pattern_is_atomic(tmp_path: Path) -> None:
 
     assert not controller.openStudy(str(path))
 
+    assert controller.route == "study"
     assert controller.hasStudy
     assert serialize_concrete_artifact(_active(controller)) == before
     assert controller.statusTone == "error"
@@ -212,6 +223,7 @@ def test_exact_incompatible_open_preserves_current_study_and_surfaces_diagnostic
 
     assert not controller.openStudy(str(path))
 
+    assert controller.route == "study"
     assert isinstance(_active(controller), StudyRevision)
     assert serialize_concrete_artifact(_active(controller)) == before
     assert controller.status == "Exact reproduction unavailable."
