@@ -28,11 +28,16 @@ def test_qt_is_not_a_core_project_dependency() -> None:
     )
 
 
-def test_qml_contains_only_application_and_presentation_calls() -> None:
-    qml = (_root() / "src" / "evo_engine" / "desktop" / "qml" / "Main.qml").read_text(
-        encoding="utf-8"
+def test_qml_contains_only_curated_application_and_authoring_calls() -> None:
+    qml_root = _root() / "src" / "evo_engine" / "desktop" / "qml"
+    qml = "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted(qml_root.glob("*.qml"))
     )
+    main = (qml_root / "Main.qml").read_text(encoding="utf-8")
+    simulation = (qml_root / "SimulationAuthoringView.qml").read_text(encoding="utf-8")
+
     assert "evo_engine." not in qml
     assert "manifestDigest =" not in qml
     assert "revisionId =" not in qml
-    assert "draftMaxSpeed = value" in qml
+    assert "draftMaxSpeed = value" not in main
+    assert "draftMaxSpeed = value" in simulation
