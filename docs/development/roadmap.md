@@ -329,32 +329,38 @@ provenance reference is not a durable result payload, missing evidence requires 
 run with an appropriate EvidencePlan, and a stale session result is rejected rather
 than displayed under the wrong Study or Experiment.
 
-The next product front is **Presentation/world integration** over this authoritative
-Results boundary. It should connect WU4 Results to the existing WB5→V2 interactive
-world and WB5→V3/B3 cinematic seams through the persistent Study shell while keeping
-renderer mechanics downstream:
+WU5 completes concrete Presentation/world integration over that authoritative
+Results boundary. Reference Ecology reuses the existing WB5→V2 path from recorded
+spatial evidence through `WorkbenchWorldPresentation` and `WorldPresentationFrame`
+into the retained interactive renderer. The user may navigate committed timesteps,
+play/pause recorded frames, inspect organisms, and change renderer-only visibility,
+trail, and label controls. Focus Mode stays inside the Study shell and remains
+presentation state rather than scientific configuration.
 
-```text
-authoritative scientific Results
-        ↓
-renderer-neutral scientific meaning
-        ↓
-existing V2 / V3 presentation adapters
-        ↓
-interactive world / cinematic presentation
-```
+WU5 also integrates the B3-specific path without flattening matched science into a
+universal replay model. Control and treatment are built independently at the same
+authoritative confirmation seed and committed step, use the same fixed science-owned
+trait encoding, and preserve the distinction between matched/blocked RNG setup and
+treatment-driven trajectory divergence. Canonical validated B3 can hand off to the
+existing B3 director and optional Manim renderer; representative seed, episodes,
+comparison structure, and bounded conclusion remain owned by B3 science/director
+code. Presentation state is scoped to exact revision/manifest-digest/run ownership,
+and historical provenance alone never reconstructs replay evidence.
 
-Do not move interpolation, camera, layout, playback, storyboard/choreography, or
-export ownership into Results. The focused next WU Issue should establish which
-existing presentation controls become user-facing and how Presentation binds to the
-exact active scientific artifact/result without inventing a generic scene or camera
-DSL.
+The next product front is **WU6 — Product Hardening, Accessibility, Visual
+Completion, and Release Readiness**. WU6 should test and polish the existing
+end-to-end product across supported Study families: navigation coherence,
+accessibility, responsive/focus behavior, error/remediation clarity, visual
+consistency, renderer availability/failure UX, release smoke paths, and packaging or
+launch guidance where already supported. It should not redesign the settled
+Workbench, Results, replay, scientific-encoding, or B3 cinematic ownership
+boundaries merely to simplify polish work.
 
 Future WU work must continue to preserve the existing distinctions among simulation
 intent, evidence plan, factor/treatment design, replicate planning, authoritative
 lower preflight, committed results, and presentation. It must not create a generic
-experiment DSL, statistics framework, universal Study schema, or duplicate scientific
-validation merely to simplify UI orchestration.
+experiment DSL, statistics framework, universal Study schema, generic scene/camera
+DSL, or duplicate scientific validation merely to simplify UI orchestration.
 
 ## Controlled-science direction after E7
 
@@ -385,9 +391,9 @@ a dependency of it.
 ## Presentation continuation
 
 WB5 provides the architecture seam for Workbench→V2/V3; WU3 supplies concrete
-application execution/result ownership; WU4 now supplies family-specific scientific
-Results and run exploration over that exact ownership. The next WU work can integrate
-V2/V3 consumers through the persistent Study shell while preserving:
+application execution/result ownership; WU4 supplies family-specific scientific
+Results and run exploration; WU5 now integrates the supported interactive and B3
+cinematic consumers through the persistent Study shell while preserving:
 
 - exact Study/run/treatment/replicate identity;
 - B3 control/treatment semantics;
@@ -398,7 +404,9 @@ V2/V3 consumers through the persistent Study shell while preserving:
 - bounded claim/nonclaim status.
 
 Renderer-specific controls, layout, charts, selection, accessibility, animation,
-camera, timing, and export remain presentation responsibilities.
+camera, timing, and export remain presentation responsibilities. WU6 may harden and
+polish those responsibilities, but should not move them into scientific manifests or
+Results ownership.
 
 The B3 cinematic director remains concrete. Do not generalize it into a camera DSL,
 universal storyboard, scene graph, or broad `ScenarioPresentationSpec` without
