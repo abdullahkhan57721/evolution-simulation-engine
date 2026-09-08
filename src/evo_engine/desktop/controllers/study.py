@@ -250,7 +250,11 @@ class StudyController(QObject):
     @Slot(result=bool)
     def saveChildRevision(self) -> bool:  # noqa: N802
         """Commit the draft only by creating an immutable Workbench child revision."""
-        if not self._require_idle() or self._revision is None or self._draft_intent is None:
+        if (
+            not self._require_idle()
+            or self._revision is None
+            or self._draft_intent is None
+        ):
             return False
         if not self.draftDirty:
             self._set_status("No semantic draft changes to save.")
@@ -302,7 +306,11 @@ class StudyController(QObject):
     @Slot(int)
     def selectOrganism(self, organism_id: int) -> None:  # noqa: N802
         """Change renderer selection without changing scientific identity."""
-        if self._revision is None or self._result is None or self._presentation is None:
+        if (
+            self._revision is None
+            or self._result is None
+            or self._presentation is None
+        ):
             return
         self._prepare_world(
             step_index=self._presentation.frame.committed_step_index,
