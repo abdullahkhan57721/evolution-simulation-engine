@@ -22,49 +22,51 @@ jobs:
 
           path = Path("src/evo_engine/desktop/qml/Main.qml")
           text = path.read_text()
-          alias_anchor = "    readonly property var reference: applicationController.referenceController\n"
-          aliases = alias_anchor + "    readonly property var simulation: applicationController.simulationController\n    readonly property var evidence: applicationController.evidenceController\n    readonly property var experiment: applicationController.experimentController\n"
-          if alias_anchor not in text:
+          anchor = "    readonly property var reference: applicationController.referenceController\n"
+          aliases = anchor + "    readonly property var simulation: applicationController.simulationController\n    readonly property var evidence: applicationController.evidenceController\n    readonly property var experiment: applicationController.experimentController\n"
+          if anchor not in text:
               raise SystemExit("controller alias anchor missing")
-          text = text.replace(alias_anchor, aliases, 1)
-
+          text = text.replace(anchor, aliases, 1)
           start = text.index("    Component {\n        id: simulationSection\n")
           end = text.index("    Component {\n        id: resultsSection\n", start)
-          replacement = '''    Component {
-        id: simulationSection
-        SimulationAuthoringView {
-            width: sectionLoader.width
-            height: sectionLoader.height
-            theme: theme
-            app: root.app
-            reference: root.reference
-            simulation: root.simulation
-        }
-    }
-
-    Component {
-        id: evidenceSection
-        EvidenceAuthoringView {
-            width: sectionLoader.width
-            height: sectionLoader.height
-            theme: theme
-            app: root.app
-            evidence: root.evidence
-        }
-    }
-
-    Component {
-        id: experimentSection
-        ExperimentAuthoringView {
-            width: sectionLoader.width
-            height: sectionLoader.height
-            theme: theme
-            app: root.app
-            experiment: root.experiment
-        }
-    }
-
-'''
+          lines = [
+              "    Component {",
+              "        id: simulationSection",
+              "        SimulationAuthoringView {",
+              "            width: sectionLoader.width",
+              "            height: sectionLoader.height",
+              "            theme: theme",
+              "            app: root.app",
+              "            reference: root.reference",
+              "            simulation: root.simulation",
+              "        }",
+              "    }",
+              "",
+              "    Component {",
+              "        id: evidenceSection",
+              "        EvidenceAuthoringView {",
+              "            width: sectionLoader.width",
+              "            height: sectionLoader.height",
+              "            theme: theme",
+              "            app: root.app",
+              "            evidence: root.evidence",
+              "        }",
+              "    }",
+              "",
+              "    Component {",
+              "        id: experimentSection",
+              "        ExperimentAuthoringView {",
+              "            width: sectionLoader.width",
+              "            height: sectionLoader.height",
+              "            theme: theme",
+              "            app: root.app",
+              "            experiment: root.experiment",
+              "        }",
+              "    }",
+              "",
+              "",
+          ]
+          replacement = "\n".join(lines)
           path.write_text(text[:start] + replacement + text[end:])
           PY
       - name: Commit QML shell wiring
