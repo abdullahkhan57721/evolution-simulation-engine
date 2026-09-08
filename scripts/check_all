@@ -1,25 +1,11 @@
 #!/usr/bin/env bash
 # Run ./scripts/check_all --help to see common wrapper and raw tool commands.
-# Run the repository's routine local quality suite.
+# Run the repository's local quality suite.
 #
-# Runs every routine check even after failures and summarizes results at the end.
-# By default, pauses after each check so output can be reviewed before continuing.
-# GitHub Actions additionally runs performance/profile regression checks and
-# uploads their artifacts.
-#
-# Current routine checks:
-#   1. Ruff lint + formatting verification
-#   2. Pyright static type checking
-#   3. Import Linter architecture contracts
-#   4. Focused simulation-kernel semantic contracts
-#   5. Complexipy cognitive complexity + threshold gate
-#   6. pytest with line + branch coverage
-#   7. MkDocs strict documentation build
-#
-# Usage:
-#   ./scripts/check_all
-#   ./scripts/check_all --no-pause
-#   COVERAGE_FAIL_UNDER=90 ./scripts/check_all
+# Full mode runs every routine check even after failures and summarizes results.
+# Fast mode is the development checkpoint gate: Ruff, Pyright, Import Linter,
+# kernel contracts, and Complexipy only. GitHub Actions additionally runs
+# performance/profile regression checks for final/non-draft validation.
 
 set -uo pipefail
 
@@ -32,58 +18,63 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 Usage:
   ./scripts/check_all
   ./scripts/check_all --no-pause
-  COVERAGE_FAIL_UNDER=90 ./scripts/check_all
+  ./scripts/check_all --fast
+  ./scripts/check_all --fast --no-pause
+  COVERAGE_FAIL_UNDER=90 ./scripts/check_all --no-pause
 
-Default behavior:
-  Runs all seven routine local checks.
-  After each check finishes, pauses so you can review the output.
-  Press Enter when you are ready to continue to the next check.
+Modes:
+  Full (default):
+    1. Ruff lint + formatting verification
+    2. Pyright static type checking
+    3. Import Linter architecture contracts
+    4. Focused simulation-kernel semantic contracts
+    5. Complexipy cognitive complexity + threshold gate
+    6. pytest with line + branch coverage
+    7. MkDocs strict documentation build
+
+  --fast:
+    Runs checks 1-5 only. Use this after focused tests and before ordinary
+    development pushes/checkpoints. It intentionally skips full coverage and docs.
 
 Options:
-  --no-pause    Run all checks continuously without interactive pauses.
+  --fast        Run the fast development checkpoint gate.
+  --no-pause    Run continuously without interactive pauses.
   -h, --help    Show this help.
 
-Routine quality gates run by check_all:
-  ./scripts/lint
-  ./scripts/typecheck
-  ./scripts/architecture
-  ./scripts/kernel_contracts
-  ./scripts/complexity
-  ./scripts/coverage
-  ./scripts/docs
+Typical development workflow:
+  ./scripts/fix
+  ./scripts/test <focused test paths>
+  ./scripts/check_all --fast --no-pause
 
-GitHub Actions additionally runs the repository's performance/profile regression
-checks and uploads performance artifacts.
-
-Useful individual commands:
-  ./scripts/lint --help
-  ./scripts/typecheck --help
-  ./scripts/test --help
-  ./scripts/coverage --help
-  ./scripts/architecture --help
-  ./scripts/kernel_contracts
-  ./scripts/complexity --help
-  ./scripts/docs --help
-
-Typical workflow:
+Final candidate workflow:
   ./scripts/fix
   ./scripts/check_all --no-pause
 
-For CI/non-interactive use:
-  ./scripts/check_all --no-pause
+GitHub Actions additionally runs performance/profile regression checks for final
+non-draft PR validation and main verification.
 EOF
     exit 0
 fi
 
 pause_between_checks=1
-if [[ "${1:-}" == "--no-pause" ]]; then
-    pause_between_checks=0
+fast_mode=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --fast)
+            fast_mode=1
+            ;;
+        --no-pause)
+            pause_between_checks=0
+            ;;
+        *)
+            echo "Error: unknown argument: $1" >&2
+            echo "Run ./scripts/check_all --help for usage." >&2
+            exit 2
+            ;;
+    esac
     shift
-elif [[ $# -gt 0 ]]; then
-    echo "Error: unknown argument: $1" >&2
-    echo "Run ./scripts/check_all --help for usage." >&2
-    exit 2
-fi
+done
 
 separator() {
     printf '\n%s\n' "========================================================================"
@@ -131,32 +122,38 @@ pyright_result=""
 architecture_result=""
 kernel_contracts_result=""
 complexity_result=""
-coverage_result=""
-docs_result=""
+coverage_result="SKIPPED (fast mode)"
+docs_result="SKIPPED (fast mode)"
 
-run_check "1/7 — RUFF" "$SCRIPT_DIR/lint" ruff_result
-pause_for_review "2/7 — PYRIGHT"
+run_check "1/5 — RUFF" "$SCRIPT_DIR/lint" ruff_result
+pause_for_review "2/5 — PYRIGHT"
 
-run_check "2/7 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
-pause_for_review "3/7 — IMPORT LINTER"
+run_check "2/5 — PYRIGHT" "$SCRIPT_DIR/typecheck" pyright_result
+pause_for_review "3/5 — IMPORT LINTER"
 
-run_check "3/7 — IMPORT LINTER" "$SCRIPT_DIR/architecture" architecture_result
-pause_for_review "4/7 — KERNEL CONTRACTS"
+run_check "3/5 — IMPORT LINTER" "$SCRIPT_DIR/architecture" architecture_result
+pause_for_review "4/5 — KERNEL CONTRACTS"
 
-run_check "4/7 — KERNEL CONTRACTS" "$SCRIPT_DIR/kernel_contracts" kernel_contracts_result
-pause_for_review "5/7 — COMPLEXIPY"
+run_check "4/5 — KERNEL CONTRACTS" "$SCRIPT_DIR/kernel_contracts" kernel_contracts_result
+pause_for_review "5/5 — COMPLEXIPY"
 
-run_check "5/7 — COMPLEXIPY" "$SCRIPT_DIR/complexity" complexity_result
-pause_for_review "6/7 — PYTEST + COVERAGE"
+run_check "5/5 — COMPLEXIPY" "$SCRIPT_DIR/complexity" complexity_result
 
-run_check "6/7 — PYTEST + COVERAGE" "$SCRIPT_DIR/coverage" coverage_result
-pause_for_review "7/7 — MKDOCS"
+if [[ $fast_mode -eq 0 ]]; then
+    pause_for_review "6/7 — PYTEST + COVERAGE"
+    run_check "6/7 — PYTEST + COVERAGE" "$SCRIPT_DIR/coverage" coverage_result
+    pause_for_review "7/7 — MKDOCS"
+    run_check "7/7 — MKDOCS" "$SCRIPT_DIR/docs" docs_result
+fi
 
-run_check "7/7 — MKDOCS" "$SCRIPT_DIR/docs" docs_result
 pause_for_review "the final summary"
 
 separator
-printf '%s\n' "CHECK_ALL — FINAL SUMMARY"
+if [[ $fast_mode -eq 1 ]]; then
+    printf '%s\n' "CHECK_ALL — FAST CHECKPOINT SUMMARY"
+else
+    printf '%s\n' "CHECK_ALL — FULL SUMMARY"
+fi
 printf '%s\n' "========================================================================"
 printf '%-20s %s\n' "Ruff" "$ruff_result"
 printf '%-20s %s\n' "Pyright" "$pyright_result"
@@ -170,6 +167,8 @@ printf '%s\n' "-----------------------------------------------------------------
 if [[ $failures -eq 0 ]]; then
     if [[ $skips -gt 0 ]]; then
         echo "ALL CONFIGURED CHECKS PASSED ($skips SKIPPED)"
+    elif [[ $fast_mode -eq 1 ]]; then
+        echo "FAST CHECKPOINT PASSED"
     else
         echo "ALL CHECKS PASSED"
     fi
