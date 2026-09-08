@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias, TypeGuard
+from typing import TypeAlias, TypeGuard, overload
 
 from evo_engine.ui.study_shell import ConcreteWorkbenchArtifact
 from evo_engine.workbench import (
@@ -30,6 +30,12 @@ AuthoritativeRunResult: TypeAlias = (
     | MaxSpeedSweepResult
     | EnvironmentSelectionComparisonResult
 )
+RevisionOwnedArtifact: TypeAlias = (
+    StudyRevision | ReferenceStudyRevision | B3StudyRevision
+)
+RevisionOwnedRunResult: TypeAlias = (
+    WorkbenchRunResult | ReferenceRunResult | B3CuratedRunResult
+)
 _RESULT_TYPES = (
     WorkbenchRunResult,
     ReferenceRunResult,
@@ -37,6 +43,33 @@ _RESULT_TYPES = (
     MaxSpeedSweepResult,
     EnvironmentSelectionComparisonResult,
 )
+
+
+@overload
+def execute_artifact(
+    artifact: RevisionOwnedArtifact,
+) -> tuple[RevisionOwnedArtifact, RevisionOwnedRunResult]: ...
+
+
+@overload
+def execute_artifact(
+    artifact: MaxSpeedSweepDefinition,
+) -> tuple[MaxSpeedSweepDefinition, MaxSpeedSweepResult]: ...
+
+
+@overload
+def execute_artifact(
+    artifact: EnvironmentSelectionComparisonDefinition,
+) -> tuple[
+    EnvironmentSelectionComparisonDefinition,
+    EnvironmentSelectionComparisonResult,
+]: ...
+
+
+@overload
+def execute_artifact(
+    artifact: ConcreteWorkbenchArtifact,
+) -> tuple[ConcreteWorkbenchArtifact, AuthoritativeRunResult]: ...
 
 
 def execute_artifact(
