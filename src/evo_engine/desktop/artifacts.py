@@ -23,6 +23,7 @@ from evo_engine.workbench.b3_curated import (
     fork_b3_study_revision,
 )
 from evo_engine.workbench.controlled_locomotion import (
+    ControlledLocomotionIntent,
     IncompatibleManifestError,
     WorkbenchReadiness,
     assess_readiness,
@@ -59,7 +60,6 @@ from evo_engine.workbench.study import (
     WorkbenchRunResult,
     create_study_revision,
 )
-from evo_engine.workbench.controlled_locomotion import ControlledLocomotionIntent
 
 ArtifactKind = Literal[
     "controlled-run",
