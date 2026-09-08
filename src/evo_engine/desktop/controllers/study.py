@@ -1,5 +1,9 @@
 """Thin Qt controller for the Q0 Reference Ecology vertical slice."""
 
+# PySide's Property setter decorator is a runtime descriptor but its stubs currently
+# report the paired getter/setter declarations as a redeclaration.
+# pyright: reportRedeclaration=false
+
 from __future__ import annotations
 
 import uuid
@@ -105,6 +109,10 @@ class StudyController(QObject):
 
     @draftMaxSpeed.setter
     def draftMaxSpeed(self, value: int) -> None:  # noqa: N802
+        self.set_draft_max_speed(value)
+
+    def set_draft_max_speed(self, value: int) -> None:
+        """Apply one transient semantic edit without mutating the active revision."""
         if self._draft_intent is None or type(value) is not int:
             return
         if self._draft_intent.max_speed == value:
