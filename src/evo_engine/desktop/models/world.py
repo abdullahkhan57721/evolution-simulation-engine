@@ -9,6 +9,8 @@ from PySide6.QtCore import QAbstractListModel, QByteArray, QModelIndex, Qt
 
 from evo_engine.presentation.world import OrganismPrimitive, ResourcePrimitive
 
+_INVALID_MODEL_INDEX = QModelIndex()
+
 
 class _OrganismRole(IntEnum):
     organism_id = int(Qt.ItemDataRole.UserRole) + 1
@@ -39,8 +41,8 @@ class WorldOrganismModel(QAbstractListModel):
         self._items = resolved
         self.endResetModel()
 
-    def rowCount(  # noqa: N802, B008
-        self, parent: QModelIndex = QModelIndex()
+    def rowCount(  # noqa: N802
+        self, parent: QModelIndex = _INVALID_MODEL_INDEX
     ) -> int:
         """Return the number of renderer primitives."""
         return 0 if parent.isValid() else len(self._items)
@@ -104,8 +106,8 @@ class WorldResourceModel(QAbstractListModel):
         self._items = resolved
         self.endResetModel()
 
-    def rowCount(  # noqa: N802, B008
-        self, parent: QModelIndex = QModelIndex()
+    def rowCount(  # noqa: N802
+        self, parent: QModelIndex = _INVALID_MODEL_INDEX
     ) -> int:
         """Return the number of resource glyphs."""
         return 0 if parent.isValid() else len(self._items)
