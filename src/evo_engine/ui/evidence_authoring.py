@@ -179,7 +179,9 @@ def evidence_options(artifact: EvidenceBearingArtifact) -> tuple[EvidenceOption,
     if isinstance(artifact, B3StudyRevision):
         return _B3_OPTIONS
     if isinstance(artifact, MaxSpeedSweepDefinition):
-        return tuple(attrs.evolve(option, required=True) for option in _CONTROLLED_OPTIONS)
+        return tuple(
+            attrs.evolve(option, required=True) for option in _CONTROLLED_OPTIONS
+        )
     if isinstance(artifact, EnvironmentSelectionComparisonDefinition):
         by_id = {option.evidence_id: option for option in _CONTROLLED_OPTIONS}
         ordered = (
