@@ -162,10 +162,12 @@ validation path.
 Read:
 
 - [Evolution Experiment Workbench Architecture](../evolution_experiment_workbench.md)
-- [Workbench UI](../workbench_ui.md)
+- [Workbench UI reference product](../workbench_ui.md)
+- [Native Desktop Workbench](../desktop_workbench.md)
 - [Workbench Architecture Review](../workbench_architecture_review.md)
 - [WB4 Bounded Reference-Ecology Recipe](../wb4_bounded_reference_ecology.md)
 - [WB5 Results and Presentation](../wb5_results_presentation.md)
+- [ADR 0010 — Use PySide6 and Qt Quick for the primary Workbench frontend](../decisions/0010-use-pyside6-qt-quick-for-primary-workbench-frontend.md)
 - `src/evo_engine/workbench/`
 - `tests/workbench/`
 
@@ -174,16 +176,9 @@ reproduction against trusted B3 and established scenario origin versus validated
 scenario identity. WB3 added concrete controlled-experiment authoring. WB4 proved
 the same principles scale to richer bounded reference ecology through explicit
 support tiers and recipe-local applicability/normalization. WB5 integrated Results
-and downstream V2/V3 presentation without duplicate science. WB6 audits the whole
-implementation and moves the Workbench foundation into maintenance-and-extension
+and downstream V2/V3 presentation without duplicate science. WB6 audited the whole
+implementation and moved the Workbench foundation into maintenance-and-extension
 mode.
-
-WU1 adds the downstream Streamlit application shell over those settled contracts:
-Home → New/Open Study → a persistent five-section Study frame, with Run as an action.
-The UI dispatches explicitly over existing concrete Workbench artifacts and their
-canonical persistence/readiness contracts; it does not introduce a universal Study
-schema or move scientific validation into the UI. Existing V2 world/workspace
-components remain retained for later WU integration.
 
 The WB6 review found one genuinely earned shared abstraction: a small
 Workbench-owned diagnostic value with stable code, severity, optional semantic
@@ -201,8 +196,46 @@ engine-valid
 ```
 
 Lower engine/domain/science packages must not depend on `evo_engine.workbench`.
-Workbench must not depend on renderer packages. UI and cinematic code may consume
-Workbench downstream.
+Workbench must not depend on renderer packages. UI, desktop, and cinematic code may
+consume Workbench downstream.
+
+## Product frontends
+
+WU1–WU5 established the complete Streamlit reference product over the settled
+Workbench contracts: Home/New/Open, the persistent five-section Study shell,
+semantic authoring, Evidence and concrete Experiment workflows, immutable revisions,
+Run Plan/execution, family-specific Results, recorded-state world replay, and the B3
+cinematic handoff. Streamlit remains a semantic compatibility frontend during native
+migration.
+
+ADR 0010 makes **PySide6 + Qt Quick/QML the primary product frontend architecture**.
+The native dependency direction is:
+
+```text
+Qt Quick / QML
+        ↓
+curated QObject controller / Qt item models
+        ↓
+existing Workbench/application semantics
+        ↓
+experiments / presets / renderer-neutral presentation
+        ↓
+biology
+        ↓
+frozen kernel
+```
+
+QML receives intentionally exposed scalar properties, signals, slots, and item-model
+roles rather than arbitrary mutable Workbench/domain object graphs. Scientific edits
+must commit through existing concrete Workbench APIs, and exact persistence remains
+the existing concrete Workbench formats. PySide6 is an optional downstream desktop
+dependency; lower packages must not depend on `evo_engine.desktop` or PySide6.
+
+Q0 proves the Reference Ecology vertical, GUI-thread separation for the synchronous
+runner, native `WorldPresentationFrame` rendering, and standalone deployment. Q1 is
+the next product milestone and should build the persistent native Study shell plus
+concrete routing without inventing a universal Study schema. See
+`docs/desktop_workbench.md` for the exact handoff.
 
 ## Observation and telemetry
 
@@ -243,9 +276,9 @@ renderer-specific primitives and choreography
 ```
 
 Workbench result/presentation integration follows the same rule. Missing evidence
-can produce structured Workbench remediation, but UI/cinematic code must never
-reconstruct scientific events, genetics, pedigree, or spatial history that were not
-recorded.
+can produce structured Workbench remediation, but Streamlit/QML/cinematic code must
+never reconstruct scientific events, genetics, pedigree, or spatial history that
+were not recorded.
 
 Do not put renderer metadata into modeled entities or committed scientific records,
 and do not introduce a universal scene/replay abstraction merely because multiple
@@ -258,8 +291,8 @@ performance. Reference-ecology profiles intentionally remain useful integration
 signals, but their timings include domain-process costs.
 
 WB6 found no measured Workbench bottleneck requiring optimization. Spatial replay
-already carries a bounded evidence-volume advisory; do not optimize Workbench or
-kernel behavior speculatively.
+already carries a bounded evidence-volume advisory; do not optimize Workbench,
+desktop rendering, or kernel behavior speculatively.
 
 Read:
 
@@ -285,5 +318,7 @@ Before changing a public contract or dependency direction:
 5. update architecture documentation and tests in the same PR;
 6. update `current_state.md` or `roadmap.md` if the milestone materially changes
    the orientation/direction they summarize;
-7. run `./scripts/architecture` and `./scripts/kernel_contracts` in addition to
-   the broader quality gate.
+7. follow `docs/development/validation_workflow.md`: focused checks and
+   `./scripts/fix` while iterating, the fast checkpoint for ordinary draft work, and
+   the complete local/non-draft gate only for a functionally complete merge
+   candidate; add architecture/kernel checks when the changed boundary requires them.
