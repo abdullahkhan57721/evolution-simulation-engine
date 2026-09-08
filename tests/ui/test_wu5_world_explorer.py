@@ -60,7 +60,13 @@ class _FakeStreamlit(_Context):
         **_: Any,
     ) -> Any:
         if key is not None and key in self.selections:
-            return self.selections[key]
+            selected = self.selections[key]
+            self.session_state[key] = selected
+            return selected
+        if key is not None and key in self.session_state:
+            return self.session_state[key]
+        if key is not None:
+            self.session_state[key] = value
         return value
 
     def checkbox(self, label: str, *, key: str, **_: Any) -> bool:
@@ -147,10 +153,12 @@ def test_state_validation_and_initialization(
         world_explorer.initialize_world_state((0, 0))
 
     fake.session_state["wu5_presentation_world_step"] = 99
+    fake.session_state["wu5_presentation_world_step_widget"] = 99
     fake.session_state["wu5_presentation_world_playing"] = True
     world_explorer.initialize_world_state((0, 2, 4))
 
     assert fake.session_state["wu5_presentation_world_step"] == 0
+    assert "wu5_presentation_world_step_widget" not in fake.session_state
     assert fake.session_state["wu5_presentation_world_playing"] is False
     assert fake.session_state["wu5_presentation_world_speed"] == 1.0
     assert fake.session_state["wu5_presentation_show_resources"] is True
@@ -193,10 +201,12 @@ def test_committed_step_controls_keep_playback_presentation_only(
 
     fake.buttons["wu5_presentation_next"] = True
     assert world_explorer.render_committed_step_controls(steps) == 2
+    assert fake.session_state["wu5_presentation_world_step_widget"] == 2
     fake.buttons.clear()
 
     fake.buttons["wu5_presentation_previous"] = True
     assert world_explorer.render_committed_step_controls(steps) == 0
+    assert fake.session_state["wu5_presentation_world_step_widget"] == 0
     fake.buttons.clear()
 
     fake.selections["wu5_presentation_world_step_widget"] = 4
@@ -312,6 +322,7 @@ def test_playback_advances_only_across_recorded_committed_steps(
     assert fake.session_state["wu5_presentation_world_step"] == 0
 
     fake.session_state["wu5_presentation_world_playing"] = True
+    fake.session_state["wu5_presentation_world_step_widget"] = 0
     world_explorer.advance_playback_if_due(steps)
     deadline = fake.session_state["wu5_presentation_world_next_advance"]
     assert isinstance(deadline, float)
@@ -324,6 +335,8 @@ def test_playback_advances_only_across_recorded_committed_steps(
     clock["now"] = deadline + 0.1
     world_explorer.advance_playback_if_due(steps)
     assert fake.session_state["wu5_presentation_world_step"] == 3
+    assert "wu5_presentation_world_step_widget" not in fake.session_state
+    assert world_explorer.render_committed_step_controls(steps) == 3
 
     clock["now"] = (
         cast(float, fake.session_state["wu5_presentation_world_next_advance"]) + 0.1
