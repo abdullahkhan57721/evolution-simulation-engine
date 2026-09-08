@@ -158,7 +158,9 @@ def test_evidence_page_reference_advisory_and_locked_families(
 
     assert child is not None
     assert SPATIAL_EVIDENCE_ID in child.evidence_plan.requested
-    assert any("volume" in message.lower() for message in _messages(fake, "warning"))
+    advisories = evidence_authoring.evidence_advisories_for_artifact(child)
+    assert len(advisories) == 1
+    assert advisories[0].message in _messages(fake, "warning")
 
     for artifact in (
         new_b3_flagship(revision_id="b3-locked"),
@@ -299,6 +301,10 @@ def test_run_plan_renders_every_supported_concrete_family(
         requested=(*reference.evidence_plan.requested, SPATIAL_EVIDENCE_ID),
         revision_id="reference-spatial",
     )
+    expected_advisories = evidence_authoring.evidence_advisories_for_artifact(
+        reference_with_spatial
+    )
+    assert len(expected_advisories) == 1
 
     for artifact in (
         new_controlled_run(revision_id="controlled-plan"),
@@ -314,10 +320,7 @@ def test_run_plan_renders_every_supported_concrete_family(
 
     assert len(_messages(fake, "subheader")) == 5
     assert _messages(fake, "dataframe")
-    assert any(
-        "advis" in message.lower() or "volume" in message.lower()
-        for message in _messages(fake, "warning")
-    )
+    assert expected_advisories[0].message in _messages(fake, "warning")
 
 
 def test_run_plan_cancel_run_and_unsupported_actions(
