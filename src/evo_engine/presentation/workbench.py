@@ -13,7 +13,10 @@ import attrs
 
 from evo_engine.genetics import MAX_SPEED
 from evo_engine.presentation import ContinuousTraitEncoding
-from evo_engine.presentation.world import WorldPresentationFrame, build_world_presentation
+from evo_engine.presentation.world import (
+    WorldPresentationFrame,
+    build_world_presentation,
+)
 from evo_engine.presets.reference_ecology.b3_flagship import (
     B3_HIGH_MAX_SPEED,
     B3_LOW_MAX_SPEED,
