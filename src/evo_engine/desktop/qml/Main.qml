@@ -19,6 +19,9 @@ ApplicationWindow {
     readonly property var simulation: applicationController.simulationController
     readonly property var evidence: applicationController.evidenceController
     readonly property var experiment: applicationController.experimentController
+    readonly property var simulation: applicationController.simulationController
+    readonly property var evidence: applicationController.evidenceController
+    readonly property var experiment: applicationController.experimentController
 
     WorkbenchTheme { id: theme }
 
