@@ -23,6 +23,7 @@ _OWNER_KEY = f"{_PREFIX}owner"
 _EXPERIENCE_KEY = f"{_PREFIX}experience"
 _FOCUS_KEY = f"{_PREFIX}focus_mode"
 _STEP_KEY = f"{_PREFIX}world_step"
+_STEP_WIDGET_KEY = f"{_STEP_KEY}_widget"
 _PLAYING_KEY = f"{_PREFIX}world_playing"
 _SPEED_KEY = f"{_PREFIX}world_speed"
 _NEXT_ADVANCE_KEY = f"{_PREFIX}world_next_advance"
@@ -99,7 +100,7 @@ def initialize_world_state(steps: tuple[int, ...]) -> None:
     """Initialize or reconcile common world controls for recorded committed steps."""
     _validate_steps(steps)
     if st.session_state.get(_STEP_KEY) not in steps:
-        st.session_state[_STEP_KEY] = steps[0]
+        _set_step(steps[0])
         _stop_playback()
     st.session_state.setdefault(_PLAYING_KEY, False)
     st.session_state.setdefault(_SPEED_KEY, 1.0)
@@ -144,19 +145,9 @@ def render_committed_step_controls(steps: tuple[int, ...]) -> int:
         use_container_width=True,
         key=f"{_PREFIX}previous",
     ):
-        st.session_state[_STEP_KEY] = _previous_step(steps, selected)
+        _set_step(_previous_step(steps, selected))
         _stop_playback()
-    selected = _selected_step(steps)
-    slider_value = step_col.select_slider(
-        "Committed step",
-        options=steps,
-        value=selected,
-        key=f"{_STEP_KEY}_widget",
-    )
-    if slider_value != st.session_state[_STEP_KEY]:
-        st.session_state[_STEP_KEY] = slider_value
-        _stop_playback()
-        st.rerun(scope="app")
+
     selected = _selected_step(steps)
     if next_col.button(
         "Next",
@@ -164,8 +155,20 @@ def render_committed_step_controls(steps: tuple[int, ...]) -> int:
         use_container_width=True,
         key=f"{_PREFIX}next",
     ):
-        st.session_state[_STEP_KEY] = _next_step(steps, selected)
+        _set_step(_next_step(steps, selected))
         _stop_playback()
+
+    selected = _selected_step(steps)
+    slider_value = step_col.select_slider(
+        "Committed step",
+        options=steps,
+        value=selected,
+        key=_STEP_WIDGET_KEY,
+    )
+    if slider_value != st.session_state[_STEP_KEY]:
+        st.session_state[_STEP_KEY] = slider_value
+        _stop_playback()
+        st.rerun(scope="app")
     return _selected_step(steps)
 
 
@@ -295,7 +298,7 @@ def advance_playback_if_due(steps: tuple[int, ...]) -> None:
         return
     if time.monotonic() < deadline:
         return
-    st.session_state[_STEP_KEY] = _next_step(steps, current)
+    _set_step(_next_step(steps, current))
     if st.session_state[_STEP_KEY] == steps[-1]:
         _stop_playback()
         return
@@ -313,12 +316,15 @@ def playback_interval() -> float | None:
 def _reset_timeline_and_selection() -> None:
     for key in tuple(st.session_state):
         text = str(key)
-        if text in (_STEP_KEY, _PLAYING_KEY, _NEXT_ADVANCE_KEY):
+        if text in (_STEP_KEY, _PLAYING_KEY, _NEXT_ADVANCE_KEY, _STEP_WIDGET_KEY):
             st.session_state.pop(key, None)
         elif text.startswith(f"{_PREFIX}selected_organism_"):
             st.session_state.pop(key, None)
-        elif text == f"{_STEP_KEY}_widget":
-            st.session_state.pop(key, None)
+
+
+def _set_step(step: int) -> None:
+    st.session_state[_STEP_KEY] = step
+    st.session_state.pop(_STEP_WIDGET_KEY, None)
 
 
 def _stop_playback() -> None:
