@@ -2,14 +2,18 @@ name: E3 Scientific Validation
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
     paths:
-      - "src/evo_engine/experiments/e3_performance.py"
-      - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/**"
+      - "!src/evo_engine/ui/**"
+      - "!src/evo_engine/workbench/**"
+      - "!src/evo_engine/presentation/**"
+      - "!src/evo_engine/cinematic/**"
       - "scripts/e3_landscape.py"
-      - "tests/experiments/test_e3_performance.py"
-      - "docs/e3_ecological_performance.md"
-      - "docs/development/current_state.md"
-      - "mkdocs.yml"
       - ".github/workflows/e3-scientific-validation.yml"
   workflow_dispatch:
 
@@ -19,6 +23,7 @@ permissions:
 jobs:
   confirm-e3:
     name: Independent E3 confirmation
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -40,6 +45,7 @@ jobs:
 
   sensitivity-e3:
     name: E3 zero-cost mechanism sensitivity
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

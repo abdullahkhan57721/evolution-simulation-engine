@@ -2,14 +2,18 @@ name: E4 Scientific Validation
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
     paths:
-      - "src/evo_engine/experiments/e4_selection.py"
-      - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/**"
+      - "!src/evo_engine/ui/**"
+      - "!src/evo_engine/workbench/**"
+      - "!src/evo_engine/presentation/**"
+      - "!src/evo_engine/cinematic/**"
       - "scripts/e4_selection.py"
-      - "tests/experiments/test_e4_selection.py"
-      - "docs/e4_standing_variation.md"
-      - "docs/development/current_state.md"
-      - "mkdocs.yml"
       - ".github/workflows/e4-scientific-validation.yml"
   workflow_dispatch:
 
@@ -19,6 +23,7 @@ permissions:
 jobs:
   confirmation-e4:
     name: Independent E4 confirmation
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -40,6 +45,7 @@ jobs:
 
   founder-order-sanity-e4:
     name: E4 founder-order sanity
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
