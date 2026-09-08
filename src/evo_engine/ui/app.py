@@ -22,6 +22,7 @@ from evo_engine.ui.experiment_page import (
 )
 from evo_engine.ui.run_binding import bind_pending_scientific_state, effective_readiness
 from evo_engine.ui.run_execution import (
+    AuthoritativeRunResult,
     execute_artifact,
     is_authoritative_run_result,
     result_evidence_ids,
@@ -52,6 +53,7 @@ from evo_engine.ui.study_shell import (
 )
 from evo_engine.workbench import (
     EnvironmentSelectionComparisonDefinition,
+    EvidenceAdvisory,
     IncompatibleManifestError,
     MaxSpeedSweepDefinition,
     ReferenceStudyRevision,
@@ -467,29 +469,7 @@ def _render_results(artifact: ConcreteWorkbenchArtifact) -> None:
     st.header("Results")
     result = st.session_state.get(_RESULT_KEY)
     if is_authoritative_run_result(result):
-        st.success("Run completed")
-        run_id = result_run_id(result)
-        revision_id = result_revision_id(result)
-        if run_id is not None:
-            st.write(f"**Run ID:** `{run_id}`")
-        if revision_id is not None:
-            st.write(f"**Study revision:** `{revision_id}`")
-        st.write(f"**Completed simulations:** {result_simulation_count(result)}")
-        st.markdown("**Recorded evidence**")
-        labels = {
-            option.evidence_id: option.label for option in evidence_options(artifact)
-        }
-        for evidence_id in result_evidence_ids(result):
-            st.write(f"✓ {labels.get(evidence_id, evidence_id)}")
-        if run_id is None:
-            st.caption(
-                "This concrete experiment result contract has no study-level run ID; "
-                "WU3 does not invent one."
-            )
-        st.info(
-            "The authoritative result object is retained in this application session. "
-            "Full scientific Results analysis arrives in WU4."
-        )
+        _render_current_result(artifact, result)
         return
 
     run_count = artifact_run_count(artifact)
@@ -510,7 +490,36 @@ def _render_results(artifact: ConcreteWorkbenchArtifact) -> None:
         )
 
 
-def _current_advisories(artifact: ConcreteWorkbenchArtifact) -> tuple[object, ...]:
+def _render_current_result(
+    artifact: ConcreteWorkbenchArtifact,
+    result: AuthoritativeRunResult,
+) -> None:
+    st.success("Run completed")
+    run_id = result_run_id(result)
+    revision_id = result_revision_id(result)
+    if run_id is not None:
+        st.write(f"**Run ID:** `{run_id}`")
+    if revision_id is not None:
+        st.write(f"**Study revision:** `{revision_id}`")
+    st.write(f"**Completed simulations:** {result_simulation_count(result)}")
+    st.markdown("**Recorded evidence**")
+    labels = {option.evidence_id: option.label for option in evidence_options(artifact)}
+    for evidence_id in result_evidence_ids(result):
+        st.write(f"✓ {labels.get(evidence_id, evidence_id)}")
+    if run_id is None:
+        st.caption(
+            "This concrete experiment result contract has no study-level run ID; "
+            "WU3 does not invent one."
+        )
+    st.info(
+        "The authoritative result object is retained in this application session. "
+        "Full scientific Results analysis arrives in WU4."
+    )
+
+
+def _current_advisories(
+    artifact: ConcreteWorkbenchArtifact,
+) -> tuple[EvidenceAdvisory, ...]:
     if not isinstance(artifact, ReferenceStudyRevision):
         return ()
     plan = pending_evidence_plan(artifact) or artifact.evidence_plan
