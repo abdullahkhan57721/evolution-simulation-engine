@@ -24,6 +24,11 @@ concurrency:
 jobs:
   render:
     name: Low-quality Manim renders
+    if: >-
+      ${{
+        github.event_name != 'pull_request' ||
+        (github.event.pull_request.draft == false && github.event.action != 'edited')
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -143,6 +148,7 @@ jobs:
     if: >-
       ${{
         github.event_name == 'pull_request' &&
+        github.event.pull_request.draft == false &&
         startsWith(github.head_ref, 'v3/i2-') &&
         contains(github.event.pull_request.body, 'FULL_B3_CINEMATIC=1')
       }}
