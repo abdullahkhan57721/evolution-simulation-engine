@@ -306,14 +306,49 @@ provenance using existing `.with_run(...)` behavior, and authoritative result ob
 remain session-owned. Compile/preflight failure does not mutate the saved artifact or
 become fabricated Workbench diagnostics.
 
-The next product front is downstream **Results/world/presentation integration** over
-this now-concrete execution/result-ownership seam. It should reuse WB5 result
-navigation and existing V2/V3 presentation adapters, add concrete analysis or Run
-Explorer workflows only where current result/evidence contracts support them, and
-keep Presentation downstream of authoritative scientific meaning. The focused Issue
-for that work should establish its exact WU milestone identity against current
-`main`; this roadmap does not invent a generic Results framework or universal next
-schema in advance.
+WU4 turns that exact execution/result-ownership seam into first-class scientific
+Results without adding another Results model or statistics layer. All five supported
+families use `Overview / Explore / Analysis / Provenance`, but navigation remains
+scientifically concrete:
+
+- controlled single-run exposes recorded population history and existing E1
+  locomotion measurement behind evidence availability;
+- Reference Ecology exposes population, committed events, pedigree/life history,
+  genetics, and committed spatial history independently;
+- E3 navigates maximum-speed factor level → exact replicate seed and passes through
+  existing replicate outcomes and `E3TreatmentSummary` values;
+- E4 navigates control/treatment arm → exact seed while preserving resource geography
+  as factor and keeping standing composition plus founder-order counterbalance
+  distinct, then passes through existing `E4EnvironmentSummary` values;
+- B3 keeps primary confirmation, radius sensitivity, and founder-label
+  counterbalance separate while preserving scenario origin versus validated identity
+  and exposing only existing cinematic-handoff availability.
+
+WU4 also makes the persistence boundary explicit in the product: a historical run
+provenance reference is not a durable result payload, missing evidence requires a new
+run with an appropriate EvidencePlan, and a stale session result is rejected rather
+than displayed under the wrong Study or Experiment.
+
+The next product front is **Presentation/world integration** over this authoritative
+Results boundary. It should connect WU4 Results to the existing WB5→V2 interactive
+world and WB5→V3/B3 cinematic seams through the persistent Study shell while keeping
+renderer mechanics downstream:
+
+```text
+authoritative scientific Results
+        ↓
+renderer-neutral scientific meaning
+        ↓
+existing V2 / V3 presentation adapters
+        ↓
+interactive world / cinematic presentation
+```
+
+Do not move interpolation, camera, layout, playback, storyboard/choreography, or
+export ownership into Results. The focused next WU Issue should establish which
+existing presentation controls become user-facing and how Presentation binds to the
+exact active scientific artifact/result without inventing a generic scene or camera
+DSL.
 
 Future WU work must continue to preserve the existing distinctions among simulation
 intent, evidence plan, factor/treatment design, replicate planning, authoritative
@@ -349,9 +384,10 @@ a dependency of it.
 
 ## Presentation continuation
 
-WB5 provides the architecture seam for Workbench→V2/V3, and WU3 now supplies
-concrete application execution/result ownership. Later WU work can integrate those
-consumers through the persistent Study shell while preserving:
+WB5 provides the architecture seam for Workbench→V2/V3; WU3 supplies concrete
+application execution/result ownership; WU4 now supplies family-specific scientific
+Results and run exploration over that exact ownership. The next WU work can integrate
+V2/V3 consumers through the persistent Study shell while preserving:
 
 - exact Study/run/treatment/replicate identity;
 - B3 control/treatment semantics;
