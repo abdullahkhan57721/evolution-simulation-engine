@@ -102,13 +102,17 @@ class ReferenceStudyController(QObject):
         self.scientificDraftChanged.emit()
         self._set_status("Unsaved Reference Ecology semantic draft changed.")
 
-    @Property(bool, notify=draftChanged)
-    def draftDirty(self) -> bool:  # noqa: N802
+    def is_draft_dirty(self) -> bool:
+        """Return transient draft ownership for Python controller-to-controller use."""
         return (
             self._revision is not None
             and self._draft_intent is not None
             and self._draft_intent != self._revision.intent
         )
+
+    @Property(bool, notify=draftChanged)
+    def draftDirty(self) -> bool:  # noqa: N802
+        return self.is_draft_dirty()
 
     @Property(bool, notify=draftChanged)
     def draftReady(self) -> bool:  # noqa: N802
@@ -134,9 +138,13 @@ class ReferenceStudyController(QObject):
             return self._readiness_message()
         return " · ".join(f"{key} = {value}" for key, value in preview.derived_values)
 
+    def is_running(self) -> bool:
+        """Return worker ownership for Python controller-to-controller use."""
+        return self._thread is not None
+
     @Property(bool, notify=runningChanged)
     def running(self) -> bool:
-        return self._thread is not None
+        return self.is_running()
 
     @Property(str, notify=statusChanged)
     def status(self) -> str:
@@ -165,7 +173,9 @@ class ReferenceStudyController(QObject):
 
     @Property(int, notify=worldChanged)
     def worldHeight(self) -> int:  # noqa: N802
-        return 0 if self._presentation is None else self._presentation.frame.world_height
+        return (
+            0 if self._presentation is None else self._presentation.frame.world_height
+        )
 
     @Property(int, notify=worldChanged)
     def worldStep(self) -> int:  # noqa: N802
@@ -194,7 +204,7 @@ class ReferenceStudyController(QObject):
 
     def clear(self) -> None:
         """Discard all Reference-specific transient state when its owner changes."""
-        if self.running:
+        if self.is_running():
             raise RuntimeError("Cannot clear Reference state while a run is active.")
         self._revision = None
         self._draft_intent = None
@@ -210,9 +220,13 @@ class ReferenceStudyController(QObject):
     @Slot(result=bool)
     def saveChildRevision(self) -> bool:  # noqa: N802
         """Commit the draft only as an immutable existing Workbench child revision."""
-        if not self._require_idle() or self._revision is None or self._draft_intent is None:
+        if (
+            not self._require_idle()
+            or self._revision is None
+            or self._draft_intent is None
+        ):
             return False
-        if not self.draftDirty:
+        if not self.is_draft_dirty():
             self._set_status("No semantic draft changes to save.")
             return False
         readiness = assess_reference_readiness(
@@ -239,8 +253,10 @@ class ReferenceStudyController(QObject):
         """Execute the exact active Reference revision on a narrow worker QThread."""
         if not self._require_idle() or self._revision is None:
             return
-        if self.draftDirty:
-            self._set_status("Save the semantic draft as a child revision before running.")
+        if self.is_draft_dirty():
+            self._set_status(
+                "Save the semantic draft as a child revision before running."
+            )
             return
         worker = _ReferenceRunWorker(self._revision)
         thread = QThread(self)
@@ -279,7 +295,9 @@ class ReferenceStudyController(QObject):
             result.provenance.study_revision_id != self._revision.revision_id
             or result.provenance.manifest_digest != self._revision.manifest.digest
         ):
-            self._set_status("Run provenance no longer matches the active Study revision.")
+            self._set_status(
+                "Run provenance no longer matches the active Study revision."
+            )
             return
         self._revision = self._revision.with_run(result.provenance)
         self._result = result
@@ -360,7 +378,7 @@ class ReferenceStudyController(QObject):
         self.worldChanged.emit()
 
     def _require_idle(self) -> bool:
-        if self.running:
+        if self.is_running():
             self._set_status("A run is already active; wait for it to finish.")
             return False
         return True
