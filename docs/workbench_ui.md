@@ -24,7 +24,8 @@ Run = action
 The application remains Streamlit-based. The former top-level
 Configuration → DashboardRun → Workspace mode switch is no longer the application
 entry architecture. Existing world-workspace and renderer modules remain available
-for later integration rather than being rewritten by the shell milestones.
+for reuse by the Study Presentation experience rather than being rewritten by the
+shell milestones.
 
 ## Supported entry families
 
@@ -352,6 +353,87 @@ shows those references honestly and does not regenerate or rerun them automatica
 E3/E4 definitions likewise do not gain invented persisted result payloads or
 Study-level run identities.
 
+## Presentation
+
+WU5 makes Presentation a first-class downstream Study experience over the exact
+WU4/WB5 result association. It does not add a `PresentationSpec`, replay database,
+scene graph, camera/storyboard DSL, or universal renderer adapter.
+
+Presentation currently has concrete behavior only where real adapters exist:
+
+```text
+Reference Ecology authoritative result
+        ↓ existing Workbench world adapter
+WorldPresentationFrame
+        ↓ retained Plotly renderer
+Interactive World
+
+canonical validated B3 result
+        ├─ existing B3 Workbench world adapter → matched Interactive World
+        └─ prepare_b3_workbench_cinematic()
+              ↓ existing B3 director
+              ↓ optional existing Manim renderer
+           Scientific Story
+```
+
+Unsupported Study families remain honest rather than receiving fake disabled
+symmetry.
+
+### Reference Ecology Interactive World
+
+Reference replay requires recorded spatial evidence. Missing spatial evidence uses
+the existing Workbench availability diagnostic/remediation and requires a new run
+with an appropriate EvidencePlan; historical provenance alone is never treated as
+replay data.
+
+The interactive world exposes only presentation operations over exact committed
+frames:
+
+- previous / next / committed-step selection;
+- play / pause and playback speed across recorded committed steps;
+- resources, carcasses, trails, trail length, and labels where supported;
+- organism selection and authoritative committed-state inspection;
+- run, seed, and committed-step context;
+- Focus Mode inside the same Study product.
+
+Those controls never change a manifest, EvidencePlan, experiment definition, or
+scientific provenance.
+
+### B3 matched Interactive World
+
+Canonical B3 presents independently constructed control and treatment worlds for one
+authoritative confirmation seed at one shared recorded committed step. Arm-local
+organism selection remains presentation focus only. Both arms must use the same
+science-owned fixed `max_speed` encoding.
+
+The UI states the matched design accurately: arms are blocked/matched by seed, but
+treatment-driven divergence means their subsequent RNG trajectories are not assumed
+to remain lockstep-identical.
+
+### B3 Scientific Story
+
+Only canonical validated B3 is eligible for the established headline cinematic
+handoff. The UI invokes the existing
+`prepare_b3_workbench_cinematic(...)` → B3 director → renderer path. Representative
+seed, scientific episodes, comparison structure, fixed trait scale, and bounded
+conclusion remain owned by B3 science/director code.
+
+Renderer quality and MP4/GIF output are presentation-only choices already supported
+by the renderer API. Scientific handoff availability is distinct from whether the
+optional Manim dependency is installed. A radius-2 B3-derived fork preserves B3
+origin but does not inherit canonical cinematic eligibility.
+
+### Presentation session ownership
+
+Presentation state is transient and namespaced. It includes focus mode, subexperience,
+selected seed/step/organism, playback, renderer visibility/trail/label controls, and
+renderer output options. State is reconciled to exact revision + manifest digest +
+run ownership and is cleared when an active Study/run is replaced or the user returns
+Home. Changing B3 confirmation seed resets timeline and organism-selection state.
+
+Programmatic committed-step changes explicitly synchronize the keyed Streamlit step
+widget so Previous/Next and playback cannot be undone by stale widget state.
+
 ## Session ownership
 
 Streamlit session state owns only transient application concerns:
@@ -365,11 +447,11 @@ Streamlit session state owns only transient application concerns:
 - Run Plan state and binding/failure notices;
 - disclosure/widget state;
 - the immediately loaded parent artifact used for an in-session semantic diff;
-- presentation state owned by downstream UI modules.
+- Presentation focus/replay/renderer state.
 
 These values are not a persisted scientific schema. Returning Home, opening another
-Study, or starting another Study clears transient WU2/WU3/WU4 draft/run/result state
-so scientific state cannot leak across Studies.
+Study, or starting another Study clears transient WU2–WU5 draft/run/result/presentation
+state so scientific or renderer state cannot leak across Studies.
 
 ## Readiness and results honesty
 
@@ -382,30 +464,25 @@ Non-blocking evidence advisories remain warnings and do not turn Ready into Bloc
 
 Saved revision formats may preserve run provenance and result references without
 serializing complete result payloads. Reopening such a Study does not reconstruct
-missing evidence and does not rerun the simulation automatically. The Results page
-states that limitation explicitly.
+missing evidence and does not rerun the simulation automatically. The Results and
+Presentation pages state that limitation explicitly.
 
-## Deferred work after WU4
+## Work after WU5
 
-WU4 does not embed the V2 interactive world, execute the V3/B3 cinematic director,
-add renderer controls, or create durable result storage. It also does not introduce a
-generic statistics framework, chart DSL, telemetry query language, or universal
-Study/Result schema.
+WU5 completes the first concrete Presentation integration while deliberately leaving
+broader product hardening and release polish outside its scope. It does not add
+durable result storage, a background render queue, generic statistics/chart/query
+frameworks, a universal Study/Result/Presentation schema, or a generic cinematic
+scene model.
 
-The next UI milestone should integrate authoritative Results with the existing V2
-interactive-world and V3/B3 Presentation seams through the persistent Study shell:
-
-```text
-scientific Results
-        ↓
-renderer-neutral scientific meaning
-        ↓
-existing presentation adapters
-        ↓
-interactive world or cinematic rendering
-```
+The next UI milestone is **WU6 — Product Hardening, Accessibility, Visual Completion,
+and Release Readiness**. WU6 should exercise and polish the existing end-to-end Study
+product rather than redesign settled scientific or presentation ownership. Relevant
+work includes navigation coherence, accessibility, responsive/focus behavior,
+visual consistency, error/remediation clarity, renderer availability/failure UX,
+release smoke paths, and launch/packaging guidance where already supported.
 
 Renderer state, interpolation, cameras, playback controls, storyboard/choreography,
-and export remain Presentation responsibilities. Future integration should consume
-the WU4/WB5 scientific boundary rather than reopening Workbench science or moving
-presentation mechanics into Results.
+and export remain Presentation responsibilities. Future work should continue to
+consume the authoritative Workbench/Results boundary rather than reopening science or
+moving presentation mechanics into Results.

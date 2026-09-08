@@ -325,8 +325,22 @@ may retain historical provenance references without carrying the scientific resu
 payload; the UI shows those references and never regenerates or reruns them
 implicitly.
 
-The prior world-centered V2 workspace and renderer implementation remain available
-for downstream Presentation integration rather than being redefined by WU1–WU4. See
+WU5 completes the first concrete Presentation integration without inventing a new
+replay or scene framework. Reference Ecology routes exact recorded spatial evidence
+through the existing Workbench presentation adapter into `WorldPresentationFrame`
+and the retained Plotly renderer, with committed-step navigation, playback,
+organism inspection, and renderer-only visibility/trail/label controls. Focus Mode
+is presentation state only. Presentation session state is owned by the exact
+revision/manifest-digest/run tuple and is reset rather than reused across scientific
+owners; historical provenance references alone never become replay data.
+
+B3 Presentation keeps the matched scientific design visible. Control and treatment
+are built independently from the same authoritative confirmation seed and committed
+step, use one shared science-owned `max_speed` encoding, and never assume that
+matched arms remain RNG-identical after treatment-driven divergence. Canonical
+validated B3 can hand off to the existing B3-specific director and optional Manim
+renderer; representative seed, scientific episodes, comparison structure, and
+bounded conclusion remain science/director-owned rather than UI-authored. See
 `docs/workbench_ui.md`.
 
 ## Official Workbench support envelope
@@ -356,7 +370,7 @@ WB4 remains the explicit tiered recipe:
   genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
   movement, and development/G×E editing.
 
-WU2–WU4 promote no capability merely because the lower engine can represent it.
+WU2–WU5 promote no capability merely because the lower engine can represent it.
 
 ## Results and presentation boundary
 
@@ -383,25 +397,29 @@ model / evidence / experiments
 ```
 
 The V2 adapter builds existing `WorldPresentationFrame` values from recorded WB4/B3
-evidence. The V3 adapter feeds validated canonical B3 results into the existing
-B3-specific director. Renderer-specific layout, controls, camera, timing, materials,
-charts, and animation remain presentation concerns.
+evidence. WU5 now exposes that path inside the Study shell while keeping replay,
+selection, visibility, trails, labels, playback, and Focus Mode out of scientific
+identity. The V3 adapter feeds validated canonical B3 results into the existing
+B3-specific director, and WU5 exposes that handoff without moving representative
+selection, scientific episodes, or conclusion semantics into the UI.
+Renderer-specific layout, controls, camera, timing, materials, charts, and animation
+remain presentation concerns.
 
 ## Current development front
 
-The Workbench foundation, the first E-series controlled-science program, the first
-end-to-end Workbench execution path, and first-class Results exploration are now
-settled enough to move to concrete Presentation integration.
+The Workbench foundation, E1–E7 controlled-science sequence, end-to-end Study
+execution, first-class Results workspace, and first concrete Presentation integration
+are now established.
 
-WU1–WU4 provide the persistent Study shell, bounded Simulation and Evidence
+WU1–WU5 provide the persistent Study shell, bounded Simulation and Evidence
 authoring, concrete E3/E4/B3 Experiment presentation, immutable revision/fork
 behavior, Workbench readiness, reviewable Run Plan, authoritative synchronous
 execution, provenance attachment, exact result ownership, evidence-aware scientific
-analysis, and family-specific run exploration. The next product front is integrating
-those authoritative Results with the existing V2 interactive-world and V3/B3
-Presentation seams through the same Study shell. It should consume WB5/WU4
-renderer-neutral scientific meaning and existing presentation adapters rather than
-move interpolation, cameras, playback, storyboard, or renderer state into Results.
+analysis, family-specific run exploration, recorded-state Interactive World replay,
+and canonical B3 scientific-cinematic handoff. The next product front is **WU6 —
+Product Hardening, Accessibility, Visual Completion, and Release Readiness**. It
+should harden and polish the existing product rather than redesign settled Workbench,
+science, replay, or cinematic ownership boundaries.
 
 E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
 result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
@@ -420,7 +438,7 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities
-still differ. WB5/WB6 and WU1–WU4 do not reveal enough identical persistence or
+still differ. WB5/WB6 and WU1–WU5 do not reveal enough identical persistence or
 execution responsibility to earn a universal saved Study/Experiment/Results root.
 
 ### Broader Workbench diagnostics remain bounded

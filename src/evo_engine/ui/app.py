@@ -17,6 +17,7 @@ from evo_engine.ui.experiment_page import (
     pending_experiment_error,
     render_experiment_page,
 )
+from evo_engine.ui.presentation_page import render_presentation_page
 from evo_engine.ui.results_page import render_results_page
 from evo_engine.ui.run_binding import bind_pending_scientific_state, effective_readiness
 from evo_engine.ui.run_execution import execute_artifact
@@ -39,6 +40,10 @@ from evo_engine.ui.study_shell import (
     new_max_speed_sweep,
     new_reference_ecology,
     serialize_concrete_artifact,
+)
+from evo_engine.ui.world_explorer import (
+    clear_presentation_state,
+    presentation_focus_mode,
 )
 from evo_engine.workbench import (
     EnvironmentSelectionComparisonDefinition,
@@ -226,6 +231,17 @@ def _render_study_shell() -> None:
         _go_home()
         st.rerun()
 
+    if (
+        st.session_state.get(_SECTION_KEY) == "Presentation"
+        and presentation_focus_mode()
+    ):
+        render_presentation_page(
+            artifact,
+            st.session_state.get(_RESULT_KEY),
+            focus_mode=True,
+        )
+        return
+
     home, heading, actions = st.columns((1, 5, 4))
     with home:
         if st.button("← Home"):
@@ -348,12 +364,11 @@ def _render_study_section(
     if section == "Results":
         render_results_page(artifact, st.session_state.get(_RESULT_KEY))
         return
+    if section == "Presentation":
+        render_presentation_page(artifact, st.session_state.get(_RESULT_KEY))
+        return
 
-    st.header("Presentation")
-    st.write(
-        "Presentation remains downstream of scientific evidence. Renderer and "
-        "world-workspace integration are intentionally deferred."
-    )
+    raise ValueError(f"Unsupported Study section: {section!r}.")
 
 
 def _render_experiment_simulation_summary(
@@ -426,6 +441,7 @@ def _render_active_run_plan(artifact: ConcreteWorkbenchArtifact) -> None:
 
 
 def _execute_active_artifact(artifact: ConcreteWorkbenchArtifact) -> None:
+    clear_presentation_state()
     st.session_state.pop(_RESULT_KEY, None)
     st.session_state.pop(_RUN_FAILURE_KEY, None)
     try:
@@ -471,6 +487,7 @@ def _replace_active_for_run(
     clear_simulation_authoring_state()
     clear_evidence_authoring_state()
     clear_experiment_authoring_state()
+    clear_presentation_state()
     st.session_state[_ACTIVE_ARTIFACT_KEY] = artifact
     if artifact_revision_id(artifact) is not None:
         st.session_state[_DIFF_PARENT_KEY] = previous
@@ -516,6 +533,7 @@ def _clear_active_context() -> None:
     clear_simulation_authoring_state()
     clear_evidence_authoring_state()
     clear_experiment_authoring_state()
+    clear_presentation_state()
     for key in (
         _ACTIVE_ARTIFACT_KEY,
         _SECTION_KEY,
