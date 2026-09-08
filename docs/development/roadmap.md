@@ -369,46 +369,59 @@ Q1 establishes:
 
 The exact Q1 boundary and downstream interfaces are in `docs/desktop_workbench.md`.
 
-### Q2 — Simulation authoring
+### Q2 — Native Simulation, Evidence, and Experiment authoring (completed)
 
-Q2 should expand the Simulation section family-by-family against existing Workbench
-semantic authoring contracts. It should reuse the Q1 application routing,
-active-artifact ownership/reset rules, exact persistence dispatch, and family child
-controller seam rather than redesign them.
+Q2 intentionally combines the previously separate Simulation and
+Evidence/Experiment authoring fronts because one coherent product task owns the full
+pre-execution scientific Study definition. It reuses the Q1 application shell, exact
+artifact routing, active-owner/reset semantics, and family-controller seam rather
+than redesigning them.
 
-The first goal is native parity for the already-supported semantic choices, not
-reflection-driven policy editing. Controlled locomotion and bounded Reference
-Ecology should remain concrete consumers of their existing Workbench intent,
-applicability, normalization, readiness, semantic-diff, and immutable revision/fork
-contracts. Curated B3 remains read-only except for the already-supported sensitivity
-fork. Do not promote Extension/Internal capability merely because lower engine types
-can represent it.
+Q2 establishes:
 
-### Q3 — Evidence and Experiment
+1. controlled-locomotion Simulation authoring for only maximum speed, resource
+   geography, and seed, with existing readiness, immutable child revision, and
+   semantic-diff contracts;
+2. bounded Reference Ecology Guided/Advanced authoring using WB4 applicability and
+   transient reconciliation, with Expert still empty and Extension/Internal still
+   non-authorable;
+3. inspectable selected, derived, and frozen recipe meaning through curated Qt item
+   models rather than Python object dumps;
+4. canonical B3 read-only Simulation semantics plus only the existing radius-2
+   sensitivity fork and explicit validated-identity loss;
+5. controlled/reference Evidence authoring through only the existing concrete
+   EvidencePlan types and immutable child revisions, while required B3/E3/E4 evidence
+   remains locked and missing-evidence implications stay explicit;
+6. concrete E3 level/seed and E4 seed editing with authoritative Workbench expansion
+   rows preserving factor, role, standing-composition, and counterbalance semantics;
+7. curated/read-only B3 Experiment case counts and explicit controlled/reference
+   single-run semantics rather than a generic experiment definition;
+8. thin `SimulationAuthoringController`, `EvidenceAuthoringController`, and
+   `ExperimentAuthoringController` seams plus Reference-specific authoring retained in
+   `ReferenceStudyController`;
+9. application-level stale result, Run Plan, and presentation reset on scientific
+   draft/owner changes while section navigation remains scientifically inert; and
+10. native QML authoring views and read-only Qt item models without a universal Study
+    schema, reflection-driven form system, generic experiment DSL, or QML-owned
+    scientific validation.
 
-Q3 should add concrete native Evidence and Experiment controllers over the existing
-Workbench contracts. EvidencePlan remains separate from simulation intent. E3 and E4
-keep factor, treatment, counterbalance, replicate, and measurement identity distinct;
-B3 retains its curated scientific design.
+### Q3 — execution and Results breadth
 
-Use the Q1 exact-owner/reset boundary and Q2 family-controller patterns. Do not create
-a generic experiment DSL, universal Evidence schema, reflection-driven form engine,
-or QML-owned scientific validation.
-
-### Q4 — execution and Results breadth
-
-Q4 should broaden execution and Results beyond the retained Q0 Reference path using
-only existing concrete Workbench runners, result inspectors, provenance, and WB5
-association rules. Result binding must continue to require exact active-owner
+Q3 should broaden execution and Results beyond the retained Q0/Q2 Reference path
+using only existing concrete Workbench runners, result inspectors, provenance, and
+WB5 association rules. Result binding must continue to require exact active-owner
 compatibility, and missing evidence must remain unavailable rather than reconstructed.
 
 Add family-specific Qt item models/view models only where concrete Results consumers
 need them. Do not flatten heterogeneous controlled/E3/E4/B3/Reference results into a
-universal result or statistics model.
+universal result or statistics model. Preserve the Q2 authoring-draft rule: Run must
+operate on exact saved scientific ownership, with pending revision-backed edits
+committed through their existing immutable contracts before execution rather than
+mutating saved science in place.
 
 ### Later native product direction
 
-After Q4, expand Presentation from recorded evidence: broader Reference world
+After Q3, expand Presentation from recorded evidence: broader Reference world
 exploration, canonical B3 matched replay and existing cinematic handoff, then native
 accessibility, visual completion, packaging/release hardening, and an explicit
 Streamlit parity/removal decision when justified.
