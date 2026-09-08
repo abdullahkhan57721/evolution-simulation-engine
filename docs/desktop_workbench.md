@@ -1,8 +1,11 @@
 # Native Desktop Evolution Experiment Workbench
 
 Q0 establishes **PySide6 + Qt Quick/QML** as the primary product frontend architecture
-for the Evolution Experiment Workbench. The Streamlit WU1–WU5 application remains a
-reference frontend during migration; it does not become a second scientific model.
+for the Evolution Experiment Workbench. Q1 establishes the persistent native Study
+shell and concrete routing; Q2 completes the currently supported pre-execution
+Simulation/Evidence/Experiment authoring surface. The Streamlit WU1–WU5 application
+remains a reference frontend during migration; it does not become a second scientific
+model.
 
 ## Dependency direction
 
@@ -233,15 +236,13 @@ diagnostic message/remediation.
 
 ### Family-specific controller seam
 
-`ReferenceStudyController` now owns only the retained Reference Ecology deep slice:
-its transient `max_speed` draft, immutable child commit, narrow worker-thread run,
+Q1 originally kept `ReferenceStudyController` as the one deep family slice: a
+transient `max_speed` draft, immutable child commit, narrow worker-thread run,
 authoritative Reference result, and renderer-neutral world preparation. It receives
 an exact active `ReferenceStudyRevision` from `ApplicationController`; it is not the
-application router or persistence dispatcher.
-
-This separation is intentional. Other families should get concrete downstream
-controllers when Q2–Q4 need real family behavior rather than accumulating unrelated
-logic in one universal controller.
+application router or persistence dispatcher. Q2 preserves that family boundary while
+expanding Reference authoring and adding separate concrete Simulation, Evidence, and
+Experiment controllers, as described below.
 
 ### QML shell and design system
 
@@ -261,33 +262,111 @@ Native Reference world rendering remains evidence-dependent. If the exact active
 result did not record spatial evidence, Q1 reports that replay is unavailable and
 does not reconstruct world history.
 
-## Q2 / Q3 / Q4 interface handoff
+## Q2 native scientific authoring
 
-The following Q1 seams are intended to be stable enough for downstream native work:
+Q2 fills the three pre-execution scientific sections while preserving the Q1
+application and persistence boundaries:
 
-- `ApplicationController` route values: `home / new / open / study`;
-- the five exact Study-section names;
-- explicit concrete artifact kind/identity/readiness properties;
-- active-artifact replacement and stale result/Run Plan/presentation reset semantics;
-- exact concrete loader/serializer dispatch in `evo_engine.desktop.artifacts`;
-- native file-location and Save/Save As ownership;
-- `ReferenceStudyController` as the pattern for a family-specific controller beneath
-  the application shell;
-- QML design primitives and the sidebar/header/content shell layout.
+```text
+ApplicationController
+├── SimulationAuthoringController
+├── EvidenceAuthoringController
+├── ExperimentAuthoringController
+└── ReferenceStudyController
+```
 
-Q2 can build Simulation authoring against family-specific controller seams while
-leaving application routing/persistence alone. Q3 can add Evidence and Experiment
-controllers using the same exact-owner/reset contract. Q4 can add execution/Results
-breadth and family result models while continuing to bind only authoritative existing
-Workbench results.
+These are concrete application seams, not a common scientific object model. The
+application controller activates all four against one exact concrete artifact and
+resets stale current-session result, Run Plan, and presentation state whenever a
+scientific draft or exact owner changes. Section navigation itself remains inert.
 
-The following are intentionally **not** settled by Q1 and must not be inferred from
-its implementation:
+### Simulation authoring
+
+`SimulationAuthoringController` owns controlled-locomotion transient intent for only
+maximum speed, resource geography, and seed. It delegates readiness, immutable child
+creation, and semantic diff to the existing Workbench/frontend-neutral authoring
+contracts. E3/E4 Simulation factor assumptions remain read-only because their
+experiment definitions own those semantics. B3 remains curated/read-only except for
+the already-supported radius-2 sensitivity fork, whose existing diff exposes loss of
+validated canonical identity.
+
+Reference Ecology remains family-specific in `ReferenceStudyController`. Q2 expands
+that controller from the Q0 max-speed proof to the bounded WB4 Guided/Advanced
+surface, including Gaussian, two-patch, and mutation applicability. Inapplicable
+transient values reconcile through the existing normalization helper; saved
+normalization and readiness remain Workbench-owned. Expert remains empty and
+Extension/Internal capability is not exposed. The retained Reference run/result/world
+vertical remains in the same family controller and still runs only exact saved
+science.
+
+The native Simulation view consumes separate read-only item models for **You
+selected**, **Derived configuration**, **Frozen recipe assumptions**, and the existing
+semantic diff. QML never receives the mutable Workbench manifest/revision graph.
+
+### Evidence authoring
+
+`EvidenceAuthoringController` owns only transient evidence IDs for controlled and
+Reference revision-backed Studies. Option rows come from the existing concrete
+evidence authoring helpers and carry scientific label, meaning, enabled analysis,
+required/editable state, and selection. Saving creates a new immutable child through
+the owning concrete evidence-plan contract.
+
+Reference advisories, including high-volume spatial evidence warnings, are passed
+through existing Workbench diagnostics. Missing optional evidence explicitly states
+that the corresponding analysis cannot be reconstructed later. B3, E3, and E4
+required evidence remains locked/read-only.
+
+### Experiment authoring
+
+`ExperimentAuthoringController` owns only the existing concrete experiment
+definitions. E3 edits supported maximum-speed levels and replicate seeds. E4 edits
+replicate seeds while resource geography, control/treatment roles, standing focal
+composition, and founder-order counterbalance remain fixed and separately visible.
+The controller rebuilds its run rows only through the existing Workbench expansion
+helpers.
+
+B3 remains a read-only curated compiled design with authoritative case counts. A
+controlled Study and Reference Ecology explicitly remain single-run workflows; Q2
+does not invent a generic experiment object for them.
+
+### Qt model boundary
+
+`evo_engine.desktop.models.authoring` contains only small read-only Qt item models for
+scientific meaning, semantic diff rows, evidence choices, factor levels, and
+experiment-run rows. They are scalar presentation values over existing scientific
+contracts, not persistence or validation schemas. QML authoring is split into
+`SimulationAuthoringView.qml`, `EvidenceAuthoringView.qml`, and
+`ExperimentAuthoringView.qml`, with `SemanticDiffView.qml` as the one reusable diff
+presentation primitive earned by multiple concrete families.
+
+## Q3 execution / Results handoff
+
+The following Q1/Q2 seams are intended to remain stable for the next native front:
+
+- `ApplicationController` routing, exact concrete artifact ownership, file ownership,
+  and stale result/Run Plan/presentation reset semantics;
+- exact loader/serializer dispatch in `evo_engine.desktop.artifacts`;
+- family-specific authoring controllers rather than a universal desktop scientific
+  model;
+- transient scientific drafts that cannot be executed as if they were saved science;
+- existing immutable revision/fork or concrete experiment-definition replacement
+  semantics for authoring commits;
+- curated scalar Qt properties and read-only item-model rows at the QML boundary;
+- the retained narrow Reference worker thread as evidence that synchronous Workbench
+  runners must not block the GUI thread; and
+- WB5 exact result-owner association as the authority for binding Results.
+
+Q3 should add execution and Results family-by-family over the five existing concrete
+Workbench runners and inspectors. Missing evidence remains unavailable rather than
+reconstructed, and heterogeneous controlled/E3/E4/B3/Reference outputs should gain
+only the concrete Qt result models their native consumers require.
+
+The following remain intentionally unsettled and must not be inferred from Q2:
 
 - a universal Study class or common persisted schema;
 - generic authoring metadata/forms;
-- a generic experiment/result hierarchy;
-- full Run Plan/job/cancellation infrastructure;
+- a generic experiment/result/statistics hierarchy;
+- a generic background-job/cancellation framework;
 - cross-family presentation models;
 - native release/signing/update architecture;
 - removal of the Streamlit reference frontend.
@@ -303,3 +382,4 @@ its implementation:
 - ADR 0010
 - GitHub Issue #197 / PR #198
 - GitHub Issue #201 / PR #202
+- GitHub Issue #203 / PR #204

@@ -16,6 +16,9 @@ ApplicationWindow {
 
     readonly property var app: applicationController
     readonly property var reference: applicationController.referenceController
+    readonly property var simulation: applicationController.simulationController
+    readonly property var evidence: applicationController.evidenceController
+    readonly property var experiment: applicationController.experimentController
 
     WorkbenchTheme { id: theme }
 
@@ -601,164 +604,35 @@ ApplicationWindow {
 
     Component {
         id: simulationSection
-        ScrollView {
-            contentWidth: availableWidth
-            clip: true
-            ColumnLayout {
-                width: sectionLoader.width
-                spacing: theme.space3
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "Study / Simulation"
-                    title: "Simulation"
-                    description: root.app.artifactKind === "reference-ecology"
-                        ? "Q1 retains the proven Reference Ecology semantic edit without expanding full native authoring."
-                        : "The shell preserves this Study family's exact scientific owner. Full native Simulation authoring arrives later."
-                    Layout.fillWidth: true
-                }
-
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: simulationContent.implicitHeight + theme.space4 * 2
-                    ColumnLayout {
-                        id: simulationContent
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space3
-
-                        ColumnLayout {
-                            visible: root.app.artifactKind === "reference-ecology"
-                            Layout.fillWidth: true
-                            spacing: theme.space3
-                            FieldLabel { theme: theme; text: "FOUNDER MAXIMUM SPEED" }
-                            RowLayout {
-                                Layout.fillWidth: true
-                                SpinBox {
-                                    from: 0
-                                    to: 4
-                                    value: root.reference.draftMaxSpeed
-                                    enabled: root.reference.active && !root.reference.running
-                                    onValueModified: root.reference.draftMaxSpeed = value
-                                }
-                                StatusBadge {
-                                    theme: theme
-                                    text: root.reference.draftDirty ? "UNSAVED DRAFT" : "EXACT SAVED REVISION"
-                                    tone: root.reference.draftDirty ? "warning" : "success"
-                                }
-                                Item { Layout.fillWidth: true }
-                                WorkbenchButton {
-                                    theme: theme
-                                    text: "Save child revision"
-                                    enabled: root.reference.draftDirty && root.reference.draftReady && !root.reference.running
-                                    onClicked: root.reference.saveChildRevision()
-                                }
-                            }
-                            FieldLabel { theme: theme; text: "EXPLICIT MEANING" }
-                            Label { text: root.reference.explicitMeaning; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            FieldLabel { theme: theme; text: "DERIVED MEANING" }
-                            Label { text: root.reference.derivedMeaning; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                        }
-
-                        ColumnLayout {
-                            visible: root.app.artifactKind !== "reference-ecology"
-                            Layout.fillWidth: true
-                            spacing: theme.space2
-                            Label { text: root.app.studyTitle + " scientific definition"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                            Label { text: "Q1 displays identity and readiness only. Navigation cannot mutate this concrete artifact."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                        }
-                    }
-                }
-
-                DisclosureSection {
-                    theme: theme
-                    title: "Exact scientific identity"
-                    expanded: false
-                    Layout.fillWidth: true
-                    contentItem: [
-                        Label { text: root.app.revisionId.length > 0 ? "Revision: " + root.app.revisionId : "Revision identity: not owned by this artifact type"; color: theme.mutedText },
-                        Label { text: root.app.parentRevisionId.length > 0 ? "Parent revision: " + root.app.parentRevisionId : "Parent revision: —"; color: theme.mutedText },
-                        Label { text: root.app.manifestDigest.length > 0 ? "Manifest: " + root.app.manifestDigest : "Manifest digest: owned inside experiment treatments when applicable"; color: theme.mutedText; wrapMode: Text.Wrap },
-                        Label { visible: root.app.scenarioOrigin.length > 0; text: "Scenario origin: " + root.app.scenarioOrigin; color: theme.mutedText },
-                        Label { visible: root.app.artifactKind === "b3-flagship"; text: "Validated scenario identity: " + (root.app.scenarioIdentity.length > 0 ? root.app.scenarioIdentity : "not retained by this B3-derived fork"); color: theme.mutedText; wrapMode: Text.Wrap }
-                    ]
-                }
-            }
+        SimulationAuthoringView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            reference: root.reference
+            simulation: root.simulation
         }
     }
 
     Component {
         id: evidenceSection
-        ScrollView {
-            contentWidth: availableWidth
-            ColumnLayout {
-                width: sectionLoader.width
-                spacing: theme.space3
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "Study / Evidence"
-                    title: "Evidence"
-                    description: "Q1 preserves the exact evidence plan already stored by the active concrete artifact. Evidence authoring is a later native milestone."
-                    Layout.fillWidth: true
-                }
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: 170
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space2
-                        StatusBadge { theme: theme; text: "EXACT PERSISTED MEANING"; tone: "success" }
-                        Label { text: "No Q1 Evidence editor"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                        Label { text: "Opening, saving, and changing sections never synthesize or re-resolve evidence. Q3 can build family-specific Evidence controls over the settled application-state seam."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                    }
-                }
-            }
+        EvidenceAuthoringView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            evidence: root.evidence
         }
     }
 
     Component {
         id: experimentSection
-        ScrollView {
-            contentWidth: availableWidth
-            ColumnLayout {
-                width: sectionLoader.width
-                spacing: theme.space3
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "Study / Experiment"
-                    title: "Experiment"
-                    description: "Concrete experiment identity remains separate from ordinary Simulation authoring. Q1 does not introduce a generic experiment editor."
-                    Layout.fillWidth: true
-                }
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: 180
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space2
-                        StatusBadge {
-                            theme: theme
-                            text: root.app.artifactKind === "max-speed-sweep" || root.app.artifactKind === "environment-selection-comparison" ? "EXPERIMENT DEFINITION" : "STUDY WORKFLOW"
-                            tone: "neutral"
-                        }
-                        Label { text: root.app.studyTitle; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                        Label {
-                            text: root.app.artifactKind === "max-speed-sweep"
-                                ? "Maximum speed remains the existing E3 semantic factor; seeds remain replicate design."
-                                : root.app.artifactKind === "environment-selection-comparison"
-                                    ? "Resource geography remains the E4 factor; control/treatment and standing composition stay frozen."
-                                    : "This Study family has no Q1 experiment-editing surface."
-                            color: theme.mutedText
-                            wrapMode: Text.Wrap
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
-            }
+        ExperimentAuthoringView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            experiment: root.experiment
         }
     }
 

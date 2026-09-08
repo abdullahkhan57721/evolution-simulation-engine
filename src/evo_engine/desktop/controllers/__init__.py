@@ -1,6 +1,15 @@
 """Thin Qt controllers over existing Workbench application semantics."""
 
 from evo_engine.desktop.controllers.application import ApplicationController
+from evo_engine.desktop.controllers.evidence import EvidenceAuthoringController
+from evo_engine.desktop.controllers.experiment import ExperimentAuthoringController
 from evo_engine.desktop.controllers.reference import ReferenceStudyController
+from evo_engine.desktop.controllers.simulation import SimulationAuthoringController
 
-__all__ = ["ApplicationController", "ReferenceStudyController"]
+__all__ = [
+    "ApplicationController",
+    "EvidenceAuthoringController",
+    "ExperimentAuthoringController",
+    "ReferenceStudyController",
+    "SimulationAuthoringController",
+]
