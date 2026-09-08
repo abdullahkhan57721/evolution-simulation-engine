@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, TypeAlias
 
 import pytest
 
@@ -16,10 +17,21 @@ from evo_engine.ui.study_shell import (
     new_max_speed_sweep,
     new_reference_ecology,
 )
-from evo_engine.workbench import WorkbenchRunProvenance
+from evo_engine.workbench import (
+    B3StudyRevision,
+    ReferenceStudyRevision,
+    StudyRevision,
+    WorkbenchRunProvenance,
+)
+
+RevisionOwnedArtifact: TypeAlias = StudyRevision | ReferenceStudyRevision | B3StudyRevision
 
 
-def _provenance(revision: Any, *, run_id: str) -> WorkbenchRunProvenance:
+def _provenance(
+    revision: RevisionOwnedArtifact,
+    *,
+    run_id: str,
+) -> WorkbenchRunProvenance:
     return WorkbenchRunProvenance(
         run_id=run_id,
         study_revision_id=revision.revision_id,
@@ -43,7 +55,7 @@ def _provenance(revision: Any, *, run_id: str) -> WorkbenchRunProvenance:
 )
 def test_revision_owned_execution_attaches_authoritative_run_provenance(
     monkeypatch: pytest.MonkeyPatch,
-    factory: Any,
+    factory: Callable[[], RevisionOwnedArtifact],
     runner_name: str,
 ) -> None:
     revision = factory()
