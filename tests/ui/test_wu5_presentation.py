@@ -346,9 +346,7 @@ def test_owner_token_and_no_current_result_are_exact_and_truthful(
     artifact = object()
     monkeypatch.setattr(presentation_page, "artifact_run_count", lambda _: 1)
     presentation_page._render_no_current_result(cast(Any, artifact))
-    assert any(
-        "historical run" in value.lower() for value in _messages(fake, "info")
-    )
+    assert any("historical run" in value.lower() for value in _messages(fake, "info"))
     assert any(
         "not spatial replay data" in value.lower()
         for value in _messages(fake, "caption")
@@ -367,14 +365,12 @@ def test_unavailable_diagnostics_and_navigation_actions(
     fake = _patch_streamlit(monkeypatch)
     presentation_page._render_unavailable_analysis(_unavailable(), world=True)
     assert any(
-        "INTERACTIVE WORLD UNAVAILABLE" in value
-        for value in _messages(fake, "error")
+        "INTERACTIVE WORLD UNAVAILABLE" in value for value in _messages(fake, "error")
     )
     assert any("Required evidence" in value for value in _messages(fake, "write"))
     presentation_page._render_unavailable_analysis(_unavailable(), world=False)
     assert any(
-        "B3 SCIENTIFIC STORY UNAVAILABLE" in value
-        for value in _messages(fake, "error")
+        "B3 SCIENTIFIC STORY UNAVAILABLE" in value for value in _messages(fake, "error")
     )
     presentation_page._render_unavailable_analysis(_available(), world=True)
 
@@ -404,8 +400,7 @@ def test_organism_inspector_and_world_renderers_use_committed_values(
     fake = _patch_streamlit(monkeypatch)
     presentation_page._render_organism_inspector(_frame(selected_id=None))
     assert any(
-        "choose an organism" in value.lower()
-        for value in _messages(fake, "caption")
+        "choose an organism" in value.lower() for value in _messages(fake, "caption")
     )
 
     missing = WorldPresentationFrame(
@@ -541,8 +536,7 @@ def test_b3_pair_rejects_mismatch_and_uses_one_fixed_encoding(
         "same fixed scale" in value.lower() for value in _messages(fake, "caption")
     )
     assert any(
-        "focus mode enlarges" in value.lower()
-        for value in _messages(fake, "caption")
+        "focus mode enlarges" in value.lower() for value in _messages(fake, "caption")
     )
 
 
@@ -691,7 +685,9 @@ def test_reference_world_selects_exact_step_and_passes_view_only_controls(
         available_view,
         focus_mode=False,
     )
-    assert any("no committed spatial frames" in value for value in _messages(fake, "error"))
+    assert any(
+        "no committed spatial frames" in value for value in _messages(fake, "error")
+    )
 
 
 def test_b3_landing_and_world_paths_are_scenario_specific(
@@ -758,8 +754,12 @@ def test_b3_world_synchronizes_seed_step_and_builds_arms_independently(
     fake = _patch_streamlit(monkeypatch)
     revision, result, _ = _b3_fixture()
     summary = SimpleNamespace(seed=13)
-    control_evidence = SimpleNamespace(spatial_observations=(SimpleNamespace(step_index=0, organisms=()),))
-    treatment_evidence = SimpleNamespace(spatial_observations=(SimpleNamespace(step_index=0, organisms=()),))
+    control_evidence = SimpleNamespace(
+        spatial_observations=(SimpleNamespace(step_index=0, organisms=()),)
+    )
+    treatment_evidence = SimpleNamespace(
+        spatial_observations=(SimpleNamespace(step_index=0, organisms=()),)
+    )
     pair = SimpleNamespace(
         summary=summary,
         control_evidence=control_evidence,
@@ -771,7 +771,9 @@ def test_b3_world_synchronizes_seed_step_and_builds_arms_independently(
     monkeypatch.setattr(presentation_page, "initialize_world_state", lambda _: None)
     monkeypatch.setattr(presentation_page, "playback_interval", lambda: None)
     monkeypatch.setattr(presentation_page, "advance_playback_if_due", lambda _: None)
-    monkeypatch.setattr(presentation_page, "render_committed_step_controls", lambda _: 2)
+    monkeypatch.setattr(
+        presentation_page, "render_committed_step_controls", lambda _: 2
+    )
     options = WorldViewOptions(
         show_resources=True,
         show_carcasses=False,
@@ -846,8 +848,7 @@ def test_b3_story_distinguishes_science_from_optional_renderer_and_view_state(
     )
     presentation_page._render_b3_story(revision, result, unavailable_view)
     assert any(
-        "B3 SCIENTIFIC STORY UNAVAILABLE" in value
-        for value in _messages(fake, "error")
+        "B3 SCIENTIFIC STORY UNAVAILABLE" in value for value in _messages(fake, "error")
     )
 
     marker = object()
@@ -999,7 +1000,5 @@ def test_presentation_page_without_session_result_never_reruns_history(
     )
     monkeypatch.setattr(presentation_page, "artifact_run_count", lambda _: 1)
     presentation_page.render_presentation_page(revision, None)
-    assert any(
-        "historical run" in value.lower() for value in _messages(fake, "info")
-    )
+    assert any("historical run" in value.lower() for value in _messages(fake, "info"))
     assert not fake.reruns
