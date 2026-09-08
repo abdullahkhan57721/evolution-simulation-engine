@@ -6,6 +6,30 @@ import uuid
 
 import streamlit as st
 
+from evo_engine.ui.evidence_authoring import (
+    evidence_advisories_for_artifact,
+    evidence_options,
+)
+from evo_engine.ui.evidence_page import (
+    clear_evidence_authoring_state,
+    pending_evidence_plan,
+    render_evidence_page,
+)
+from evo_engine.ui.experiment_page import (
+    clear_experiment_authoring_state,
+    pending_experiment_error,
+    render_experiment_page,
+)
+from evo_engine.ui.run_binding import bind_pending_scientific_state, effective_readiness
+from evo_engine.ui.run_execution import (
+    execute_artifact,
+    is_authoritative_run_result,
+    result_evidence_ids,
+    result_revision_id,
+    result_run_id,
+    result_simulation_count,
+)
+from evo_engine.ui.run_page import render_run_plan
 from evo_engine.ui.simulation_page import (
     clear_simulation_authoring_state,
     render_simulation_page,
@@ -13,7 +37,6 @@ from evo_engine.ui.simulation_page import (
 from evo_engine.ui.study_shell import (
     ConcreteWorkbenchArtifact,
     artifact_download_name,
-    artifact_readiness,
     artifact_revision_id,
     artifact_run_count,
     artifact_title,
@@ -27,13 +50,22 @@ from evo_engine.ui.study_shell import (
     new_reference_ecology,
     serialize_concrete_artifact,
 )
-from evo_engine.workbench import IncompatibleManifestError
+from evo_engine.workbench import (
+    EnvironmentSelectionComparisonDefinition,
+    IncompatibleManifestError,
+    MaxSpeedSweepDefinition,
+    ReferenceStudyRevision,
+    WorkbenchNotReadyError,
+)
 
 _ROUTE_KEY = "wu1_route"
 _ACTIVE_ARTIFACT_KEY = "wu1_active_artifact"
 _SECTION_KEY = "wu1_study_section"
 _RESULT_KEY = "wu1_current_result"
 _DIFF_PARENT_KEY = "wu2_diff_parent_artifact"
+_RUN_PLAN_KEY = "wu3_run_plan_open"
+_RUN_BINDING_NOTICE_KEY = "wu3_run_binding_notice"
+_RUN_FAILURE_KEY = "wu3_run_failure"
 
 _HOME = "home"
 _NEW = "new"
@@ -127,7 +159,7 @@ def _render_new_study() -> None:
     st.title("New Study")
     st.caption(
         "Open one supported concrete Study family, then author its scientific "
-        "simulation meaning inside the persistent Study shell."
+        "meaning inside the persistent Study shell."
     )
 
     st.subheader("Curated")
@@ -225,16 +257,25 @@ def _render_study_shell() -> None:
     )
     _render_study_section(artifact, section)
 
+    active = st.session_state.get(_ACTIVE_ARTIFACT_KEY)
+    if st.session_state.get(_RUN_PLAN_KEY) and is_concrete_artifact(active):
+        _render_active_run_plan(active)
+
 
 def _render_study_actions(artifact: ConcreteWorkbenchArtifact) -> None:
+    readiness = effective_readiness(artifact)
+    experiment_error = pending_experiment_error(artifact)
+    run_disabled = readiness.state != "ready" or experiment_error is not None
     run_column, save_column, more_column = st.columns(3)
     with run_column:
-        st.button(
+        if st.button(
             "Run",
-            disabled=True,
+            disabled=run_disabled,
             use_container_width=True,
-            help="WU2 authors Simulation meaning; execution integration is WU3.",
-        )
+            help="Review the exact scientific Run Plan before execution.",
+        ):
+            _open_run_plan(artifact)
+            st.rerun()
     with save_column:
         st.download_button(
             "Save Study",
@@ -255,21 +296,29 @@ def _render_study_actions(artifact: ConcreteWorkbenchArtifact) -> None:
 
 def _render_artifact_identity(artifact: ConcreteWorkbenchArtifact) -> None:
     revision_id = artifact_revision_id(artifact)
-    readiness = artifact_readiness(artifact)
+    readiness = effective_readiness(artifact)
+    advisories = _current_advisories(artifact)
 
     details: list[str] = []
     if revision_id is not None:
         details.append(f"Revision · `{revision_id}`")
-    if readiness is not None:
-        details.append(f"Readiness · **{readiness.state.title()}**")
-    if details:
-        st.markdown("  |  ".join(details))
+    details.append(f"Readiness · **{readiness.state.title()}**")
+    if advisories:
+        details.append(f"{len(advisories)} advisory")
+    st.markdown("  |  ".join(details))
 
-    if readiness is not None and readiness.state != "ready":
-        for diagnostic in readiness.diagnostics:
-            st.error(diagnostic.message)
-            if diagnostic.remediation is not None:
-                st.caption(diagnostic.remediation)
+    for diagnostic in readiness.diagnostics:
+        st.error(diagnostic.message)
+        if diagnostic.slot_id is not None:
+            st.caption(f"Scientific slot: `{diagnostic.slot_id}`")
+        if diagnostic.remediation is not None:
+            st.caption(diagnostic.remediation)
+    for advisory in advisories:
+        st.warning(advisory.message)
+
+    experiment_error = pending_experiment_error(artifact)
+    if experiment_error is not None:
+        st.error(f"Unsaved Experiment draft is not runnable: {experiment_error}")
 
 
 def _render_study_section(
@@ -277,6 +326,12 @@ def _render_study_section(
     section: str,
 ) -> None:
     if section == "Simulation":
+        if isinstance(
+            artifact,
+            (MaxSpeedSweepDefinition, EnvironmentSelectionComparisonDefinition),
+        ):
+            _render_experiment_simulation_summary(artifact)
+            return
         child = render_simulation_page(
             artifact,
             diff_parent=_diff_parent(),
@@ -287,45 +342,192 @@ def _render_study_section(
             st.rerun()
         return
 
-    st.header(section)
     if section == "Evidence":
-        st.write(
-            "The concrete artifact's existing evidence plan is preserved exactly. "
-            "Evidence authoring is intentionally deferred to WU3."
-        )
-    elif section == "Experiment":
-        st.write(
-            "Experiment structure is shown through the active concrete Workbench "
-            "artifact; WU2 does not introduce an experiment DSL or generic builder."
-        )
-    elif section == "Results":
-        _render_results_placeholder(artifact)
-    else:
-        st.write(
-            "Presentation remains downstream of scientific evidence. Renderer and "
-            "world-workspace integration are intentionally deferred."
-        )
+        child = render_evidence_page(artifact, new_revision_id=_new_revision_id)
+        if child is not None:
+            _activate_artifact(child, diff_parent=artifact)
+            st.rerun()
+        return
+    if section == "Experiment":
+        definition = render_experiment_page(artifact)
+        if definition is not None:
+            _activate_artifact(definition)
+            st.rerun()
+        return
+    if section == "Results":
+        _render_results(artifact)
+        return
+
+    st.header("Presentation")
+    st.write(
+        "Presentation remains downstream of scientific evidence. Renderer and "
+        "world-workspace integration are intentionally deferred."
+    )
 
 
-def _render_results_placeholder(artifact: ConcreteWorkbenchArtifact) -> None:
-    if st.session_state.get(_RESULT_KEY) is not None:
-        st.info("A session-only result is present, but WU2 does not persist it.")
+def _render_experiment_simulation_summary(
+    artifact: MaxSpeedSweepDefinition | EnvironmentSelectionComparisonDefinition,
+) -> None:
+    st.header("Simulation")
+    st.info(
+        "This Simulation is owned jointly with a concrete controlled Experiment. "
+        "Experiment-owned values are not duplicated as ordinary Simulation controls."
+    )
+    if isinstance(artifact, MaxSpeedSweepDefinition):
+        st.write("**Maximum speed:** Varied by Experiment")
+        st.write("**Seed:** Assigned by replicate design")
+        st.write(
+            "**Resource geography:** "
+            f"{_humanize(artifact.base_intent.resource_geography)}"
+        )
+        return
+    st.write("**Resource geography:** Varied by Experiment")
+    st.write("**Seed:** Assigned by replicate design")
+    st.write(
+        "**Standing focal composition:** "
+        + ", ".join(str(value) for value in artifact.focal_speeds)
+        + " (fixed by Experiment)"
+    )
+    st.write(
+        f"**Control / treatment:** {_humanize(artifact.control_environment)} / "
+        f"{_humanize(artifact.treatment_environment)}"
+    )
+
+
+def _open_run_plan(artifact: ConcreteWorkbenchArtifact) -> None:
+    try:
+        bound, notice = bind_pending_scientific_state(
+            artifact,
+            new_revision_id=_new_revision_id,
+        )
+    except WorkbenchNotReadyError as exc:
+        messages = "; ".join(item.message for item in exc.readiness.diagnostics)
+        st.session_state[_RUN_FAILURE_KEY] = messages or str(exc)
+        return
+    except (TypeError, ValueError) as exc:
+        st.session_state[_RUN_FAILURE_KEY] = str(exc)
+        return
+
+    if bound != artifact:
+        _replace_active_for_run(bound, previous=artifact)
+    st.session_state[_RUN_PLAN_KEY] = True
+    st.session_state[_RUN_BINDING_NOTICE_KEY] = notice
+    st.session_state.pop(_RUN_FAILURE_KEY, None)
+
+
+def _render_active_run_plan(artifact: ConcreteWorkbenchArtifact) -> None:
+    failure = st.session_state.get(_RUN_FAILURE_KEY)
+    if type(failure) is str and failure:
+        _render_run_failure(failure)
+    try:
+        action = render_run_plan(
+            artifact,
+            binding_notice=_binding_notice(),
+        )
+    except Exception as exc:  # noqa: BLE001 - top-level UI boundary preserves artifact
+        _render_run_failure(str(exc))
+        return
+    if action == "cancel":
+        _clear_run_plan_state()
+        st.rerun()
+    if action == "run":
+        _execute_active_artifact(artifact)
+
+
+def _execute_active_artifact(artifact: ConcreteWorkbenchArtifact) -> None:
+    st.session_state.pop(_RESULT_KEY, None)
+    st.session_state.pop(_RUN_FAILURE_KEY, None)
+    try:
+        with st.spinner("Executing the exact scientific definition..."):
+            updated_artifact, result = execute_artifact(artifact)
+    except Exception as exc:  # noqa: BLE001 - authoritative UI execution boundary
+        st.session_state[_RUN_FAILURE_KEY] = str(exc)
+        _render_run_failure(str(exc), exc=exc)
+        return
+
+    st.session_state[_ACTIVE_ARTIFACT_KEY] = updated_artifact
+    st.session_state[_RESULT_KEY] = result
+    st.session_state[_SECTION_KEY] = "Results"
+    _clear_run_plan_state()
+    st.rerun()
+
+
+def _render_run_failure(message: str, *, exc: Exception | None = None) -> None:
+    st.error("SIMULATION COULD NOT BE COMPILED OR RUN")
+    st.write(
+        "The saved scientific artifact has not been rewritten. Authoritative "
+        "compilation, preflight, or execution rejected the exact definition."
+    )
+    st.code(message, language=None)
+    if isinstance(exc, IncompatibleManifestError):
+        st.caption(exc.diagnostic.remediation)
+
+
+def _render_results(artifact: ConcreteWorkbenchArtifact) -> None:
+    st.header("Results")
+    result = st.session_state.get(_RESULT_KEY)
+    if is_authoritative_run_result(result):
+        st.success("Run completed")
+        run_id = result_run_id(result)
+        revision_id = result_revision_id(result)
+        if run_id is not None:
+            st.write(f"**Run ID:** `{run_id}`")
+        if revision_id is not None:
+            st.write(f"**Study revision:** `{revision_id}`")
+        st.write(f"**Completed simulations:** {result_simulation_count(result)}")
+        st.markdown("**Recorded evidence**")
+        labels = {
+            option.evidence_id: option.label for option in evidence_options(artifact)
+        }
+        for evidence_id in result_evidence_ids(result):
+            st.write(f"✓ {labels.get(evidence_id, evidence_id)}")
+        if run_id is None:
+            st.caption(
+                "This concrete experiment result contract has no study-level run ID; "
+                "WU3 does not invent one."
+            )
+        st.info(
+            "The authoritative result object is retained in this application session. "
+            "Full scientific Results analysis arrives in WU4."
+        )
         return
 
     run_count = artifact_run_count(artifact)
     if run_count:
+        runs = getattr(artifact, "runs", ())
+        latest = runs[-1] if runs else None
+        latest_text = "" if latest is None else f" Latest run: `{latest.run_id}`."
         st.info(
-            f"This saved Study records {run_count} completed run reference(s), but "
-            "complete result payloads are not serialized by this Study format. "
-            "Reopening does not reconstruct or automatically rerun them."
+            f"Previous run recorded ({run_count} reference(s)).{latest_text} "
+            "Scientific result payload is not available in this application session."
         )
     elif run_count == 0:
         st.info("No completed run payload is available in this session.")
     else:
         st.info(
-            "This concrete experiment definition does not contain durable result "
-            "payloads. WU2 does not invent result storage."
+            "This concrete experiment definition does not serialize durable result "
+            "payloads. Run it in this session to inspect the WU3 completion handoff."
         )
+
+
+def _current_advisories(artifact: ConcreteWorkbenchArtifact) -> tuple[object, ...]:
+    if not isinstance(artifact, ReferenceStudyRevision):
+        return ()
+    plan = pending_evidence_plan(artifact) or artifact.evidence_plan
+    return evidence_advisories_for_artifact(artifact, plan=plan)
+
+
+def _replace_active_for_run(
+    artifact: ConcreteWorkbenchArtifact,
+    *,
+    previous: ConcreteWorkbenchArtifact,
+) -> None:
+    clear_simulation_authoring_state()
+    clear_evidence_authoring_state()
+    clear_experiment_authoring_state()
+    st.session_state[_ACTIVE_ARTIFACT_KEY] = artifact
+    if artifact_revision_id(artifact) is not None:
+        st.session_state[_DIFF_PARENT_KEY] = previous
 
 
 def _render_exact_reproduction_failure(exc: IncompatibleManifestError) -> None:
@@ -366,11 +568,32 @@ def _go_home() -> None:
 
 def _clear_active_context() -> None:
     clear_simulation_authoring_state()
-    for key in (_ACTIVE_ARTIFACT_KEY, _SECTION_KEY, _RESULT_KEY, *_LEGACY_KEYS):
+    clear_evidence_authoring_state()
+    clear_experiment_authoring_state()
+    for key in (
+        _ACTIVE_ARTIFACT_KEY,
+        _SECTION_KEY,
+        _RESULT_KEY,
+        _DIFF_PARENT_KEY,
+        _RUN_PLAN_KEY,
+        _RUN_BINDING_NOTICE_KEY,
+        _RUN_FAILURE_KEY,
+        *_LEGACY_KEYS,
+    ):
         st.session_state.pop(key, None)
     for key in tuple(st.session_state):
         if str(key).startswith("v2_world_"):
             st.session_state.pop(key, None)
+
+
+def _clear_run_plan_state() -> None:
+    for key in (_RUN_PLAN_KEY, _RUN_BINDING_NOTICE_KEY, _RUN_FAILURE_KEY):
+        st.session_state.pop(key, None)
+
+
+def _binding_notice() -> str | None:
+    value = st.session_state.get(_RUN_BINDING_NOTICE_KEY)
+    return value if type(value) is str and value else None
 
 
 def _diff_parent() -> ConcreteWorkbenchArtifact | None:
@@ -384,6 +607,10 @@ def _has_active_artifact() -> bool:
 
 def _new_revision_id(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:12]}"
+
+
+def _humanize(value: object) -> str:
+    return str(value).replace("_", " ").replace("-", " ").title()
 
 
 if __name__ == "__main__":
