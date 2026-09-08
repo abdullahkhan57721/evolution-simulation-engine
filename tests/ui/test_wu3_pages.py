@@ -25,7 +25,6 @@ from evo_engine.ui.study_shell import (
 from evo_engine.workbench import (
     ControlledLocomotionIntent,
     EvidencePlan,
-    ReferenceEvidencePlan,
     WorkbenchNotReadyError,
 )
 from evo_engine.workbench.reference_ecology import SPATIAL_EVIDENCE_ID
@@ -198,15 +197,20 @@ def test_experiment_page_renders_nonexperiment_and_b3_modes(
     fake = _FakeStreamlit()
     monkeypatch.setattr(experiment_page, "st", fake)
 
-    assert experiment_page.render_experiment_page(
-        new_controlled_run(revision_id="single")
-    ) is None
-    assert experiment_page.render_experiment_page(
-        new_reference_ecology(revision_id="reference")
-    ) is None
-    assert experiment_page.render_experiment_page(
-        new_b3_flagship(revision_id="b3")
-    ) is None
+    assert (
+        experiment_page.render_experiment_page(new_controlled_run(revision_id="single"))
+        is None
+    )
+    assert (
+        experiment_page.render_experiment_page(
+            new_reference_ecology(revision_id="reference")
+        )
+        is None
+    )
+    assert (
+        experiment_page.render_experiment_page(new_b3_flagship(revision_id="b3"))
+        is None
+    )
     assert any("frozen" in message.lower() for message in _messages(fake, "info"))
 
 
@@ -303,11 +307,17 @@ def test_run_plan_renders_every_supported_concrete_family(
         new_max_speed_sweep(),
         new_environment_selection_comparison(),
     ):
-        assert run_page.render_run_plan(artifact, binding_notice="Bound exact draft") is None
+        assert (
+            run_page.render_run_plan(artifact, binding_notice="Bound exact draft")
+            is None
+        )
 
     assert len(_messages(fake, "subheader")) == 5
     assert _messages(fake, "dataframe")
-    assert any("advis" in message.lower() or "volume" in message.lower() for message in _messages(fake, "warning"))
+    assert any(
+        "advis" in message.lower() or "volume" in message.lower()
+        for message in _messages(fake, "warning")
+    )
 
 
 def test_run_plan_cancel_run_and_unsupported_actions(
@@ -362,7 +372,9 @@ def test_run_binding_revision_experiment_and_b3_paths(
         seeds=(7,),
     )
     monkeypatch.setattr(run_binding, "pending_experiment_error", lambda _: None)
-    monkeypatch.setattr(run_binding, "pending_experiment_definition", lambda _: candidate)
+    monkeypatch.setattr(
+        run_binding, "pending_experiment_definition", lambda _: candidate
+    )
     bound_e3, notice = run_binding.bind_pending_scientific_state(
         e3,
         new_revision_id=lambda prefix: prefix,
