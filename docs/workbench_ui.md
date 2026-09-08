@@ -181,6 +181,102 @@ The child preserves B3 scenario origin but loses the validated radius-1 scenario
 identity. The UI presents that identity loss prominently and does not call the child
 the B3 flagship.
 
+## Evidence authoring
+
+WU3 makes Evidence a first-class scientific Study section. Evidence remains separate
+from Simulation intent and uses only the concrete evidence contracts already owned by
+the Workbench.
+
+Controlled single-run and Reference Ecology revisions expose their current supported
+evidence streams in scientific language. Changing either evidence plan creates a new
+immutable child revision through the existing concrete fork API; the saved parent is
+never edited in place. Reference Ecology surfaces existing non-blocking evidence
+advisories, including the high-volume spatial-history warning, without turning Ready
+into Blocked.
+
+Frozen or experiment-required evidence is not made artificially editable:
+
+- canonical B3 uses its frozen required evidence set;
+- E3 uses its exact sweep-required evidence;
+- E4 uses its exact comparison-required evidence.
+
+The UI does not manufacture recorder choices, infer missing evidence after a run, or
+create invalid experiment evidence plans.
+
+## Concrete Experiment design
+
+WU3 renders only the experiment patterns that already exist.
+
+### E3 max-speed sweep
+
+Maximum speed remains the scientific factor and replicate seed remains replicate
+identity. Neither is duplicated as an ordinary base-Simulation control. Editable
+levels and seeds validate through `MaxSpeedSweepDefinition`; the displayed run matrix
+comes from `expand_max_speed_sweep()`.
+
+### E4 environment-selection comparison
+
+Resource geography remains the primary factor. Control/treatment role, replicate
+seed, standing focal composition `(1, 3, 9)`, and founder-order counterbalance remain
+separate design semantics. Only the supported replicate-seed choice is editable. The
+displayed matched design comes from `expand_environment_selection_comparison()`.
+
+### B3 curated design
+
+B3 remains read-only. Its primary confirmation, radius sensitivity when applicable,
+counterbalance, and total simulation count come from `compile_b3_curated()`. Same-seed
+control/treatment pairs are described as matched or blocked by seed; the UI does not
+claim that their trajectories remain lockstep-identical after treatment divergence.
+
+Controlled single-run explicitly has no multi-treatment experiment. Reference Ecology
+explicitly has no generic controlled-experiment definition in the current support
+envelope.
+
+## Readiness, Run Plan, and execution
+
+The shell uses existing concrete Workbench readiness as the authoring authority.
+Draft / Blocked / Ready and Workbench-owned diagnostic messages/remediation are
+surfaced without predicting or duplicating lower generic, biological, genetic, or
+scientific preflight.
+
+`Run` remains an action. It first binds any owned transient scientific draft to an
+exact immutable owner and then opens a reviewable Run Plan derived from that exact
+artifact. Revision-backed controlled/reference edits therefore become one immutable
+child revision before execution; E3/E4 retain their existing immutable
+experiment-definition value semantics rather than gaining invented revision lineage.
+
+Execution is synchronous and delegates only to existing concrete Workbench runners:
+
+```text
+StudyRevision                         → run_study_revision()
+ReferenceStudyRevision                → run_reference_study_revision()
+B3StudyRevision                       → run_b3_study_revision()
+MaxSpeedSweepDefinition               → run_max_speed_sweep()
+EnvironmentSelectionComparisonDefinition
+                                      → run_environment_selection_comparison()
+```
+
+The UI does not instantiate `SimulationEngine`, rebuild run configurations, reproduce
+experiment expansion, or add a second preflight system.
+
+Successful revision-owned runs retain the authoritative result object in session and
+replace the active revision with the existing immutable `.with_run(...)` snapshot
+using returned provenance. E3/E4 results remain their authoritative concrete result
+objects in session without invented Study-level run identity. Compile/preflight/run
+failure leaves the exact saved artifact unchanged and surfaces the failure honestly.
+
+## Results handoff
+
+WU3 deliberately keeps Results thin. The session-owned authoritative result exposes
+only the completion handoff needed for the next product work: existing run/revision
+identity when owned, the recorded evidence IDs, and the number of concrete
+simulations represented by the result.
+
+WU3 does not recalculate E1/E3/E4/B3 science, build a durable result archive, or
+invent historical payloads. Reopened saved revisions may contain run-provenance
+references while lacking complete result payloads; the Results page says so and does
+not rerun automatically.
+
 ## Session ownership
 
 Streamlit session state owns only transient application concerns:
@@ -188,22 +284,24 @@ Streamlit session state owns only transient application concerns:
 - current route;
 - active concrete artifact;
 - active Study section;
-- session-only current result placeholder;
-- private concrete Simulation draft intent;
+- session-owned current authoritative result;
+- private concrete Simulation and Evidence draft intent/plan;
+- private concrete E3/E4 experiment draft values;
+- Run Plan state and binding/failure notices;
 - disclosure/widget state;
 - the immediately loaded parent artifact used for an in-session semantic diff;
 - presentation state owned by downstream UI modules.
 
 These values are not a persisted scientific schema. Returning Home, opening another
-Study, or starting another Study clears WU2 draft/diff state so authoring state cannot
-leak across Studies.
+Study, or starting another Study clears transient WU2/WU3 draft/run/result state so
+scientific state cannot leak across Studies.
 
 ## Readiness and results honesty
 
-Where a concrete revision exposes a Workbench readiness API, the shell and Simulation
-page display Draft / Blocked / Ready using that authority. Slot diagnostics remain
-Workbench diagnostics; the UI does not duplicate lower scientific validation or try
-to predict full compile/preflight failures.
+Where a concrete revision exposes a Workbench readiness API, the shell and scientific
+authoring pages display Draft / Blocked / Ready using that authority. Slot diagnostics
+remain Workbench diagnostics; the UI does not duplicate lower scientific validation
+or try to predict full compile/preflight failures.
 
 Non-blocking evidence advisories remain warnings and do not turn Ready into Blocked.
 
@@ -212,11 +310,13 @@ serializing complete result payloads. Reopening such a Study does not reconstruc
 missing evidence and does not rerun the simulation automatically. The Results page
 states that limitation explicitly.
 
-## Deferred work after WU2
+## Deferred work after WU3
 
-WU2 intentionally does not implement complete Evidence-plan authoring, E3/E4
-Experiment-page authoring, run matrices/planning/execution, Study Analysis, Run
-Explorer, V2 world embedding, V3 cinematic integration, or renderer settings.
+WU3 intentionally does not implement complete Study Analysis/Run Explorer workflows,
+durable result storage, B3 storytelling UI, V2 world embedding, V3 cinematic
+integration, or renderer settings.
 
-Those continue through WU3 and later WU milestones on top of the same Study shell and
-concrete Workbench contracts.
+Those continue through later WU milestones on top of the same Study shell, exact
+scientific result ownership, and concrete Workbench contracts. Future Results or
+Presentation integration must consume authoritative existing science rather than
+reopening the Workbench backend architecture.
