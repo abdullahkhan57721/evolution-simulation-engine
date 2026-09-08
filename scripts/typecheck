@@ -19,13 +19,18 @@ Usage:
   ./scripts/typecheck src/evo_engine/core/engine.py
 
 What this wrapper runs:
-  venv/bin/pyright --pythonpath venv/bin/python
+  venv/bin/pyright --project pyrightconfig-core.json --pythonpath venv/bin/python
+
+The default project scope intentionally excludes the optional PySide6 desktop
+frontend. Desktop code is type-checked in the dedicated Desktop CI environment,
+where the pinned Qt dependency is installed. Passing explicit paths bypasses the
+core-only project file so an installed optional frontend can be checked locally.
 
 Most useful Pyright commands:
-  venv/bin/pyright                                      # Type-check configured project scope
-  venv/bin/pyright src/evo_engine                      # Type-check one package/tree
-  venv/bin/pyright src/evo_engine/core/engine.py       # Type-check one file
-  venv/bin/pyright --pythonpath venv/bin/python        # Explicitly use this project's venv
+  venv/bin/pyright --project pyrightconfig-core.json     # Core/default project scope
+  venv/bin/pyright src/evo_engine                       # Type-check one package/tree
+  venv/bin/pyright src/evo_engine/core/engine.py        # Type-check one file
+  venv/bin/pyright --pythonpath venv/bin/python         # Explicitly use this project's venv
 
 Recommended normal command:
   ./scripts/typecheck
@@ -55,6 +60,8 @@ fi
 
 if [[ $# -gt 0 ]]; then
     args+=("$@")
+else
+    args+=(--project "$REPO_ROOT/pyrightconfig-core.json")
 fi
 
 printf '\n%s\n' "======================================================================"
