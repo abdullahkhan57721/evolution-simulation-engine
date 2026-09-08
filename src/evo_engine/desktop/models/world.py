@@ -39,7 +39,9 @@ class WorldOrganismModel(QAbstractListModel):
         self._items = resolved
         self.endResetModel()
 
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # noqa: N802
+    def rowCount(  # noqa: N802, B008
+        self, parent: QModelIndex = QModelIndex()
+    ) -> int:
         """Return the number of renderer primitives."""
         return 0 if parent.isValid() else len(self._items)
 
@@ -102,7 +104,9 @@ class WorldResourceModel(QAbstractListModel):
         self._items = resolved
         self.endResetModel()
 
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:  # noqa: N802
+    def rowCount(  # noqa: N802, B008
+        self, parent: QModelIndex = QModelIndex()
+    ) -> int:
         """Return the number of resource glyphs."""
         return 0 if parent.isValid() else len(self._items)
 
