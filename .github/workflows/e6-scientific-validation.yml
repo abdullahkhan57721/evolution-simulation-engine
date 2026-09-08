@@ -2,27 +2,57 @@ name: E6 Scientific Validation
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "src/evo_engine/experiments/e6_invasion.py"
+      - "pyproject.toml"
+      - "src/evo_engine/access/**"
+      - "src/evo_engine/admission/**"
+      - "src/evo_engine/behavior/**"
+      - "src/evo_engine/biology/**"
+      - "src/evo_engine/characteristics/**"
+      - "src/evo_engine/departure/**"
+      - "src/evo_engine/energetics/**"
+      - "src/evo_engine/engine/**"
+      - "src/evo_engine/evolution/**"
+      - "src/evo_engine/feeding/**"
+      - "src/evo_engine/genetics/**"
+      - "src/evo_engine/observation/**"
+      - "src/evo_engine/presets/controlled_locomotion/**"
+      - "src/evo_engine/processes/**"
+      - "src/evo_engine/production/**"
+      - "src/evo_engine/propagation/**"
+      - "src/evo_engine/reference/**"
+      - "src/evo_engine/reproduction/**"
+      - "src/evo_engine/resolvers/**"
+      - "src/evo_engine/spatial/**"
+      - "src/evo_engine/telemetry/**"
+      - "src/evo_engine/validation/**"
+      - "src/evo_engine/world/**"
       - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/experiments/science.py"
+      - "src/evo_engine/experiments/e3_performance.py"
+      - "src/evo_engine/experiments/e5_drift.py"
+      - "src/evo_engine/experiments/e6_invasion.py"
       - "scripts/e6_invasion.py"
       - "tests/experiments/test_e6_invasion.py"
       - "tests/experiments/test_e6_invasion_contracts.py"
-      - "docs/e6_rare_lineage_invasion.md"
-      - "docs/development/current_state.md"
-      - "docs/development/roadmap.md"
-      - "mkdocs.yml"
+      - ".github/actions/setup-quality/action.yml"
       - ".github/workflows/e6-scientific-validation.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: e6-scientific-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 # Discovery is intentionally excluded from CI after scientific freeze. This
 # workflow reruns only the frozen, disjoint-seed confirmation matrix.
 jobs:
   confirmation-e6:
     name: Independent E6 confirmation
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
