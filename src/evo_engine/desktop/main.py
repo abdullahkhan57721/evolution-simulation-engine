@@ -10,14 +10,14 @@ from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from evo_engine.desktop.controllers import StudyController
+from evo_engine.desktop.controllers import ApplicationController
 
 
-def create_engine() -> tuple[QQmlApplicationEngine, StudyController]:
-    """Create and load the QML engine with one deliberately narrow controller."""
+def create_engine() -> tuple[QQmlApplicationEngine, ApplicationController]:
+    """Create and load the QML engine with the native application controller."""
     engine = QQmlApplicationEngine()
-    controller = StudyController()
-    engine.rootContext().setContextProperty("studyController", controller)
+    controller = ApplicationController()
+    engine.rootContext().setContextProperty("applicationController", controller)
     qml_path = Path(__file__).resolve().parent / "qml" / "Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     if not engine.rootObjects():
@@ -37,8 +37,8 @@ def main(argv: list[str] | None = None) -> int:
     app = QGuiApplication([sys.argv[0], *qt_args])
     engine, controller = create_engine()
     # Keep Python-owned objects alive for the full QML engine lifetime.
-    app.setProperty("q0Engine", engine)
-    app.setProperty("q0StudyController", controller)
+    app.setProperty("q1Engine", engine)
+    app.setProperty("q1ApplicationController", controller)
     if args.smoke_test:
         QTimer.singleShot(250, app.quit)
     return app.exec()

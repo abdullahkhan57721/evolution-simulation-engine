@@ -156,15 +156,17 @@ workflow also installs `libegl1` before Qt offscreen launch, then launch-smokes 
 produced executable itself. Q0 does not claim signed distribution or a cross-platform
 installer/release matrix.
 
-## Q1 handoff — Native Study shell and concrete routing
+## Q1 native Study shell
 
-Q1 should expand product breadth without changing the contracts above. Its target is
-the first persistent native **Study shell** over the existing WU product model:
+Q1 turns the Q0 vertical into persistent native product structure without moving
+scientific ownership into Qt:
 
 ```text
 HOME
-    ↓
-Study
+├── New Study
+└── Open Study
+
+STUDY
 ├── Simulation
 ├── Evidence
 ├── Experiment
@@ -174,54 +176,121 @@ Study
 Run = action
 ```
 
-Q1 should focus on application navigation and concrete artifact ownership, not full
-feature parity inside every section.
+`Study` remains a navigation/product concept. The desktop package has no universal
+persisted `Study`, `DesktopStudy`, common Qt scientific schema, or wrapper JSON.
 
-### Required Q1 contracts
+### Concrete artifact routing
 
-1. **Concrete routing, no universal Study schema.** New/Open must dispatch to the
-   existing concrete persisted Workbench artifact families and their canonical
-   loaders. Qt must not introduce a common persistence envelope merely to simplify
-   navigation.
-2. **Persistent native shell.** Home, active-artifact identity, the five Study
-   sections, and Run-as-action should exist as native application state independent
-   of any one scientific family.
-3. **Reference Ecology remains the proven deep slice.** Preserve Q0 create/edit/fork,
-   exact run/results, and native world behavior while moving it inside the shell.
-4. **Add breadth only through concrete consumers.** Introduce the smallest additional
-   curated/controlled entry routes needed to prove the shell is not Reference-
-   specific. Reuse their existing loaders/readiness contracts; do not manufacture
-   generic authoring metadata.
-5. **No duplicated execution/result authority.** Section navigation may select or
-   display existing results, but Workbench runners, provenance, Results inspectors,
-   and presentation adapters remain authoritative.
-6. **Preserve draft versus saved scientific identity.** Section changes may maintain
-   transient Qt draft state, but Run targets an exact saved/owned artifact according
-   to the already-settled WU/WB semantics.
-7. **Keep QML curated.** Prefer small controller/view-model APIs and typed Qt item
-   models over exposing Python object graphs or reflection-driven forms.
-8. **Streamlit remains a compatibility oracle during migration.** Q1 should keep the
-   reference frontend green and compare semantics where useful; do not remove it.
-9. **Validation remains layered.** Use focused native tests and the repository's
-   current staged validation workflow; frozen scientific matrices run only if Q1
-   actually changes their inputs/contracts.
-10. **Packaging remains narrow.** Keep the standalone desktop proof working; do not
-    turn Q1 into a signing/installer/release-matrix milestone.
+`evo_engine.desktop.artifacts` explicitly recognizes only the current WU support
+envelope:
 
-### Q1 non-goals
+- controlled single-run `StudyRevision`;
+- E3-pattern `MaxSpeedSweepDefinition`;
+- E4-pattern `EnvironmentSelectionComparisonDefinition`;
+- curated/derived `B3StudyRevision`;
+- bounded `ReferenceStudyRevision`.
 
-- no complete desktop parity;
-- no Workbench redesign;
-- no generic frontend abstraction;
-- no generic QML form generator;
-- no new experiment DSL or statistics layer;
-- no 3D/C++ renderer;
-- no Streamlit removal;
-- no generalized background-job infrastructure.
+New Study creates one of those concrete artifacts through existing constructors.
+Open Study inspects only existing format/pattern identity and delegates to that
+artifact's own `from_json()`. Save and Save As write only the artifact's own
+`to_json()`. Unknown formats, unknown experiment patterns, and exact-incompatible
+historical manifests fail explicitly; no fallback resolution or migration occurs.
 
-Later Q milestones can fill the five sections family-by-family and then address
-native visual/accessibility/release hardening once repeated desktop use has shown what
-should actually be shared.
+The canonical B3 entry alone exposes the already-established radius-2 sensitivity
+fork. A saved radius-2 B3-derived artifact remains openable through the B3 loader but
+is not another New Study family.
+
+### Transient application ownership
+
+`ApplicationController` is the native shell boundary. It owns only transient
+application values over the active concrete artifact:
+
+```text
+ApplicationController
+├── route
+├── active concrete artifact
+├── active Study section
+├── current-session authoritative result
+├── Run Plan placeholder state
+├── presentation owner / reset epoch
+├── file location
+└── family-specific child controller(s)
+```
+
+A successful new/open/fork/revision commit replaces scientific ownership and clears
+stale current-session result, Run Plan, and presentation state. Section navigation
+does not change the concrete artifact. Return Home clears the active context.
+
+Result binding uses the existing WB5 inspectors and immutable E3/E4 definition
+matching rather than a desktop result hierarchy. Revision-backed presentation state
+is identified by the exact scientific owner (`revision + manifest + run`) and resets
+when that owner changes. Saved run references do not recreate result payloads.
+
+Opening and saving are atomic with respect to the active artifact: loader,
+compatibility, or filesystem failure does not replace the currently active scientific
+owner. `IncompatibleManifestError` remains Workbench-owned; Q1 surfaces its existing
+diagnostic message/remediation.
+
+### Family-specific controller seam
+
+`ReferenceStudyController` now owns only the retained Reference Ecology deep slice:
+its transient `max_speed` draft, immutable child commit, narrow worker-thread run,
+authoritative Reference result, and renderer-neutral world preparation. It receives
+an exact active `ReferenceStudyRevision` from `ApplicationController`; it is not the
+application router or persistence dispatcher.
+
+This separation is intentional. Other families should get concrete downstream
+controllers when Q2–Q4 need real family behavior rather than accumulating unrelated
+logic in one universal controller.
+
+### QML shell and design system
+
+`Main.qml` consumes only curated scalar/controller values. The reusable QML layer now
+contains deliberate Workbench primitives for theme tokens, buttons, panels, section
+headers, sidebar navigation, status badges, diagnostics, field labels, and disclosure
+sections. These are visual/application primitives, not reflection-driven scientific
+forms.
+
+The native window provides Home/New/Open routing, five-section Study navigation,
+File-menu New/Open/Save/Save As actions, native file dialogs, minimum window sizing,
+readiness/revision/scenario identity, the existing supported B3 fork, and the retained
+Reference Ecology Q0 slice. Sections without Q1 feature parity state that explicitly
+instead of manufacturing data or generic editors.
+
+Native Reference world rendering remains evidence-dependent. If the exact active
+result did not record spatial evidence, Q1 reports that replay is unavailable and
+does not reconstruct world history.
+
+## Q2 / Q3 / Q4 interface handoff
+
+The following Q1 seams are intended to be stable enough for downstream native work:
+
+- `ApplicationController` route values: `home / new / open / study`;
+- the five exact Study-section names;
+- explicit concrete artifact kind/identity/readiness properties;
+- active-artifact replacement and stale result/Run Plan/presentation reset semantics;
+- exact concrete loader/serializer dispatch in `evo_engine.desktop.artifacts`;
+- native file-location and Save/Save As ownership;
+- `ReferenceStudyController` as the pattern for a family-specific controller beneath
+  the application shell;
+- QML design primitives and the sidebar/header/content shell layout.
+
+Q2 can build Simulation authoring against family-specific controller seams while
+leaving application routing/persistence alone. Q3 can add Evidence and Experiment
+controllers using the same exact-owner/reset contract. Q4 can add execution/Results
+breadth and family result models while continuing to bind only authoritative existing
+Workbench results.
+
+The following are intentionally **not** settled by Q1 and must not be inferred from
+its implementation:
+
+- a universal Study class or common persisted schema;
+- generic authoring metadata/forms;
+- a generic experiment/result hierarchy;
+- full Run Plan/job/cancellation infrastructure;
+- cross-family presentation models;
+- native release/signing/update architecture;
+- removal of the Streamlit reference frontend.
 
 ## References
 
@@ -233,3 +302,4 @@ should actually be shared.
 - ADR 0009
 - ADR 0010
 - GitHub Issue #197 / PR #198
+- GitHub Issue #201 / PR #202

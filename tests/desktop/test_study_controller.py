@@ -4,6 +4,7 @@ import os
 import time
 from typing import cast
 
+import attrs
 import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
@@ -12,8 +13,15 @@ pytest.importorskip("PySide6")
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtTest import QSignalSpy
 
-from evo_engine.desktop.controllers import StudyController
+from evo_engine.desktop.controllers import ReferenceStudyController
 from evo_engine.desktop.models import WorldOrganismModel, WorldResourceModel
+from evo_engine.workbench.reference_ecology import (
+    POPULATION_EVIDENCE_ID,
+    SPATIAL_EVIDENCE_ID,
+    ReferenceEvidencePlan,
+    default_reference_ecology_intent,
+)
+from evo_engine.workbench.reference_study import create_reference_study_revision
 from evo_engine.workbench.results import inspect_reference_study_results
 
 
@@ -21,75 +29,95 @@ def _app() -> QGuiApplication:
     return cast(QGuiApplication, QGuiApplication.instance() or QGuiApplication([]))
 
 
-def test_controller_emits_study_and_draft_change_signals() -> None:
+def _compact_reference_revision():
+    intent = attrs.evolve(
+        default_reference_ecology_intent(),
+        width=12,
+        height=12,
+        founder_population=8,
+        horizon=12,
+        seed=1729,
+    )
+    return create_reference_study_revision(
+        revision_id="reference-q1-test",
+        intent=intent,
+        evidence_plan=ReferenceEvidencePlan(
+            requested=(POPULATION_EVIDENCE_ID, SPATIAL_EVIDENCE_ID)
+        ),
+    )
+
+
+def test_controller_emits_active_and_draft_change_signals() -> None:
     _app()
-    controller = StudyController()
-    study_spy = QSignalSpy(controller.studyChanged)
+    controller = ReferenceStudyController()
+    active_spy = QSignalSpy(controller.activeChanged)
     draft_spy = QSignalSpy(controller.draftChanged)
+    revision = _compact_reference_revision()
 
-    controller.createStudy()
+    controller.activate_revision(revision)
 
-    assert study_spy.count() == 1
+    assert active_spy.count() == 1
     assert draft_spy.count() == 1
-    assert controller._revision is not None
-    assert controller._revision.intent.max_speed is not None
+    assert controller._revision == revision
+    assert revision.intent.max_speed is not None
 
-    controller.set_draft_max_speed(controller._revision.intent.max_speed + 1)
+    controller.set_draft_max_speed(revision.intent.max_speed + 1)
 
-    assert study_spy.count() == 1
+    assert active_spy.count() == 1
     assert draft_spy.count() == 2
-    assert controller.draftDirty
+    assert controller.is_draft_dirty()
 
 
 def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
     _app()
-    controller = StudyController()
-    controller.createStudy()
+    controller = ReferenceStudyController()
+    revision = _compact_reference_revision()
+    controller.activate_revision(revision)
+    parent_json = revision.to_json()
+    parent_digest = revision.manifest.digest
+    assert revision.intent.max_speed is not None
+
+    controller.set_draft_max_speed(revision.intent.max_speed + 1)
+
+    assert controller.is_draft_dirty()
     assert controller._revision is not None
-    parent = controller._revision
-    parent_json = parent.to_json()
-    parent_digest = controller.manifestDigest
-    assert parent.intent.max_speed is not None
-
-    controller.set_draft_max_speed(parent.intent.max_speed + 1)
-
-    assert controller.draftDirty
     assert controller._revision.to_json() == parent_json
-    assert controller.manifestDigest == parent_digest
+    assert controller._revision.manifest.digest == parent_digest
     assert controller.saveChildRevision()
     assert controller._revision is not None
-    assert controller._revision.parent_revision_id == parent.revision_id
-    assert parent.to_json() == parent_json
-    assert controller.manifestDigest != parent_digest
+    assert controller._revision.parent_revision_id == revision.revision_id
+    assert revision.to_json() == parent_json
+    assert controller._revision.manifest.digest != parent_digest
 
 
-def test_exact_save_load_round_trip_uses_persisted_manifest(tmp_path) -> None:
+def test_clearing_reference_owner_discards_transient_result_and_draft() -> None:
     _app()
-    source = StudyController()
-    source.createStudy()
-    assert source._revision is not None
-    expected = source._revision.to_json()
-    path = tmp_path / "study.json"
+    controller = ReferenceStudyController()
+    revision = _compact_reference_revision()
+    controller.activate_revision(revision)
+    assert revision.intent.max_speed is not None
+    controller.set_draft_max_speed(revision.intent.max_speed + 1)
 
-    assert source.saveStudy(str(path))
-    loaded = StudyController()
-    assert loaded.openStudy(str(path))
-    assert loaded._revision is not None
-    assert loaded._revision.to_json() == expected
+    controller.clear()
+
+    assert not controller.is_active()
+    assert not controller.is_draft_dirty()
+    assert not controller.hasResult
+    assert not controller.hasWorld
 
 
 def test_worker_run_surfaces_authoritative_result_and_world_frame() -> None:
     app = _app()
-    controller = StudyController()
-    controller.createStudy()
+    controller = ReferenceStudyController()
+    controller.activate_revision(_compact_reference_revision())
     controller.runStudy()
     deadline = time.monotonic() + 20.0
-    while controller.running and time.monotonic() < deadline:
+    while controller.is_running() and time.monotonic() < deadline:
         app.processEvents()
         time.sleep(0.01)
     app.processEvents()
 
-    assert not controller.running
+    assert not controller.is_running()
     assert controller._revision is not None
     assert controller._result is not None
     view = inspect_reference_study_results(controller._revision, controller._result)

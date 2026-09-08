@@ -1,16 +1,15 @@
-"""Thin Qt controller for the Q0 Reference Ecology vertical slice."""
+"""Family-specific Qt controller for the retained Q0 Reference Ecology slice."""
 
 # PySide's Property setter decorator is a runtime descriptor but its stubs currently
-# report the paired getter/setter declarations as a redeclaration.
+# report paired getter/setter declarations as a redeclaration.
 # pyright: reportRedeclaration=false
 
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
 
 import attrs
-from PySide6.QtCore import Property, QObject, QThread, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QObject, QThread, Signal, Slot
 
 from evo_engine.desktop.models import WorldOrganismModel, WorldResourceModel
 from evo_engine.presentation.workbench import (
@@ -18,30 +17,21 @@ from evo_engine.presentation.workbench import (
     build_reference_workbench_world_presentation,
 )
 from evo_engine.workbench.reference_ecology import (
-    POPULATION_EVIDENCE_ID,
-    SPATIAL_EVIDENCE_ID,
     ReferenceEcologyIntent,
-    ReferenceEvidencePlan,
     assess_reference_readiness,
-    default_reference_ecology_intent,
     resolve_reference_ecology,
 )
 from evo_engine.workbench.reference_study import (
     ReferenceRunResult,
     ReferenceStudyRevision,
-    create_reference_study_revision,
     fork_reference_study_revision,
     run_reference_study_revision,
 )
 from evo_engine.workbench.results import inspect_reference_study_results
 
-_Q0_EVIDENCE_PLAN = ReferenceEvidencePlan(
-    requested=(POPULATION_EVIDENCE_ID, SPATIAL_EVIDENCE_ID)
-)
-
 
 class _ReferenceRunWorker(QObject):
-    """Run the existing synchronous Workbench runner outside the GUI thread."""
+    """Run the existing synchronous Reference Workbench runner off the GUI thread."""
 
     completed = Signal(object)
     failed = Signal(str)
@@ -52,7 +42,7 @@ class _ReferenceRunWorker(QObject):
 
     @Slot()
     def run(self) -> None:
-        """Execute one exact saved revision and return its authoritative artifacts."""
+        """Execute one exact saved revision and return its authoritative result."""
         try:
             result = run_reference_study_revision(self._revision)
         except Exception as exc:  # boundary converts worker failure into UI state
@@ -61,18 +51,21 @@ class _ReferenceRunWorker(QObject):
         self.completed.emit(result)
 
 
-class StudyController(QObject):
-    """Expose a scalar Qt API while keeping Workbench objects private to Python."""
+class ReferenceStudyController(QObject):
+    """Expose only Reference-specific draft/run/world state to the native shell."""
 
-    studyChanged = Signal()
+    activeChanged = Signal()
     draftChanged = Signal()
+    scientificDraftChanged = Signal()
+    revisionCommitted = Signal(object)
+    runCompleted = Signal(object, object)
     runningChanged = Signal()
     resultsChanged = Signal()
     worldChanged = Signal()
     statusChanged = Signal()
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, parent: QObject | None = None) -> None:
+        super().__init__(parent)
         self._revision: ReferenceStudyRevision | None = None
         self._draft_intent: ReferenceEcologyIntent | None = None
         self._result: ReferenceRunResult | None = None
@@ -81,25 +74,15 @@ class StudyController(QObject):
         self._resources = WorldResourceModel()
         self._thread: QThread | None = None
         self._worker: _ReferenceRunWorker | None = None
-        self._status = "Create or open a Reference Ecology Study."
+        self._status = "Reference Ecology controls are available for active studies."
 
-    @Property(bool, notify=studyChanged)
-    def hasStudy(self) -> bool:  # noqa: N802
+    def is_active(self) -> bool:
+        """Return exact Reference-owner state for Python controller use."""
         return self._revision is not None
 
-    @Property(str, notify=studyChanged)
-    def revisionId(self) -> str:  # noqa: N802
-        return "" if self._revision is None else self._revision.revision_id
-
-    @Property(str, notify=studyChanged)
-    def parentRevisionId(self) -> str:  # noqa: N802
-        if self._revision is None or self._revision.parent_revision_id is None:
-            return ""
-        return self._revision.parent_revision_id
-
-    @Property(str, notify=studyChanged)
-    def manifestDigest(self) -> str:  # noqa: N802
-        return "" if self._revision is None else self._revision.manifest.digest
+    @Property(bool, notify=activeChanged)
+    def active(self) -> bool:
+        return self.is_active()
 
     @Property(int, notify=draftChanged)
     def draftMaxSpeed(self) -> int:  # noqa: N802
@@ -112,7 +95,7 @@ class StudyController(QObject):
         self.set_draft_max_speed(value)
 
     def set_draft_max_speed(self, value: int) -> None:
-        """Apply one transient semantic edit without mutating the active revision."""
+        """Apply one transient semantic edit without mutating the saved revision."""
         if self._draft_intent is None or type(value) is not int:
             return
         if self._draft_intent.max_speed == value:
@@ -120,10 +103,11 @@ class StudyController(QObject):
         self._draft_intent = attrs.evolve(self._draft_intent, max_speed=value)
         self._clear_result_state()
         self.draftChanged.emit()
-        self.statusChanged.emit()
+        self.scientificDraftChanged.emit()
+        self._set_status("Unsaved Reference Ecology semantic draft changed.")
 
-    @Property(bool, notify=draftChanged)
-    def draftDirty(self) -> bool:  # noqa: N802
+    def is_draft_dirty(self) -> bool:
+        """Return transient draft ownership for Python controller-to-controller use."""
         return (
             self._revision is not None
             and self._draft_intent is not None
@@ -131,11 +115,16 @@ class StudyController(QObject):
         )
 
     @Property(bool, notify=draftChanged)
+    def draftDirty(self) -> bool:  # noqa: N802
+        return self.is_draft_dirty()
+
+    @Property(bool, notify=draftChanged)
     def draftReady(self) -> bool:  # noqa: N802
         if self._draft_intent is None or self._revision is None:
             return False
         readiness = assess_reference_readiness(
-            self._draft_intent, self._revision.evidence_plan
+            self._draft_intent,
+            self._revision.evidence_plan,
         )
         return readiness.state == "ready"
 
@@ -153,9 +142,13 @@ class StudyController(QObject):
             return self._readiness_message()
         return " · ".join(f"{key} = {value}" for key, value in preview.derived_values)
 
+    def is_running(self) -> bool:
+        """Return worker ownership for Python controller-to-controller use."""
+        return self._thread is not None
+
     @Property(bool, notify=runningChanged)
     def running(self) -> bool:
-        return self._thread is not None
+        return self.is_running()
 
     @Property(str, notify=statusChanged)
     def status(self) -> str:
@@ -173,6 +166,10 @@ class StudyController(QObject):
         if not view.population_observations:
             return 0
         return view.population_observations[-1].population_size
+
+    @Property(bool, notify=worldChanged)
+    def hasWorld(self) -> bool:  # noqa: N802
+        return self._presentation is not None
 
     @Property(int, notify=worldChanged)
     def worldWidth(self) -> int:  # noqa: N802
@@ -198,84 +195,58 @@ class StudyController(QObject):
     def resourceModel(self) -> QObject:  # noqa: N802
         return self._resources
 
-    @Slot()
-    def createStudy(self) -> None:  # noqa: N802
-        """Create the bounded Q0 Study through the existing WB4 constructor."""
-        if not self._require_idle():
-            return
-        intent = attrs.evolve(
-            default_reference_ecology_intent(),
-            width=12,
-            height=12,
-            founder_population=8,
-            horizon=12,
-            seed=1729,
-        )
-        revision = create_reference_study_revision(
-            revision_id=f"reference-{uuid.uuid4().hex[:10]}",
-            intent=intent,
-            evidence_plan=_Q0_EVIDENCE_PLAN,
-        )
-        self._activate_revision(revision)
-        self._set_status("Reference Ecology Study created from Workbench semantics.")
+    def activate_revision(self, revision: ReferenceStudyRevision) -> None:
+        """Bind one exact saved Reference revision as this family controller's owner."""
+        if not isinstance(revision, ReferenceStudyRevision):
+            raise TypeError("revision must be a ReferenceStudyRevision.")
+        self._revision = revision
+        self._draft_intent = revision.intent
+        self._clear_result_state()
+        self.activeChanged.emit()
+        self.draftChanged.emit()
+        self._set_status(f"Reference revision {revision.revision_id} is active.")
 
-    @Slot(str, result=bool)
-    def openStudy(self, location: str) -> bool:  # noqa: N802
-        """Open an exact WB4 Study snapshot without re-resolving its manifest."""
-        if not self._require_idle():
-            return False
-        try:
-            path = _path_from_location(location)
-            revision = ReferenceStudyRevision.from_json(
-                path.read_text(encoding="utf-8")
-            )
-        except (OSError, TypeError, ValueError) as exc:
-            self._set_status(f"Open failed: {exc}")
-            return False
-        self._activate_revision(revision)
-        self._set_status(f"Opened exact Study revision {revision.revision_id}.")
-        return True
+    def clear(self) -> None:
+        """Discard all Reference-specific transient state when its owner changes."""
+        if self.is_running():
+            raise RuntimeError("Cannot clear Reference state while a run is active.")
+        self._revision = None
+        self._draft_intent = None
+        self._clear_result_state()
+        self.activeChanged.emit()
+        self.draftChanged.emit()
+        self._set_status("Reference Ecology controls are inactive.")
 
-    @Slot(str, result=bool)
-    def saveStudy(self, location: str) -> bool:  # noqa: N802
-        """Persist the active exact revision, never the transient QML draft."""
-        if self._revision is None:
-            self._set_status("Create or open a Study before saving.")
-            return False
-        try:
-            path = _path_from_location(location)
-            path.write_text(self._revision.to_json(), encoding="utf-8")
-        except (OSError, TypeError, ValueError) as exc:
-            self._set_status(f"Save failed: {exc}")
-            return False
-        self._set_status(f"Saved exact revision {self._revision.revision_id}.")
-        return True
+    def clear_result_state(self) -> None:
+        """Clear current Reference result/presentation state without changing science."""
+        self._clear_result_state()
 
     @Slot(result=bool)
     def saveChildRevision(self) -> bool:  # noqa: N802
-        """Commit the draft only by creating an immutable Workbench child revision."""
+        """Commit the draft only as an immutable existing Workbench child revision."""
         if (
             not self._require_idle()
             or self._revision is None
             or self._draft_intent is None
         ):
             return False
-        if not self.draftDirty:
+        if not self.is_draft_dirty():
             self._set_status("No semantic draft changes to save.")
             return False
         readiness = assess_reference_readiness(
-            self._draft_intent, self._revision.evidence_plan
+            self._draft_intent,
+            self._revision.evidence_plan,
         )
         if readiness.state != "ready":
             self._set_status(self._readiness_message())
             return False
-        parent = self._revision
         child = fork_reference_study_revision(
-            parent,
+            self._revision,
             revision_id=f"reference-{uuid.uuid4().hex[:10]}",
             intent=self._draft_intent,
         )
-        self._activate_revision(child)
+        self.activate_revision(child)
+        self.revisionCommitted.emit(child)
         self._set_status(
             f"Saved immutable child revision {child.revision_id}; parent unchanged."
         )
@@ -283,10 +254,10 @@ class StudyController(QObject):
 
     @Slot()
     def runStudy(self) -> None:  # noqa: N802
-        """Execute the exact active revision on a worker QThread."""
+        """Execute the exact active Reference revision on a narrow worker QThread."""
         if not self._require_idle() or self._revision is None:
             return
-        if self.draftDirty:
+        if self.is_draft_dirty():
             self._set_status(
                 "Save the semantic draft as a child revision before running."
             )
@@ -337,8 +308,13 @@ class StudyController(QObject):
         view = inspect_reference_study_results(self._revision, result)
         if view.spatial_observations:
             self._prepare_world(step_index=view.spatial_observations[-1].step_index)
-        self.studyChanged.emit()
+        else:
+            self._presentation = None
+            self._organisms.set_items(())
+            self._resources.set_items(())
+            self.worldChanged.emit()
         self.resultsChanged.emit()
+        self.runCompleted.emit(self._revision, result)
         self._set_status(
             f"Run {result.provenance.run_id} complete; Results use recorded evidence."
         )
@@ -353,13 +329,6 @@ class StudyController(QObject):
         self._thread = None
         self.runningChanged.emit()
 
-    def _activate_revision(self, revision: ReferenceStudyRevision) -> None:
-        self._revision = revision
-        self._draft_intent = revision.intent
-        self._clear_result_state()
-        self.studyChanged.emit()
-        self.draftChanged.emit()
-
     def _clear_result_state(self) -> None:
         self._result = None
         self._presentation = None
@@ -372,19 +341,22 @@ class StudyController(QObject):
         if self._revision is None or self._draft_intent is None:
             return None
         readiness = assess_reference_readiness(
-            self._draft_intent, self._revision.evidence_plan
+            self._draft_intent,
+            self._revision.evidence_plan,
         )
         if readiness.state != "ready":
             return None
         return resolve_reference_ecology(
-            self._draft_intent, self._revision.evidence_plan
+            self._draft_intent,
+            self._revision.evidence_plan,
         )
 
     def _readiness_message(self) -> str:
         if self._revision is None or self._draft_intent is None:
-            return "No Study draft is active."
+            return "No Reference Study draft is active."
         readiness = assess_reference_readiness(
-            self._draft_intent, self._revision.evidence_plan
+            self._draft_intent,
+            self._revision.evidence_plan,
         )
         if readiness.state == "ready":
             return "Draft is scientifically ready."
@@ -410,7 +382,7 @@ class StudyController(QObject):
         self.worldChanged.emit()
 
     def _require_idle(self) -> bool:
-        if self.running:
+        if self.is_running():
             self._set_status("A run is already active; wait for it to finish.")
             return False
         return True
@@ -420,15 +392,4 @@ class StudyController(QObject):
         self.statusChanged.emit()
 
 
-def _path_from_location(location: str) -> Path:
-    if type(location) is not str or not location.strip():
-        raise ValueError("A non-empty Study file location is required.")
-    if location.startswith("file:"):
-        local = QUrl(location).toLocalFile()
-        if not local:
-            raise ValueError("Study file URL is not a local file.")
-        return Path(local)
-    return Path(location)
-
-
-__all__ = ["StudyController"]
+__all__ = ["ReferenceStudyController"]
