@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal, TypeAlias, cast
+from typing import Literal, TypeAlias
 
 import streamlit as st
 
@@ -84,9 +84,7 @@ def _render_reference_plan(revision: ReferenceStudyRevision) -> str:
     st.subheader("RUN STUDY")
     st.write(f"Study revision: `{revision.revision_id}`")
     st.write(f"Seed: **{revision.manifest.explicit_value(REFERENCE_SEED_SLOT)}**")
-    st.write(
-        f"Horizon: **{revision.manifest.explicit_value(REFERENCE_HORIZON_SLOT)}**"
-    )
+    st.write(f"Horizon: **{revision.manifest.explicit_value(REFERENCE_HORIZON_SLOT)}**")
     _render_manifest_digest(revision.manifest.digest)
     _render_evidence(revision)
     advisories = evidence_advisories_for_artifact(revision)
@@ -150,7 +148,9 @@ def _render_e4_plan(definition: EnvironmentSelectionComparisonDefinition) -> str
     st.write("Primary factor: **Resource geography**")
     st.write(f"Control: **{_humanize(definition.control_environment)}**")
     st.write(f"Treatment: **{_humanize(definition.treatment_environment)}**")
-    st.write("Standing focal composition: **" + _integer_text(definition.focal_speeds) + "**")
+    st.write(
+        "Standing focal composition: **" + _integer_text(definition.focal_speeds) + "**"
+    )
     st.write("Replicate seeds: **" + _integer_text(definition.seeds) + "**")
     st.write(f"Total simulations: **{len(rows)}**")
     _render_evidence(definition)
@@ -175,16 +175,10 @@ def _render_e4_plan(definition: EnvironmentSelectionComparisonDefinition) -> str
 
 
 def _render_evidence(artifact: EvidenceBearingArtifact) -> None:
-    requested = set(requested_evidence_ids(artifact))
-    labels = {
-        option.evidence_id: option.label for option in evidence_options(artifact)
-    }
+    labels = {option.evidence_id: option.label for option in evidence_options(artifact)}
     st.markdown("**Evidence**")
     for evidence_id in requested_evidence_ids(artifact):
         st.write(f"✓ {labels.get(evidence_id, evidence_id)}")
-    missing_labels = requested - set(labels)
-    for evidence_id in sorted(missing_labels):
-        st.write(f"✓ {evidence_id}")
 
 
 def _render_manifest_digest(digest: str) -> None:
