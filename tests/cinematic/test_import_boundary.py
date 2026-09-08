@@ -56,8 +56,11 @@ def test_missing_manim_has_actionable_render_error(
 
 
 def test_production_packages_do_not_depend_on_cinematic() -> None:
-    """Test cinematic presentation remains a top-level package consumer."""
+    """Test cinematic remains downstream except at the explicit WU5 UI composition root."""
     package_root = Path("src/evo_engine")
+    allowed_consumers = {
+        package_root / "ui" / "presentation_page.py",
+    }
     violations: list[str] = []
 
     for path in sorted(package_root.rglob("*.py")):
@@ -66,9 +69,10 @@ def test_production_packages_do_not_depend_on_cinematic() -> None:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
         for node in ast.walk(tree):
             for module in _imported_modules(node):
-                if module == "evo_engine.cinematic" or module.startswith(
-                    "evo_engine.cinematic."
-                ):
+                if (
+                    module == "evo_engine.cinematic"
+                    or module.startswith("evo_engine.cinematic.")
+                ) and path not in allowed_consumers:
                     violations.append(f"{path}: imports {module}")
 
     assert violations == []
