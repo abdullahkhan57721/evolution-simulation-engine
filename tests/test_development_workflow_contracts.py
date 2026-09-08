@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCIENTIFIC_WORKFLOWS = (
     "b3-confirmation.yml",
@@ -21,7 +20,7 @@ def test_safe_fix_scope_matches_default_lint_scope() -> None:
     lint_script = _read("scripts/lint")
 
     assert "set -- ." in fix_script
-    assert 'TARGETS=(.)' in lint_script
+    assert "TARGETS=(.)" in lint_script
     assert "--unsafe-fixes" not in fix_script
 
 
@@ -29,8 +28,8 @@ def test_fast_checkpoint_keeps_final_checks_out_of_inner_loop() -> None:
     check_all = _read("scripts/check_all")
 
     assert "--fast" in check_all
-    assert 'fast_mode=1' in check_all
-    assert 'if [[ $fast_mode -eq 0 ]]; then' in check_all
+    assert "fast_mode=1" in check_all
+    assert "if [[ $fast_mode -eq 0 ]]; then" in check_all
     assert '"$SCRIPT_DIR/coverage"' in check_all
     assert '"$SCRIPT_DIR/docs"' in check_all
 
@@ -62,10 +61,10 @@ def test_frozen_scientific_workflows_follow_science_affecting_paths() -> None:
         workflow = _read(f".github/workflows/{workflow_name}")
 
         assert '"src/evo_engine/**"' in workflow
-        assert '!src/evo_engine/ui/**' in workflow
-        assert '!src/evo_engine/workbench/**' in workflow
-        assert '!src/evo_engine/presentation/**' in workflow
-        assert '!src/evo_engine/cinematic/**' in workflow
+        assert "!src/evo_engine/ui/**" in workflow
+        assert "!src/evo_engine/workbench/**" in workflow
+        assert "!src/evo_engine/presentation/**" in workflow
+        assert "!src/evo_engine/cinematic/**" in workflow
         assert "ready_for_review" in workflow
         assert "github.event.pull_request.draft == false" in workflow
         assert "docs/development/current_state.md" not in workflow
