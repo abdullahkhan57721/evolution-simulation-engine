@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from types import SimpleNamespace
-from typing import Any, TypeAlias
+from typing import TypeAlias
 
 import pytest
 
@@ -24,7 +24,9 @@ from evo_engine.workbench import (
     WorkbenchRunProvenance,
 )
 
-RevisionOwnedArtifact: TypeAlias = StudyRevision | ReferenceStudyRevision | B3StudyRevision
+RevisionOwnedArtifact: TypeAlias = (
+    StudyRevision | ReferenceStudyRevision | B3StudyRevision
+)
 
 
 def _provenance(
