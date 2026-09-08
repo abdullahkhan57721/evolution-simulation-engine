@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import cast
 
 import streamlit as st
 
 from evo_engine.experiments.b3_flagship import B3RunSummary
 from evo_engine.experiments.locomotion import LocomotionReplicateMeasurements
+from evo_engine.experiments.science import ScientificRunProvenance
+from evo_engine.observation import (
+    GeneticCompositionObservation,
+    IndividualLifeHistory,
+    PopulationObservation,
+    SpatialObservation,
+)
+from evo_engine.telemetry import AppliedEvent
 from evo_engine.ui.evidence_authoring import evidence_options
 from evo_engine.ui.results_navigation import inspect_current_results
 from evo_engine.ui.results_tables import (
@@ -39,7 +46,7 @@ from evo_engine.ui.results_tables import (
     spatial_resource_rows,
     workbench_provenance_rows,
 )
-from evo_engine.ui.run_execution import AuthoritativeRunResult, is_authoritative_run_result
+from evo_engine.ui.run_execution import is_authoritative_run_result
 from evo_engine.ui.study_shell import (
     ConcreteWorkbenchArtifact,
     artifact_run_count,
@@ -56,6 +63,7 @@ from evo_engine.workbench.results import (
     MaxSpeedSweepResultsView,
     ReferenceStudyResultsView,
 )
+from evo_engine.workbench.study import WorkbenchRunProvenance
 
 
 def render_results_page(
@@ -142,8 +150,9 @@ def _render_controlled(
     with analysis:
         st.subheader("Locomotion analysis")
         if _render_availability(view.locomotion_availability):
-            measurement = cast(LocomotionReplicateMeasurements, view.locomotion)
-            _table(locomotion_rows(measurement))
+            if not isinstance(view.locomotion, LocomotionReplicateMeasurements):
+                raise TypeError("Available locomotion analysis must be an E1 measurement.")
+            _table(locomotion_rows(view.locomotion))
             st.caption(
                 "These values are the existing E1 replicate measurement derived from "
                 "committed movement evidence; the Results UI does not recalculate it."
@@ -176,7 +185,10 @@ def _render_reference(
             ("Population", "Events", "Pedigree", "Genetics", "Spatial history")
         )
         with population:
-            _render_population(view.population_availability, view.population_observations)
+            _render_population(
+                view.population_availability,
+                view.population_observations,
+            )
         with events:
             _render_events(view.event_availability, view.applied_events)
         with pedigree:
@@ -225,7 +237,8 @@ def _render_e3(
             f"{_humanize(view.definition.base_intent.resource_geography)}"
         )
         st.write(
-            "**Replicate seeds:** " + ", ".join(str(seed) for seed in view.definition.seeds)
+            "**Replicate seeds:** "
+            + ", ".join(str(seed) for seed in view.definition.seeds)
         )
         _recorded_evidence(artifact, view.definition.evidence_plan.requested)
 
@@ -352,30 +365,55 @@ def _render_b3(
     with explore:
         role = st.radio(
             "Scientific run role",
-            ("Primary confirmation", "Radius sensitivity", "Founder-label counterbalance"),
+            (
+                "Primary confirmation",
+                "Radius sensitivity",
+                "Founder-label counterbalance",
+            ),
             horizontal=True,
             key="wu4_b3_role",
         )
         if role == "Primary confirmation":
-            _render_b3_matched_explorer(view.confirmation, key="wu4_b3_confirmation")
+            _render_b3_matched_explorer(
+                view.confirmation,
+                key="wu4_b3_confirmation",
+            )
         elif role == "Radius sensitivity":
-            _render_b3_single_explorer(view.radius_sensitivity, key="wu4_b3_sensitivity")
+            _render_b3_single_explorer(
+                view.radius_sensitivity,
+                key="wu4_b3_sensitivity",
+            )
         else:
-            _render_b3_matched_explorer(view.counterbalanced, key="wu4_b3_counterbalance")
+            _render_b3_matched_explorer(
+                view.counterbalanced,
+                key="wu4_b3_counterbalance",
+            )
 
     with analysis:
         st.subheader("Primary confirmation")
-        _table(b3_matched_summary_rows(tuple(item.summary for item in view.confirmation)))
+        _table(
+            b3_matched_summary_rows(
+                tuple(item.summary for item in view.confirmation)
+            )
+        )
         st.caption(
             "Control and compact-treatment arms are matched/blocked by seed. Matching "
             "does not imply RNG streams stay lockstep after the treatments diverge."
         )
         st.subheader("Radius sensitivity")
-        _table(b3_single_summary_rows(tuple(item.summary for item in view.radius_sensitivity)))
-        st.caption("Sensitivity remains secondary to the canonical primary confirmation.")
+        _table(
+            b3_single_summary_rows(
+                tuple(item.summary for item in view.radius_sensitivity)
+            )
+        )
+        st.caption(
+            "Sensitivity remains secondary to the canonical primary confirmation."
+        )
         st.subheader("Founder-label counterbalance")
         _table(
-            b3_matched_summary_rows(tuple(item.summary for item in view.counterbalanced))
+            b3_matched_summary_rows(
+                tuple(item.summary for item in view.counterbalanced)
+            )
         )
         st.caption(
             "Founder-label assignment is counterbalance evidence, not the biological "
@@ -405,11 +443,11 @@ def _render_b3(
 
 def _render_population(
     availability: AnalysisAvailability,
-    observations: Sequence[object],
+    observations: Sequence[PopulationObservation],
 ) -> None:
     if not _render_availability(availability):
         return
-    rows = population_rows(cast(Sequence, observations))
+    rows = population_rows(observations)
     if not rows:
         st.info("The evidence stream was requested but contains no population rows.")
         return
@@ -417,15 +455,17 @@ def _render_population(
     _table(rows)
 
 
-def _render_events(availability: AnalysisAvailability, events: Sequence[object]) -> None:
+def _render_events(
+    availability: AnalysisAvailability,
+    events: Sequence[AppliedEvent],
+) -> None:
     if not _render_availability(availability):
         return
-    typed_events = cast(Sequence, events)
-    rows = event_rows(typed_events)
+    rows = event_rows(events)
     if not rows:
         st.info("No committed events were recorded in this run.")
         return
-    process_names = tuple(dict.fromkeys(item.process_name for item in typed_events))
+    process_names = tuple(dict.fromkeys(item.process_name for item in events))
     selected = st.selectbox(
         "Process filter",
         ("All processes", *process_names),
@@ -436,22 +476,27 @@ def _render_events(availability: AnalysisAvailability, events: Sequence[object])
     _table(rows)
 
 
-def _render_pedigree(availability: AnalysisAvailability, records: Sequence[object]) -> None:
+def _render_pedigree(
+    availability: AnalysisAvailability,
+    records: Sequence[IndividualLifeHistory],
+) -> None:
     if not _render_availability(availability):
         return
-    rows = pedigree_rows(cast(Sequence, records))
+    rows = pedigree_rows(records)
     if rows:
         _table(rows)
     else:
         st.info("No individual life-history records are present.")
 
 
-def _render_genetics(availability: AnalysisAvailability, observations: Sequence[object]) -> None:
+def _render_genetics(
+    availability: AnalysisAvailability,
+    observations: Sequence[GeneticCompositionObservation],
+) -> None:
     if not _render_availability(availability):
         return
-    typed = cast(Sequence, observations)
-    allele_rows = genetic_allele_rows(typed)
-    genotype_rows = genetic_genotype_rows(typed)
+    allele_rows = genetic_allele_rows(observations)
+    genotype_rows = genetic_genotype_rows(observations)
     if not allele_rows and not genotype_rows:
         st.info("No genetic-composition observations are present.")
         return
@@ -462,23 +507,25 @@ def _render_genetics(availability: AnalysisAvailability, observations: Sequence[
         _table(genotype_rows)
 
 
-def _render_spatial(availability: AnalysisAvailability, observations: Sequence[object]) -> None:
+def _render_spatial(
+    availability: AnalysisAvailability,
+    observations: Sequence[SpatialObservation],
+) -> None:
     if not _render_availability(availability):
         return
-    typed = cast(Sequence, observations)
-    rows = spatial_frame_rows(typed)
+    rows = spatial_frame_rows(observations)
     if not rows:
         st.info("No spatial observations are present.")
         return
     _table(rows)
-    steps = tuple(item.step_index for item in typed)
+    steps = tuple(item.step_index for item in observations)
     selected_step = st.select_slider(
         "Inspect committed spatial frame",
         options=steps,
         value=steps[-1],
         key="wu4_reference_spatial_step",
     )
-    frame = next(item for item in typed if item.step_index == selected_step)
+    frame = next(item for item in observations if item.step_index == selected_step)
     st.caption(
         "This is committed spatial evidence inspection, not interpolated world replay."
     )
@@ -582,7 +629,9 @@ def _render_b3_matched_explorer(
         horizontal=True,
         key=f"{key}_arm",
     )
-    summary = pair.summary.control if arm == "Uniform control" else pair.summary.treatment
+    summary = (
+        pair.summary.control if arm == "Uniform control" else pair.summary.treatment
+    )
     _render_b3_run_summary(summary)
 
 
@@ -654,12 +703,12 @@ def _recorded_evidence(
         st.write(f"✓ {labels.get(evidence_id, evidence_id)}")
 
 
-def _render_workbench_provenance(value: object) -> None:
+def _render_workbench_provenance(value: WorkbenchRunProvenance) -> None:
     st.subheader("Study / run provenance")
-    _table(workbench_provenance_rows(cast(object, value)))
+    _table(workbench_provenance_rows(value))
 
 
-def _render_scientific_provenance(value: object) -> None:
+def _render_scientific_provenance(value: ScientificRunProvenance) -> None:
     st.subheader("Scientific replicate provenance")
     _table(scientific_provenance_rows(value))
 
