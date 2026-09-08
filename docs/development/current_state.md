@@ -249,7 +249,7 @@ prose into Workbench codes.
 See `docs/workbench_architecture_review.md` for the complete post-WB6 architecture
 review.
 
-## Workbench application shell and Simulation authoring
+## Workbench application shell and scientific execution
 
 WU1 integrates the settled Workbench into the Streamlit application without adding
 another scientific schema. The application enters through Home, then opens a
@@ -277,8 +277,36 @@ rather than a new diff engine. Canonical B3 remains read-only except for the exp
 supported radius-2 sensitivity fork, which preserves B3 origin while losing validated
 radius-1 identity.
 
+WU3 completes the first end-to-end scientific execution path through the same shell.
+Evidence is first-class: controlled/reference plans use their existing concrete
+EvidencePlan types and immutable fork APIs, Reference Ecology surfaces its existing
+non-blocking advisories, and frozen/experiment-required B3/E3/E4 evidence stays
+locked. Experiment authoring remains concrete: E3 edits only max-speed levels and
+replicate seeds, E4 keeps its resource-geography factor, control/treatment roles,
+standing focal composition, and counterbalance fixed while editing supported seeds,
+and B3 remains curated/read-only. Displayed run matrices and B3 case counts come from
+the authoritative Workbench expansion/compilation functions rather than UI-owned
+design logic.
+
+Readiness continues to come from the existing Workbench contracts. `Run` opens a
+reviewable Run Plan derived from the exact current artifact before synchronous
+execution. Revision-backed pending Simulation/Evidence edits receive one immutable
+child revision before execution; E3/E4 keep their existing immutable experiment-value
+ownership rather than gaining invented revision lineage. Execution delegates only to
+the five existing concrete Workbench runners. Successful revision-owned runs attach
+returned provenance with existing `.with_run(...)` semantics, while authoritative
+result objects remain session-owned for downstream Results work. Compile/preflight
+failure leaves the saved artifact unchanged and is surfaced without fabricated
+Workbench diagnostics.
+
+WU3 Results is intentionally a thin completion handoff: existing run/revision
+identity when owned, recorded evidence, simulation count, and honest handling of
+historical run references whose full payload is unavailable. Complete Study analysis,
+Run Explorer, world embedding, cinematic integration, and renderer controls remain
+downstream work.
+
 The prior world-centered V2 workspace and renderer implementation remain available
-for later integration rather than being redefined by WU1/WU2. See
+for later integration rather than being redefined by WU1–WU3. See
 `docs/workbench_ui.md`.
 
 ## Official Workbench support envelope
@@ -308,7 +336,7 @@ WB4 remains the explicit tiered recipe:
   genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
   movement, and development/G×E editing.
 
-WU2 promotes no capability merely because the lower engine can represent it.
+WU2/WU3 promote no capability merely because the lower engine can represent it.
 
 ## Results and presentation boundary
 
@@ -341,16 +369,19 @@ charts, and animation remain presentation concerns.
 
 ## Current development front
 
-The Workbench foundation and the first E-series controlled-science program are both
-settled enough to move out of foundational architecture mode.
+The Workbench foundation, the first E-series controlled-science program, and the
+first end-to-end Workbench scientific execution path are now settled enough to move
+past foundational authoring/execution integration.
 
-WU1 and WU2 now provide the persistent application shell plus bounded Simulation
-authoring, immutable revision/fork behavior, conditional applicability, and concrete
-semantic diff. The next product milestone is **WU3 — Evidence, Experiment Design,
-Readiness, and Run Execution**: fill the Evidence and Experiment workflows and make
-the reserved Run action execute authoritative concrete Study/experiment plans while
-preserving existing Workbench/scientific ownership. WU3 must not turn the shell into
-a universal experiment DSL, statistics framework, or duplicate preflight system.
+WU1–WU3 provide the persistent Study shell, bounded Simulation and Evidence
+authoring, concrete E3/E4/B3 Experiment presentation, immutable revision/fork
+behavior, Workbench readiness, reviewable Run Plan, authoritative synchronous
+execution, provenance attachment, and a thin session-owned Results handoff. The next
+product front is downstream Results/world/presentation integration through the same
+shell. It should consume existing WB5 result/presentation contracts and authoritative
+WU3 result ownership rather than reopen the Workbench backend or create a statistics
+framework. The exact next WU milestone identity should be set by its focused Issue
+against current `main` rather than invented in this orientation document.
 
 E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
 result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
@@ -369,8 +400,8 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities
-still differ. WB5/WB6 and WU1/WU2 do not reveal enough identical persistence
-responsibility to earn a universal saved Study/Experiment/Results root.
+still differ. WB5/WB6 and WU1–WU3 do not reveal enough identical persistence or
+execution responsibility to earn a universal saved Study/Experiment/Results root.
 
 ### Broader Workbench diagnostics remain bounded
 
