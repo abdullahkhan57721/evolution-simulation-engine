@@ -74,7 +74,9 @@ def test_worker_run_surfaces_authoritative_result_and_world_frame() -> None:
     view = inspect_reference_study_results(controller._revision, controller._result)
     assert view.population_observations
     assert view.spatial_observations
-    assert controller.finalPopulation == view.population_observations[-1].population_size
+    assert (
+        controller.finalPopulation == view.population_observations[-1].population_size
+    )
     assert controller._presentation is not None
     assert controller.worldStep == view.spatial_observations[-1].step_index
     organism_model = cast(WorldOrganismModel, controller.organismModel)
