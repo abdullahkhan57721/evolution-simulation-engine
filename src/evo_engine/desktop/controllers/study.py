@@ -180,7 +180,9 @@ class StudyController(QObject):
 
     @Property(int, notify=worldChanged)
     def worldHeight(self) -> int:  # noqa: N802
-        return 0 if self._presentation is None else self._presentation.frame.world_height
+        return (
+            0 if self._presentation is None else self._presentation.frame.world_height
+        )
 
     @Property(int, notify=worldChanged)
     def worldStep(self) -> int:  # noqa: N802
@@ -224,7 +226,9 @@ class StudyController(QObject):
             return False
         try:
             path = _path_from_location(location)
-            revision = ReferenceStudyRevision.from_json(path.read_text(encoding="utf-8"))
+            revision = ReferenceStudyRevision.from_json(
+                path.read_text(encoding="utf-8")
+            )
         except (OSError, TypeError, ValueError) as exc:
             self._set_status(f"Open failed: {exc}")
             return False
@@ -283,7 +287,9 @@ class StudyController(QObject):
         if not self._require_idle() or self._revision is None:
             return
         if self.draftDirty:
-            self._set_status("Save the semantic draft as a child revision before running.")
+            self._set_status(
+                "Save the semantic draft as a child revision before running."
+            )
             return
         worker = _ReferenceRunWorker(self._revision)
         thread = QThread(self)
@@ -306,11 +312,7 @@ class StudyController(QObject):
     @Slot(int)
     def selectOrganism(self, organism_id: int) -> None:  # noqa: N802
         """Change renderer selection without changing scientific identity."""
-        if (
-            self._revision is None
-            or self._result is None
-            or self._presentation is None
-        ):
+        if self._revision is None or self._result is None or self._presentation is None:
             return
         self._prepare_world(
             step_index=self._presentation.frame.committed_step_index,
@@ -326,7 +328,9 @@ class StudyController(QObject):
             result.provenance.study_revision_id != self._revision.revision_id
             or result.provenance.manifest_digest != self._revision.manifest.digest
         ):
-            self._set_status("Run provenance no longer matches the active Study revision.")
+            self._set_status(
+                "Run provenance no longer matches the active Study revision."
+            )
             return
         self._revision = self._revision.with_run(result.provenance)
         self._result = result
@@ -372,7 +376,9 @@ class StudyController(QObject):
         )
         if readiness.state != "ready":
             return None
-        return resolve_reference_ecology(self._draft_intent, self._revision.evidence_plan)
+        return resolve_reference_ecology(
+            self._draft_intent, self._revision.evidence_plan
+        )
 
     def _readiness_message(self) -> str:
         if self._revision is None or self._draft_intent is None:
