@@ -16,11 +16,6 @@ from evo_engine.presentation.workbench import (
     WorkbenchWorldPresentation,
     build_reference_workbench_world_presentation,
 )
-from evo_engine.workbench.simulation_authoring import (
-    normalize_reference_draft,
-    reference_has_expert_controls,
-    save_reference_child,
-)
 from evo_engine.workbench.reference_ecology import (
     ReferenceEcologyIntent,
     ReferenceEcologyManifest,
@@ -33,6 +28,11 @@ from evo_engine.workbench.reference_study import (
     run_reference_study_revision,
 )
 from evo_engine.workbench.results import inspect_reference_study_results
+from evo_engine.workbench.simulation_authoring import (
+    normalize_reference_draft,
+    reference_has_expert_controls,
+    save_reference_child,
+)
 
 
 class _ReferenceRunWorker(QObject):

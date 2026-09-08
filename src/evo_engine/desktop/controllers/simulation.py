@@ -20,12 +20,6 @@ from evo_engine.desktop.models.authoring import (
     SemanticDiffItem,
     SemanticDiffModel,
 )
-from evo_engine.workbench.simulation_authoring import (
-    controlled_draft_readiness,
-    save_controlled_child,
-    semantic_slot_label,
-    simulation_semantic_diff,
-)
 from evo_engine.workbench import (
     B3CuratedDiff,
     B3StudyRevision,
@@ -40,6 +34,12 @@ from evo_engine.workbench.controlled_locomotion import (
     SUPPORTED_MAX_SPEED_MAXIMUM,
     SUPPORTED_MAX_SPEED_MINIMUM,
     SUPPORTED_RESOURCE_GEOGRAPHIES,
+)
+from evo_engine.workbench.simulation_authoring import (
+    controlled_draft_readiness,
+    save_controlled_child,
+    semantic_slot_label,
+    simulation_semantic_diff,
 )
 
 _CONTROLLED_DYNAMIC_DERIVED = (

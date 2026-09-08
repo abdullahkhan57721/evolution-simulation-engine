@@ -67,8 +67,7 @@ def test_q2_qml_does_not_own_scientific_manifest_or_revision_mutation() -> None:
 
 def test_q2_native_controllers_do_not_depend_on_streamlit_ui() -> None:
     joined = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted(_CONTROLLERS.glob("*.py"))
+        path.read_text(encoding="utf-8") for path in sorted(_CONTROLLERS.glob("*.py"))
     )
     assert "evo_engine.ui" not in joined
     assert "evo_engine.workbench.simulation_authoring" in joined

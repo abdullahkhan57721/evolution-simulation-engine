@@ -11,15 +11,6 @@ from evo_engine.desktop.models.authoring import (
     FactorLevelItem,
     FactorLevelModel,
 )
-from evo_engine.workbench.experiment_authoring import (
-    b3_case_counts,
-    e4_counterbalance_label,
-    environment_run_rows,
-    max_speed_run_rows,
-    parse_integer_sequence,
-    update_environment_selection_comparison,
-    update_max_speed_sweep,
-)
 from evo_engine.workbench import (
     SUPPORTED_MAX_SPEED_MAXIMUM,
     SUPPORTED_MAX_SPEED_MINIMUM,
@@ -28,6 +19,15 @@ from evo_engine.workbench import (
     MaxSpeedSweepDefinition,
     ReferenceStudyRevision,
     StudyRevision,
+)
+from evo_engine.workbench.experiment_authoring import (
+    b3_case_counts,
+    e4_counterbalance_label,
+    environment_run_rows,
+    max_speed_run_rows,
+    parse_integer_sequence,
+    update_environment_selection_comparison,
+    update_max_speed_sweep,
 )
 
 

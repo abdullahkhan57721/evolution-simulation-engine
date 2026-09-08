@@ -8,13 +8,6 @@ from PySide6.QtCore import Property, QObject, Signal, Slot
 
 from evo_engine.desktop.artifacts import ConcreteWorkbenchArtifact
 from evo_engine.desktop.models.authoring import EvidenceItem, EvidenceOptionModel
-from evo_engine.workbench.evidence_authoring import (
-    evidence_advisories_for_artifact,
-    evidence_options,
-    make_editable_evidence_plan,
-    requested_evidence_ids,
-    save_evidence_child,
-)
 from evo_engine.workbench import (
     B3StudyRevision,
     EnvironmentSelectionComparisonDefinition,
@@ -25,6 +18,13 @@ from evo_engine.workbench import (
     StudyRevision,
     assess_readiness,
     assess_reference_readiness,
+)
+from evo_engine.workbench.evidence_authoring import (
+    evidence_advisories_for_artifact,
+    evidence_options,
+    make_editable_evidence_plan,
+    requested_evidence_ids,
+    save_evidence_child,
 )
 
 

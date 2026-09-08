@@ -36,6 +36,8 @@ from evo_engine.workbench.reference_ecology import (
     ReferenceSlotMetadata,
     assess_reference_readiness,
     is_slot_applicable,
+)
+from evo_engine.workbench.reference_ecology import (
     slot_metadata as reference_slot_metadata,
 )
 from evo_engine.workbench.reference_study import (
