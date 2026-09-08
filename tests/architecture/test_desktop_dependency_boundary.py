@@ -19,6 +19,15 @@ def test_lower_packages_do_not_depend_on_native_desktop_or_qt() -> None:
     assert violations == []
 
 
+def test_native_desktop_does_not_depend_on_streamlit_ui() -> None:
+    desktop = _root() / "src" / "evo_engine" / "desktop"
+    violations: list[str] = []
+    for path in desktop.rglob("*.py"):
+        if "evo_engine.ui" in path.read_text(encoding="utf-8"):
+            violations.append(str(path.relative_to(_root())))
+    assert violations == []
+
+
 def test_qt_is_not_a_core_project_dependency() -> None:
     pyproject = (_root() / "pyproject.toml").read_text(encoding="utf-8")
     project_dependencies = pyproject.split("[project.urls]", maxsplit=1)[0]
