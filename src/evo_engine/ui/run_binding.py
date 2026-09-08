@@ -33,6 +33,7 @@ from evo_engine.workbench import (
     fork_study_revision,
 )
 
+_RESULT_KEY = "wu1_current_result"
 _SIMULATION_DRAFT_INTENT_KEY = "wu2_simulation_draft_intent"
 _SIMULATION_DRAFT_REVISION_KEY = "wu2_simulation_draft_revision_id"
 
@@ -82,6 +83,7 @@ def bind_pending_scientific_state(
             raise ValueError(f"Experiment draft is not runnable: {error}")
         candidate = pending_experiment_definition(artifact)
         if candidate is not None and candidate != artifact:
+            _clear_stale_result()
             return (
                 candidate,
                 "Unsaved Experiment edits were bound to this exact immutable "
@@ -114,6 +116,7 @@ def _bind_controlled(
         seed=cast(int, intent.seed),
         evidence_plan=plan,
     )
+    _clear_stale_result()
     return (
         child,
         f"Unsaved Simulation/Evidence edits were saved as immutable revision "
@@ -142,11 +145,17 @@ def _bind_reference(
         intent=intent,
         evidence_plan=plan,
     )
+    _clear_stale_result()
     return (
         child,
         f"Unsaved Simulation/Evidence edits were saved as immutable revision "
         f"`{child.revision_id}` before execution.",
     )
+
+
+def _clear_stale_result() -> None:
+    """Discard a session result once a different scientific owner is bound."""
+    st.session_state.pop(_RESULT_KEY, None)
 
 
 def _pending_controlled_intent(
