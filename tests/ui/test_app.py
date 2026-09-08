@@ -124,9 +124,7 @@ def test_evidence_is_first_class_and_b3_evidence_is_locked() -> None:
 
     assert not app.exception
     assert any(header.value == "Evidence" for header in app.header)
-    assert any(
-        "validated B3 scientific design" in info.value for info in app.info
-    )
+    assert any("validated B3 scientific design" in info.value for info in app.info)
     assert app.checkbox
     assert all(checkbox.disabled for checkbox in app.checkbox)
     assert all(checkbox.value for checkbox in app.checkbox)
