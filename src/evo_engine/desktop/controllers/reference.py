@@ -16,7 +16,7 @@ from evo_engine.presentation.workbench import (
     WorkbenchWorldPresentation,
     build_reference_workbench_world_presentation,
 )
-from evo_engine.ui.simulation_authoring import (
+from evo_engine.workbench.simulation_authoring import (
     normalize_reference_draft,
     reference_has_expert_controls,
     save_reference_child,

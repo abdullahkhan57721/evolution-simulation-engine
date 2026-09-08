@@ -20,7 +20,7 @@ from evo_engine.desktop.models.authoring import (
     SemanticDiffItem,
     SemanticDiffModel,
 )
-from evo_engine.ui.simulation_authoring import (
+from evo_engine.workbench.simulation_authoring import (
     controlled_draft_readiness,
     save_controlled_child,
     semantic_slot_label,

@@ -11,7 +11,7 @@ from evo_engine.desktop.models.authoring import (
     FactorLevelItem,
     FactorLevelModel,
 )
-from evo_engine.ui.experiment_authoring import (
+from evo_engine.workbench.experiment_authoring import (
     b3_case_counts,
     e4_counterbalance_label,
     environment_run_rows,
