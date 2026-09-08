@@ -308,7 +308,9 @@ def result_matches_artifact(
 ) -> bool:
     """Return whether existing WB5 semantics accept this artifact/result pair."""
     try:
-        if isinstance(artifact, StudyRevision) and isinstance(result, WorkbenchRunResult):
+        if isinstance(artifact, StudyRevision) and isinstance(
+            result, WorkbenchRunResult
+        ):
             inspect_controlled_locomotion_results(artifact, result)
             return True
         if isinstance(artifact, ReferenceStudyRevision) and isinstance(
@@ -316,7 +318,9 @@ def result_matches_artifact(
         ):
             inspect_reference_study_results(artifact, result)
             return True
-        if isinstance(artifact, B3StudyRevision) and isinstance(result, B3CuratedRunResult):
+        if isinstance(artifact, B3StudyRevision) and isinstance(
+            result, B3CuratedRunResult
+        ):
             inspect_b3_results(artifact, result)
             return True
         if isinstance(artifact, MaxSpeedSweepDefinition) and isinstance(
@@ -326,9 +330,9 @@ def result_matches_artifact(
                 return False
             inspect_max_speed_sweep_results(result)
             return True
-        if isinstance(artifact, EnvironmentSelectionComparisonDefinition) and isinstance(
-            result, EnvironmentSelectionComparisonResult
-        ):
+        if isinstance(
+            artifact, EnvironmentSelectionComparisonDefinition
+        ) and isinstance(result, EnvironmentSelectionComparisonResult):
             if result.definition != artifact:
                 return False
             inspect_environment_selection_results(result)
