@@ -265,17 +265,92 @@ using returned provenance. E3/E4 results remain their authoritative concrete res
 objects in session without invented Study-level run identity. Compile/preflight/run
 failure leaves the exact saved artifact unchanged and surfaces the failure honestly.
 
-## Results handoff
+## Results and run exploration
 
-WU3 deliberately keeps Results thin. The session-owned authoritative result exposes
-only the completion handoff needed for the next product work: existing run/revision
-identity when owned, the recorded evidence IDs, and the number of concrete
-simulations represented by the result.
+WU4 turns the WU3 completion handoff into a first-class scientific Results workspace
+without adding another result hierarchy or scientific-analysis framework. The UI
+binds the active artifact and session-owned result through the existing WB5
+`inspect_*_results()` contracts. Revision-backed controlled, Reference Ecology, and
+B3 Results must match the exact active revision/manifest/evidence identity; E3/E4
+must match the exact immutable experiment definition before their WB5 inspectors are
+used.
 
-WU3 does not recalculate E1/E3/E4/B3 science, build a durable result archive, or
-invent historical payloads. Reopened saved revisions may contain run-provenance
-references while lacking complete result payloads; the Results page says so and does
-not rerun automatically.
+Every supported family follows the product rhythm:
+
+```text
+Overview → Explore → Analysis → Provenance
+```
+
+The internal navigation remains family-specific rather than being flattened into a
+universal replicate schema.
+
+### Controlled single-run Results
+
+Controlled Results expose the recorded population trajectory and the existing E1
+locomotion replicate measurement. Both are gated by WB5 `AnalysisAvailability`.
+The UI does not recalculate movement or energetic measurements from event rows.
+
+### Reference Ecology Results
+
+Reference Ecology keeps its recorded evidence streams independent:
+
+- population history;
+- committed events, including process filtering;
+- pedigree / individual life history;
+- allele and genotype composition;
+- committed spatial-history frames.
+
+Each stream is gated independently by its authoritative availability. Spatial
+inspection is committed evidence inspection, not interpolated world replay.
+
+### E3 ecological-performance Results
+
+E3 preserves maximum speed as the factor. Users choose a factor level and then an
+exact replicate seed while the view retains treatment ID, manifest digest, and the
+unchanged replicate outcome. Treatment-level tables/charts copy existing
+`E3TreatmentSummary` values. Organisms within a run are not promoted to independent
+replicates and WU4 does not recompute treatment summaries.
+
+### E4 standing-variation Results
+
+E4 preserves resource geography as the factor while keeping control/treatment role,
+replicate seed, standing focal composition, and founder-speed-order counterbalance as
+separate identities. Replicate exploration shows the existing focal trajectory and
+mechanism evidence; environment-level views copy existing `E4EnvironmentSummary`
+values. Founder-order counterbalance is never presented as another factor.
+
+### B3 curated Results
+
+B3 keeps three scientific roles visibly separate:
+
+- primary matched confirmation;
+- radius sensitivity;
+- founder-label counterbalance.
+
+Primary matched arms are described as blocked/matched by seed without implying their
+RNG trajectories remain lockstep after treatment divergence. Scenario origin and
+validated canonical scenario identity are shown separately. Results only reports
+whether the existing canonical cinematic scientific handoff is available; cinematic
+execution and choreography remain downstream Presentation responsibilities. A
+noncanonical B3-derived fork therefore does not inherit canonical cinematic/headline
+claims merely because it shares B3 origin.
+
+### Evidence gaps, provenance, and historical Results
+
+Missing evidence is never inferred or reconstructed. An unavailable analysis names
+the missing evidence and states that obtaining it requires a **new run** with an
+appropriate EvidencePlan; evidence cannot be added retroactively to a completed run.
+
+Provenance views expose only existing Workbench and scientific provenance values.
+Current-session Results are rejected when they no longer belong to the active
+scientific owner rather than being displayed under a stale Study or Experiment.
+
+Persisted run provenance is intentionally not a durable result archive. A reopened
+saved revision may identify historical runs while the observations, events,
+measurements, or experiment payloads are absent from the current session. Results
+shows those references honestly and does not regenerate or rerun them automatically.
+E3/E4 definitions likewise do not gain invented persisted result payloads or
+Study-level run identities.
 
 ## Session ownership
 
@@ -293,8 +368,8 @@ Streamlit session state owns only transient application concerns:
 - presentation state owned by downstream UI modules.
 
 These values are not a persisted scientific schema. Returning Home, opening another
-Study, or starting another Study clears transient WU2/WU3 draft/run/result state so
-scientific state cannot leak across Studies.
+Study, or starting another Study clears transient WU2/WU3/WU4 draft/run/result state
+so scientific state cannot leak across Studies.
 
 ## Readiness and results honesty
 
@@ -310,13 +385,27 @@ serializing complete result payloads. Reopening such a Study does not reconstruc
 missing evidence and does not rerun the simulation automatically. The Results page
 states that limitation explicitly.
 
-## Deferred work after WU3
+## Deferred work after WU4
 
-WU3 intentionally does not implement complete Study Analysis/Run Explorer workflows,
-durable result storage, B3 storytelling UI, V2 world embedding, V3 cinematic
-integration, or renderer settings.
+WU4 does not embed the V2 interactive world, execute the V3/B3 cinematic director,
+add renderer controls, or create durable result storage. It also does not introduce a
+generic statistics framework, chart DSL, telemetry query language, or universal
+Study/Result schema.
 
-Those continue through later WU milestones on top of the same Study shell, exact
-scientific result ownership, and concrete Workbench contracts. Future Results or
-Presentation integration must consume authoritative existing science rather than
-reopening the Workbench backend architecture.
+The next UI milestone should integrate authoritative Results with the existing V2
+interactive-world and V3/B3 Presentation seams through the persistent Study shell:
+
+```text
+scientific Results
+        ↓
+renderer-neutral scientific meaning
+        ↓
+existing presentation adapters
+        ↓
+interactive world or cinematic rendering
+```
+
+Renderer state, interpolation, cameras, playback controls, storyboard/choreography,
+and export remain Presentation responsibilities. Future integration should consume
+the WU4/WB5 scientific boundary rather than reopening Workbench science or moving
+presentation mechanics into Results.

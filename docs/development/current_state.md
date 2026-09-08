@@ -299,14 +299,34 @@ result objects remain session-owned for downstream Results work. Compile/preflig
 failure leaves the saved artifact unchanged and is surfaced without fabricated
 Workbench diagnostics.
 
-WU3 Results is intentionally a thin completion handoff: existing run/revision
-identity when owned, recorded evidence, simulation count, and honest handling of
-historical run references whose full payload is unavailable. Complete Study analysis,
-Run Explorer, world embedding, cinematic integration, and renderer controls remain
-downstream work.
+WU4 makes Results a substantial scientific workspace while preserving WB5 as the
+association/navigation authority. Controlled, Reference Ecology, E3, E4, and B3 all
+use the product rhythm `Overview / Explore / Analysis / Provenance`, but each keeps
+its own scientific navigation rather than being flattened into a universal result or
+replicate model. The UI copies existing observations, replicate outcomes, and
+experiment summaries into charts/tables; it does not own new estimators.
+
+Controlled Results expose population history and existing E1 locomotion measurement
+behind exact evidence availability. Reference Ecology independently exposes
+population, committed events, pedigree/life history, genetic composition, and
+committed spatial frames. E3 preserves maximum speed as factor and exact
+factor/seed/treatment/manifest identity while passing through existing
+`E3TreatmentSummary` values. E4 preserves resource geography as factor while keeping
+arm, seed, standing composition, and founder-order counterbalance distinct and
+passing through existing `E4EnvironmentSummary` values. B3 keeps primary
+confirmation, radius sensitivity, and founder-label counterbalance separate while
+showing scenario origin separately from validated canonical identity and surfacing
+only the existing cinematic-handoff availability.
+
+Missing evidence is explicit and cannot be reconstructed: obtaining an unavailable
+analysis requires a new run with an appropriate EvidencePlan. Session Results that
+no longer match the active scientific owner are rejected. Reopened saved revisions
+may retain historical provenance references without carrying the scientific result
+payload; the UI shows those references and never regenerates or reruns them
+implicitly.
 
 The prior world-centered V2 workspace and renderer implementation remain available
-for later integration rather than being redefined by WU1–WU3. See
+for downstream Presentation integration rather than being redefined by WU1–WU4. See
 `docs/workbench_ui.md`.
 
 ## Official Workbench support envelope
@@ -336,16 +356,16 @@ WB4 remains the explicit tiered recipe:
   genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
   movement, and development/G×E editing.
 
-WU2/WU3 promote no capability merely because the lower engine can represent it.
+WU2–WU4 promote no capability merely because the lower engine can represent it.
 
 ## Results and presentation boundary
 
-Workbench Results is thin navigation over authoritative artifacts plus exact
-association/provenance. It does not calculate E1/E3/E4/B3 science.
+Workbench Results is concrete navigation/presentation over authoritative artifacts
+plus exact association/provenance. It does not calculate E1/E3/E4/B3 science.
 
 If an analysis or presentation requires evidence the run did not record, the
-Workbench exposes structured remediation naming the missing evidence and requiring
-rerun of the same scientific Study revision with an appropriate EvidencePlan. It
+Workbench exposes structured remediation naming the missing evidence and requiring a
+new run of the same scientific Study revision with an appropriate EvidencePlan. It
 never reconstructs events, genetics, pedigree, or spatial history from weaker
 artifacts.
 
@@ -369,19 +389,19 @@ charts, and animation remain presentation concerns.
 
 ## Current development front
 
-The Workbench foundation, the first E-series controlled-science program, and the
-first end-to-end Workbench scientific execution path are now settled enough to move
-past foundational authoring/execution integration.
+The Workbench foundation, the first E-series controlled-science program, the first
+end-to-end Workbench execution path, and first-class Results exploration are now
+settled enough to move to concrete Presentation integration.
 
-WU1–WU3 provide the persistent Study shell, bounded Simulation and Evidence
+WU1–WU4 provide the persistent Study shell, bounded Simulation and Evidence
 authoring, concrete E3/E4/B3 Experiment presentation, immutable revision/fork
 behavior, Workbench readiness, reviewable Run Plan, authoritative synchronous
-execution, provenance attachment, and a thin session-owned Results handoff. The next
-product front is downstream Results/world/presentation integration through the same
-shell. It should consume existing WB5 result/presentation contracts and authoritative
-WU3 result ownership rather than reopen the Workbench backend or create a statistics
-framework. The exact next WU milestone identity should be set by its focused Issue
-against current `main` rather than invented in this orientation document.
+execution, provenance attachment, exact result ownership, evidence-aware scientific
+analysis, and family-specific run exploration. The next product front is integrating
+those authoritative Results with the existing V2 interactive-world and V3/B3
+Presentation seams through the same Study shell. It should consume WB5/WU4
+renderer-neutral scientific meaning and existing presentation adapters rather than
+move interpolation, cameras, playback, storyboard, or renderer state into Results.
 
 E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
 result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
@@ -400,7 +420,7 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities
-still differ. WB5/WB6 and WU1–WU3 do not reveal enough identical persistence or
+still differ. WB5/WB6 and WU1–WU4 do not reveal enough identical persistence or
 execution responsibility to earn a universal saved Study/Experiment/Results root.
 
 ### Broader Workbench diagnostics remain bounded

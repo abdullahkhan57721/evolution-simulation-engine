@@ -6,10 +6,7 @@ import uuid
 
 import streamlit as st
 
-from evo_engine.ui.evidence_authoring import (
-    evidence_advisories_for_artifact,
-    evidence_options,
-)
+from evo_engine.ui.evidence_authoring import evidence_advisories_for_artifact
 from evo_engine.ui.evidence_page import (
     clear_evidence_authoring_state,
     pending_evidence_plan,
@@ -20,16 +17,9 @@ from evo_engine.ui.experiment_page import (
     pending_experiment_error,
     render_experiment_page,
 )
+from evo_engine.ui.results_page import render_results_page
 from evo_engine.ui.run_binding import bind_pending_scientific_state, effective_readiness
-from evo_engine.ui.run_execution import (
-    AuthoritativeRunResult,
-    execute_artifact,
-    is_authoritative_run_result,
-    result_evidence_ids,
-    result_revision_id,
-    result_run_id,
-    result_simulation_count,
-)
+from evo_engine.ui.run_execution import execute_artifact
 from evo_engine.ui.run_page import render_run_plan
 from evo_engine.ui.simulation_page import (
     clear_simulation_authoring_state,
@@ -39,7 +29,6 @@ from evo_engine.ui.study_shell import (
     ConcreteWorkbenchArtifact,
     artifact_download_name,
     artifact_revision_id,
-    artifact_run_count,
     artifact_title,
     artifact_type_label,
     is_concrete_artifact,
@@ -357,7 +346,7 @@ def _render_study_section(
             st.rerun()
         return
     if section == "Results":
-        _render_results(artifact)
+        render_results_page(artifact, st.session_state.get(_RESULT_KEY))
         return
 
     st.header("Presentation")
@@ -463,58 +452,6 @@ def _render_run_failure(message: str, *, exc: Exception | None = None) -> None:
     st.code(message, language=None)
     if isinstance(exc, IncompatibleManifestError):
         st.caption(exc.diagnostic.remediation)
-
-
-def _render_results(artifact: ConcreteWorkbenchArtifact) -> None:
-    st.header("Results")
-    result = st.session_state.get(_RESULT_KEY)
-    if is_authoritative_run_result(result):
-        _render_current_result(artifact, result)
-        return
-
-    run_count = artifact_run_count(artifact)
-    if run_count:
-        runs = getattr(artifact, "runs", ())
-        latest = runs[-1] if runs else None
-        latest_text = "" if latest is None else f" Latest run: `{latest.run_id}`."
-        st.info(
-            f"Previous run recorded ({run_count} reference(s)).{latest_text} "
-            "Scientific result payload is not available in this application session."
-        )
-    elif run_count == 0:
-        st.info("No completed run payload is available in this session.")
-    else:
-        st.info(
-            "This concrete experiment definition does not serialize durable result "
-            "payloads. Run it in this session to inspect the WU3 completion handoff."
-        )
-
-
-def _render_current_result(
-    artifact: ConcreteWorkbenchArtifact,
-    result: AuthoritativeRunResult,
-) -> None:
-    st.success("Run completed")
-    run_id = result_run_id(result)
-    revision_id = result_revision_id(result)
-    if run_id is not None:
-        st.write(f"**Run ID:** `{run_id}`")
-    if revision_id is not None:
-        st.write(f"**Study revision:** `{revision_id}`")
-    st.write(f"**Completed simulations:** {result_simulation_count(result)}")
-    st.markdown("**Recorded evidence**")
-    labels = {option.evidence_id: option.label for option in evidence_options(artifact)}
-    for evidence_id in result_evidence_ids(result):
-        st.write(f"✓ {labels.get(evidence_id, evidence_id)}")
-    if run_id is None:
-        st.caption(
-            "This concrete experiment result contract has no study-level run ID; "
-            "WU3 does not invent one."
-        )
-    st.info(
-        "The authoritative result object is retained in this application session. "
-        "Complete scientific Results analysis belongs to a later focused milestone."
-    )
 
 
 def _current_advisories(
