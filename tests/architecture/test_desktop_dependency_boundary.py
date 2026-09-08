@@ -28,6 +28,16 @@ def test_native_desktop_does_not_depend_on_streamlit_ui() -> None:
     assert violations == []
 
 
+def test_native_authoring_uses_frontend_neutral_workbench_helpers() -> None:
+    controllers = _root() / "src" / "evo_engine" / "desktop" / "controllers"
+    text = "\n".join(
+        path.read_text(encoding="utf-8") for path in sorted(controllers.glob("*.py"))
+    )
+    assert "evo_engine.workbench.simulation_authoring" in text
+    assert "evo_engine.workbench.evidence_authoring" in text
+    assert "evo_engine.workbench.experiment_authoring" in text
+
+
 def test_qt_is_not_a_core_project_dependency() -> None:
     pyproject = (_root() / "pyproject.toml").read_text(encoding="utf-8")
     project_dependencies = pyproject.split("[project.urls]", maxsplit=1)[0]
