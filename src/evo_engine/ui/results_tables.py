@@ -140,7 +140,9 @@ def genetic_genotype_rows(
                         "Step": observation.step_index,
                         "Population size": observation.population_size,
                         "Locus": locus.locus_name,
-                        "Genotype": "/".join(str(value) for value in genotype.allele_values),
+                        "Genotype": "/".join(
+                            str(value) for value in genotype.allele_values
+                        ),
                         "Organisms": genotype.count,
                         "Frequency": genotype.frequency,
                     }
@@ -269,8 +271,12 @@ def e4_summary_rows(summaries: Sequence[E4EnvironmentSummary]) -> list[TableRow]
                     "Mean frequency change": summary.mean_frequency_changes[index],
                     "Mean births": summary.mean_births_by_speed[index],
                     "Mean resources consumed": summary.mean_resources_by_speed[index],
-                    "Mean realized distance": summary.mean_realized_distance_by_speed[index],
-                    "Mean locomotion energy": summary.mean_locomotion_energy_by_speed[index],
+                    "Mean realized distance": summary.mean_realized_distance_by_speed[
+                        index
+                    ],
+                    "Mean locomotion energy": summary.mean_locomotion_energy_by_speed[
+                        index
+                    ],
                 }
             )
     return rows
@@ -309,7 +315,10 @@ def e4_replicate_identity_rows(
 def e4_trajectory_rows(value: E4ReplicateOutcome) -> list[TableRow]:
     rows: list[TableRow] = []
     for point in value.focal_trajectory:
-        row: TableRow = {"Step": point.step_index, "Population size": point.population_size}
+        row: TableRow = {
+            "Step": point.step_index,
+            "Population size": point.population_size,
+        }
         for index, speed in enumerate(E4_FOCAL_SPEEDS):
             row[f"Speed {speed} count"] = point.counts[index]
             row[f"Speed {speed} frequency"] = point.frequencies[index]
