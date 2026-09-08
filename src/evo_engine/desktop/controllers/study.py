@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 
 import attrs
-from PySide6.QtCore import QObject, Property, QThread, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QObject, QThread, QUrl, Signal, Slot
 
 from evo_engine.desktop.models import WorldOrganismModel, WorldResourceModel
 from evo_engine.presentation.workbench import (
@@ -14,7 +14,6 @@ from evo_engine.presentation.workbench import (
     build_reference_workbench_world_presentation,
 )
 from evo_engine.workbench.reference_ecology import (
-    MAX_SPEED_SLOT,
     POPULATION_EVIDENCE_ID,
     SPATIAL_EVIDENCE_ID,
     ReferenceEcologyIntent,
