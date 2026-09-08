@@ -1,0 +1,59 @@
+name: Q2 Test Typefix
+
+on:
+  push:
+    branches:
+      - q2/native-authoring
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: q2/native-authoring
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Use Qt dynamic-property API in PySide property tests
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("tests/desktop/test_authoring_controllers.py")
+          text = path.read_text()
+          replacements = {
+              '    assert reference.hasExpertControls is False\n': '    assert reference.property("hasExpertControls") is False\n',
+              '    reference.draftExplorationMovement = "gaussian"\n': '    assert reference.setProperty("draftExplorationMovement", "gaussian")\n',
+              '    reference.draftGaussianStandardDeviation = 4\n': '    assert reference.setProperty("draftGaussianStandardDeviation", 4)\n',
+              '    reference.draftExplorationMovement = "moore"\n': '    assert reference.setProperty("draftExplorationMovement", "moore")\n',
+              '    reference.draftResourceGeography = "two_patches"\n': '    assert reference.setProperty("draftResourceGeography", "two_patches")\n',
+              '    reference.draftPatch1Radius = 3\n': '    assert reference.setProperty("draftPatch1Radius", 3)\n',
+              '    reference.draftResourceGeography = "uniform"\n': '    assert reference.setProperty("draftResourceGeography", "uniform")\n',
+              '    reference.draftMutationEnabled = True\n': '    assert reference.setProperty("draftMutationEnabled", True)\n',
+              '    reference.draftMutationProbability = 500\n': '    assert reference.setProperty("draftMutationProbability", 500)\n',
+              '    reference.draftMutationMaxChange = 2\n': '    assert reference.setProperty("draftMutationMaxChange", 2)\n',
+              '    reference.draftMutationEnabled = False\n': '    assert reference.setProperty("draftMutationEnabled", False)\n',
+              '    assert int(experiment.b3TotalSimulations) > 0\n': '    assert experiment.property("b3TotalSimulations") > 0\n',
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f"missing expected test snippet: {old!r}")
+              text = text.replace(old, new)
+          path.write_text(text)
+          PY
+      - name: Verify formatting without semantic autofix
+        run: |
+          python -m pip install "ruff>=0.9"
+          ruff check tests/desktop/test_authoring_controllers.py
+          ruff format tests/desktop/test_authoring_controllers.py
+      - name: Commit test typing fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/desktop/test_authoring_controllers.py
+          git commit -m "Use Qt property API in Q2 tests"
+          git push origin HEAD:q2/native-authoring
