@@ -151,7 +151,9 @@ def _render_controlled(
         st.subheader("Locomotion analysis")
         if _render_availability(view.locomotion_availability):
             if not isinstance(view.locomotion, LocomotionReplicateMeasurements):
-                raise TypeError("Available locomotion analysis must be an E1 measurement.")
+                raise TypeError(
+                    "Available locomotion analysis must be an E1 measurement."
+                )
             _table(locomotion_rows(view.locomotion))
             st.caption(
                 "These values are the existing E1 replicate measurement derived from "
@@ -392,9 +394,7 @@ def _render_b3(
     with analysis:
         st.subheader("Primary confirmation")
         _table(
-            b3_matched_summary_rows(
-                tuple(item.summary for item in view.confirmation)
-            )
+            b3_matched_summary_rows(tuple(item.summary for item in view.confirmation))
         )
         st.caption(
             "Control and compact-treatment arms are matched/blocked by seed. Matching "
