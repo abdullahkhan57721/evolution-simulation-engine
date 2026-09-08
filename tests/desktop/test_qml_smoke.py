@@ -10,6 +10,7 @@ pytest.importorskip("PySide6")
 from PySide6.QtGui import QGuiApplication
 
 from evo_engine.desktop.main import create_engine
+from evo_engine.workbench import ReferenceStudyRevision
 
 
 def test_qml_application_engine_loads_native_shell_offscreen() -> None:
@@ -49,11 +50,15 @@ def test_qml_authoring_navigation_does_not_mutate_exact_artifact() -> None:
     app = QGuiApplication.instance() or QGuiApplication([])
     engine, controller = create_engine()
     assert controller.createStudy("reference-ecology")
-    before = controller._artifact.to_json()
+    artifact = controller._artifact
+    assert isinstance(artifact, ReferenceStudyRevision)
+    before = artifact.to_json()
 
     for section in ("Simulation", "Evidence", "Experiment", "Simulation"):
         assert controller.selectSection(section)
         app.processEvents()
 
-    assert controller._artifact.to_json() == before
+    active = controller._artifact
+    assert isinstance(active, ReferenceStudyRevision)
+    assert active.to_json() == before
     assert engine.rootObjects()
