@@ -472,3 +472,11 @@ For substantial work follow:
 Issue → branch → implementation → early PR → CI → exact-head review
       → squash merge → main verification
 ```
+
+Validation is intentionally layered so routine iteration stays cheap without
+weakening the final merge standard. Use focused tests plus `./scripts/fix` in the
+inner loop, `./scripts/check_all --fast --no-pause` at ordinary checkpoints, and the
+complete local/non-draft gate for final candidates. Draft PRs are recovery
+checkpoints and run the shared fast quality job; full coverage, strict docs,
+performance, relevant smoke tests, and frozen scientific confirmations belong to
+final/non-draft validation. See `docs/development/validation_workflow.md`.
