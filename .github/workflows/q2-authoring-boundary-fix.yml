@@ -1,0 +1,70 @@
+name: Q2 authoring boundary fix helper
+
+on:
+  push:
+    branches:
+      - q2/native-authoring
+    paths:
+      - .github/workflows/q2-authoring-boundary-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: q2/native-authoring
+
+      - name: Move shared authoring helpers behind Workbench
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path("src/evo_engine/desktop/controllers/evidence.py"): (
+                  "from evo_engine.ui.evidence_authoring import (",
+                  "from evo_engine.workbench.evidence_authoring import (",
+              ),
+              Path("src/evo_engine/desktop/controllers/experiment.py"): (
+                  "from evo_engine.ui.experiment_authoring import (",
+                  "from evo_engine.workbench.experiment_authoring import (",
+              ),
+              Path("src/evo_engine/desktop/controllers/reference.py"): (
+                  "from evo_engine.ui.simulation_authoring import (",
+                  "from evo_engine.workbench.simulation_authoring import (",
+              ),
+              Path("src/evo_engine/desktop/controllers/simulation.py"): (
+                  "from evo_engine.ui.simulation_authoring import (",
+                  "from evo_engine.workbench.simulation_authoring import (",
+              ),
+          }
+          for path, (old, new) in replacements.items():
+              text = path.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"Expected import not found in {path}: {old}")
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          Path("src/evo_engine/ui/simulation_authoring.py").write_text(
+              '''"""Streamlit compatibility facade for frontend-neutral Simulation authoring."""\n\nfrom evo_engine.workbench.simulation_authoring import (\n    EditableSimulationRevision,\n    ReferenceDisclosure,\n    SimulationDiff,\n    SimulationRevision,\n    controlled_draft_readiness,\n    normalize_reference_draft,\n    reference_draft_readiness,\n    reference_has_expert_controls,\n    reference_slots_for_disclosure,\n    save_b3_radius_sensitivity_child,\n    save_controlled_child,\n    save_reference_child,\n    semantic_slot_label,\n    simulation_semantic_diff,\n)\n\n__all__ = [\n    "EditableSimulationRevision",\n    "ReferenceDisclosure",\n    "SimulationDiff",\n    "SimulationRevision",\n    "controlled_draft_readiness",\n    "normalize_reference_draft",\n    "reference_draft_readiness",\n    "reference_has_expert_controls",\n    "reference_slots_for_disclosure",\n    "save_b3_radius_sensitivity_child",\n    "save_controlled_child",\n    "save_reference_child",\n    "semantic_slot_label",\n    "simulation_semantic_diff",\n]\n''',
+              encoding="utf-8",
+          )
+          Path("src/evo_engine/ui/evidence_authoring.py").write_text(
+              '''"""Streamlit compatibility facade for frontend-neutral Evidence authoring."""\n\nfrom evo_engine.workbench.evidence_authoring import (\n    EditableEvidencePlan,\n    EvidenceBearingArtifact,\n    EvidenceOption,\n    evidence_advisories_for_artifact,\n    evidence_options,\n    make_editable_evidence_plan,\n    requested_evidence_ids,\n    save_evidence_child,\n)\n\n__all__ = [\n    "EditableEvidencePlan",\n    "EvidenceBearingArtifact",\n    "EvidenceOption",\n    "evidence_advisories_for_artifact",\n    "evidence_options",\n    "make_editable_evidence_plan",\n    "requested_evidence_ids",\n    "save_evidence_child",\n]\n''',
+              encoding="utf-8",
+          )
+          Path("src/evo_engine/ui/experiment_authoring.py").write_text(
+              '''"""Streamlit compatibility facade for frontend-neutral Experiment authoring."""\n\nfrom evo_engine.workbench.experiment_authoring import (\n    B3CaseCounts,\n    EnvironmentRunRow,\n    MaxSpeedRunRow,\n    b3_case_counts,\n    e4_counterbalance_label,\n    environment_run_rows,\n    max_speed_run_rows,\n    parse_integer_sequence,\n    update_environment_selection_comparison,\n    update_max_speed_sweep,\n)\n\n__all__ = [\n    "B3CaseCounts",\n    "EnvironmentRunRow",\n    "MaxSpeedRunRow",\n    "b3_case_counts",\n    "e4_counterbalance_label",\n    "environment_run_rows",\n    "max_speed_run_rows",\n    "parse_integer_sequence",\n    "update_environment_selection_comparison",\n    "update_max_speed_sweep",\n]\n''',
+              encoding="utf-8",
+          )
+          PY
+
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/q2-authoring-boundary-fix.yml
+          git add src/evo_engine/desktop/controllers src/evo_engine/ui
+          git commit -m "Q2: keep shared authoring frontend-neutral"
+          git push origin HEAD:q2/native-authoring
