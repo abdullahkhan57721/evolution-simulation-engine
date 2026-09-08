@@ -482,9 +482,7 @@ def test_reference_results_render_recorded_streams_and_missing_spatial_evidence(
             ),
         ),
         resources=(SimpleNamespace(x=4.0, y=5.0, amount=2.0),),
-        carcasses=(
-            SimpleNamespace(carcass_id=3, x=6.0, y=7.0, resource_units=1.0),
-        ),
+        carcasses=(SimpleNamespace(carcass_id=3, x=6.0, y=7.0, resource_units=1.0),),
     )
     view = ReferenceStudyResultsView(
         provenance=provenance,
@@ -530,7 +528,7 @@ def test_e3_results_render_factor_replicate_summary_and_provenance(
     seed = definition.seeds[0]
     treatment = build_e3_treatment(
         max_speed=factor_level,
-        environment=definition.base_intent.resource_geography,
+        environment=cast(Any, definition.base_intent.resource_geography),
     )
     scientific = _scientific_provenance(seed=seed)
     locomotion = SimpleNamespace(
@@ -590,7 +588,9 @@ def test_e3_results_render_factor_replicate_summary_and_provenance(
     assert _messages(fake, "selectbox").count("Replicate seed") == 2
     assert len(_messages(fake, "line_chart")) == 2
     assert len(_messages(fake, "dataframe")) >= 7
-    assert any("independent replicates" in value for value in _messages(fake, "caption"))
+    assert any(
+        "independent replicates" in value for value in _messages(fake, "caption")
+    )
 
 
 def test_e4_results_keep_factor_arm_counterbalance_and_standing_composition_distinct(
@@ -739,9 +739,12 @@ def test_b3_results_keep_scientific_roles_and_scenario_identity_separate(
     radios = _messages(fake, "radio")
     assert radios.count("Scientific run role") == 3
     assert "Arm" in radios
-    assert _messages(fake, "success").count(
-        "Canonical B3 cinematic scientific handoff is available."
-    ) == 3
+    assert (
+        _messages(fake, "success").count(
+            "Canonical B3 cinematic scientific handoff is available."
+        )
+        == 3
+    )
     captions = " ".join(_messages(fake, "caption")).lower()
     assert "sensitivity remains secondary" in captions
     assert "counterbalance evidence" in captions
@@ -814,7 +817,7 @@ def test_e4_summary_rows_preserve_environment_and_strategy_separation() -> None:
     assert all("Founder" not in key for row in rows for key in row)
 
 
-def test_results_modules_do_not_execute_engine_or_define_scientific_estimators() -> None:
+def test_results_modules_do_not_execute_engine_or_define_science() -> None:
     root = Path(__file__).resolve().parents[2]
     sources = tuple(
         (root / path).read_text(encoding="utf-8")
