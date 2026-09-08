@@ -65,7 +65,7 @@ def test_controller_emits_active_and_draft_change_signals() -> None:
 
     assert active_spy.count() == 1
     assert draft_spy.count() == 2
-    assert controller.draftDirty
+    assert controller.is_draft_dirty()
 
 
 def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
@@ -79,7 +79,7 @@ def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
 
     controller.set_draft_max_speed(revision.intent.max_speed + 1)
 
-    assert controller.draftDirty
+    assert controller.is_draft_dirty()
     assert controller._revision is not None
     assert controller._revision.to_json() == parent_json
     assert controller._revision.manifest.digest == parent_digest
@@ -100,8 +100,8 @@ def test_clearing_reference_owner_discards_transient_result_and_draft() -> None:
 
     controller.clear()
 
-    assert not controller.active
-    assert not controller.draftDirty
+    assert not controller.is_active()
+    assert not controller.is_draft_dirty()
     assert not controller.hasResult
     assert not controller.hasWorld
 
@@ -112,18 +112,21 @@ def test_worker_run_surfaces_authoritative_result_and_world_frame() -> None:
     controller.activate_revision(_compact_reference_revision())
     controller.runStudy()
     deadline = time.monotonic() + 20.0
-    while controller.running and time.monotonic() < deadline:
+    while controller.is_running() and time.monotonic() < deadline:
         app.processEvents()
         time.sleep(0.01)
     app.processEvents()
 
-    assert not controller.running
+    assert not controller.is_running()
     assert controller._revision is not None
     assert controller._result is not None
     view = inspect_reference_study_results(controller._revision, controller._result)
     assert view.population_observations
     assert view.spatial_observations
-    assert controller.finalPopulation == view.population_observations[-1].population_size
+    assert (
+        controller.finalPopulation
+        == view.population_observations[-1].population_size
+    )
     assert controller._presentation is not None
     assert controller.worldStep == view.spatial_observations[-1].step_index
     organism_model = cast(WorldOrganismModel, controller.organismModel)
