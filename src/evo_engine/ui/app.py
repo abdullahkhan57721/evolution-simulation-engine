@@ -513,7 +513,7 @@ def _render_current_result(
         )
     st.info(
         "The authoritative result object is retained in this application session. "
-        "Full scientific Results analysis arrives in WU4."
+        "Complete scientific Results analysis belongs to a later focused milestone."
     )
 
 
