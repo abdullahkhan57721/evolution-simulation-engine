@@ -124,10 +124,7 @@ def selected_b3_seed(seeds: tuple[int, ...]) -> int:
         seeds,
         index=seeds.index(current),
         key=f"{_B3_SEED_KEY}_widget",
-        help=(
-            "Only confirmation replicate seeds recorded by the authoritative B3 "
-            "result."
-        ),
+        help="Only confirmation replicate seeds recorded by the authoritative B3 result.",
     )
     if selected != st.session_state[_B3_SEED_KEY]:
         st.session_state[_B3_SEED_KEY] = selected
@@ -269,11 +266,7 @@ def observed_organism_ids(
     """Return permanent organism IDs appearing anywhere in recorded spatial evidence."""
     return tuple(
         sorted(
-            {
-                organism.organism_id
-                for frame in history
-                for organism in frame.organisms
-            }
+            {organism.organism_id for frame in history for organism in frame.organisms}
         )
     )
 
