@@ -124,6 +124,38 @@ launch-smokes the produced executable. This proves deployment architecture on th
 development platform only. It does not establish signing, notarization, installers,
 auto-update, or a cross-platform release matrix.
 
+### Local reproduction
+
+Install the project plus the optional desktop and retained reference-UI dependencies:
+
+```bash
+python -m pip install -e ".[dev]" -r requirements-desktop.txt -r requirements-ui.txt
+```
+
+Launch the native application from source:
+
+```bash
+python -m evo_engine.desktop.main
+```
+
+A headless/offscreen startup smoke can be reproduced with:
+
+```bash
+QT_QPA_PLATFORM=offscreen python -m evo_engine.desktop.main --smoke-test
+```
+
+Build the standalone artifact through the same Qt for Python deployment path used by
+CI:
+
+```bash
+pyside6-deploy src/evo_engine/desktop/main.py --force --name EvolutionExperimentWorkbench
+```
+
+The deployment output is platform-specific. On the Ubuntu CI proof host, the desktop
+workflow also installs `libegl1` before Qt offscreen launch, then launch-smokes the
+produced executable itself. Q0 does not claim signed distribution or a cross-platform
+installer/release matrix.
+
 ## Q1 handoff — Native Study shell and concrete routing
 
 Q1 should expand product breadth without changing the contracts above. Its target is
