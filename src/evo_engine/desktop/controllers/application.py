@@ -53,7 +53,6 @@ Route = Literal["home", "new", "open", "study"]
 StatusTone = Literal["neutral", "success", "warning", "error"]
 
 _ROUTES: tuple[Route, ...] = ("home", "new", "open", "study")
-_REVISION_KINDS = frozenset({"controlled-run", "b3-flagship", "reference-ecology"})
 
 
 class ApplicationController(QObject):
@@ -251,10 +250,11 @@ class ApplicationController(QObject):
 
     @Slot()
     def showOpenStudy(self) -> None:  # noqa: N802
-        """Enter the Open Study chooser without replacing an active Study yet."""
+        """Prepare Open without hiding an already-active Study behind the chooser."""
         if not self._require_idle():
             return
-        self._set_route("open")
+        if self._artifact is None:
+            self._set_route("open")
         self._set_status("Choose a supported Workbench JSON artifact.", tone="neutral")
 
     @Slot(str, result=bool)
