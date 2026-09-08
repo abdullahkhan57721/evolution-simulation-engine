@@ -52,7 +52,7 @@ def test_optional_desktop_has_separate_validation_from_core_coverage() -> None:
     coverage_script = _read("scripts/coverage")
     desktop_workflow = _read(".github/workflows/desktop.yml")
 
-    assert "src/evo_engine/desktop/*" in coverage_config
+    assert "*/evo_engine/desktop/*" in coverage_config
     assert "--cov=evo_engine" in coverage_script
     assert "optional PySide6 desktop" in coverage_script
     assert "tests/desktop" in desktop_workflow
