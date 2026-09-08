@@ -31,6 +31,7 @@ from evo_engine.desktop.artifacts import (
     artifact_type_label,
     can_fork_artifact,
     fork_supported_artifact,
+    is_concrete_artifact,
     load_concrete_artifact,
     new_b3_flagship,
     new_controlled_run,
@@ -46,7 +47,10 @@ from evo_engine.desktop.controllers.experiment import ExperimentAuthoringControl
 from evo_engine.desktop.controllers.reference import ReferenceStudyController
 from evo_engine.desktop.controllers.simulation import SimulationAuthoringController
 from evo_engine.workbench.controlled_locomotion import IncompatibleManifestError
-from evo_engine.workbench.reference_study import ReferenceRunResult, ReferenceStudyRevision
+from evo_engine.workbench.reference_study import (
+    ReferenceRunResult,
+    ReferenceStudyRevision,
+)
 
 Route = Literal["home", "new", "open", "study"]
 StatusTone = Literal["neutral", "success", "warning", "error"]
@@ -375,7 +379,8 @@ class ApplicationController(QObject):
     def runStudy(self) -> None:  # noqa: N802
         if not isinstance(self._artifact, ReferenceStudyRevision):
             self._set_status(
-                "Native execution for this Study family arrives in the execution/Results milestone.",
+                "Native execution for this Study family arrives in the "
+                "execution/Results milestone.",
                 tone="neutral",
             )
             return
@@ -492,12 +497,14 @@ class ApplicationController(QObject):
 
     @Slot(object)
     def _on_authoring_revision_committed(self, revision: object) -> None:
-        if not isinstance(revision, ConcreteWorkbenchArtifact.__args__):  # type: ignore[attr-defined]
-            self._set_status("Authoring controller returned an invalid artifact.", tone="error")
+        if not is_concrete_artifact(revision):
+            self._set_status(
+                "Authoring controller returned an invalid artifact.", tone="error"
+            )
             return
         parent = self._artifact
         self._activate_artifact(
-            cast(ConcreteWorkbenchArtifact, revision),
+            revision,
             file_path=None,
             reset_section=False,
             diff_parent=parent,
@@ -506,10 +513,10 @@ class ApplicationController(QObject):
 
     @Slot(object)
     def _on_experiment_artifact_replaced(self, artifact: object) -> None:
-        from evo_engine.desktop.artifacts import is_concrete_artifact
-
         if not is_concrete_artifact(artifact):
-            self._set_status("Experiment controller returned an invalid artifact.", tone="error")
+            self._set_status(
+                "Experiment controller returned an invalid artifact.", tone="error"
+            )
             return
         self._activate_artifact(artifact, file_path=None, reset_section=False)
         self._set_status("Applied the exact concrete experiment definition.", tone="success")
