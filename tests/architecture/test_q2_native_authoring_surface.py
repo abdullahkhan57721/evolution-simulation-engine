@@ -19,7 +19,9 @@ def test_q2_shell_routes_scientific_authoring_through_thin_controllers() -> None
     assert "ExperimentAuthoringView" in main
 
 
-def test_q2_reference_surface_exposes_supported_disclosure_without_extension_controls() -> None:
+def test_q2_reference_surface_exposes_supported_disclosure_without_extension_controls() -> (
+    None
+):
     simulation = _text("SimulationAuthoringView.qml")
     assert "Reference Ecology · Guided" in simulation
     assert "Advanced supported choices" in simulation
