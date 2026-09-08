@@ -28,6 +28,7 @@ def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
     parent = controller._revision
     parent_json = parent.to_json()
     parent_digest = controller.manifestDigest
+    assert parent.intent.max_speed is not None
 
     controller.set_draft_max_speed(parent.intent.max_speed + 1)
 
