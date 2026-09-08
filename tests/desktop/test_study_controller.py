@@ -10,6 +10,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6")
 
 from PySide6.QtGui import QGuiApplication
+from PySide6.QtTest import QSignalSpy
 
 from evo_engine.desktop.controllers import StudyController
 from evo_engine.desktop.models import WorldOrganismModel, WorldResourceModel
@@ -18,6 +19,26 @@ from evo_engine.workbench.results import inspect_reference_study_results
 
 def _app() -> QGuiApplication:
     return cast(QGuiApplication, QGuiApplication.instance() or QGuiApplication([]))
+
+
+def test_controller_emits_study_and_draft_change_signals() -> None:
+    _app()
+    controller = StudyController()
+    study_spy = QSignalSpy(controller.studyChanged)
+    draft_spy = QSignalSpy(controller.draftChanged)
+
+    controller.createStudy()
+
+    assert study_spy.count() == 1
+    assert draft_spy.count() == 1
+    assert controller._revision is not None
+    assert controller._revision.intent.max_speed is not None
+
+    controller.set_draft_max_speed(controller._revision.intent.max_speed + 1)
+
+    assert study_spy.count() == 1
+    assert draft_spy.count() == 2
+    assert controller.draftDirty
 
 
 def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
