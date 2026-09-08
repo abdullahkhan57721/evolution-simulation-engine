@@ -1,0 +1,76 @@
+name: Q2 QML Wire
+
+on:
+  push:
+    branches:
+      - q2/native-authoring
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: q2/native-authoring
+      - name: Wire Q2 authoring views into the persistent shell
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/evo_engine/desktop/qml/Main.qml")
+          text = path.read_text()
+          alias_anchor = "    readonly property var reference: applicationController.referenceController\n"
+          aliases = alias_anchor + "    readonly property var simulation: applicationController.simulationController\n    readonly property var evidence: applicationController.evidenceController\n    readonly property var experiment: applicationController.experimentController\n"
+          if alias_anchor not in text:
+              raise SystemExit("controller alias anchor missing")
+          text = text.replace(alias_anchor, aliases, 1)
+
+          start = text.index("    Component {\n        id: simulationSection\n")
+          end = text.index("    Component {\n        id: resultsSection\n", start)
+          replacement = '''    Component {
+        id: simulationSection
+        SimulationAuthoringView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            reference: root.reference
+            simulation: root.simulation
+        }
+    }
+
+    Component {
+        id: evidenceSection
+        EvidenceAuthoringView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            evidence: root.evidence
+        }
+    }
+
+    Component {
+        id: experimentSection
+        ExperimentAuthoringView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            experiment: root.experiment
+        }
+    }
+
+'''
+          path.write_text(text[:start] + replacement + text[end:])
+          PY
+      - name: Commit QML shell wiring
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/evo_engine/desktop/qml/Main.qml
+          git commit -m "Wire Q2 native authoring views"
+          git push origin HEAD:q2/native-authoring
