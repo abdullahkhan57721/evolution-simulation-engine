@@ -125,7 +125,9 @@ def _bind_reference(
     parent: ReferenceStudyRevision,
     new_revision_id: Callable[[str], str],
 ) -> tuple[ReferenceStudyRevision, str | None]:
-    intent = normalize_reference_draft(_pending_reference_intent(parent) or parent.intent)
+    intent = normalize_reference_draft(
+        _pending_reference_intent(parent) or parent.intent
+    )
     plan = pending_evidence_plan(parent) or parent.evidence_plan
     if not isinstance(plan, ReferenceEvidencePlan):
         raise TypeError("Reference Study requires ReferenceEvidencePlan.")
@@ -147,14 +149,18 @@ def _bind_reference(
     )
 
 
-def _pending_controlled_intent(parent: StudyRevision) -> ControlledLocomotionIntent | None:
+def _pending_controlled_intent(
+    parent: StudyRevision,
+) -> ControlledLocomotionIntent | None:
     if st.session_state.get(_SIMULATION_DRAFT_REVISION_KEY) != parent.revision_id:
         return None
     value = st.session_state.get(_SIMULATION_DRAFT_INTENT_KEY)
     return value if isinstance(value, ControlledLocomotionIntent) else None
 
 
-def _pending_reference_intent(parent: ReferenceStudyRevision) -> ReferenceEcologyIntent | None:
+def _pending_reference_intent(
+    parent: ReferenceStudyRevision,
+) -> ReferenceEcologyIntent | None:
     if st.session_state.get(_SIMULATION_DRAFT_REVISION_KEY) != parent.revision_id:
         return None
     value = st.session_state.get(_SIMULATION_DRAFT_INTENT_KEY)
