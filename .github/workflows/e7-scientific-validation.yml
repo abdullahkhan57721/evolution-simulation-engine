@@ -2,50 +2,59 @@ name: E7 Scientific Validation
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "src/evo_engine/experiments/e7_adaptation.py"
-      - "src/evo_engine/experiments/__init__.py"
+      - "pyproject.toml"
+      - "src/evo_engine/access/**"
+      - "src/evo_engine/admission/**"
+      - "src/evo_engine/behavior/**"
+      - "src/evo_engine/biology/**"
+      - "src/evo_engine/characteristics/**"
+      - "src/evo_engine/departure/**"
+      - "src/evo_engine/energetics/**"
+      - "src/evo_engine/engine/**"
+      - "src/evo_engine/evolution/**"
+      - "src/evo_engine/feeding/**"
+      - "src/evo_engine/genetics/**"
+      - "src/evo_engine/observation/**"
       - "src/evo_engine/presets/controlled_locomotion/**"
+      - "src/evo_engine/processes/**"
+      - "src/evo_engine/production/**"
+      - "src/evo_engine/propagation/**"
+      - "src/evo_engine/reference/**"
+      - "src/evo_engine/reproduction/**"
+      - "src/evo_engine/resolvers/**"
+      - "src/evo_engine/spatial/**"
+      - "src/evo_engine/telemetry/**"
+      - "src/evo_engine/validation/**"
+      - "src/evo_engine/world/**"
+      - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/experiments/locomotion.py"
+      - "src/evo_engine/experiments/science.py"
+      - "src/evo_engine/experiments/e3_performance.py"
+      - "src/evo_engine/experiments/e7_adaptation.py"
       - "scripts/e7_adaptation.py"
       - "tests/experiments/test_e7_adaptation.py"
       - "tests/presets/controlled_locomotion/test_genetics.py"
-      - "docs/e7_mutation_driven_adaptation.md"
-      - "docs/development/current_state.md"
-      - "docs/development/roadmap.md"
-      - "mkdocs.yml"
+      - ".github/actions/setup-quality/action.yml"
       - ".github/workflows/e7-scientific-validation.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Issue #176 freezes the final protocol, disjoint confirmation seeds, and
-# numeric convergence criteria before this confirmation job was enabled.
-jobs:
-  discovery-e7:
-    name: E7 bounded discovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-quality
-      - name: Run frozen discovery seeds across low, near, and high starts
-        run: |
-          venv/bin/python scripts/e7_adaptation.py \
-            --mode discovery \
-            --output outputs/e7-validation/e7-discovery.json
-      - name: Upload E7 discovery evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e7-discovery-${{ github.run_id }}
-          path: outputs/e7-validation/e7-discovery.json
-          retention-days: 30
-          if-no-files-found: warn
+concurrency:
+  group: e7-scientific-validation-${{ github.ref }}
+  cancel-in-progress: true
 
+# E7 is scientifically frozen. Automatic CI reruns only the independent,
+# disjoint-seed confirmation matrix; discovery remains available through the
+# source-controlled script for explicit scientific investigation, not as a merge
+# prerequisite after freeze.
+jobs:
   confirmation-e7:
     name: E7 disjoint confirmation
-    needs: discovery-e7
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

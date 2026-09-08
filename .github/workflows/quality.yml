@@ -2,6 +2,7 @@ name: Quality Checks
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - main
@@ -68,6 +69,8 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
         uses: actions/checkout@v7
       - uses: ./.github/actions/setup-quality
+        with:
+          ui: "true"
       - run: ./scripts/typecheck
 
   architecture:
@@ -133,7 +136,11 @@ jobs:
 
   coverage:
     name: pytest + coverage
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage' }}
+    if: >-
+      ${{
+        (github.event_name != 'pull_request' || github.event.pull_request.draft == false) &&
+        (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage')
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -146,6 +153,8 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.target_ref == '' }}
         uses: actions/checkout@v7
       - uses: ./.github/actions/setup-quality
+        with:
+          ui: "true"
       - name: pytest + coverage
         env:
           COVERAGE_FAIL_UNDER: "90"
@@ -153,7 +162,11 @@ jobs:
 
   performance:
     name: Reference performance
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
+    if: >-
+      ${{
+        (github.event_name != 'pull_request' || github.event.pull_request.draft == false) &&
+        (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance')
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -168,6 +181,7 @@ jobs:
       - uses: ./.github/actions/setup-quality
         with:
           performance: "true"
+          ui: "true"
       - name: Reference + kernel + world-presentation performance profiles
         run: |
           venv/bin/python scripts/profile_kernel.py \
@@ -202,7 +216,11 @@ jobs:
 
   docs:
     name: MkDocs
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
+    if: >-
+      ${{
+        (github.event_name != 'pull_request' || github.event.pull_request.draft == false) &&
+        (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs')
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -219,9 +237,47 @@ jobs:
           docs: "true"
       - run: ./scripts/docs
 
+  draft_quality:
+    name: Draft fast quality summary
+    if: ${{ always() && github.event_name == 'pull_request' && github.event.pull_request.draft == true }}
+    needs:
+      - ruff
+      - pyright
+      - architecture
+      - kernel_contracts
+      - complexipy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Draft quality summary
+        shell: bash
+        run: |
+          failed=0
+          check() {
+            local label="$1"
+            local outcome="$2"
+            printf '  %-22s %s\n' "$label:" "$outcome"
+            if [[ "$outcome" != "success" ]]; then
+              failed=1
+            fi
+          }
+
+          echo "Draft PR fast checks:"
+          check "Ruff" "${{ needs.ruff.result }}"
+          check "Pyright" "${{ needs.pyright.result }}"
+          check "Import Linter" "${{ needs.architecture.result }}"
+          check "Kernel Contracts" "${{ needs.kernel_contracts.result }}"
+          check "Complexipy" "${{ needs.complexipy.result }}"
+          echo
+          echo "Full coverage, docs, performance, and the protected aggregate gate are deferred until review-ready."
+
+          if [[ $failed -ne 0 ]]; then
+            exit 1
+          fi
+
   quality:
     name: Ruff, Pyright, Architecture, Complexity, Tests, Docs
-    if: ${{ always() }}
+    if: ${{ always() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     needs:
       - ruff
       - pyright

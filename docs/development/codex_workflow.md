@@ -126,13 +126,21 @@ Do not infer public-contract ownership or mutability semantics from parameter
 names alone; inspect the actual declarations/docs/tests before using them.
 
 Open a draft PR early enough to serve as a recovery checkpoint and keep its
-Recovery checkpoint current. Use focused checks while developing. Before calling
-the PR review-ready, apply safe fixes/formatting with ./scripts/fix, run
-./scripts/check_all --no-pause when practical, and require the complete protected
-GitHub Actions gate to be green.
+Recovery checkpoint current. Use focused tests while developing. After coherent
+Python batches, apply safe Ruff fixes/formatting with ./scripts/fix. Before a
+meaningful draft checkpoint, run ./scripts/check_all --fast --no-pause when
+practical. Do not use the full protected suite as the primary lint/debug loop.
+
+Before calling the PR review-ready, run ./scripts/fix again, run
+./scripts/check_all --no-pause when practical, complete ticket-specific manual
+verification, and make the PR completion report current. Marking the PR
+review-ready intentionally enables the complete protected quality gate and any
+relevant release/cinematic/scientific late-stage workflows. Any later non-draft
+head change must become green again before merge.
 
 Do not weaken tests, architecture checks, coverage, complexity, kernel contracts,
-or performance guards merely to make CI pass.
+scientific confirmation, smoke checks, or performance guards merely to make CI
+pass.
 
 Record out-of-scope findings as follow-ups rather than silently fixing them.
 Before stopping, update the PR with the checks actually run, manual-verification
@@ -164,9 +172,10 @@ Do not manually duplicate information Git already exposes reliably. The PR diff
 is the authoritative file-change list; a separately maintained file inventory is
 usually unnecessary.
 
-If the milestone materially changes project orientation or roadmap direction,
-update `current_state.md` and/or `roadmap.md` in the same PR. Do not update them
-for trivial maintenance or copy volatile SHAs/CI state into them.
+If the milestone materially changes architectural capability, current development
+front, known friction, collaboration policy, or roadmap direction, update
+`current_state.md` and/or `roadmap.md` in the same PR. Do not update them for
+trivial maintenance or copy volatile SHAs/CI state into them.
 
 ## Manual verification
 
@@ -201,7 +210,9 @@ Issue + branch
     ↓
 Chat implementation
     ↓
-PR + focused checks + protected CI
+draft PR + focused tests + fast checkpoint CI
+    ↓
+review-ready + complete protected/late-stage CI
     ↓
 independent review
     ↓
@@ -223,7 +234,9 @@ Codex implementation
         ↓
 draft PR + recovery checkpoint
         ↓
-focused checks + protected CI
+focused tests + fast checkpoint CI
+        ↓
+review-ready + complete protected/late-stage CI
         ↓
 independent Chat/reviewer architecture review
         ↓
@@ -258,8 +271,8 @@ procedure would remove meaningful repetition without hiding important behavior.
 We intentionally maintain two concise navigation aids:
 
 - **`current_state.md`** — a few-minute orientation snapshot of established
-  capabilities, current architectural front, known friction, and recent
-  milestones;
+  capabilities, current architectural front, known friction, collaboration
+  policy, and recent milestones;
 - **`roadmap.md`** — milestone-level architectural direction and dependency
   ordering.
 

@@ -2,23 +2,53 @@ name: E3 Scientific Validation
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "src/evo_engine/experiments/e3_performance.py"
+      - "pyproject.toml"
+      - "src/evo_engine/access/**"
+      - "src/evo_engine/admission/**"
+      - "src/evo_engine/behavior/**"
+      - "src/evo_engine/biology/**"
+      - "src/evo_engine/characteristics/**"
+      - "src/evo_engine/departure/**"
+      - "src/evo_engine/energetics/**"
+      - "src/evo_engine/engine/**"
+      - "src/evo_engine/evolution/**"
+      - "src/evo_engine/feeding/**"
+      - "src/evo_engine/genetics/**"
+      - "src/evo_engine/observation/**"
+      - "src/evo_engine/presets/controlled_locomotion/**"
+      - "src/evo_engine/processes/**"
+      - "src/evo_engine/production/**"
+      - "src/evo_engine/propagation/**"
+      - "src/evo_engine/reference/**"
+      - "src/evo_engine/reproduction/**"
+      - "src/evo_engine/resolvers/**"
+      - "src/evo_engine/spatial/**"
+      - "src/evo_engine/telemetry/**"
+      - "src/evo_engine/validation/**"
+      - "src/evo_engine/world/**"
       - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/experiments/locomotion.py"
+      - "src/evo_engine/experiments/science.py"
+      - "src/evo_engine/experiments/e3_performance.py"
       - "scripts/e3_landscape.py"
       - "tests/experiments/test_e3_performance.py"
-      - "docs/e3_ecological_performance.md"
-      - "docs/development/current_state.md"
-      - "mkdocs.yml"
+      - ".github/actions/setup-quality/action.yml"
       - ".github/workflows/e3-scientific-validation.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: e3-scientific-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   confirm-e3:
     name: Independent E3 confirmation
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -40,6 +70,7 @@ jobs:
 
   sensitivity-e3:
     name: E3 zero-cost mechanism sensitivity
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

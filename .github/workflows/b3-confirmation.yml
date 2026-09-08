@@ -2,20 +2,27 @@ name: B3 Confirmation
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "src/evo_engine/presets/reference_ecology/b3_flagship.py"
       - "src/evo_engine/experiments/b3_flagship.py"
       - "scripts/b3_confirmation.py"
       - "tests/presets/test_b3_flagship.py"
+      - ".github/actions/setup-quality/action.yml"
       - ".github/workflows/b3-confirmation.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: b3-confirmation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   confirm-b3:
     name: Independent B3 confirmation
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

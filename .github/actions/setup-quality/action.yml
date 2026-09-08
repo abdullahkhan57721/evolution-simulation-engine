@@ -10,6 +10,10 @@ inputs:
     description: Install performance-profile dependencies.
     required: false
     default: "false"
+  ui:
+    description: Install Streamlit/Plotly UI dependencies.
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -28,23 +32,23 @@ runs:
       shell: bash
       run: python -m venv venv
 
-    - name: Install project and quality tools
-      if: ${{ inputs.docs != 'true' }}
+    - name: Install project and selected quality tools
       shell: bash
       run: |
-        venv/bin/python -m pip install --upgrade pip
-        venv/bin/python -m pip install -e ".[dev]"
-        venv/bin/python -m pip install -r requirements-ui.txt
+        extras="dev"
+        if [[ "${{ inputs.docs }}" == "true" ]]; then
+          extras="dev,docs"
+        fi
 
-    - name: Install project, quality, and documentation tools
-      if: ${{ inputs.docs == 'true' }}
-      shell: bash
-      run: |
-        venv/bin/python -m pip install --upgrade pip
-        venv/bin/python -m pip install -e ".[dev,docs]"
-        venv/bin/python -m pip install -r requirements-ui.txt
+        install_args=(-e ".[${extras}]")
+        if [[ "${{ inputs.ui }}" == "true" ]]; then
+          install_args+=(-r requirements-ui.txt)
+        fi
+        if [[ "${{ inputs.performance }}" == "true" ]]; then
+          install_args+=(-r requirements-performance.txt)
+        fi
 
-    - name: Install performance tools
-      if: ${{ inputs.performance == 'true' }}
-      shell: bash
-      run: venv/bin/python -m pip install -r requirements-performance.txt
+        # setup-python's bundled pip is already modern enough for this Python
+        # 3.12 project. Avoiding a pip self-upgrade and resolving all selected
+        # dependencies in one invocation reduces repeated setup work per CI job.
+        venv/bin/python -m pip install "${install_args[@]}"

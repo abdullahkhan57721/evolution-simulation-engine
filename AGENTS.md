@@ -178,13 +178,25 @@ venv/bin/python -m pip install -e ".[dev,docs]"
 venv/bin/python -m pip install -r requirements-performance.txt
 ```
 
-Apply safe automatic formatting/fixes before final verification:
+Apply Ruff's safe automatic fixes and canonical formatting after coherent Python
+implementation batches and before significant validation or pushes:
 
 ```bash
 ./scripts/fix
 ```
 
-Run the routine local quality gate non-interactively:
+Do not enable Ruff unsafe fixes globally. If `./scripts/fix` reports remaining
+lint errors, resolve them deliberately rather than treating formatting success as
+a clean result.
+
+Run the inexpensive, non-mutating local checkpoint gate while developing:
+
+```bash
+./scripts/check_all --fast --no-pause
+```
+
+Run the complete routine local quality gate before calling a candidate
+review-ready:
 
 ```bash
 ./scripts/check_all --no-pause
@@ -202,6 +214,38 @@ Useful focused commands:
 ./scripts/docs
 ```
 
+The normal validation cadence is:
+
+```text
+coherent implementation batch
+        ↓
+./scripts/fix
+        ↓
+focused milestone tests
+        ↓
+repeat as needed
+        ↓
+./scripts/check_all --fast --no-pause
+        ↓
+draft PR / recovery checkpoint
+        ↓
+finish milestone
+        ↓
+./scripts/fix
+        ↓
+./scripts/check_all --no-pause
+        ↓
+review-ready PR
+        ↓
+complete protected CI + relevant late-stage smoke/scientific checks
+```
+
+Do not use the full protected suite as the primary lint/debug loop. Draft PRs are
+recovery checkpoints and receive fast CI; full coverage, strict docs, performance,
+release smoke, cinematic smoke, and frozen scientific confirmation run when the PR
+is review-ready and again for later non-draft head changes when their path filters
+apply. The protected aggregate status remains the final merge gate.
+
 GitHub Actions additionally runs the performance/profile regression checks and
 uploads their artifacts. Do not weaken performance guards merely to merge a
 change; investigate whether a regression is real first.
@@ -215,15 +259,22 @@ Substantial work should be recoverable without the originating chat.
    do-not-touch boundaries, requirements, non-goals, architectural constraints,
    acceptance criteria, automated validation, and manual verification.
 3. Create a focused branch from current `main`.
-4. Make coherent commits and open a PR early rather than waiting until 90% of the
-   work is complete.
+4. Make coherent commits and open a draft PR early rather than waiting until 90%
+   of the work is complete.
 5. Keep the PR's **Recovery checkpoint** current during long-running work.
-6. Run targeted tests while developing.
-7. Run the routine quality gate locally when practical.
-8. Require the complete protected GitHub Actions quality gate to be green.
-9. Squash-merge the exact reviewed/green head SHA.
-10. Re-fetch and verify `main` after merge.
-11. If the merged milestone materially changed architectural capability, the
+6. Run targeted tests while developing and apply `./scripts/fix` after coherent
+   Python implementation batches.
+7. Run `./scripts/check_all --fast --no-pause` before meaningful checkpoint
+   pushes when practical; use individual focused commands when that is faster.
+8. Before review-ready, run `./scripts/fix`, the complete local quality gate when
+   practical, and ticket-specific manual verification.
+9. Mark the PR review-ready only when implementation is complete enough to justify
+   the expensive final validation layer.
+10. Require the complete protected GitHub Actions quality gate and all relevant
+    late-stage smoke/scientific workflows to be green on the exact candidate head.
+11. Squash-merge the exact reviewed/green head SHA.
+12. Re-fetch and verify `main` after merge.
+13. If the merged milestone materially changed architectural capability, the
     current development front, known friction, collaboration policy, or roadmap
     direction, update `docs/development/current_state.md` and/or
     `docs/development/roadmap.md` in that milestone rather than leaving them

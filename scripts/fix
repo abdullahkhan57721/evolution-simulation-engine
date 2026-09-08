@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Apply Ruff's safe autofixes and canonical formatting to active Python code.
+# Apply Ruff's safe autofixes and canonical formatting to repository Python code.
 
 set -uo pipefail
 
@@ -18,16 +18,33 @@ else
     exit 127
 fi
 
+# Match ./scripts/lint's default repository scope so anything CI verifies can be
+# mechanically cleaned before a checkpoint or push. Ruff still respects its
+# normal excludes and .gitignore rules.
 if [[ $# -eq 0 ]]; then
-    set -- src tests examples
+    set -- .
 fi
 
 printf '%s\n' "======================================================================"
 printf '%s\n' "RUFF — SAFE FIXES"
 printf '%s\n' "======================================================================"
 "$RUFF" check --fix "$@"
+fix_status=$?
 
 printf '\n%s\n' "======================================================================"
 printf '%s\n' "RUFF — FORMAT"
 printf '%s\n' "======================================================================"
 "$RUFF" format "$@"
+format_status=$?
+
+printf '\n%s\n' "======================================================================"
+printf '%s\n' "RUFF — FIX SUMMARY"
+printf '%s\n' "======================================================================"
+echo "Safe fixes: $([[ $fix_status -eq 0 ]] && echo PASS || echo 'INCOMPLETE / ERRORS REMAIN')"
+echo "Format:     $([[ $format_status -eq 0 ]] && echo PASS || echo FAIL)"
+
+# Formatting should still run when lint leaves a non-fixable diagnostic, but the
+# command must not hide that failure behind a successful final formatter exit.
+if [[ $fix_status -ne 0 || $format_status -ne 0 ]]; then
+    exit 1
+fi
