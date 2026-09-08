@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 _QML = Path("src/evo_engine/desktop/qml")
+_CONTROLLERS = Path("src/evo_engine/desktop/controllers")
 
 
 def _text(name: str) -> str:
@@ -62,3 +63,14 @@ def test_q2_qml_does_not_own_scientific_manifest_or_revision_mutation() -> None:
     assert "manifest." not in joined
     assert "revision." not in joined
     assert "evo_engine." not in joined
+
+
+def test_q2_native_controllers_do_not_depend_on_streamlit_ui() -> None:
+    joined = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(_CONTROLLERS.glob("*.py"))
+    )
+    assert "evo_engine.ui" not in joined
+    assert "evo_engine.workbench.simulation_authoring" in joined
+    assert "evo_engine.workbench.evidence_authoring" in joined
+    assert "evo_engine.workbench.experiment_authoring" in joined
