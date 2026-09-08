@@ -43,6 +43,7 @@ nav:
       - Scientific Visualization: architecture/scientific_visualization.md
       - Evolution Experiment Workbench: evolution_experiment_workbench.md
       - Workbench UI: workbench_ui.md
+      - Native Desktop Workbench: desktop_workbench.md
       - Workbench Architecture Review: workbench_architecture_review.md
       - WB4 Bounded Reference Ecology: wb4_bounded_reference_ecology.md
       - WB5 Results and Presentation: wb5_results_presentation.md
@@ -59,6 +60,7 @@ nav:
           - "0007 — Transmissible-state terminology": decisions/0007-transmissible-state-terminology.md
           - "0008 — Explicit chromosome transmission semantics": decisions/0008-explicit-chromosome-transmission-semantics.md
           - "0009 — Scientific encoding and renderer choreography": decisions/0009-separate-scientific-encoding-from-renderer-choreography.md
+          - "0010 — PySide6 and Qt Quick primary Workbench frontend": decisions/0010-use-pyside6-qt-quick-for-primary-workbench-frontend.md
   - Development Workflow:
       - Current Project State: development/current_state.md
       - Architectural Roadmap: development/roadmap.md

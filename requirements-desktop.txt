@@ -1,0 +1,3 @@
+# Optional native desktop application dependency.
+# PySide6 6.11.2 is the current Qt Project release verified for Python 3.12.
+PySide6==6.11.2

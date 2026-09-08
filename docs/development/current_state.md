@@ -343,6 +343,49 @@ renderer; representative seed, scientific episodes, comparison structure, and
 bounded conclusion remain science/director-owned rather than UI-authored. See
 `docs/workbench_ui.md`.
 
+## Native desktop Workbench architecture
+
+Q0 proves that PySide6 + Qt Quick/QML can consume the settled Workbench directly and
+is now the primary product frontend direction. The durable dependency boundary is:
+
+```text
+Qt Quick / QML
+        ↓
+PySide6 QObject controller + Qt item models
+        ↓
+existing Workbench/application semantics
+        ↓
+experiments / presets / renderer-neutral presentation
+        ↓
+biology
+        ↓
+frozen kernel
+```
+
+Reference Ecology is the Q0 vertical because its existing Study revision already
+owns exact persistence/forking, its existing result inspection owns authoritative
+population Results, and its recorded spatial evidence feeds the shared
+`WorldPresentationFrame`. Q0 does not add a Qt Study schema, alternate persistence,
+new scientific analysis, IPC, or another backend.
+
+The QML boundary is intentionally curated: scalar properties, signals, slots, and
+Qt item-model roles cross into QML while concrete Workbench/domain objects remain
+private Python state. Scientific edits are transient until committed through the
+existing immutable Workbench fork API. Existing synchronous Workbench execution is
+adapted to a narrow `QThread` worker so the GUI thread does not own or block on the
+scientific runner.
+
+The renderer-neutral Workbench world adapter is now shared from
+`evo_engine.presentation`; QML renders `WorldPresentationFrame` primitives rather
+than reconstructing spatial evidence or consuming Plotly as a scientific contract.
+PySide6 remains an optional desktop dependency, and the dedicated desktop validation
+surface owns Qt-specific typing, QML-load, launch, compatibility, and standalone
+deployment checks.
+
+Streamlit remains the WU1–WU5 reference frontend during migration and stays green as
+a semantic compatibility oracle. It is no longer the primary product-development
+surface. See `docs/desktop_workbench.md` and ADR 0010.
+
 ## Official Workbench support envelope
 
 The distinction remains:
@@ -370,7 +413,8 @@ WB4 remains the explicit tiered recipe:
   genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
   movement, and development/G×E editing.
 
-WU2–WU5 promote no capability merely because the lower engine can represent it.
+WU2–WU5 and Q0 promote no capability merely because the lower engine can represent
+it.
 
 ## Results and presentation boundary
 
@@ -393,33 +437,38 @@ model / evidence / experiments
    +----+----+
    |         |
    v         v
-  UI      cinematic
+native UI  cinematic
 ```
 
-The V2 adapter builds existing `WorldPresentationFrame` values from recorded WB4/B3
-evidence. WU5 now exposes that path inside the Study shell while keeping replay,
-selection, visibility, trails, labels, playback, and Focus Mode out of scientific
+The shared adapter builds existing `WorldPresentationFrame` values from recorded
+WB4/B3 evidence. WU5 exposes that path through the Streamlit reference frontend and
+Q0 proves a native QML renderer can consume the same frame while keeping replay,
+selection, visibility, trails, labels, playback, and focus state out of scientific
 identity. The V3 adapter feeds validated canonical B3 results into the existing
-B3-specific director, and WU5 exposes that handoff without moving representative
-selection, scientific episodes, or conclusion semantics into the UI.
-Renderer-specific layout, controls, camera, timing, materials, charts, and animation
-remain presentation concerns.
+B3-specific director. Renderer-specific layout, controls, camera, timing, materials,
+charts, and animation remain presentation concerns.
 
 ## Current development front
 
-The Workbench foundation, E1–E7 controlled-science sequence, end-to-end Study
-execution, first-class Results workspace, and first concrete Presentation integration
-are now established.
+The Workbench foundation, E1–E7 controlled-science sequence, end-to-end reference
+Study product, and first native desktop vertical are established.
 
-WU1–WU5 provide the persistent Study shell, bounded Simulation and Evidence
-authoring, concrete E3/E4/B3 Experiment presentation, immutable revision/fork
-behavior, Workbench readiness, reviewable Run Plan, authoritative synchronous
-execution, provenance attachment, exact result ownership, evidence-aware scientific
-analysis, family-specific run exploration, recorded-state Interactive World replay,
-and canonical B3 scientific-cinematic handoff. The next product front is **WU6 —
-Product Hardening, Accessibility, Visual Completion, and Release Readiness**. It
-should harden and polish the existing product rather than redesign settled Workbench,
-science, replay, or cinematic ownership boundaries.
+WU1–WU5 remain the complete Streamlit reference product for settled product
+semantics. Q0 establishes **PySide6 + Qt Quick/QML as the primary product
+architecture** without moving scientific authority out of Workbench. The next product
+front is the Q-series native migration, beginning with **Q1 — Native Study shell and
+concrete routing** as specified in `docs/desktop_workbench.md`. Q1 should establish
+Home plus the persistent `Simulation / Evidence / Experiment / Results /
+Presentation` shell over existing concrete artifact families while preserving the
+Q0 Reference Ecology deep slice. It should add only enough additional concrete
+routing to prove the shell is not Reference-specific; it must not create a universal
+Study schema or prematurely chase full desktop parity.
+
+The previously planned WU6 Streamlit hardening milestone is no longer the primary
+product front. Accessibility, visual completion, and release hardening remain real
+requirements, but should be applied to the native product once enough Q-series
+breadth exists to harden the product that will actually ship. Streamlit remains a
+reference/compatibility frontend during that migration.
 
 E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
 result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
@@ -438,8 +487,9 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities
-still differ. WB5/WB6 and WU1–WU5 do not reveal enough identical persistence or
+still differ. WB5/WB6, WU1–WU5, and Q0 do not reveal enough identical persistence or
 execution responsibility to earn a universal saved Study/Experiment/Results root.
+The native shell must route concrete formats rather than manufacture one for Qt.
 
 ### Broader Workbench diagnostics remain bounded
 
@@ -453,6 +503,14 @@ a speculative state machine.
 The existing UI/cinematic bundles are not universal scientific result or scene
 models. New media should reuse renderer-neutral scientific meaning where it truly
 repeats while keeping renderer mechanics local.
+
+### Native application breadth is intentionally incomplete
+
+Q0 proves the technology boundary, not parity. Reference Ecology is the only deep
+native Study slice so far. Concrete Study-family routing, the persistent five-section
+shell, broader authoring/results/presentation parity, accessibility, and release
+hardening remain Q-series work. This is application-layer incompleteness, not a
+reason to broaden Workbench or the kernel.
 
 ### Scientific scope remains illustrative
 

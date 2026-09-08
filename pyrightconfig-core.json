@@ -1,0 +1,8 @@
+{
+  "include": ["src", "tests", "examples"],
+  "exclude": ["src/evo_engine/desktop", "tests/desktop"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic",
+  "venvPath": ".",
+  "venv": "venv"
+}

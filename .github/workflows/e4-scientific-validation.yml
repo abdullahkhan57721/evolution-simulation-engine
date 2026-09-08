@@ -11,6 +11,7 @@ on:
       - "src/evo_engine/**"
       - "!src/evo_engine/ui/**"
       - "!src/evo_engine/workbench/**"
+      - "!src/evo_engine/desktop/**"
       - "!src/evo_engine/presentation/**"
       - "!src/evo_engine/cinematic/**"
       - "scripts/e4_selection.py"

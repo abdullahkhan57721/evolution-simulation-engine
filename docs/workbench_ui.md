@@ -1,6 +1,12 @@
-# Evolution Experiment Workbench UI
+# Evolution Experiment Workbench UI Reference
 
-The interactive application is organized around a persistent **Study** product shell.
+This document describes the settled **WU1–WU5 Streamlit reference product**. The
+product semantics remain authoritative inputs to native migration, but Streamlit is
+no longer the primary final-product frontend. ADR 0010 establishes PySide6 + Qt
+Quick/QML as the primary application architecture; see `docs/desktop_workbench.md`
+for the native boundary and Q-series handoff.
+
+The application product model is organized around a persistent **Study** shell.
 `Study` is a navigation concept, not a new scientific domain class or persistence
 schema.
 
@@ -21,15 +27,14 @@ STUDY
 Run = action
 ```
 
-The application remains Streamlit-based. The former top-level
-Configuration → DashboardRun → Workspace mode switch is no longer the application
-entry architecture. Existing world-workspace and renderer modules remain available
-for reuse by the Study Presentation experience rather than being rewritten by the
-shell milestones.
+WU1–WU5 prove this structure in Streamlit. The former top-level
+Configuration → DashboardRun → Workspace mode switch is not the Workbench entry
+architecture. Existing world-workspace and renderer modules are reused downstream
+rather than becoming scientific ownership layers.
 
 ## Supported entry families
 
-The shell exposes only concrete Workbench-supported entry paths:
+The reference shell exposes only concrete Workbench-supported entry paths:
 
 - **Curated** — canonical radius-1 B3 Flagship;
 - **Controlled** — one controlled-locomotion Study revision, the concrete max-speed
@@ -41,8 +46,9 @@ Extension/internal reference-ecology composition is not exposed.
 
 ## Concrete persistence routing
 
-The UI inspects only persisted format identity, plus the existing concrete experiment
-pattern identity when needed, and dispatches directly to the owning loader:
+The frontend inspects only persisted format identity, plus the existing concrete
+experiment pattern identity when needed, and dispatches directly to the owning
+loader:
 
 ```text
 Workbench JSON
@@ -59,9 +65,9 @@ There is no universal Study envelope, generic recipe schema, manifest translatio
 UI migration layer. Historical manifests are never rebuilt from stored intent during
 Open Study.
 
-If a concrete loader reports an exact-reproduction incompatibility, the UI surfaces
-that failure and its Workbench remediation. It does not silently upgrade, fix, or
-re-resolve the artifact.
+If a concrete loader reports an exact-reproduction incompatibility, the frontend
+surfaces that failure and its Workbench remediation. It does not silently upgrade,
+fix, or re-resolve the artifact.
 
 ## Simulation authoring
 
@@ -78,7 +84,7 @@ resolved / derived scientific meaning
 frozen recipe assumptions
 ```
 
-The page presents authoring controls separately from scientific meaning. Renderer
+Authoring controls are presented separately from scientific meaning. Renderer
 settings, package/class names, builders, and lower engine objects are not authoring
 controls.
 
@@ -90,17 +96,17 @@ One controlled-locomotion Study exposes only the stable WB1 semantic slots:
 - resource geography;
 - reproducibility seed.
 
-Draft readiness and resolution come from the existing WB1 contracts. The page shows
-the resulting explicit values, derived treatment meaning, and fixed assumptions such
-as clonal inheritance, mutation-off state, sensing/targeting, horizon, energetics, and
+Draft readiness and resolution come from existing WB1 contracts. The frontend shows
+resulting explicit values, derived treatment meaning, and fixed assumptions such as
+clonal inheritance, mutation-off state, sensing/targeting, horizon, energetics, and
 other fixed nonfocal biology from the resolved manifest.
 
 ### Reference Ecology Guided / Advanced disclosure
 
-The Reference Ecology page consumes the current WB4 slot metadata, support tiers,
+Reference Ecology consumes the current WB4 slot metadata, support tiers,
 applicability, readiness, normalization, and manifest resolution.
 
-**Guided** shows the current supported core choices organized by scientific intent:
+**Guided** shows the supported core choices organized by scientific intent:
 environment, population, movement/sensing, and run controls.
 
 **Advanced** is disclosure over the same `ReferenceEcologyIntent`; it adds only
@@ -109,26 +115,11 @@ renewable-resource settings, two-patch geometry, mutation controls, and
 recombination. Switching disclosure mode does not itself change scientific state.
 
 There is no manufactured Expert editor while the bounded recipe exposes no Expert
-slots. Extension/internal engine capabilities remain informationally outside the
-authoring recipe rather than becoming editable controls.
+slots. Extension/internal engine capabilities remain outside official authoring.
 
-### Conditional applicability
-
-Conditional fields use WB4's existing `is_slot_applicable()` contract.
-
-Examples include:
-
-```text
-gaussian movement → gaussian standard deviation applies
-two_patches       → patch geometry applies
-mutation enabled  → mutation parameters apply
-```
-
-When a dependency change makes a value inapplicable, private UI draft state clears
-that value according to the current WB4 applicability result. The saved child still
-passes through the existing reference-study fork path, whose normalization remains
-the authoritative persistence boundary. Hidden stale values therefore do not survive
-as saved scientific meaning.
+Conditional fields use WB4's existing `is_slot_applicable()` contract. Hidden stale
+values are normalized away by the existing reference-study persistence boundary and
+never survive as saved scientific meaning.
 
 ## Immutable editing and semantic diff
 
@@ -137,7 +128,7 @@ The active saved revision is never edited in place.
 ```text
 immutable saved revision
         ↓
-private UI draft
+private frontend draft
         ↓ existing Workbench readiness / resolution
         ↓
 Save new revision
@@ -147,30 +138,22 @@ immutable child revision
 ```
 
 Controlled edits use `fork_study_revision()`. Reference Ecology edits use
-`fork_reference_study_revision()`. The UI does not invent revision semantics for
-experiment definitions that do not already own them.
+`fork_reference_study_revision()`. The frontend does not invent revision semantics
+for experiment definitions that do not already own them.
 
-After a child is created in the same application session, the Simulation page renders
-the existing concrete semantic diff:
-
-- controlled: `diff_study_revisions()`;
-- reference ecology: `diff_reference_study_revisions()`;
-- B3: `diff_b3_study_revisions()`.
-
-The UI labels explicit and derived changes for readability but does not implement a
-second diff engine. If only a persisted parent revision ID is available and the
-parent artifact itself is not loaded, the UI states that a semantic diff cannot be
-reconstructed.
+After a child is created, the Simulation section renders the existing concrete
+semantic diff: `diff_study_revisions()`, `diff_reference_study_revisions()`, or
+`diff_b3_study_revisions()`. It labels explicit/derived changes for readability but
+does not implement a second diff engine.
 
 ## Curated B3 behavior
 
-Canonical B3 is presented as a validated, mostly read-only scientific Study rather
-than a custom simulation form. The Simulation section exposes the validated scenario
-identity, scenario origin, matched control/treatment environments, focal trait and
-founder design, horizon, mutation/inheritance assumptions, treatment-integrity
-meaning, and counterbalance design from the exact B3 manifest.
+Canonical B3 is a validated, mostly read-only scientific Study rather than a custom
+simulation form. The Simulation section exposes exact scenario identity/origin,
+matched environments, focal trait/founder design, horizon, mutation/inheritance
+assumptions, treatment integrity, and counterbalance design from the stored manifest.
 
-The one supported sensitivity operation is an explicit action:
+The one supported sensitivity operation is explicit:
 
 ```text
 validated radius-1 B3
@@ -178,42 +161,39 @@ validated radius-1 B3
 radius-2 B3-derived Study
 ```
 
-The child preserves B3 scenario origin but loses the validated radius-1 scenario
-identity. The UI presents that identity loss prominently and does not call the child
-the B3 flagship.
+The child preserves B3 origin but loses validated radius-1 identity. The frontend
+does not call the child the B3 flagship.
 
 ## Evidence authoring
 
-WU3 makes Evidence a first-class scientific Study section. Evidence remains separate
-from Simulation intent and uses only the concrete evidence contracts already owned by
-the Workbench.
+WU3 makes Evidence a first-class Study section. Evidence remains separate from
+Simulation intent and uses only concrete evidence contracts already owned by the
+Workbench.
 
 Controlled single-run and Reference Ecology revisions expose their current supported
 evidence streams in scientific language. Changing either evidence plan creates a new
-immutable child revision through the existing concrete fork API; the saved parent is
-never edited in place. Reference Ecology surfaces existing non-blocking evidence
-advisories, including the high-volume spatial-history warning, without turning Ready
-into Blocked.
+immutable child revision through the existing concrete fork API. Reference Ecology
+surfaces existing non-blocking advisories such as the high-volume spatial-history
+warning without turning Ready into Blocked.
 
-Frozen or experiment-required evidence is not made artificially editable:
+Frozen or experiment-required evidence remains locked:
 
 - canonical B3 uses its frozen required evidence set;
 - E3 uses its exact sweep-required evidence;
 - E4 uses its exact comparison-required evidence.
 
-The UI does not manufacture recorder choices, infer missing evidence after a run, or
-create invalid experiment evidence plans.
+The frontend does not manufacture recorder choices, infer missing evidence after a
+run, or create invalid experiment evidence plans.
 
 ## Concrete Experiment design
 
-WU3 renders only the experiment patterns that already exist.
+WU3 renders only experiment patterns that already exist.
 
 ### E3 max-speed sweep
 
 Maximum speed remains the scientific factor and replicate seed remains replicate
-identity. Neither is duplicated as an ordinary base-Simulation control. Editable
-levels and seeds validate through `MaxSpeedSweepDefinition`; the displayed run matrix
-comes from `expand_max_speed_sweep()`.
+identity. Editable levels and seeds validate through `MaxSpeedSweepDefinition`; the
+displayed run matrix comes from `expand_max_speed_sweep()`.
 
 ### E4 environment-selection comparison
 
@@ -226,27 +206,21 @@ displayed matched design comes from `expand_environment_selection_comparison()`.
 
 B3 remains read-only. Its primary confirmation, radius sensitivity when applicable,
 counterbalance, and total simulation count come from `compile_b3_curated()`. Same-seed
-control/treatment pairs are described as matched or blocked by seed; the UI does not
-claim that their trajectories remain lockstep-identical after treatment divergence.
+control/treatment pairs are described as matched/blocked by seed; the frontend does
+not claim their trajectories remain lockstep-identical after treatment divergence.
 
-Controlled single-run explicitly has no multi-treatment experiment. Reference Ecology
-explicitly has no generic controlled-experiment definition in the current support
-envelope.
+Controlled single-run has no multi-treatment experiment. Reference Ecology has no
+generic controlled-experiment definition in the current support envelope.
 
 ## Readiness, Run Plan, and execution
 
-The shell uses existing concrete Workbench readiness as the authoring authority.
-Draft / Blocked / Ready and Workbench-owned diagnostic messages/remediation are
-surfaced without predicting or duplicating lower generic, biological, genetic, or
-scientific preflight.
+The reference shell uses existing concrete Workbench readiness as authoring authority.
+Draft / Blocked / Ready and Workbench-owned diagnostics/remediation are surfaced
+without duplicating lower generic, biological, genetic, or scientific preflight.
 
-`Run` remains an action. It first binds any owned transient scientific draft to an
-exact immutable owner and then opens a reviewable Run Plan derived from that exact
-artifact. Revision-backed controlled/reference edits therefore become one immutable
-child revision before execution; E3/E4 retain their existing immutable
-experiment-definition value semantics rather than gaining invented revision lineage.
-
-Execution is synchronous and delegates only to existing concrete Workbench runners:
+`Run` remains an action. It binds owned transient scientific draft state to an exact
+immutable owner and opens a reviewable Run Plan derived from that artifact. Execution
+delegates only to existing concrete Workbench runners:
 
 ```text
 StudyRevision                         → run_study_revision()
@@ -257,232 +231,141 @@ EnvironmentSelectionComparisonDefinition
                                       → run_environment_selection_comparison()
 ```
 
-The UI does not instantiate `SimulationEngine`, rebuild run configurations, reproduce
-experiment expansion, or add a second preflight system.
+The frontend does not instantiate `SimulationEngine`, rebuild run configurations,
+reproduce experiment expansion, or add a second preflight system.
 
 Successful revision-owned runs retain the authoritative result object in session and
 replace the active revision with the existing immutable `.with_run(...)` snapshot
-using returned provenance. E3/E4 results remain their authoritative concrete result
-objects in session without invented Study-level run identity. Compile/preflight/run
-failure leaves the exact saved artifact unchanged and surfaces the failure honestly.
+using returned provenance. E3/E4 results remain authoritative concrete result
+objects without invented Study-level run identity. Failure leaves the exact saved
+artifact unchanged.
+
+The Streamlit reference currently invokes these runners synchronously. Q0 proves that
+the native frontend can adapt the same synchronous Workbench runner through a narrow
+Qt worker without changing scientific execution semantics.
 
 ## Results and run exploration
 
-WU4 turns the WU3 completion handoff into a first-class scientific Results workspace
-without adding another result hierarchy or scientific-analysis framework. The UI
-binds the active artifact and session-owned result through the existing WB5
-`inspect_*_results()` contracts. Revision-backed controlled, Reference Ecology, and
-B3 Results must match the exact active revision/manifest/evidence identity; E3/E4
-must match the exact immutable experiment definition before their WB5 inspectors are
-used.
+WU4 makes Results a first-class scientific workspace without adding another result
+hierarchy or scientific-analysis framework. It binds active artifacts and current
+result objects through existing WB5 `inspect_*_results()` contracts.
 
-Every supported family follows the product rhythm:
+Every supported family follows:
 
 ```text
 Overview → Explore → Analysis → Provenance
 ```
 
-The internal navigation remains family-specific rather than being flattened into a
-universal replicate schema.
+Navigation remains scientifically concrete rather than flattened into a universal
+replicate schema.
 
-### Controlled single-run Results
-
-Controlled Results expose the recorded population trajectory and the existing E1
-locomotion replicate measurement. Both are gated by WB5 `AnalysisAvailability`.
-The UI does not recalculate movement or energetic measurements from event rows.
-
-### Reference Ecology Results
-
-Reference Ecology keeps its recorded evidence streams independent:
-
-- population history;
-- committed events, including process filtering;
-- pedigree / individual life history;
-- allele and genotype composition;
-- committed spatial-history frames.
-
-Each stream is gated independently by its authoritative availability. Spatial
-inspection is committed evidence inspection, not interpolated world replay.
-
-### E3 ecological-performance Results
-
-E3 preserves maximum speed as the factor. Users choose a factor level and then an
-exact replicate seed while the view retains treatment ID, manifest digest, and the
-unchanged replicate outcome. Treatment-level tables/charts copy existing
-`E3TreatmentSummary` values. Organisms within a run are not promoted to independent
-replicates and WU4 does not recompute treatment summaries.
-
-### E4 standing-variation Results
-
-E4 preserves resource geography as the factor while keeping control/treatment role,
-replicate seed, standing focal composition, and founder-speed-order counterbalance as
-separate identities. Replicate exploration shows the existing focal trajectory and
-mechanism evidence; environment-level views copy existing `E4EnvironmentSummary`
-values. Founder-order counterbalance is never presented as another factor.
-
-### B3 curated Results
-
-B3 keeps three scientific roles visibly separate:
-
-- primary matched confirmation;
-- radius sensitivity;
-- founder-label counterbalance.
-
-Primary matched arms are described as blocked/matched by seed without implying their
-RNG trajectories remain lockstep after treatment divergence. Scenario origin and
-validated canonical scenario identity are shown separately. Results only reports
-whether the existing canonical cinematic scientific handoff is available; cinematic
-execution and choreography remain downstream Presentation responsibilities. A
-noncanonical B3-derived fork therefore does not inherit canonical cinematic/headline
-claims merely because it shares B3 origin.
-
-### Evidence gaps, provenance, and historical Results
+- **Controlled single-run** exposes recorded population history and existing E1
+  locomotion replicate measurement behind evidence availability.
+- **Reference Ecology** exposes population, committed events, pedigree/life history,
+  allele/genotype composition, and committed spatial history independently.
+- **E3** preserves maximum speed as factor, exact replicate seed, treatment ID, and
+  manifest digest, and passes through existing `E3TreatmentSummary` values.
+- **E4** preserves resource geography as factor while keeping arm, seed, standing
+  composition, and founder-order counterbalance distinct, passing through existing
+  `E4EnvironmentSummary` values.
+- **B3** keeps primary confirmation, radius sensitivity, and founder-label
+  counterbalance separate and preserves scenario origin versus validated identity.
 
 Missing evidence is never inferred or reconstructed. An unavailable analysis names
-the missing evidence and states that obtaining it requires a **new run** with an
-appropriate EvidencePlan; evidence cannot be added retroactively to a completed run.
-
-Provenance views expose only existing Workbench and scientific provenance values.
+the missing evidence and requires a **new run** with an appropriate EvidencePlan.
 Current-session Results are rejected when they no longer belong to the active
-scientific owner rather than being displayed under a stale Study or Experiment.
+scientific owner.
 
-Persisted run provenance is intentionally not a durable result archive. A reopened
-saved revision may identify historical runs while the observations, events,
-measurements, or experiment payloads are absent from the current session. Results
-shows those references honestly and does not regenerate or rerun them automatically.
-E3/E4 definitions likewise do not gain invented persisted result payloads or
-Study-level run identities.
+Persisted run provenance is intentionally not a durable result archive. Reopened
+saved revisions may identify historical runs while observations/measurements/results
+are absent; the reference frontend reports that honestly and never reruns implicitly.
 
 ## Presentation
 
-WU5 makes Presentation a first-class downstream Study experience over the exact
-WU4/WB5 result association. It does not add a `PresentationSpec`, replay database,
-scene graph, camera/storyboard DSL, or universal renderer adapter.
+WU5 makes Presentation a first-class downstream Study experience over exact WB5/WU4
+result association. It does not add a `PresentationSpec`, replay database, scene
+graph, camera/storyboard DSL, or universal renderer adapter.
 
-Presentation currently has concrete behavior only where real adapters exist:
+Reference Ecology routes authoritative recorded evidence through the existing
+Workbench world adapter to `WorldPresentationFrame` and then to the retained Plotly
+renderer. Canonical validated B3 can route to a matched Interactive World and to the
+existing B3 cinematic director/optional Manim renderer.
+
+The durable renderer-neutral contract is now shared by the Streamlit reference
+frontend and the native QML product:
 
 ```text
-Reference Ecology authoritative result
-        ↓ existing Workbench world adapter
+recorded scientific evidence
+        ↓
+Workbench presentation adapter
+        ↓
 WorldPresentationFrame
-        ↓ retained Plotly renderer
-Interactive World
-
-canonical validated B3 result
-        ├─ existing B3 Workbench world adapter → matched Interactive World
-        └─ prepare_b3_workbench_cinematic()
-              ↓ existing B3 director
-              ↓ optional existing Manim renderer
-           Scientific Story
+        ↓
+renderer-specific presentation
 ```
 
-Unsupported Study families remain honest rather than receiving fake disabled
-symmetry.
+Q0 moves the frontend-neutral Workbench world adapter into `evo_engine.presentation`
+only because two real consumers now exist. Plotly remains a renderer, not a desktop
+scientific contract.
 
 ### Reference Ecology Interactive World
 
-Reference replay requires recorded spatial evidence. Missing spatial evidence uses
-the existing Workbench availability diagnostic/remediation and requires a new run
-with an appropriate EvidencePlan; historical provenance alone is never treated as
-replay data.
-
-The interactive world exposes only presentation operations over exact committed
-frames:
-
-- previous / next / committed-step selection;
-- play / pause and playback speed across recorded committed steps;
-- resources, carcasses, trails, trail length, and labels where supported;
-- organism selection and authoritative committed-state inspection;
-- run, seed, and committed-step context;
-- Focus Mode inside the same Study product.
-
-Those controls never change a manifest, EvidencePlan, experiment definition, or
-scientific provenance.
+Replay requires recorded spatial evidence. Presentation operations may change
+committed-step selection, playback, visibility, trail controls, labels, organism
+selection, and focus mode. None changes manifest, EvidencePlan, experiment identity,
+or scientific provenance.
 
 ### B3 matched Interactive World
 
-Canonical B3 presents independently constructed control and treatment worlds for one
-authoritative confirmation seed at one shared recorded committed step. Arm-local
-organism selection remains presentation focus only. Both arms must use the same
-science-owned fixed `max_speed` encoding.
-
-The UI states the matched design accurately: arms are blocked/matched by seed, but
-treatment-driven divergence means their subsequent RNG trajectories are not assumed
-to remain lockstep-identical.
+Canonical B3 constructs control and treatment worlds independently for one
+authoritative confirmation seed at one shared recorded committed step. Both arms use
+the same science-owned fixed `max_speed` encoding. Same-seed arms are matched/blocked
+by seed, not assumed to remain RNG-lockstep after treatment divergence.
 
 ### B3 Scientific Story
 
 Only canonical validated B3 is eligible for the established headline cinematic
-handoff. The UI invokes the existing
-`prepare_b3_workbench_cinematic(...)` → B3 director → renderer path. Representative
-seed, scientific episodes, comparison structure, fixed trait scale, and bounded
-conclusion remain owned by B3 science/director code.
+handoff. Representative seed, scientific episodes, comparison structure, fixed trait
+scale, and bounded conclusion remain B3 science/director responsibilities. Optional
+renderer availability is distinct from scientific handoff availability.
 
-Renderer quality and MP4/GIF output are presentation-only choices already supported
-by the renderer API. Scientific handoff availability is distinct from whether the
-optional Manim dependency is installed. A radius-2 B3-derived fork preserves B3
-origin but does not inherit canonical cinematic eligibility.
+## Session ownership in the Streamlit reference
 
-### Presentation session ownership
+Streamlit session state owns only transient application concerns: route, active
+artifact/section, current authoritative result, private scientific drafts, Run Plan
+state, disclosure/widget state, immediate parent used for in-session diff, and
+Presentation replay/focus/renderer state.
 
-Presentation state is transient and namespaced. It includes focus mode, subexperience,
-selected seed/step/organism, playback, renderer visibility/trail/label controls, and
-renderer output options. State is reconciled to exact revision + manifest digest +
-run ownership and is cleared when an active Study/run is replaced or the user returns
-Home. Changing B3 confirmation seed resets timeline and organism-selection state.
+These values are not a persisted scientific schema. Returning Home or replacing the
+active Study clears transient state so scientific or renderer state cannot leak
+across Studies.
 
-Programmatic committed-step changes explicitly synchronize the keyed Streamlit step
-widget so Previous/Next and playback cannot be undone by stale widget state.
+The native frontend does not need to copy Streamlit's session-state implementation;
+it must preserve the same ownership semantics through Qt application/controller
+state.
 
-## Session ownership
+## Readiness and result honesty
 
-Streamlit session state owns only transient application concerns:
+Where a revision exposes Workbench readiness, the frontend displays that authority.
+Slot diagnostics remain Workbench diagnostics; frontends do not duplicate lower
+scientific validation or predict full compile/preflight failures. Non-blocking
+evidence advisories remain warnings rather than Blocked state.
 
-- current route;
-- active concrete artifact;
-- active Study section;
-- session-owned current authoritative result;
-- private concrete Simulation and Evidence draft intent/plan;
-- private concrete E3/E4 experiment draft values;
-- Run Plan state and binding/failure notices;
-- disclosure/widget state;
-- the immediately loaded parent artifact used for an in-session semantic diff;
-- Presentation focus/replay/renderer state.
+Saved revisions may preserve run provenance without complete result payloads.
+Reopening such a Study does not reconstruct missing evidence or rerun automatically.
+Results and Presentation must state that limitation explicitly.
 
-These values are not a persisted scientific schema. Returning Home, opening another
-Study, or starting another Study clears transient WU2–WU5 draft/run/result/presentation
-state so scientific or renderer state cannot leak across Studies.
+## Native migration after WU5
 
-## Readiness and results honesty
+WU1–WU5 are complete as the Streamlit reference sequence. The next primary product
+front is the Q-series native migration rather than WU6-specific Streamlit polish.
 
-Where a concrete revision exposes a Workbench readiness API, the shell and scientific
-authoring pages display Draft / Blocked / Ready using that authority. Slot diagnostics
-remain Workbench diagnostics; the UI does not duplicate lower scientific validation
-or try to predict full compile/preflight failures.
+Q0 proves PySide6/QML technology, exact Workbench reuse, nonblocking execution,
+native `WorldPresentationFrame` rendering, and standalone packaging. Q1 next builds
+the native Home + persistent five-section Study shell with concrete artifact routing
+while keeping Q0 Reference Ecology as the deep slice. See `docs/desktop_workbench.md`.
 
-Non-blocking evidence advisories remain warnings and do not turn Ready into Blocked.
-
-Saved revision formats may preserve run provenance and result references without
-serializing complete result payloads. Reopening such a Study does not reconstruct
-missing evidence and does not rerun the simulation automatically. The Results and
-Presentation pages state that limitation explicitly.
-
-## Work after WU5
-
-WU5 completes the first concrete Presentation integration while deliberately leaving
-broader product hardening and release polish outside its scope. It does not add
-durable result storage, a background render queue, generic statistics/chart/query
-frameworks, a universal Study/Result/Presentation schema, or a generic cinematic
-scene model.
-
-The next UI milestone is **WU6 — Product Hardening, Accessibility, Visual Completion,
-and Release Readiness**. WU6 should exercise and polish the existing end-to-end Study
-product rather than redesign settled scientific or presentation ownership. Relevant
-work includes navigation coherence, accessibility, responsive/focus behavior,
-visual consistency, error/remediation clarity, renderer availability/failure UX,
-release smoke paths, and launch/packaging guidance where already supported.
-
-Renderer state, interpolation, cameras, playback controls, storyboard/choreography,
-and export remain Presentation responsibilities. Future work should continue to
-consume the authoritative Workbench/Results boundary rather than reopening science or
-moving presentation mechanics into Results.
+Accessibility, visual completion, remediation clarity, renderer failure UX, and
+release hardening remain required product concerns. They should be applied to the
+native product after sufficient Q-series breadth exists, not used as a reason to
+redesign settled Workbench, science, Results, replay, or cinematic ownership.

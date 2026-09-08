@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Run pytest with line and branch coverage reporting.
 #
+# The default core quality environment intentionally does not install the optional
+# PySide6 desktop dependency. .coveragerc therefore omits evo_engine.desktop from
+# this core 90% coverage scope; the dedicated Desktop workflow owns native tests,
+# Qt typing/lint, source launch, and packaged-artifact launch validation.
+#
 # Usage:
 #   ./scripts/coverage
 #   ./scripts/coverage tests/development
@@ -25,6 +30,10 @@ Runs pytest with:
   terminal missing-line report
   XML report at outputs/coverage/coverage.xml
   HTML report at outputs/coverage/html/
+
+The optional PySide6 desktop package is excluded from this core coverage scope by
+.coveragerc because PySide6 is intentionally absent from the core quality environment.
+Desktop behavior is validated in the dedicated Desktop workflow.
 
 COVERAGE_FAIL_UNDER defaults to 0. Set it to enforce a minimum percentage.
 HELP

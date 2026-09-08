@@ -51,3 +51,4 @@ benchmarks rather than duplicating them.
 - [0007 — Use transmissible state as the canonical general-evolution term](0007-transmissible-state-terminology.md)
 - [0008 — Make chromosome transmission semantics explicit](0008-explicit-chromosome-transmission-semantics.md)
 - [0009 — Separate scientific encoding from renderer choreography](0009-separate-scientific-encoding-from-renderer-choreography.md)
+- [0010 — Use PySide6 and Qt Quick for the primary Workbench frontend](0010-use-pyside6-qt-quick-for-primary-workbench-frontend.md)

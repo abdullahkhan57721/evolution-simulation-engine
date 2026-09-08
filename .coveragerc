@@ -4,6 +4,7 @@ omit =
     */evo_engine/ui/app.py
     */evo_engine/cinematic/_manim.py
     */evo_engine/cinematic/_b3_manim.py
+    */evo_engine/desktop/*
 
 # Streamlit AppTest executes the dashboard entrypoint in Streamlit's isolated app
 # runner, which is verified by tests/ui/test_app.py but is not attributed to the
@@ -15,3 +16,9 @@ omit =
 # and B3-director preparation plus the lazy public APIs remain in aggregate coverage;
 # the renderer modules themselves are verified by the dedicated headless cinematic
 # smoke workflow.
+#
+# PySide6 is likewise an optional frontend dependency and is intentionally absent
+# from the protected default quality environment. The native desktop package is
+# validated by the dedicated Desktop workflow, including controller/model tests,
+# source launch, standalone deployment, and packaged launch smoke. Keep the shared
+# presentation and Workbench layers in the aggregate core coverage threshold.
