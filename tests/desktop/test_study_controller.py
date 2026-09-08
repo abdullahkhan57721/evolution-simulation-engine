@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import time
+from typing import cast
 
 import pytest
 
@@ -11,11 +12,12 @@ pytest.importorskip("PySide6")
 from PySide6.QtGui import QGuiApplication
 
 from evo_engine.desktop.controllers import StudyController
+from evo_engine.desktop.models import WorldOrganismModel, WorldResourceModel
 from evo_engine.workbench.results import inspect_reference_study_results
 
 
 def _app() -> QGuiApplication:
-    return QGuiApplication.instance() or QGuiApplication([])
+    return cast(QGuiApplication, QGuiApplication.instance() or QGuiApplication([]))
 
 
 def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
@@ -27,7 +29,7 @@ def test_semantic_draft_does_not_mutate_active_scientific_identity() -> None:
     parent_json = parent.to_json()
     parent_digest = controller.manifestDigest
 
-    controller.draftMaxSpeed = (controller.draftMaxSpeed + 1) % 5
+    controller.set_draft_max_speed(parent.intent.max_speed + 1)
 
     assert controller.draftDirty
     assert controller._revision.to_json() == parent_json
@@ -74,9 +76,7 @@ def test_worker_run_surfaces_authoritative_result_and_world_frame() -> None:
     assert controller.finalPopulation == view.population_observations[-1].population_size
     assert controller._presentation is not None
     assert controller.worldStep == view.spatial_observations[-1].step_index
-    assert controller.organismModel.rowCount() == len(
-        controller._presentation.frame.organisms
-    )
-    assert controller.resourceModel.rowCount() == len(
-        controller._presentation.frame.resources
-    )
+    organism_model = cast(WorldOrganismModel, controller.organismModel)
+    resource_model = cast(WorldResourceModel, controller.resourceModel)
+    assert organism_model.rowCount() == len(controller._presentation.frame.organisms)
+    assert resource_model.rowCount() == len(controller._presentation.frame.resources)
