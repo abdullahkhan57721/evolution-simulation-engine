@@ -236,9 +236,7 @@ def _render_b3_design(revision: B3StudyRevision) -> None:
     )
     st.markdown("**Radius sensitivity**")
     if counts.radius_sensitivity_runs:
-        st.write(
-            f"{counts.radius_sensitivity_runs} broader-patch sensitivity run(s)."
-        )
+        st.write(f"{counts.radius_sensitivity_runs} broader-patch sensitivity run(s).")
     else:
         st.write("No separate radius-sensitivity runs in this B3-derived revision.")
     st.markdown("**Counterbalance**")
