@@ -74,7 +74,9 @@ def test_reference_evidence_options_and_spatial_advisory_use_wb4_contract() -> N
     assert advisories[0].evidence_id == REFERENCE_SPATIAL_EVIDENCE_ID
 
 
-def test_b3_and_controlled_experiment_evidence_are_locked_to_authoritative_sets() -> None:
+def test_b3_and_controlled_experiment_evidence_are_locked_to_authoritative_sets() -> (
+    None
+):
     b3 = new_b3_flagship(revision_id="b3")
     e3 = new_max_speed_sweep()
     e4 = new_environment_selection_comparison()
@@ -126,7 +128,9 @@ def test_e3_invalid_levels_and_seeds_fail_through_definition_contract(
         update_max_speed_sweep(new_max_speed_sweep(), levels=levels, seeds=seeds)
 
 
-def test_e4_authoring_preserves_fixed_factor_roles_composition_and_counterbalance() -> None:
+def test_e4_authoring_preserves_fixed_factor_roles_composition_and_counterbalance() -> (
+    None
+):
     definition = update_environment_selection_comparison(
         new_environment_selection_comparison(),
         seeds=(101, 202),
