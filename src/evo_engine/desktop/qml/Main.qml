@@ -21,6 +21,7 @@ ApplicationWindow {
     readonly property color accentColor: "#2563eb"
     readonly property color selectionColor: "#f59e0b"
     readonly property color warningColor: "#a16207"
+    readonly property color errorColor: "#b91c1c"
     readonly property int space1: 6
     readonly property int space2: 12
     readonly property int space3: 18
