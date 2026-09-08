@@ -18,7 +18,10 @@ from evo_engine.desktop.artifacts import (
     artifact_kind,
     serialize_concrete_artifact,
 )
-from evo_engine.desktop.controllers import ApplicationController, ReferenceStudyController
+from evo_engine.desktop.controllers import (
+    ApplicationController,
+    ReferenceStudyController,
+)
 from evo_engine.workbench import (
     B3_VALIDATED_SCENARIO_ID,
     EXPERIMENT_DEFINITION_FORMAT_ID,
