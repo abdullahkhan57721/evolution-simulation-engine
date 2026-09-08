@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import overload
+
 import streamlit as st
 
 from evo_engine.ui.experiment_authoring import (
@@ -65,6 +67,30 @@ def pending_experiment_error(artifact: ConcreteWorkbenchArtifact) -> str | None:
         return None
     value = st.session_state.get(_DRAFT_ERROR_KEY)
     return value if type(value) is str and value else None
+
+
+@overload
+def render_experiment_page(
+    artifact: MaxSpeedSweepDefinition,
+) -> MaxSpeedSweepDefinition | None: ...
+
+
+@overload
+def render_experiment_page(
+    artifact: EnvironmentSelectionComparisonDefinition,
+) -> EnvironmentSelectionComparisonDefinition | None: ...
+
+
+@overload
+def render_experiment_page(
+    artifact: StudyRevision | ReferenceStudyRevision | B3StudyRevision,
+) -> None: ...
+
+
+@overload
+def render_experiment_page(
+    artifact: ConcreteWorkbenchArtifact,
+) -> MaxSpeedSweepDefinition | EnvironmentSelectionComparisonDefinition | None: ...
 
 
 def render_experiment_page(
