@@ -323,15 +323,16 @@ Q0 proves:
 The shared Workbench world-presentation adapter is frontend-neutral and moves to the
 presentation layer only because Streamlit and Qt are now two real consumers.
 
-### Q1 — native Study shell and concrete routing
+### Q1 — native Study shell and concrete routing (completed)
 
-Q1 is the immediate next product milestone. It should establish the native persistent
-Study shell while preserving Q0 as the deep Reference Ecology slice:
+Q1 turns the Q0 proof into the persistent native Workbench application shell:
 
 ```text
 HOME
-    ↓
-Study
+├── New Study
+└── Open Study
+
+STUDY
 ├── Simulation
 ├── Evidence
 ├── Experiment
@@ -341,33 +342,76 @@ Study
 Run = action
 ```
 
-Q1 should:
+Q1 establishes:
 
-1. add Home/New/Open application navigation;
-2. route existing concrete persisted artifact families through their canonical
-   loaders rather than inventing a universal persistence envelope;
-3. establish active artifact identity plus the five persistent Study sections;
-4. retain the Q0 Reference Ecology create/edit/fork/run/results/world path inside
-   that shell;
-5. add only the smallest additional curated/controlled concrete routes needed to
-   prove the shell is not Reference-specific;
-6. keep Workbench readiness, provenance, runners, Results inspectors, and
-   presentation adapters authoritative;
-7. keep transient Qt draft state separate from saved scientific identity;
-8. continue to expose curated scalar/item-model Qt APIs rather than arbitrary Python
-   object graphs;
-9. keep Streamlit green for semantic compatibility;
-10. keep the standalone desktop packaging proof working without expanding into a
-    signing/installer/release-matrix milestone.
+1. native Home/New/Open routing plus the persistent five-section Study shell;
+2. an application-level `ApplicationController` that owns transient route, active
+   concrete artifact, section, current-session result, Run Plan placeholder,
+   presentation owner/reset state, file location, and status only;
+3. exact routing for the existing five-family support envelope through the owning
+   concrete Workbench constructors, format/pattern identities, loaders, and
+   serializers rather than a universal persistence envelope;
+4. failure-atomic Open/Save behavior and explicit exact-reproduction diagnostics;
+5. active-owner reset semantics: successful scientific replacement/fork/immutable
+   child commit clears stale result, Run Plan, presentation, and family transient
+   state, while section navigation cannot mutate science;
+6. non-destructive Open from an already-active Study: the native file dialog operates
+   over the Study route so cancellation or failed/unknown/incompatible Open leaves the
+   exact owner accessible;
+7. the retained Q0 Reference Ecology edit/immutable-child/run/result/world path as a
+   family-specific child controller rather than a universal desktop authoring model;
+8. a curated QML scalar/property/signal/slot/item-model boundary, with typed Python
+   helpers for controller-to-controller state;
+9. reusable native shell/navigation/panel/button/field/diagnostic/badge/disclosure
+   primitives earned by the real shell;
+10. continued Streamlit semantic compatibility and standalone native deployment
+    proof without broadening into signing/installers/release-matrix work.
 
-The exact Q1 boundary and non-goals are in `docs/desktop_workbench.md`.
+The exact Q1 boundary and downstream interfaces are in `docs/desktop_workbench.md`.
 
-### Later Q-series direction
+### Q2 — Simulation authoring
 
-After Q1, expand the native product family-by-family and section-by-section from
-concrete needs. Likely work includes broader Simulation/Evidence/Experiment authoring,
-family-specific Results, full recorded-state world exploration, B3 matched replay and
-cinematic handoff, then accessibility/visual/release hardening.
+Q2 should expand the Simulation section family-by-family against existing Workbench
+semantic authoring contracts. It should reuse the Q1 application routing,
+active-artifact ownership/reset rules, exact persistence dispatch, and family child
+controller seam rather than redesign them.
+
+The first goal is native parity for the already-supported semantic choices, not
+reflection-driven policy editing. Controlled locomotion and bounded Reference
+Ecology should remain concrete consumers of their existing Workbench intent,
+applicability, normalization, readiness, semantic-diff, and immutable revision/fork
+contracts. Curated B3 remains read-only except for the already-supported sensitivity
+fork. Do not promote Extension/Internal capability merely because lower engine types
+can represent it.
+
+### Q3 — Evidence and Experiment
+
+Q3 should add concrete native Evidence and Experiment controllers over the existing
+Workbench contracts. EvidencePlan remains separate from simulation intent. E3 and E4
+keep factor, treatment, counterbalance, replicate, and measurement identity distinct;
+B3 retains its curated scientific design.
+
+Use the Q1 exact-owner/reset boundary and Q2 family-controller patterns. Do not create
+a generic experiment DSL, universal Evidence schema, reflection-driven form engine,
+or QML-owned scientific validation.
+
+### Q4 — execution and Results breadth
+
+Q4 should broaden execution and Results beyond the retained Q0 Reference path using
+only existing concrete Workbench runners, result inspectors, provenance, and WB5
+association rules. Result binding must continue to require exact active-owner
+compatibility, and missing evidence must remain unavailable rather than reconstructed.
+
+Add family-specific Qt item models/view models only where concrete Results consumers
+need them. Do not flatten heterogeneous controlled/E3/E4/B3/Reference results into a
+universal result or statistics model.
+
+### Later native product direction
+
+After Q4, expand Presentation from recorded evidence: broader Reference world
+exploration, canonical B3 matched replay and existing cinematic handoff, then native
+accessibility, visual completion, packaging/release hardening, and an explicit
+Streamlit parity/removal decision when justified.
 
 Do not predeclare a large generic Qt application framework. Each later Q milestone
 should earn shared controller/view-model helpers only after multiple concrete native
