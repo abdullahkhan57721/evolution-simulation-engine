@@ -56,13 +56,17 @@ class EvidenceAuthoringController(QObject):
     def editable(self) -> bool:
         return isinstance(self._artifact, (StudyRevision, ReferenceStudyRevision))
 
-    @Property(bool, notify=draftChanged)
-    def draftDirty(self) -> bool:  # noqa: N802
+    def is_draft_dirty(self) -> bool:
+        """Return scientific draft ownership for Python controller use."""
         artifact = self._artifact
         return (
             isinstance(artifact, (StudyRevision, ReferenceStudyRevision))
             and self._requested != artifact.evidence_plan.requested
         )
+
+    @Property(bool, notify=draftChanged)
+    def draftDirty(self) -> bool:  # noqa: N802
+        return self.is_draft_dirty()
 
     @Property(bool, notify=draftChanged)
     def draftReady(self) -> bool:  # noqa: N802
@@ -94,13 +98,14 @@ class EvidenceAuthoringController(QObject):
 
     @Property(str, notify=draftChanged)
     def missingEvidenceMessage(self) -> str:  # noqa: N802
+        artifact = self._artifact
+        if artifact is None:
+            return ""
         missing = [
             option.enables
-            for option in evidence_options(self._artifact)
-            if self._artifact is not None
-            and option.evidence_id not in self._requested
-            and not option.required
-        ] if self._artifact is not None else []
+            for option in evidence_options(artifact)
+            if option.evidence_id not in self._requested and not option.required
+        ]
         if not missing:
             return ""
         return (
@@ -177,7 +182,7 @@ class EvidenceAuthoringController(QObject):
         if not isinstance(artifact, (StudyRevision, ReferenceStudyRevision)):
             self._set_status("Evidence is locked for this Study family.")
             return False
-        if not self.draftDirty:
+        if not self.is_draft_dirty():
             self._set_status("Evidence matches the current immutable revision.")
             return False
         if self._readiness_state() != "ready":
