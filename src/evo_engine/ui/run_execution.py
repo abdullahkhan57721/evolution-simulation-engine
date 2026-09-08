@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import TypeAlias, TypeGuard
 
 from evo_engine.ui.study_shell import ConcreteWorkbenchArtifact
 from evo_engine.workbench import (
@@ -30,6 +30,13 @@ AuthoritativeRunResult: TypeAlias = (
     | MaxSpeedSweepResult
     | EnvironmentSelectionComparisonResult
 )
+_RESULT_TYPES = (
+    WorkbenchRunResult,
+    ReferenceRunResult,
+    B3CuratedRunResult,
+    MaxSpeedSweepResult,
+    EnvironmentSelectionComparisonResult,
+)
 
 
 def execute_artifact(
@@ -50,6 +57,11 @@ def execute_artifact(
     if isinstance(artifact, EnvironmentSelectionComparisonDefinition):
         return artifact, run_environment_selection_comparison(artifact)
     raise TypeError("Unsupported Workbench artifact for execution.")
+
+
+def is_authoritative_run_result(value: object) -> TypeGuard[AuthoritativeRunResult]:
+    """Return whether session state holds one of the exact Workbench result types."""
+    return isinstance(value, _RESULT_TYPES)
 
 
 def result_run_id(result: AuthoritativeRunResult) -> str | None:
@@ -89,6 +101,7 @@ def result_simulation_count(result: AuthoritativeRunResult) -> int:
 __all__ = [
     "AuthoritativeRunResult",
     "execute_artifact",
+    "is_authoritative_run_result",
     "result_evidence_ids",
     "result_revision_id",
     "result_run_id",
