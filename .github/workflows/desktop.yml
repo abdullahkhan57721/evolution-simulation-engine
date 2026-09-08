@@ -1,0 +1,83 @@
+name: Desktop
+
+on:
+  pull_request:
+    paths:
+      - "src/evo_engine/desktop/**"
+      - "src/evo_engine/presentation/world.py"
+      - "src/evo_engine/presentation/workbench.py"
+      - "src/evo_engine/ui/world_presentation.py"
+      - "src/evo_engine/ui/workbench.py"
+      - "tests/desktop/**"
+      - "tests/architecture/test_desktop_dependency_boundary.py"
+      - "requirements-desktop.txt"
+      - "MANIFEST.in"
+      - ".github/workflows/desktop.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/evo_engine/desktop/**"
+      - "src/evo_engine/presentation/world.py"
+      - "src/evo_engine/presentation/workbench.py"
+      - "src/evo_engine/ui/world_presentation.py"
+      - "src/evo_engine/ui/workbench.py"
+      - "tests/desktop/**"
+      - "tests/architecture/test_desktop_dependency_boundary.py"
+      - "requirements-desktop.txt"
+      - "MANIFEST.in"
+      - ".github/workflows/desktop.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  qt-quick-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project and optional desktop dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" -r requirements-desktop.txt
+      - name: Verify pinned Qt runtime
+        run: python -c "import PySide6; assert PySide6.__version__ == '6.11.2'; print(PySide6.__version__)"
+      - name: Desktop lint and type checks
+        run: |
+          ruff check src/evo_engine/desktop tests/desktop tests/architecture/test_desktop_dependency_boundary.py
+          pyright src/evo_engine/desktop tests/desktop
+      - name: Native and compatibility tests
+        run: |
+          pytest -q \
+            tests/desktop \
+            tests/architecture/test_desktop_dependency_boundary.py \
+            tests/ui/test_world_presentation.py \
+            tests/ui/test_wu5_presentation.py \
+            tests/ui/test_wu5_world_explorer.py
+      - name: Source launch smoke
+        run: python -m evo_engine.desktop.main --smoke-test
+      - name: Build standalone desktop artifact
+        run: pyside6-deploy src/evo_engine/desktop/main.py --force --name EvolutionExperimentWorkbench
+      - name: Packaged artifact launch smoke
+        id: packaged
+        shell: bash
+        run: |
+          artifact="$(find . -maxdepth 6 -type f -name 'EvolutionExperimentWorkbench*' -perm -111 | head -n 1)"
+          if [[ -z "$artifact" ]]; then
+            echo "Standalone desktop artifact not found" >&2
+            exit 1
+          fi
+          QT_QPA_PLATFORM=offscreen "$artifact" --smoke-test
+          echo "artifact=$artifact" >> "$GITHUB_OUTPUT"
+      - name: Upload standalone proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: q0-linux-desktop-proof
+          path: ${{ steps.packaged.outputs.artifact }}
+          if-no-files-found: error
