@@ -288,21 +288,38 @@ existing recipe-scoped semantic-diff contracts. Canonical B3 remains curated and
 read-only except for the explicit supported radius-2 sensitivity fork, whose child
 preserves B3 origin while losing the validated radius-1 identity.
 
-The next sequential product milestone is **WU3 — Evidence, Experiment Design,
-Readiness, and Run Execution**. It should make current evidence choices and concrete
-E3/E4 experiment patterns authorable in the existing Study shell, connect the
-reserved Run action to authoritative concrete execution/preflight paths, and present
-cross-page readiness without inventing a universal validation state machine.
+WU3 completes the first end-to-end scientific execution path through that shell.
+Evidence authoring consumes only the existing controlled/reference evidence-plan
+contracts and leaves frozen/experiment-required B3/E3/E4 evidence read-only.
+Reference spatial-history guidance remains a non-blocking backend-owned advisory.
+E3 and E4 expose only their existing concrete experiment choices; their displayed
+run matrices come from authoritative expansion, while B3 case counts come from
+curated compilation.
 
-WU3 must continue to preserve the existing distinctions among simulation intent,
-evidence plan, factor/treatment design, replicate planning, authoritative lower
-preflight, committed results, and presentation. It must not create a generic
+WU3 also activates the global Run action without creating a second execution model.
+Existing Workbench readiness remains the authoring authority; Run first opens a plan
+derived from the exact artifact, then delegates synchronously to the owning concrete
+Workbench runner. Pending revision-backed Simulation/Evidence changes receive one
+immutable child owner before execution, while E3/E4 keep their existing immutable
+experiment-definition semantics. Successful revision-owned runs attach returned
+provenance using existing `.with_run(...)` behavior, and authoritative result objects
+remain session-owned. Compile/preflight failure does not mutate the saved artifact or
+become fabricated Workbench diagnostics.
+
+The next product front is downstream **Results/world/presentation integration** over
+this now-concrete execution/result-ownership seam. It should reuse WB5 result
+navigation and existing V2/V3 presentation adapters, add concrete analysis or Run
+Explorer workflows only where current result/evidence contracts support them, and
+keep Presentation downstream of authoritative scientific meaning. The focused Issue
+for that work should establish its exact WU milestone identity against current
+`main`; this roadmap does not invent a generic Results framework or universal next
+schema in advance.
+
+Future WU work must continue to preserve the existing distinctions among simulation
+intent, evidence plan, factor/treatment design, replicate planning, authoritative
+lower preflight, committed results, and presentation. It must not create a generic
 experiment DSL, statistics framework, universal Study schema, or duplicate scientific
 validation merely to simplify UI orchestration.
-
-Later WU milestones should continue Results/world/presentation integration through
-the same shell after execution/result ownership is concrete, rather than reopening
-the Workbench backend architecture.
 
 ## Controlled-science direction after E7
 
@@ -332,9 +349,9 @@ a dependency of it.
 
 ## Presentation continuation
 
-WB5 provides the architecture seam for Workbench→V2/V3. The WU sequence should
-integrate those consumers only after Study execution/result ownership is concrete,
-while preserving:
+WB5 provides the architecture seam for Workbench→V2/V3, and WU3 now supplies
+concrete application execution/result ownership. Later WU work can integrate those
+consumers through the persistent Study shell while preserving:
 
 - exact Study/run/treatment/replicate identity;
 - B3 control/treatment semantics;
