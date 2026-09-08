@@ -83,9 +83,18 @@ quality matrix:
 - Import Linter;
 - kernel contracts;
 - Complexipy;
-- pytest with line + branch coverage at the repository threshold;
+- pytest with line + branch coverage at the repository threshold for the default
+  core/application-independent scope;
 - strict MkDocs;
 - reference/kernel/world-presentation performance profiling.
+
+The optional PySide6 desktop application is intentionally absent from the default
+quality environment, so `evo_engine.desktop` is omitted from the core coverage
+denominator rather than counted as uncovered code whose dependency cannot be
+imported. The 90% core threshold is unchanged. Native desktop behavior is instead
+validated in the dedicated Desktop workflow, which installs the pinned Qt runtime
+and runs desktop lint/type checks, native and compatibility tests, QML/source launch,
+and standalone packaged-artifact launch smoke.
 
 The protected aggregate status-check name remains stable. A changed final candidate
 head must become green again before merge.

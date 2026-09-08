@@ -47,6 +47,19 @@ def test_quality_workflow_uses_one_draft_fast_job_and_full_non_draft_gate() -> N
     assert "Reference + kernel + world-presentation performance profiles" in quality
 
 
+def test_optional_desktop_has_separate_validation_from_core_coverage() -> None:
+    coverage_config = _read(".coveragerc")
+    coverage_script = _read("scripts/coverage")
+    desktop_workflow = _read(".github/workflows/desktop.yml")
+
+    assert "src/evo_engine/desktop/*" in coverage_config
+    assert "--cov=evo_engine" in coverage_script
+    assert "optional PySide6 desktop" in coverage_script
+    assert "tests/desktop" in desktop_workflow
+    assert "Desktop lint and type checks" in desktop_workflow
+    assert "Packaged artifact launch smoke" in desktop_workflow
+
+
 def test_expensive_smokes_are_deferred_until_non_draft_validation() -> None:
     release_smoke = _read(".github/workflows/release-smoke.yml")
     cinematic_smoke = _read(".github/workflows/cinematic-smoke.yml")

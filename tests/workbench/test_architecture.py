@@ -5,7 +5,12 @@ from __future__ import annotations
 from ast import Import, ImportFrom, parse, walk
 from pathlib import Path
 
-_DOWNSTREAM_PRESENTATION_PACKAGES = frozenset({"cinematic", "ui"})
+_DOWNSTREAM_PRESENTATION_PACKAGES = frozenset(
+    {"cinematic", "desktop", "presentation", "ui"}
+)
+_DOWNSTREAM_IMPORT_PREFIXES = tuple(
+    f"evo_engine.{package}" for package in _DOWNSTREAM_PRESENTATION_PACKAGES
+)
 
 
 def test_lower_engine_and_science_packages_do_not_import_workbench() -> None:
@@ -27,7 +32,7 @@ def test_lower_engine_and_science_packages_do_not_import_workbench() -> None:
     assert leaks == []
 
 
-def test_workbench_does_not_import_renderer_packages() -> None:
+def test_workbench_does_not_import_downstream_presentation_packages() -> None:
     """Keep renderer/frontend responsibilities downstream of Workbench science."""
     package_root = Path(__file__).resolve().parents[2] / "src" / "evo_engine"
     workbench_root = package_root / "workbench"
@@ -35,14 +40,14 @@ def test_workbench_does_not_import_renderer_packages() -> None:
 
     for path in workbench_root.rglob("*.py"):
         for imported_name in _imports(path):
-            if imported_name.startswith(("evo_engine.ui", "evo_engine.cinematic")):
+            if imported_name.startswith(_DOWNSTREAM_IMPORT_PREFIXES):
                 leaks.append((str(path.relative_to(package_root)), imported_name))
 
     assert leaks == []
 
 
-def test_model_and_science_packages_do_not_import_renderers() -> None:
-    """Prevent UI/cinematic implementations from becoming scientific dependencies."""
+def test_model_and_science_packages_do_not_import_presentation_consumers() -> None:
+    """Prevent downstream presentation/application code from becoming science dependencies."""
     package_root = Path(__file__).resolve().parents[2] / "src" / "evo_engine"
     leaks: list[tuple[str, str]] = []
 
@@ -51,7 +56,7 @@ def test_model_and_science_packages_do_not_import_renderers() -> None:
         if relative.parts and relative.parts[0] in _DOWNSTREAM_PRESENTATION_PACKAGES:
             continue
         for imported_name in _imports(path):
-            if imported_name.startswith(("evo_engine.ui", "evo_engine.cinematic")):
+            if imported_name.startswith(_DOWNSTREAM_IMPORT_PREFIXES):
                 leaks.append((str(relative), imported_name))
 
     assert leaks == []
