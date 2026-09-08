@@ -19,7 +19,10 @@ from evo_engine.workbench.experiments import (
     MaxSpeedSweepDefinition,
     MaxSpeedSweepResult,
 )
-from evo_engine.workbench.reference_study import ReferenceRunResult, ReferenceStudyRevision
+from evo_engine.workbench.reference_study import (
+    ReferenceRunResult,
+    ReferenceStudyRevision,
+)
 from evo_engine.workbench.results import (
     B3ResultsView,
     ControlledLocomotionResultsView,
