@@ -23,15 +23,15 @@ def test_qt_is_not_a_core_project_dependency() -> None:
     pyproject = (_root() / "pyproject.toml").read_text(encoding="utf-8")
     project_dependencies = pyproject.split("[project.urls]", maxsplit=1)[0]
     assert "PySide6" not in project_dependencies
-    assert "PySide6==6.11.2" in (
-        _root() / "requirements-desktop.txt"
-    ).read_text(encoding="utf-8")
+    assert "PySide6==6.11.2" in (_root() / "requirements-desktop.txt").read_text(
+        encoding="utf-8"
+    )
 
 
 def test_qml_contains_only_application_and_presentation_calls() -> None:
-    qml = (
-        _root() / "src" / "evo_engine" / "desktop" / "qml" / "Main.qml"
-    ).read_text(encoding="utf-8")
+    qml = (_root() / "src" / "evo_engine" / "desktop" / "qml" / "Main.qml").read_text(
+        encoding="utf-8"
+    )
     assert "evo_engine." not in qml
     assert "manifestDigest =" not in qml
     assert "revisionId =" not in qml
