@@ -18,6 +18,7 @@ from evo_engine.ui.evidence_authoring import (
 from evo_engine.workbench import (
     B3StudyRevision,
     EnvironmentSelectionComparisonDefinition,
+    EvidencePlan,
     MaxSpeedSweepDefinition,
     ReferenceEvidencePlan,
     ReferenceStudyRevision,
@@ -47,7 +48,7 @@ def pending_evidence_plan(
     if st.session_state.get(_DRAFT_OWNER_KEY) != artifact.revision_id:
         return None
     plan = st.session_state.get(_DRAFT_PLAN_KEY)
-    if isinstance(artifact, StudyRevision) and type(plan) is artifact.evidence_plan.__class__:
+    if isinstance(artifact, StudyRevision) and isinstance(plan, EvidencePlan):
         return plan
     if isinstance(artifact, ReferenceStudyRevision) and isinstance(
         plan, ReferenceEvidencePlan
@@ -146,7 +147,7 @@ def _readiness_for_plan(
     plan: EditableEvidencePlan,
 ) -> WorkbenchReadiness:
     if isinstance(artifact, StudyRevision):
-        if not isinstance(plan, artifact.evidence_plan.__class__):
+        if not isinstance(plan, EvidencePlan):
             raise TypeError("Controlled Evidence requires the controlled EvidencePlan.")
         return assess_readiness(artifact.intent, plan)
     if not isinstance(plan, ReferenceEvidencePlan):
