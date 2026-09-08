@@ -99,7 +99,9 @@ def test_all_supported_new_study_families_activate_concrete_artifacts(
     assert controller.readinessState == "ready"
 
 
-def test_new_and_open_routes_are_transient_navigation_not_scientific_artifacts() -> None:
+def test_new_and_open_routes_are_transient_navigation_not_scientific_artifacts() -> (
+    None
+):
     controller = _controller()
 
     controller.showNewStudy()
@@ -303,7 +305,9 @@ def test_replacing_active_artifact_rejects_old_result_and_resets_presentation(
     assert controller.statusTone == "error"
 
 
-def test_return_home_clears_active_artifact_and_family_specific_transient_state() -> None:
+def test_return_home_clears_active_artifact_and_family_specific_transient_state() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("reference-ecology")
     reference = cast(ReferenceStudyController, controller.referenceController)
