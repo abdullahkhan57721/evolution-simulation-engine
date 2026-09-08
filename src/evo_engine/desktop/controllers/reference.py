@@ -76,9 +76,13 @@ class ReferenceStudyController(QObject):
         self._worker: _ReferenceRunWorker | None = None
         self._status = "Reference Ecology controls are available for active studies."
 
+    def is_active(self) -> bool:
+        """Return exact Reference-owner state for Python controller use."""
+        return self._revision is not None
+
     @Property(bool, notify=activeChanged)
     def active(self) -> bool:
-        return self._revision is not None
+        return self.is_active()
 
     @Property(int, notify=draftChanged)
     def draftMaxSpeed(self) -> int:  # noqa: N802
