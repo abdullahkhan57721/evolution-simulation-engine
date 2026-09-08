@@ -103,31 +103,31 @@ def test_reference_applicability_reconciles_transient_draft_without_expert_contr
     assert controller.createStudy("reference-ecology")
     reference = _reference(controller)
 
-    assert reference.hasExpertControls is False
+    assert reference.property("hasExpertControls") is False
     assert REFERENCE_EXPERT_SLOT_IDS == ()
     assert REFERENCE_EXTENSION_CAPABILITIES
 
-    reference.draftExplorationMovement = "gaussian"
+    assert reference.setProperty("draftExplorationMovement", "gaussian")
     assert reference.gaussianApplicable
-    reference.draftGaussianStandardDeviation = 4
+    assert reference.setProperty("draftGaussianStandardDeviation", 4)
     assert reference.draftGaussianStandardDeviation == 4
-    reference.draftExplorationMovement = "moore"
+    assert reference.setProperty("draftExplorationMovement", "moore")
     assert not reference.gaussianApplicable
     assert reference.draftGaussianStandardDeviation == 0
     assert reference.normalizationNotice
 
-    reference.draftResourceGeography = "two_patches"
+    assert reference.setProperty("draftResourceGeography", "two_patches")
     assert reference.patchGeometryApplicable
-    reference.draftPatch1Radius = 3
-    reference.draftResourceGeography = "uniform"
+    assert reference.setProperty("draftPatch1Radius", 3)
+    assert reference.setProperty("draftResourceGeography", "uniform")
     assert not reference.patchGeometryApplicable
     assert reference.draftPatch1Radius == 0
 
-    reference.draftMutationEnabled = True
+    assert reference.setProperty("draftMutationEnabled", True)
     assert reference.mutationParametersApplicable
-    reference.draftMutationProbability = 500
-    reference.draftMutationMaxChange = 2
-    reference.draftMutationEnabled = False
+    assert reference.setProperty("draftMutationProbability", 500)
+    assert reference.setProperty("draftMutationMaxChange", 2)
+    assert reference.setProperty("draftMutationEnabled", False)
     assert not reference.mutationParametersApplicable
     assert reference.draftMutationProbability == 0
     assert reference.draftMutationMaxChange == 0
@@ -310,7 +310,7 @@ def test_b3_and_single_run_experiment_pages_do_not_invent_generic_experiments() 
     assert controller.createStudy("b3-flagship")
     experiment = _experiment(controller)
     assert experiment.mode == "b3"
-    assert int(experiment.b3TotalSimulations) > 0
+    assert experiment.property("b3TotalSimulations") > 0
     assert not experiment.draftDirty
 
     for kind in ("controlled-run", "reference-ecology"):
