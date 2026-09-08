@@ -103,7 +103,7 @@ def test_reference_applicability_reconciles_transient_draft_without_expert_contr
     assert controller.createStudy("reference-ecology")
     reference = _reference(controller)
 
-    assert not reference.hasExpertControls
+    assert reference.hasExpertControls is False
     assert REFERENCE_EXPERT_SLOT_IDS == ()
     assert REFERENCE_EXTENSION_CAPABILITIES
 
@@ -142,7 +142,7 @@ def test_reference_simulation_commit_preserves_parent_lineage_and_diff() -> None
     parent_id = parent.revision_id
     reference = _reference(controller)
 
-    reference.draftMaxSpeed = 4 if reference.draftMaxSpeed != 4 else 3
+    reference.set_draft_max_speed(4 if reference.draftMaxSpeed != 4 else 3)
     assert reference.draftDirty
     assert reference.draftReady
     assert reference.saveChildRevision()
@@ -198,7 +198,7 @@ def test_controlled_evidence_draft_commits_new_revision_and_missing_implication(
     evidence.setEvidenceSelected(first.evidence_id, False)
     assert evidence.draftDirty
     assert evidence.draftReady
-    assert "cannot be reconstructed" in evidence.missingEvidenceMessage
+    assert "cannot be reconstructed" in str(evidence.missingEvidenceMessage)
     assert evidence.saveEvidenceChildRevision()
 
     child = _active(controller)
@@ -221,7 +221,7 @@ def test_reference_spatial_evidence_warning_and_immutable_child() -> None:
 
     evidence.setEvidenceSelected(spatial.evidence_id, True)
     assert evidence.draftReady
-    assert "storage grows" in evidence.advisoryMessage
+    assert "storage grows" in str(evidence.advisoryMessage)
     assert evidence.saveEvidenceChildRevision()
 
     child = _active(controller)
@@ -289,7 +289,7 @@ def test_e4_seed_authoring_preserves_factor_roles_composition_and_counterbalance
     assert experiment.controlEnvironment == "Local Resource"
     assert experiment.treatmentEnvironment == "Separated Corridor"
     assert experiment.standingComposition == "1, 3, 9"
-    assert "Founder-order counterbalance" in experiment.counterbalanceLabel
+    assert "Founder-order counterbalance" in str(experiment.counterbalanceLabel)
     runs = cast(ExperimentRunModel, experiment.runModel).items()
     assert len(runs) == 6
     assert {item.role for item in runs} == {"Control", "Treatment"}
@@ -310,7 +310,7 @@ def test_b3_and_single_run_experiment_pages_do_not_invent_generic_experiments() 
     assert controller.createStudy("b3-flagship")
     experiment = _experiment(controller)
     assert experiment.mode == "b3"
-    assert experiment.b3TotalSimulations > 0
+    assert int(experiment.b3TotalSimulations) > 0
     assert not experiment.draftDirty
 
     for kind in ("controlled-run", "reference-ecology"):

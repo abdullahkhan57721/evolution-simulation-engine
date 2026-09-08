@@ -66,7 +66,7 @@ class FactorLevelItem:
 
 class _MeaningRole(IntEnum):
     label = int(Qt.ItemDataRole.UserRole) + 1
-    value = label + 1
+    item_value = label + 1
 
 
 class MeaningListModel(QAbstractListModel):
@@ -93,7 +93,7 @@ class MeaningListModel(QAbstractListModel):
     def roleNames(self) -> dict[int, QByteArray]:  # noqa: N802
         return {
             int(_MeaningRole.label): QByteArray(b"label"),
-            int(_MeaningRole.value): QByteArray(b"value"),
+            int(_MeaningRole.item_value): QByteArray(b"value"),
         }
 
     def data(self, index: QModelIndex, role: int = int(Qt.ItemDataRole.DisplayRole)):
@@ -102,7 +102,7 @@ class MeaningListModel(QAbstractListModel):
         item = self._items[index.row()]
         return {
             int(_MeaningRole.label): item.label,
-            int(_MeaningRole.value): item.value,
+            int(_MeaningRole.item_value): item.value,
         }.get(role)
 
 
@@ -272,8 +272,8 @@ class ExperimentRunModel(QAbstractListModel):
 
 
 class _FactorLevelRole(IntEnum):
-    value = int(Qt.ItemDataRole.UserRole) + 1
-    selected = value + 1
+    level_value = int(Qt.ItemDataRole.UserRole) + 1
+    selected = level_value + 1
 
 
 class FactorLevelModel(QAbstractListModel):
@@ -299,7 +299,7 @@ class FactorLevelModel(QAbstractListModel):
 
     def roleNames(self) -> dict[int, QByteArray]:  # noqa: N802
         return {
-            int(_FactorLevelRole.value): QByteArray(b"levelValue"),
+            int(_FactorLevelRole.level_value): QByteArray(b"levelValue"),
             int(_FactorLevelRole.selected): QByteArray(b"selected"),
         }
 
@@ -308,7 +308,7 @@ class FactorLevelModel(QAbstractListModel):
             return None
         item = self._items[index.row()]
         return {
-            int(_FactorLevelRole.value): item.value,
+            int(_FactorLevelRole.level_value): item.value,
             int(_FactorLevelRole.selected): item.selected,
         }.get(role)
 

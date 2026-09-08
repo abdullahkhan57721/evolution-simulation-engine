@@ -74,15 +74,20 @@ class EvidenceAuthoringController(QObject):
 
     @Property(str, notify=draftChanged)
     def readinessMessage(self) -> str:  # noqa: N802
+        return self._readiness_message()
+
+    def _readiness_message(self) -> str:
         artifact = self._artifact
-        if not isinstance(artifact, (StudyRevision, ReferenceStudyRevision)):
+        if isinstance(artifact, StudyRevision):
+            plan = make_editable_evidence_plan(artifact, self._requested)
+            assert isinstance(plan, EvidencePlan)
+            readiness = assess_readiness(artifact.intent, plan)
+        elif isinstance(artifact, ReferenceStudyRevision):
+            plan = make_editable_evidence_plan(artifact, self._requested)
+            assert isinstance(plan, ReferenceEvidencePlan)
+            readiness = assess_reference_readiness(artifact.intent, plan)
+        else:
             return "Required evidence is fixed by this scientific design."
-        plan = make_editable_evidence_plan(artifact, self._requested)
-        readiness = (
-            assess_readiness(artifact.intent, plan)
-            if isinstance(plan, EvidencePlan)
-            else assess_reference_readiness(artifact.intent, plan)
-        )
         if not readiness.diagnostics:
             return "Ready"
         return " · ".join(item.message for item in readiness.diagnostics)
@@ -188,7 +193,7 @@ class EvidenceAuthoringController(QObject):
             self._set_status("Evidence matches the current immutable revision.")
             return False
         if self._readiness_state() != "ready":
-            self._set_status(self.readinessMessage)
+            self._set_status(self._readiness_message())
             return False
         prefix = "controlled" if isinstance(artifact, StudyRevision) else "reference"
         child = save_evidence_child(
