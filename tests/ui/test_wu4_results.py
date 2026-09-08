@@ -319,7 +319,11 @@ def test_empty_revision_and_experiment_without_session_result_are_honest(
     monkeypatch.setattr(results_page, "st", fake)
     revision = create_study_revision(
         revision_id="wu4-never-run",
-        intent=ControlledLocomotionIntent(seed=3),
+        intent=ControlledLocomotionIntent(
+            max_speed=3,
+            resource_geography="local_resource",
+            seed=3,
+        ),
     )
 
     results_page.render_results_page(revision, None)
