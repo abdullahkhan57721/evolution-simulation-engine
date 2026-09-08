@@ -456,7 +456,7 @@ WB4 remains the explicit tiered recipe:
   genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
   movement, and development/G×E editing.
 
-WU2–WU5 and Q0–Q1 promote no capability merely because the lower engine can
+WU2–WU5 and Q0–Q2 promote no capability merely because the lower engine can
 represent it.
 
 ## Results and presentation boundary
@@ -497,15 +497,17 @@ remain presentation concerns.
 ## Current development front
 
 The Workbench foundation, E1–E7 controlled-science sequence, end-to-end Streamlit
-reference product, Q0 native technology proof, and **Q1 native persistent Study
-shell** are established.
+reference product, Q0 native technology proof, **Q1 native persistent Study
+shell**, and **Q2 native pre-execution scientific authoring** are established.
 
 PySide6 + Qt Quick/QML is the primary product architecture without moving scientific
-authority out of Workbench. Q1 has established Home/New/Open, exact concrete routing
-and persistence for the current five-family support envelope, persistent
+authority out of Workbench. Q1 established Home/New/Open, exact concrete routing and
+persistence for the current five-family support envelope, persistent
 `Simulation / Evidence / Experiment / Results / Presentation` navigation, exact
-active-owner/reset semantics, a family-specific controller seam, reusable native
-QML primitives, and the retained Reference Ecology deep slice.
+active-owner/reset semantics, and reusable native QML primitives. Q2 adds the
+currently supported Simulation/Evidence/Experiment authoring through concrete thin
+controllers while retaining Reference Ecology as the only deep native
+execution/result/world slice.
 
 The next native product work should extend those settled seams rather than redesign
 the application shell:
@@ -547,10 +549,10 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities still
-differ. WB5/WB6, WU1–WU5, and Q0–Q1 still do not reveal enough identical persistence
+differ. WB5/WB6, WU1–WU5, and Q0–Q2 still do not reveal enough identical persistence
 or execution responsibility to earn a universal saved Study/Experiment/Results root.
-Q1 reinforces the intended approach by routing concrete formats directly rather than
-manufacturing one for Qt.
+Q1/Q2 reinforce the intended approach by routing and authoring concrete formats
+directly rather than manufacturing one for Qt.
 
 ### Broader Workbench diagnostics remain bounded
 

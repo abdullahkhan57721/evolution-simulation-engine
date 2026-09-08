@@ -236,15 +236,13 @@ diagnostic message/remediation.
 
 ### Family-specific controller seam
 
-`ReferenceStudyController` now owns only the retained Reference Ecology deep slice:
-its transient `max_speed` draft, immutable child commit, narrow worker-thread run,
+Q1 originally kept `ReferenceStudyController` as the one deep family slice: a
+transient `max_speed` draft, immutable child commit, narrow worker-thread run,
 authoritative Reference result, and renderer-neutral world preparation. It receives
 an exact active `ReferenceStudyRevision` from `ApplicationController`; it is not the
-application router or persistence dispatcher.
-
-This separation is intentional. Other families should get concrete downstream
-controllers when Q2–Q4 need real family behavior rather than accumulating unrelated
-logic in one universal controller.
+application router or persistence dispatcher. Q2 preserves that family boundary while
+expanding Reference authoring and adding separate concrete Simulation, Evidence, and
+Experiment controllers, as described below.
 
 ### QML shell and design system
 
