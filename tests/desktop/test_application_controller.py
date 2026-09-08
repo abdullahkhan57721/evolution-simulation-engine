@@ -115,6 +115,24 @@ def test_new_and_open_routes_are_transient_navigation_not_scientific_artifacts()
     assert not controller.hasStudy
 
 
+def test_new_and_open_choosers_preserve_active_science_until_replacement() -> None:
+    controller = _controller()
+    assert controller.createStudy("b3-flagship")
+    before = serialize_concrete_artifact(_active(controller))
+
+    controller.showNewStudy()
+    assert controller.route == "new"
+    assert serialize_concrete_artifact(_active(controller)) == before
+
+    controller.showOpenStudy()
+    assert controller.route == "open"
+    assert serialize_concrete_artifact(_active(controller)) == before
+
+    controller.goHome()
+    assert controller.route == "home"
+    assert not controller.hasStudy
+
+
 def test_section_navigation_never_mutates_active_science() -> None:
     controller = _controller()
     assert controller.createStudy("b3-flagship")
@@ -200,7 +218,9 @@ def test_exact_incompatible_open_preserves_current_study_and_surfaces_diagnostic
     assert controller.diagnosticRemediation
 
 
-def test_save_failure_is_atomic_and_does_not_replace_file_location(tmp_path: Path) -> None:
+def test_save_failure_is_atomic_and_does_not_replace_file_location(
+    tmp_path: Path,
+) -> None:
     controller = _controller()
     assert controller.createStudy("b3-flagship")
     valid = tmp_path / "b3.json"
@@ -247,7 +267,7 @@ def test_reference_scientific_change_clears_stale_result_run_plan_and_presentati
     assert controller.bind_result(result)
     controller.set_run_plan_open(True)
     owner = controller.presentationOwner
-    epoch = controller.presentationEpoch
+    epoch = controller._presentation_epoch
     assert owner
     assert controller.hasResult
     assert controller.runPlanOpen
@@ -259,7 +279,7 @@ def test_reference_scientific_change_clears_stale_result_run_plan_and_presentati
     assert not controller.hasResult
     assert not controller.runPlanOpen
     assert controller.presentationOwner == ""
-    assert controller.presentationEpoch > epoch
+    assert controller._presentation_epoch > epoch
 
 
 def test_replacing_active_artifact_rejects_old_result_and_resets_presentation(
@@ -272,13 +292,13 @@ def test_replacing_active_artifact_rejects_old_result_and_resets_presentation(
     assert controller.openStudy(str(path))
     result = run_reference_study_revision(revision, run_id="q1-stale-test")
     assert controller.bind_result(result)
-    epoch = controller.presentationEpoch
+    epoch = controller._presentation_epoch
 
     assert controller.createStudy("b3-flagship")
 
     assert not controller.hasResult
     assert controller.presentationOwner == ""
-    assert controller.presentationEpoch > epoch
+    assert controller._presentation_epoch > epoch
     assert not controller.bind_result(result)
     assert controller.statusTone == "error"
 
