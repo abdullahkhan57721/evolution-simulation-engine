@@ -157,6 +157,8 @@ Start with:
 - `docs/general_evolution_framework.md` — domain-neutral evolution layer.
 - `docs/development/codex_workflow.md` — selective Codex handoff, scope, and
   recovery flow.
+- `docs/development/validation_workflow.md` — inner-loop, checkpoint, and final
+  validation cadence.
 - `docs/development/manual_verification.md` — practical ticket-level verification.
 - `.github/ARCHITECTURE_GUARDRAILS.md` — enforced dependency direction.
 - `docs/decisions/` — major architectural decisions and rationale.
@@ -178,13 +180,25 @@ venv/bin/python -m pip install -e ".[dev,docs]"
 venv/bin/python -m pip install -r requirements-performance.txt
 ```
 
-Apply safe automatic formatting/fixes before final verification:
+Apply Ruff's safe autofixes and canonical formatting to the repository before
+checkpoint or final verification:
 
 ```bash
 ./scripts/fix
 ```
 
-Run the routine local quality gate non-interactively:
+Do not enable Ruff unsafe fixes globally. If an unsafe transformation is ever
+considered, inspect and justify it as code rather than treating it as formatting.
+
+During implementation, run focused tests for the changed behavior and use the fast
+checkpoint gate before ordinary pushes:
+
+```bash
+./scripts/check_all --fast --no-pause
+```
+
+Run the complete local quality gate once a milestone is functionally complete and
+before presenting a final merge candidate:
 
 ```bash
 ./scripts/check_all --no-pause
@@ -202,9 +216,16 @@ Useful focused commands:
 ./scripts/docs
 ```
 
-GitHub Actions additionally runs the performance/profile regression checks and
-uploads their artifacts. Do not weaken performance guards merely to merge a
-change; investigate whether a regression is real first.
+The validation cadence is intentionally layered: focused tests and safe autofix are
+the inner loop; the fast gate is a checkpoint; complete coverage/docs/performance,
+release smoke, cinematic smoke when relevant, and frozen scientific confirmations
+belong to final/non-draft validation. See
+`docs/development/validation_workflow.md`.
+
+GitHub Actions still requires the complete protected quality gate on final candidate
+heads and additionally runs performance/profile regression checks. Do not weaken
+coverage, architecture, performance, or scientific guards merely to merge a change;
+investigate whether a regression is real first.
 
 ## Issue → branch → PR → merge workflow
 
@@ -215,15 +236,26 @@ Substantial work should be recoverable without the originating chat.
    do-not-touch boundaries, requirements, non-goals, architectural constraints,
    acceptance criteria, automated validation, and manual verification.
 3. Create a focused branch from current `main`.
-4. Make coherent commits and open a PR early rather than waiting until 90% of the
-   work is complete.
+4. Make coherent commits and open a draft PR early rather than waiting until 90%
+   of the work is complete. Draft PRs are recovery checkpoints and receive the fast
+   quality gate rather than the full merge gate.
 5. Keep the PR's **Recovery checkpoint** current during long-running work.
-6. Run targeted tests while developing.
-7. Run the routine quality gate locally when practical.
-8. Require the complete protected GitHub Actions quality gate to be green.
-9. Squash-merge the exact reviewed/green head SHA.
-10. Re-fetch and verify `main` after merge.
-11. If the merged milestone materially changed architectural capability, the
+6. During implementation, run targeted tests and `./scripts/fix` after coherent
+   Python changes instead of using CI as the primary lint/format loop.
+7. Before ordinary development pushes, run
+   `./scripts/check_all --fast --no-pause` when practical.
+8. When the milestone is functionally complete, run `./scripts/fix` followed by
+   `./scripts/check_all --no-pause`, update the PR completion report, and mark the
+   PR ready for review.
+9. Require the complete protected GitHub Actions quality gate to be green on the
+   exact non-draft candidate head. Relevant release, cinematic, and frozen
+   scientific validation must also be green when their science-affecting paths are
+   touched.
+10. If the candidate head changes after final validation, rerun focused checks first
+    and then let the complete non-draft gate validate the new exact head.
+11. Squash-merge the exact reviewed/green head SHA.
+12. Re-fetch and verify `main` after merge.
+13. If the merged milestone materially changed architectural capability, the
     current development front, known friction, collaboration policy, or roadmap
     direction, update `docs/development/current_state.md` and/or
     `docs/development/roadmap.md` in that milestone rather than leaving them

@@ -2,6 +2,12 @@ name: Quality Checks
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
   push:
     branches:
       - main
@@ -36,9 +42,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  fast:
+    name: Fast checkpoint
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-quality
+      - run: ./scripts/check_all --fast --no-pause
+
   ruff:
     name: Ruff
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Ruff') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,7 +71,7 @@ jobs:
 
   pyright:
     name: Pyright
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Pyright' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Pyright') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -72,7 +88,7 @@ jobs:
 
   architecture:
     name: Import Linter
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Import Linter' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Import Linter') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -99,7 +115,7 @@ jobs:
 
   kernel_contracts:
     name: Kernel Contracts
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Kernel Contracts' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Kernel Contracts') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -116,7 +132,7 @@ jobs:
 
   complexipy:
     name: Complexipy
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Complexipy' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Complexipy') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -133,7 +149,7 @@ jobs:
 
   coverage:
     name: pytest + coverage
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Tests + coverage') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -153,7 +169,7 @@ jobs:
 
   performance:
     name: Reference performance
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'Reference performance') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -202,7 +218,7 @@ jobs:
 
   docs:
     name: MkDocs
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.draft == false) && (github.event_name != 'workflow_dispatch' || inputs.check == 'All' || inputs.check == 'MkDocs') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -223,6 +239,7 @@ jobs:
     name: Ruff, Pyright, Architecture, Complexity, Tests, Docs
     if: ${{ always() }}
     needs:
+      - fast
       - ruff
       - pyright
       - architecture
@@ -238,12 +255,24 @@ jobs:
         shell: bash
         run: |
           selected="${{ github.event_name == 'workflow_dispatch' && inputs.check || 'All' }}"
+          is_draft="${{ github.event_name == 'pull_request' && github.event.pull_request.draft == true }}"
 
           echo "Selected check: $selected"
+          echo "Draft PR:       $is_draft"
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.target_ref }}" ]]; then
             echo "Target ref:     ${{ inputs.target_ref }}"
           fi
           echo
+
+          if [[ "$is_draft" == "true" ]]; then
+            echo "Draft PR fast-check outcome: ${{ needs.fast.result }}"
+            if [[ "${{ needs.fast.result }}" != "success" ]]; then
+              echo "Fast checkpoint failed."
+              exit 1
+            fi
+            echo "Fast checkpoint passed. Full merge gate is deferred until ready for review."
+            exit 0
+          fi
 
           failed=0
 

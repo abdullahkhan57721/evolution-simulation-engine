@@ -62,6 +62,7 @@ nav:
   - Development Workflow:
       - Current Project State: development/current_state.md
       - Architectural Roadmap: development/roadmap.md
+      - Validation Workflow: development/validation_workflow.md
       - Codex Ticket Workflow: development/codex_workflow.md
       - Manual Verification: development/manual_verification.md
   - General Evolution Framework: general_evolution_framework.md

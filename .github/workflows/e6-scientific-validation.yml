@@ -2,16 +2,18 @@ name: E6 Scientific Validation
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
     paths:
-      - "src/evo_engine/experiments/e6_invasion.py"
-      - "src/evo_engine/experiments/__init__.py"
+      - "src/evo_engine/**"
+      - "!src/evo_engine/ui/**"
+      - "!src/evo_engine/workbench/**"
+      - "!src/evo_engine/presentation/**"
+      - "!src/evo_engine/cinematic/**"
       - "scripts/e6_invasion.py"
-      - "tests/experiments/test_e6_invasion.py"
-      - "tests/experiments/test_e6_invasion_contracts.py"
-      - "docs/e6_rare_lineage_invasion.md"
-      - "docs/development/current_state.md"
-      - "docs/development/roadmap.md"
-      - "mkdocs.yml"
       - ".github/workflows/e6-scientific-validation.yml"
   workflow_dispatch:
 
@@ -23,6 +25,7 @@ permissions:
 jobs:
   confirmation-e6:
     name: Independent E6 confirmation
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
