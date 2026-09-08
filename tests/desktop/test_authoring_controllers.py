@@ -18,7 +18,11 @@ from evo_engine.desktop.controllers import (
     ReferenceStudyController,
     SimulationAuthoringController,
 )
-from evo_engine.desktop.models import EvidenceOptionModel, ExperimentRunModel, SemanticDiffModel
+from evo_engine.desktop.models import (
+    EvidenceOptionModel,
+    ExperimentRunModel,
+    SemanticDiffModel,
+)
 from evo_engine.workbench import (
     B3_VALIDATED_SCENARIO_ID,
     REFERENCE_EXPERT_SLOT_IDS,
@@ -92,7 +96,9 @@ def test_controlled_simulation_draft_is_bounded_and_commits_immutable_child() ->
     assert any("Maximum speed" in item.label for item in diff)
 
 
-def test_reference_applicability_reconciles_transient_draft_without_expert_controls() -> None:
+def test_reference_applicability_reconciles_transient_draft_without_expert_controls() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("reference-ecology")
     reference = _reference(controller)
@@ -160,7 +166,9 @@ def test_b3_simulation_is_curated_and_supported_fork_shows_identity_loss() -> No
     assert controller.scenarioOrigin
     assert controller.scenarioIdentity == ""
     diff = cast(SemanticDiffModel, _simulation(controller).semanticDiffModel).items()
-    assert any(item.group == "Identity changes" and item.tone == "warning" for item in diff)
+    assert any(
+        item.group == "Identity changes" and item.tone == "warning" for item in diff
+    )
 
 
 def test_e3_and_e4_simulation_assumptions_remain_read_only() -> None:
@@ -173,7 +181,9 @@ def test_e3_and_e4_simulation_assumptions_remain_read_only() -> None:
         assert serialize_concrete_artifact(_active(controller)) == before
 
 
-def test_controlled_evidence_draft_commits_new_revision_and_missing_implication() -> None:
+def test_controlled_evidence_draft_commits_new_revision_and_missing_implication() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("controlled-run")
     parent = _active(controller)
@@ -205,7 +215,9 @@ def test_reference_spatial_evidence_warning_and_immutable_child() -> None:
     parent_id = parent.revision_id
     evidence = _evidence(controller)
     options = cast(EvidenceOptionModel, evidence.optionModel).items()
-    spatial = next(item for item in options if item.evidence_id == REFERENCE_SPATIAL_EVIDENCE_ID)
+    spatial = next(
+        item for item in options if item.evidence_id == REFERENCE_SPATIAL_EVIDENCE_ID
+    )
 
     evidence.setEvidenceSelected(spatial.evidence_id, True)
     assert evidence.draftReady
@@ -262,7 +274,9 @@ def test_e3_levels_and_seeds_use_authoritative_expansion_before_apply() -> None:
     assert 10 in applied.levels
 
 
-def test_e4_seed_authoring_preserves_factor_roles_composition_and_counterbalance() -> None:
+def test_e4_seed_authoring_preserves_factor_roles_composition_and_counterbalance() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("environment-selection-comparison")
     experiment = _experiment(controller)
@@ -314,7 +328,11 @@ def test_authoring_draft_change_clears_q1_transient_result_ownership_state() -> 
     epoch = controller._presentation_epoch
 
     evidence = _evidence(controller)
-    option = next(item for item in cast(EvidenceOptionModel, evidence.optionModel).items() if not item.selected)
+    option = next(
+        item
+        for item in cast(EvidenceOptionModel, evidence.optionModel).items()
+        if not item.selected
+    )
     evidence.setEvidenceSelected(option.evidence_id, True)
 
     assert not controller.runPlanOpen

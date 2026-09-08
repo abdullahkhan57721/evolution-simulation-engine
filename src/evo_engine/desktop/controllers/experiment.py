@@ -43,7 +43,9 @@ class ExperimentAuthoringController(QObject):
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._artifact: ConcreteWorkbenchArtifact | None = None
-        self._candidate: MaxSpeedSweepDefinition | EnvironmentSelectionComparisonDefinition | None = None
+        self._candidate: (
+            MaxSpeedSweepDefinition | EnvironmentSelectionComparisonDefinition | None
+        ) = None
         self._error = ""
         self._levels = FactorLevelModel()
         self._runs = ExperimentRunModel()
@@ -211,7 +213,8 @@ class ExperimentAuthoringController(QObject):
     def setReplicateSeeds(self, value: str) -> None:  # noqa: N802
         definition = self._working_definition()
         if not isinstance(
-            definition, (MaxSpeedSweepDefinition, EnvironmentSelectionComparisonDefinition)
+            definition,
+            (MaxSpeedSweepDefinition, EnvironmentSelectionComparisonDefinition),
         ):
             return
         try:
@@ -247,7 +250,9 @@ class ExperimentAuthoringController(QObject):
     def _try_e3(self, *, levels: tuple[int, ...], seeds: tuple[int, ...]) -> None:
         assert isinstance(self._artifact, MaxSpeedSweepDefinition)
         try:
-            candidate = update_max_speed_sweep(self._artifact, levels=levels, seeds=seeds)
+            candidate = update_max_speed_sweep(
+                self._artifact, levels=levels, seeds=seeds
+            )
             max_speed_run_rows(candidate)
         except (TypeError, ValueError) as exc:
             self._set_invalid(str(exc))
@@ -257,7 +262,9 @@ class ExperimentAuthoringController(QObject):
     def _try_e4(self, *, seeds: tuple[int, ...]) -> None:
         assert isinstance(self._artifact, EnvironmentSelectionComparisonDefinition)
         try:
-            candidate = update_environment_selection_comparison(self._artifact, seeds=seeds)
+            candidate = update_environment_selection_comparison(
+                self._artifact, seeds=seeds
+            )
             environment_run_rows(candidate)
         except (TypeError, ValueError) as exc:
             self._set_invalid(str(exc))
@@ -316,7 +323,9 @@ class ExperimentAuthoringController(QObject):
                         seed=str(row.seed),
                         role=row.role.title(),
                         environment=_humanize(row.environment),
-                        standing_composition=_integer_text(row.standing_focal_composition),
+                        standing_composition=_integer_text(
+                            row.standing_focal_composition
+                        ),
                         founder_order=_integer_text(row.founder_speed_order),
                     )
                     for row in environment_run_rows(definition)

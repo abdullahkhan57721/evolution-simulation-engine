@@ -107,7 +107,9 @@ class SimulationAuthoringController(QObject):
     revisionCommitted = Signal(object)
     statusChanged = Signal()
 
-    def __init__(self, reference: ReferenceStudyController, parent: QObject | None = None):
+    def __init__(
+        self, reference: ReferenceStudyController, parent: QObject | None = None
+    ):
         super().__init__(parent)
         self._reference = reference
         self._artifact: ConcreteWorkbenchArtifact | None = None
@@ -192,7 +194,10 @@ class SimulationAuthoringController(QObject):
 
     @Property(bool, notify=draftChanged)
     def controlledDraftReady(self) -> bool:  # noqa: N802
-        if not isinstance(self._artifact, StudyRevision) or self._controlled_draft is None:
+        if (
+            not isinstance(self._artifact, StudyRevision)
+            or self._controlled_draft is None
+        ):
             return False
         return (
             controlled_draft_readiness(self._artifact, self._controlled_draft).state
@@ -201,7 +206,10 @@ class SimulationAuthoringController(QObject):
 
     @Property(str, notify=draftChanged)
     def controlledReadinessMessage(self) -> str:  # noqa: N802
-        if not isinstance(self._artifact, StudyRevision) or self._controlled_draft is None:
+        if (
+            not isinstance(self._artifact, StudyRevision)
+            or self._controlled_draft is None
+        ):
             return ""
         readiness = controlled_draft_readiness(self._artifact, self._controlled_draft)
         if not readiness.diagnostics:
@@ -245,11 +253,15 @@ class SimulationAuthoringController(QObject):
         """Bind exact application ownership and initialize only transient draft state."""
         self._artifact = artifact
         self._diff_parent = diff_parent
-        self._controlled_draft = artifact.intent if isinstance(artifact, StudyRevision) else None
+        self._controlled_draft = (
+            artifact.intent if isinstance(artifact, StudyRevision) else None
+        )
         self._refresh_models()
         self.activeChanged.emit()
         self.draftChanged.emit()
-        self._set_status("Simulation authoring follows the active exact Workbench artifact.")
+        self._set_status(
+            "Simulation authoring follows the active exact Workbench artifact."
+        )
 
     def clear(self) -> None:
         self._artifact = None
@@ -291,7 +303,10 @@ class SimulationAuthoringController(QObject):
 
     @Slot(result=bool)
     def saveControlledChildRevision(self) -> bool:  # noqa: N802
-        if not isinstance(self._artifact, StudyRevision) or self._controlled_draft is None:
+        if (
+            not isinstance(self._artifact, StudyRevision)
+            or self._controlled_draft is None
+        ):
             return False
         if not self.is_controlled_draft_dirty():
             self._set_status("No controlled Simulation draft changes to save.")
@@ -348,7 +363,9 @@ class SimulationAuthoringController(QObject):
             else revision.manifest
         )
         self._selected.set_items(_pairs(manifest.explicit_values))
-        self._derived.set_items(_selected_derived(manifest, _CONTROLLED_DYNAMIC_DERIVED))
+        self._derived.set_items(
+            _selected_derived(manifest, _CONTROLLED_DYNAMIC_DERIVED)
+        )
         self._frozen.set_items(_selected_derived(manifest, _CONTROLLED_FROZEN))
 
     def _refresh_reference_meaning(self, revision: ReferenceStudyRevision) -> None:
@@ -408,14 +425,19 @@ class SimulationAuthoringController(QObject):
             )
             for change in diff.derived_changes
         )
-        if isinstance(diff, B3CuratedDiff) and diff.scenario_identity_change is not None:
+        if (
+            isinstance(diff, B3CuratedDiff)
+            and diff.scenario_identity_change is not None
+        ):
             items.append(
                 SemanticDiffItem(
                     group="Identity changes",
                     label="Validated scenario identity",
                     before=_format_value(diff.scenario_identity_change.before),
                     after=_format_value(diff.scenario_identity_change.after),
-                    tone="warning" if diff.scenario_identity_change.after is None else "neutral",
+                    tone="warning"
+                    if diff.scenario_identity_change.after is None
+                    else "neutral",
                 )
             )
         self._diff.set_items(items)
@@ -432,7 +454,9 @@ def _pairs(values: tuple[tuple[str, object], ...]) -> tuple[MeaningItem, ...]:
     )
 
 
-def _selected_derived(manifest: object, slot_ids: tuple[str, ...]) -> tuple[MeaningItem, ...]:
+def _selected_derived(
+    manifest: object, slot_ids: tuple[str, ...]
+) -> tuple[MeaningItem, ...]:
     result: list[MeaningItem] = []
     for slot_id in slot_ids:
         try:

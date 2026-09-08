@@ -90,12 +90,20 @@ class ApplicationController(QObject):
         self._evidence = EvidenceAuthoringController(self)
         self._experiment = ExperimentAuthoringController(self)
 
-        self._reference.scientificDraftChanged.connect(self._on_scientific_draft_changed)
-        self._simulation.scientificDraftChanged.connect(self._on_scientific_draft_changed)
+        self._reference.scientificDraftChanged.connect(
+            self._on_scientific_draft_changed
+        )
+        self._simulation.scientificDraftChanged.connect(
+            self._on_scientific_draft_changed
+        )
         self._evidence.scientificDraftChanged.connect(self._on_scientific_draft_changed)
-        self._experiment.scientificDraftChanged.connect(self._on_scientific_draft_changed)
+        self._experiment.scientificDraftChanged.connect(
+            self._on_scientific_draft_changed
+        )
         self._reference.revisionCommitted.connect(self._on_reference_revision_committed)
-        self._simulation.revisionCommitted.connect(self._on_authoring_revision_committed)
+        self._simulation.revisionCommitted.connect(
+            self._on_authoring_revision_committed
+        )
         self._evidence.revisionCommitted.connect(self._on_authoring_revision_committed)
         self._experiment.artifactReplaced.connect(self._on_experiment_artifact_replaced)
         self._reference.runCompleted.connect(self._on_reference_run_completed)
@@ -318,7 +326,9 @@ class ApplicationController(QObject):
             return False
         try:
             path = _path_from_location(location)
-            path.write_text(serialize_concrete_artifact(self._artifact), encoding="utf-8")
+            path.write_text(
+                serialize_concrete_artifact(self._artifact), encoding="utf-8"
+            )
         except (OSError, TypeError, ValueError) as exc:
             self._set_status(f"Save failed: {exc}", tone="error")
             return False
@@ -396,7 +406,9 @@ class ApplicationController(QObject):
         self._reference.runStudy()
 
     def bind_result(self, result: object) -> bool:
-        if self._artifact is None or not result_matches_artifact(self._artifact, result):
+        if self._artifact is None or not result_matches_artifact(
+            self._artifact, result
+        ):
             self._set_status(
                 "Result rejected because it belongs to a different scientific owner.",
                 tone="error",
@@ -424,7 +436,9 @@ class ApplicationController(QObject):
         reference_already_active: bool = False,
         diff_parent: ConcreteWorkbenchArtifact | None = None,
     ) -> None:
-        previous_kind = None if self._artifact is None else artifact_kind(self._artifact)
+        previous_kind = (
+            None if self._artifact is None else artifact_kind(self._artifact)
+        )
         self._clear_result_and_presentation()
         self._run_plan_open = False
         self.runPlanChanged.emit()
@@ -519,7 +533,9 @@ class ApplicationController(QObject):
             )
             return
         self._activate_artifact(artifact, file_path=None, reset_section=False)
-        self._set_status("Applied the exact concrete experiment definition.", tone="success")
+        self._set_status(
+            "Applied the exact concrete experiment definition.", tone="success"
+        )
 
     @Slot(object, object)
     def _on_reference_run_completed(self, revision: object, result: object) -> None:
@@ -533,7 +549,8 @@ class ApplicationController(QObject):
         active = self._artifact
         if not isinstance(active, ReferenceStudyRevision):
             self._set_status(
-                "Reference result is stale because another Study is active.", tone="error"
+                "Reference result is stale because another Study is active.",
+                tone="error",
             )
             return
         if (
@@ -541,7 +558,8 @@ class ApplicationController(QObject):
             or revision.manifest.digest != active.manifest.digest
         ):
             self._set_status(
-                "Reference result is stale for the active scientific owner.", tone="error"
+                "Reference result is stale for the active scientific owner.",
+                tone="error",
             )
             return
         self._artifact = revision

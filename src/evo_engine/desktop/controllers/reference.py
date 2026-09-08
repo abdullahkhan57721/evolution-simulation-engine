@@ -101,7 +101,9 @@ class ReferenceStudyController(QObject):
         )
         if readiness.state != "ready":
             return None
-        return resolve_reference_ecology(self._draft_intent, self._revision.evidence_plan)
+        return resolve_reference_ecology(
+            self._draft_intent, self._revision.evidence_plan
+        )
 
     @Property(bool, notify=draftChanged)
     def draftDirty(self) -> bool:  # noqa: N802
@@ -139,15 +141,24 @@ class ReferenceStudyController(QObject):
 
     @Property(bool, notify=draftChanged)
     def gaussianApplicable(self) -> bool:  # noqa: N802
-        return self._draft_intent is not None and self._draft_intent.exploration_movement == "gaussian"
+        return (
+            self._draft_intent is not None
+            and self._draft_intent.exploration_movement == "gaussian"
+        )
 
     @Property(bool, notify=draftChanged)
     def patchGeometryApplicable(self) -> bool:  # noqa: N802
-        return self._draft_intent is not None and self._draft_intent.resource_geography == "two_patches"
+        return (
+            self._draft_intent is not None
+            and self._draft_intent.resource_geography == "two_patches"
+        )
 
     @Property(bool, notify=draftChanged)
     def mutationParametersApplicable(self) -> bool:  # noqa: N802
-        return self._draft_intent is not None and self._draft_intent.mutation_enabled is True
+        return (
+            self._draft_intent is not None
+            and self._draft_intent.mutation_enabled is True
+        )
 
     @Property(int, notify=draftChanged)
     def draftWorldWidth(self) -> int:  # noqa: N802
@@ -316,7 +327,10 @@ class ReferenceStudyController(QObject):
 
     @Property(bool, notify=draftChanged)
     def draftMutationEnabled(self) -> bool:  # noqa: N802
-        return self._draft_intent is not None and self._draft_intent.mutation_enabled is True
+        return (
+            self._draft_intent is not None
+            and self._draft_intent.mutation_enabled is True
+        )
 
     @draftMutationEnabled.setter
     def draftMutationEnabled(self, value: bool) -> None:  # noqa: N802
@@ -395,11 +409,17 @@ class ReferenceStudyController(QObject):
 
     @Property(int, notify=worldChanged)
     def worldHeight(self) -> int:  # noqa: N802
-        return 0 if self._presentation is None else self._presentation.frame.world_height
+        return (
+            0 if self._presentation is None else self._presentation.frame.world_height
+        )
 
     @Property(int, notify=worldChanged)
     def worldStep(self) -> int:  # noqa: N802
-        return 0 if self._presentation is None else self._presentation.frame.committed_step_index
+        return (
+            0
+            if self._presentation is None
+            else self._presentation.frame.committed_step_index
+        )
 
     @Property(QObject, constant=True)
     def organismModel(self) -> QObject:  # noqa: N802
@@ -436,7 +456,11 @@ class ReferenceStudyController(QObject):
 
     @Slot(result=bool)
     def saveChildRevision(self) -> bool:  # noqa: N802
-        if not self._require_idle() or self._revision is None or self._draft_intent is None:
+        if (
+            not self._require_idle()
+            or self._revision is None
+            or self._draft_intent is None
+        ):
             return False
         if not self.is_draft_dirty():
             self._set_status("No semantic draft changes to save.")
@@ -462,7 +486,9 @@ class ReferenceStudyController(QObject):
         if not self._require_idle() or self._revision is None:
             return
         if self.is_draft_dirty():
-            self._set_status("Save the semantic draft as a child revision before running.")
+            self._set_status(
+                "Save the semantic draft as a child revision before running."
+            )
             return
         worker = _ReferenceRunWorker(self._revision)
         thread = QThread(self)
@@ -514,7 +540,9 @@ class ReferenceStudyController(QObject):
             result.provenance.study_revision_id != self._revision.revision_id
             or result.provenance.manifest_digest != self._revision.manifest.digest
         ):
-            self._set_status("Run provenance no longer matches the active Study revision.")
+            self._set_status(
+                "Run provenance no longer matches the active Study revision."
+            )
             return
         self._revision = self._revision.with_run(result.provenance)
         self._result = result

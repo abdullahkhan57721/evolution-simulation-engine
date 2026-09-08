@@ -157,7 +157,9 @@ class EvidenceAuthoringController(QObject):
         if type(evidence_id) is not str or type(selected) is not bool:
             return
         options = evidence_options(artifact)
-        option = next((item for item in options if item.evidence_id == evidence_id), None)
+        option = next(
+            (item for item in options if item.evidence_id == evidence_id), None
+        )
         if option is None or option.required:
             return
         selected_ids = set(self._requested)
