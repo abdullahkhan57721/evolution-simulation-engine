@@ -173,8 +173,6 @@ ApplicationWindow {
             ColumnLayout {
                 width: Math.max(760, routeLoader.width - theme.space5 * 2)
                 x: Math.max(theme.space5, (routeLoader.width - width) / 2)
-                topPadding: theme.space5
-                bottomPadding: theme.space5
                 spacing: theme.space4
 
                 Item { Layout.preferredHeight: theme.space3 }
@@ -283,10 +281,9 @@ ApplicationWindow {
             ColumnLayout {
                 width: Math.max(760, routeLoader.width - theme.space5 * 2)
                 x: Math.max(theme.space5, (routeLoader.width - width) / 2)
-                topPadding: theme.space5
-                bottomPadding: theme.space5
                 spacing: theme.space4
 
+                Item { Layout.preferredHeight: theme.space3 }
                 RowLayout {
                     Layout.fillWidth: true
                     WorkbenchButton { theme: theme; text: "← Home"; onClicked: root.app.goHome() }
