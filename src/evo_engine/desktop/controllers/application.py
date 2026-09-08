@@ -174,19 +174,23 @@ class ApplicationController(QObject):
     def canFork(self) -> bool:  # noqa: N802
         return self._artifact is not None and can_fork_artifact(self._artifact)
 
-    @Property(bool, notify=artifactChanged)
-    def canRun(self) -> bool:  # noqa: N802
+    def can_run(self) -> bool:
+        """Return whether Q1 can execute the exact active Reference owner."""
         if not isinstance(self._artifact, ReferenceStudyRevision):
             return False
         return (
             artifact_readiness(self._artifact).state == "ready"
-            and not self._reference.draftDirty
-            and not self._reference.running
+            and not self._reference.is_draft_dirty()
+            and not self._reference.is_running()
         )
 
     @Property(bool, notify=artifactChanged)
+    def canRun(self) -> bool:  # noqa: N802
+        return self.can_run()
+
+    @Property(bool, notify=artifactChanged)
     def running(self) -> bool:
-        return self._reference.running
+        return self._reference.is_running()
 
     @Property(bool, notify=resultChanged)
     def hasResult(self) -> bool:  # noqa: N802
@@ -239,19 +243,17 @@ class ApplicationController(QObject):
 
     @Slot()
     def showNewStudy(self) -> None:  # noqa: N802
-        """Enter New Study after clearing any prior scientific/session context."""
+        """Enter the New Study chooser without replacing an active Study yet."""
         if not self._require_idle():
             return
-        self._clear_active_context()
         self._set_route("new")
         self._set_status("Choose one supported concrete Study family.", tone="neutral")
 
     @Slot()
     def showOpenStudy(self) -> None:  # noqa: N802
-        """Enter Open Study after clearing any prior scientific/session context."""
+        """Enter the Open Study chooser without replacing an active Study yet."""
         if not self._require_idle():
             return
-        self._clear_active_context()
         self._set_route("open")
         self._set_status("Choose a supported Workbench JSON artifact.", tone="neutral")
 
@@ -285,7 +287,9 @@ class ApplicationController(QObject):
             self._set_status(f"Open failed: {exc}", tone="error")
             return False
         self._activate_artifact(artifact, file_path=path, reset_section=True)
-        self._set_status(f"Opened exact {artifact_title(artifact)} artifact.", tone="success")
+        self._set_status(
+            f"Opened exact {artifact_title(artifact)} artifact.", tone="success"
+        )
         return True
 
     @Slot(str, result=bool)
@@ -296,7 +300,9 @@ class ApplicationController(QObject):
             return False
         try:
             path = _path_from_location(location)
-            path.write_text(serialize_concrete_artifact(self._artifact), encoding="utf-8")
+            path.write_text(
+                serialize_concrete_artifact(self._artifact), encoding="utf-8"
+            )
         except (OSError, TypeError, ValueError) as exc:
             self._set_status(f"Save failed: {exc}", tone="error")
             return False
@@ -316,7 +322,9 @@ class ApplicationController(QObject):
     def selectSection(self, section: str) -> bool:  # noqa: N802
         """Navigate among five product sections without mutating science."""
         if self._artifact is None:
-            self._set_status("Open or create a Study before choosing a section.", tone="warning")
+            self._set_status(
+                "Open or create a Study before choosing a section.", tone="warning"
+            )
             return False
         if section not in STUDY_SECTIONS:
             self._set_status(f"Unknown Study section: {section}", tone="error")
@@ -358,9 +366,10 @@ class ApplicationController(QObject):
                 tone="neutral",
             )
             return
-        if not self.canRun:
+        if not self.can_run():
             self._set_status(
-                "The active Reference Study must be saved and scientifically ready before Run.",
+                "The active Reference Study must be saved and scientifically ready "
+                "before Run.",
                 tone="warning",
             )
             return
@@ -370,7 +379,9 @@ class ApplicationController(QObject):
 
     def bind_result(self, result: object) -> bool:
         """Bind a current-session result only when existing WB5 ownership accepts it."""
-        if self._artifact is None or not result_matches_artifact(self._artifact, result):
+        if self._artifact is None or not result_matches_artifact(
+            self._artifact, result
+        ):
             self._set_status(
                 "Result rejected because it belongs to a different scientific owner.",
                 tone="error",
@@ -398,7 +409,9 @@ class ApplicationController(QObject):
         reset_section: bool,
         reference_already_active: bool = False,
     ) -> None:
-        previous_kind = None if self._artifact is None else artifact_kind(self._artifact)
+        previous_kind = (
+            None if self._artifact is None else artifact_kind(self._artifact)
+        )
         self._clear_result_and_presentation()
         self._run_plan_open = False
         self.runPlanChanged.emit()
@@ -410,9 +423,8 @@ class ApplicationController(QObject):
         if isinstance(artifact, ReferenceStudyRevision):
             if not reference_already_active:
                 self._reference.activate_revision(artifact)
-        else:
-            if self._reference.active:
-                self._reference.clear()
+        elif self._reference.is_active():
+            self._reference.clear()
         self._set_route("study")
         self._clear_diagnostic()
         self.artifactChanged.emit()
@@ -424,7 +436,7 @@ class ApplicationController(QObject):
         self._section = STUDY_SECTIONS[0]
         self._set_file_path(None)
         self._set_presentation_owner("")
-        if self._reference.active:
+        if self._reference.is_active():
             self._reference.clear()
         self.sectionChanged.emit()
         self.artifactChanged.emit()
@@ -448,7 +460,9 @@ class ApplicationController(QObject):
     @Slot(object)
     def _on_reference_revision_committed(self, revision: object) -> None:
         if not isinstance(revision, ReferenceStudyRevision):
-            self._set_status("Reference controller returned an invalid revision.", tone="error")
+            self._set_status(
+                "Reference controller returned an invalid revision.", tone="error"
+            )
             return
         self._activate_artifact(
             revision,
@@ -462,17 +476,25 @@ class ApplicationController(QObject):
         if not isinstance(revision, ReferenceStudyRevision) or not isinstance(
             result, ReferenceRunResult
         ):
-            self._set_status("Reference run returned invalid application payloads.", tone="error")
+            self._set_status(
+                "Reference run returned invalid application payloads.", tone="error"
+            )
             return
         active = self._artifact
         if not isinstance(active, ReferenceStudyRevision):
-            self._set_status("Reference result is stale because another Study is active.", tone="error")
+            self._set_status(
+                "Reference result is stale because another Study is active.",
+                tone="error",
+            )
             return
         if (
             revision.revision_id != active.revision_id
             or revision.manifest.digest != active.manifest.digest
         ):
-            self._set_status("Reference result is stale for the active scientific owner.", tone="error")
+            self._set_status(
+                "Reference result is stale for the active scientific owner.",
+                tone="error",
+            )
             return
         self._artifact = revision
         self.artifactChanged.emit()
@@ -510,7 +532,11 @@ class ApplicationController(QObject):
         diagnostic = exc.diagnostic
         self._diagnostic_message = diagnostic.message
         self._diagnostic_remediation = diagnostic.remediation or ""
-        self._set_status("Exact reproduction unavailable.", tone="error", preserve_diagnostic=True)
+        self._set_status(
+            "Exact reproduction unavailable.",
+            tone="error",
+            preserve_diagnostic=True,
+        )
 
     def _clear_diagnostic(self) -> None:
         if not self._diagnostic_message and not self._diagnostic_remediation:
@@ -534,8 +560,10 @@ class ApplicationController(QObject):
         self.statusChanged.emit()
 
     def _require_idle(self) -> bool:
-        if self._reference.running:
-            self._set_status("A Reference run is active; wait for it to finish.", tone="warning")
+        if self._reference.is_running():
+            self._set_status(
+                "A Reference run is active; wait for it to finish.", tone="warning"
+            )
             return False
         return True
 
