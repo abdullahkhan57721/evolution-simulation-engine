@@ -405,31 +405,42 @@ Q2 establishes:
     schema, reflection-driven form system, generic experiment DSL, or QML-owned
     scientific validation.
 
-### Q3 — execution and Results breadth
+### Q3 — execution and Results breadth (completed)
 
-Q3 should broaden execution and Results beyond the retained Q0/Q2 Reference path
-using only existing concrete Workbench runners, result inspectors, provenance, and
-WB5 association rules. Result binding must continue to require exact active-owner
-compatibility, and missing evidence must remain unavailable rather than reconstructed.
+Q3 broadens native execution and Results across the existing five-family Workbench
+support envelope while keeping scientific authority in existing runners and WB5
+inspectors. It establishes atomic pre-run binding to exact immutable scientific
+ownership, reviewable native Run Plans, one narrow off-GUI-thread execution adapter,
+exact provenance/result association, family-specific native Results, explicit missing
+evidence, and honest historical-provenance behavior.
 
-Add family-specific Qt item models/view models only where concrete Results consumers
-need them. Do not flatten heterogeneous controlled/E3/E4/B3/Reference results into a
-universal result or statistics model. Preserve the Q2 authoring-draft rule: Run must
-operate on exact saved scientific ownership, with pending revision-backed edits
-committed through their existing immutable contracts before execution rather than
-mutating saved science in place.
+The shared execution dispatcher is frontend-neutral because Streamlit and Qt are now
+two real consumers; it remains an explicit five-family dispatcher rather than a job
+or workflow framework. Results remain heterogeneous by design rather than being
+flattened into a universal statistics/result model.
+
+### Q4 — native Presentation breadth
+
+Q4 should extend Presentation from recorded evidence now that native Run and Results
+ownership are settled. Start with broader Reference world exploration and canonical
+B3 matched replay plus the existing cinematic handoff. Reuse existing renderer-neutral
+scientific encoding and presentation adapters; do not infer a universal scene,
+camera, playback, or chart schema.
+
+Q4 must preserve exact Study/run/treatment/replicate identity, committed-step
+semantics, shared science-owned trait scales, and the fact that matched B3 arms are
+independent stochastic executions after treatment-driven divergence. Presentation
+interaction state remains downstream and cannot change scientific identity.
 
 ### Later native product direction
 
-After Q3, expand Presentation from recorded evidence: broader Reference world
-exploration, canonical B3 matched replay and existing cinematic handoff, then native
-accessibility, visual completion, packaging/release hardening, and an explicit
-Streamlit parity/removal decision when justified.
+After sufficient Presentation breadth, apply accessibility, visual completion,
+packaging/release hardening, and an explicit Streamlit parity/removal decision to the
+native application. Signing, notarization, installers, auto-update, and a broader
+platform release matrix should be added from concrete distribution requirements, not
+predeclared as a generic application framework.
 
-Do not predeclare a large generic Qt application framework. Each later Q milestone
-should earn shared controller/view-model helpers only after multiple concrete native
-consumers demonstrate the same responsibility.
-
+The Q-series does **not** authorize:
 The Q-series does **not** authorize:
 
 - a universal Study schema;

@@ -347,9 +347,10 @@ bounded conclusion remain science/director-owned rather than UI-authored. See
 
 Q0 established that PySide6 + Qt Quick/QML can consume the settled Workbench
 directly. Q1 turned that technology proof into the persistent native product shell,
-and Q2 completes the first native pre-execution scientific authoring surface across
-Simulation, Evidence, and Experiment. Scientific authority remains in the existing
-Workbench artifacts. The durable dependency boundary is:
+Q2 completed the pre-execution Simulation/Evidence/Experiment authoring surface, and
+Q3 completes native Run planning, five-family execution, and authoritative Results
+breadth. Scientific authority remains in the existing Workbench artifacts. The
+durable dependency boundary is:
 
 ```text
 Qt Quick / QML
@@ -383,8 +384,8 @@ Run = action
 ```
 
 `ApplicationController` owns only transient routing, active-artifact, section,
-current-session result, Run Plan placeholder, presentation-owner/reset, file, and
-status state. It explicitly routes the five existing supported concrete artifacts:
+current-session exact result ownership, reviewable Run Plan coordination,
+presentation-owner/reset, file, and status state. It explicitly routes the five existing supported concrete artifacts:
 controlled single run, E3 max-speed sweep, E4 environment-selection comparison,
 canonical/derived B3, and bounded Reference Ecology. Open/Save delegates to each
 artifact's existing exact `from_json()` / `to_json()` semantics. No Qt Study schema,
@@ -411,12 +412,28 @@ B3/E3/E4 evidence remains locked by the existing scientific designs.
 and displays authoritative Workbench expansion rows; B3 stays curated/read-only and
 controlled/reference Studies remain explicit single-run workflows.
 
+Q3 adds sibling `RunController` and `ResultsController` seams rather than turning
+`ApplicationController` into a scientific workflow object. Pending controlled and
+Reference Simulation/Evidence drafts are bound atomically to one immutable child
+revision before Run Plan review; pending E3/E4 edits bind to their exact immutable
+experiment definitions. A frontend-neutral Workbench dispatcher invokes only the
+five existing concrete runners, while one narrow Qt worker keeps all five synchronous
+execution paths off the GUI thread.
+
+Completed results are accepted only when existing exact-owner/WB5 association rules
+still match the active science. Native Results remain family-specific: controlled
+population/locomotion, Reference evidence availability, E3 factor/seed/treatment/
+manifest identity, E4 factor/role/standing-composition/counterbalance identity, and
+B3 scenario/confirmation/sensitivity/counterbalance identity remain distinct. Missing
+evidence stays unavailable; reopened historical run provenance is never treated as a
+persisted observations archive or implicit rerun source. Reference world rendering
+still requires recorded spatial evidence.
+
 The QML boundary remains intentionally curated: scalar properties, signals, slots,
 and Qt item-model roles cross into QML while concrete Workbench/domain objects remain
 private Python state. Python controller-to-controller logic uses ordinary typed
-helpers rather than treating Qt `Property` descriptors as runtime values. Existing
-synchronous Reference execution is adapted through a narrow `QThread`; no generic
-job/cancellation framework has been earned.
+helpers rather than treating Qt `Property` descriptors as runtime values. Q3 adapts all five existing synchronous Workbench runners through one narrow
+`QThread` execution seam; no generic job/cancellation framework has been earned.
 
 The renderer-neutral Workbench world adapter remains shared from
 `evo_engine.presentation`; QML renders `WorldPresentationFrame` primitives rather
@@ -456,7 +473,7 @@ WB4 remains the explicit tiered recipe:
   genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
   movement, and development/G×E editing.
 
-WU2–WU5 and Q0–Q2 promote no capability merely because the lower engine can
+WU2–WU5 and Q0–Q3 promote no capability merely because the lower engine can
 represent it.
 
 ## Results and presentation boundary
@@ -489,6 +506,7 @@ Q0 proves a native QML renderer can consume the same frame while keeping replay,
 selection, visibility, trails, labels, playback, and focus state out of scientific
 identity. Q1 adds an application-level exact result/presentation-owner gate so stale
 session results or presentation state are cleared when scientific ownership changes.
+Q3 extends that exact-owner gate across all five native Run/Results paths.
 Historical run references alone never become native replay data. The V3 adapter
 feeds validated canonical B3 results into the existing B3-specific director.
 Renderer-specific layout, controls, camera, timing, materials, charts, and animation
@@ -497,40 +515,32 @@ remain presentation concerns.
 ## Current development front
 
 The Workbench foundation, E1–E7 controlled-science sequence, end-to-end Streamlit
-reference product, Q0 native technology proof, **Q1 native persistent Study
-shell**, and **Q2 native pre-execution scientific authoring** are established.
+reference product, and **Q0–Q3 native application sequence** are established.
+PySide6 + Qt Quick/QML remains the primary product architecture without moving
+scientific authority out of Workbench.
 
-PySide6 + Qt Quick/QML is the primary product architecture without moving scientific
-authority out of Workbench. Q1 established Home/New/Open, exact concrete routing and
-persistence for the current five-family support envelope, persistent
-`Simulation / Evidence / Experiment / Results / Presentation` navigation, exact
-active-owner/reset semantics, and reusable native QML primitives. Q2 adds the
-currently supported Simulation/Evidence/Experiment authoring through concrete thin
-controllers while retaining Reference Ecology as the only deep native
-execution/result/world slice.
+Q1 established the persistent native five-section Study shell and exact concrete
+routing/persistence. Q2 completed supported Simulation/Evidence/Experiment authoring.
+Q3 now completes the first native `Run → Results` breadth: exact atomic pre-run
+ownership, reviewable Run Plans, off-GUI-thread execution for all five supported
+families, WB5-authoritative family-specific Results, explicit missing evidence, and
+honest historical-provenance semantics.
 
 The next native product work should extend those settled seams rather than redesign
-the application shell:
+them:
 
-1. **Q3 — execution and Results breadth:** broaden execution beyond the retained
-   Reference path and add family-specific native Results consumers over only
-   authoritative existing Workbench runners, result inspectors, provenance, and WB5
-   association rules.
-2. **Later native Presentation breadth:** expand replay/presentation from recorded
-   evidence after Results ownership is settled, beginning with existing Reference and
-   canonical B3 presentation contracts rather than a universal scene model.
-3. **Product hardening after functional breadth:** accessibility, visual completion,
-   packaging/release hardening, and an explicit Streamlit parity/removal decision
-   remain downstream product work.
+1. **Q4 — native Presentation breadth:** expand recorded-evidence presentation,
+   beginning with broader Reference world exploration and canonical B3 matched replay
+   plus the existing cinematic handoff.
+2. **Product hardening after functional breadth:** accessibility, visual completion,
+   packaging/release hardening, and an explicit Streamlit parity/removal decision.
+3. **Distribution work when concretely required:** signing, notarization, installers,
+   auto-update, and broader platform release proof should follow real shipping needs.
 
-Broader Presentation/world exploration, B3 matched replay/cinematic handoff, and
-accessibility/visual/release hardening follow only as concrete native needs earn
-them. Do not predeclare a generic Qt application, form, result, scene, or background
-job framework.
-
-The previously planned WU6 Streamlit hardening milestone is no longer the primary
-product front. Streamlit remains the semantic reference/compatibility frontend until
-an explicit parity/removal decision.
+Q4 must preserve exact owner/provenance, committed-step semantics, science-owned
+encodings, and B3 matched-arm scientific identity without inventing a universal Qt
+scene, replay, chart, or camera framework. Streamlit remains the semantic
+reference/compatibility frontend until an explicit parity/removal decision.
 
 E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
 result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
@@ -549,10 +559,10 @@ A native Rust/C++ execution backend remains evidence-driven future work.
 ### Concrete persistence remains intentional
 
 WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities still
-differ. WB5/WB6, WU1–WU5, and Q0–Q2 still do not reveal enough identical persistence
-or execution responsibility to earn a universal saved Study/Experiment/Results root.
-Q1/Q2 reinforce the intended approach by routing and authoring concrete formats
-directly rather than manufacturing one for Qt.
+differ. WB5/WB6, WU1–WU5, and Q0–Q3 still do not reveal enough identical persistence
+or result responsibility to earn a universal saved Study/Experiment/Results root.
+Q1–Q3 reinforce the intended approach by routing, authoring, executing, and
+presenting concrete families directly rather than manufacturing one for Qt.
 
 ### Broader Workbench diagnostics remain bounded
 
@@ -569,13 +579,12 @@ repeats while keeping renderer mechanics local.
 
 ### Native application breadth is intentionally incomplete
 
-Q1 and Q2 establish the native shell, concrete five-family routing, exact
-persistence, application ownership semantics, and complete currently supported
-pre-execution Simulation/Evidence/Experiment authoring. Reference Ecology still owns
-the only deep native execution/result/world slice. Broader execution/Results,
-Presentation parity, accessibility, and release hardening remain Q3+ application
-work. This is application-layer incompleteness, not a reason to broaden Workbench or
-the kernel.
+Q1–Q3 establish the native shell, concrete five-family routing, exact persistence,
+application ownership semantics, supported pre-execution authoring, reviewable Run
+Plans, five-family off-GUI-thread execution, and family-specific authoritative
+Results. Presentation breadth, accessibility, and release hardening remain Q4+
+application work. This is application-layer incompleteness, not a reason to broaden
+Workbench or the kernel.
 
 ### Scientific scope remains illustrative
 
