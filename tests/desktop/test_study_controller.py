@@ -157,10 +157,11 @@ def test_reference_result_without_spatial_evidence_does_not_invent_world() -> No
     _app()
     revision = _compact_reference_without_spatial()
     result = run_reference_study_revision(revision, run_id="q3-no-spatial")
+    completed = revision.with_run(result.provenance)
     controller = ReferenceStudyController()
-    controller.activate_revision(revision)
+    controller.activate_revision(completed)
 
-    controller.accept_run_result(revision, result)
+    controller.accept_run_result(completed, result)
 
     assert controller.hasResult
     assert not controller.hasWorld
