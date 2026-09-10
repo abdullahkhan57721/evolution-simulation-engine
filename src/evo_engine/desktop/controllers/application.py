@@ -277,7 +277,7 @@ class ApplicationController(QObject):
 
     @Property(bool, notify=runPlanChanged)
     def runPlanOpen(self) -> bool:  # noqa: N802
-        return self._run.planOpen
+        return self._run.is_plan_open()
 
     @Property(str, notify=presentationChanged)
     def presentationOwner(self) -> str:  # noqa: N802

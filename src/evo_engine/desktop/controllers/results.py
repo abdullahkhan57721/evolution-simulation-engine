@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from PySide6.QtCore import Property, QObject, Signal
 
 from evo_engine.desktop.artifacts import (
@@ -12,6 +14,8 @@ from evo_engine.desktop.artifacts import (
 )
 from evo_engine.desktop.models.authoring import MeaningItem, MeaningListModel
 from evo_engine.experiments.e4_selection import E4_FOCAL_SPEEDS
+from evo_engine.experiments.locomotion import LocomotionReplicateMeasurements
+from evo_engine.experiments.science import ScientificRunProvenance
 from evo_engine.workbench import (
     B3CuratedRunResult,
     B3StudyRevision,
@@ -22,6 +26,7 @@ from evo_engine.workbench import (
     ReferenceRunResult,
     ReferenceStudyRevision,
     StudyRevision,
+    WorkbenchRunProvenance,
     WorkbenchRunResult,
 )
 from evo_engine.workbench.results import (
@@ -201,7 +206,7 @@ class ResultsController(QObject):
                 )
             )
         else:
-            value = view.locomotion
+            value = cast(LocomotionReplicateMeasurements, view.locomotion)
             self._analysis.set_items(
                 (
                     MeaningItem(
@@ -483,7 +488,11 @@ class ResultsController(QObject):
         self._analysis.set_items((*sensitivity, *counterbalance))
         self._set_revision_provenance(view.provenance, None)
 
-    def _set_revision_provenance(self, provenance, scientific) -> None:
+    def _set_revision_provenance(
+        self,
+        provenance: WorkbenchRunProvenance,
+        scientific: ScientificRunProvenance | None,
+    ) -> None:
         rows = [
             MeaningItem(label="Run ID", value=provenance.run_id),
             MeaningItem(label="Study revision", value=provenance.study_revision_id),

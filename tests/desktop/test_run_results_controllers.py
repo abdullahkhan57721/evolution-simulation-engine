@@ -81,15 +81,17 @@ def test_all_supported_families_open_exact_native_run_plan(kind: str) -> None:
 
     run = _run(controller)
     assert controller.runPlanOpen
-    assert run.planOpen
+    assert run.is_plan_open()
     assert run.family == kind
     assert cast(MeaningListModel, run.summaryModel).items()
     assert cast(MeaningListModel, run.evidenceModel).items()
     if kind in ("max-speed-sweep", "environment-selection-comparison"):
-        assert run.expandedRunCount > 0
+        assert cast(int, run.property("expandedRunCount")) > 0
 
 
-def test_controlled_pending_simulation_and_evidence_bind_to_one_child_before_run() -> None:
+def test_controlled_pending_simulation_and_evidence_bind_to_one_child_before_run() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("controlled-run")
     parent = _active(controller)
@@ -110,13 +112,15 @@ def test_controlled_pending_simulation_and_evidence_bind_to_one_child_before_run
     assert child.intent.max_speed == 7
     assert option.evidence_id not in child.evidence_plan.requested
     assert parent.to_json() == encoded
-    assert _run(controller).bindingNotice.startswith(
+    assert cast(str, _run(controller).property("bindingNotice")).startswith(
         "Pending Simulation/Evidence edits were bound atomically"
     )
     assert controller.runPlanOpen
 
 
-def test_reference_pending_simulation_and_evidence_bind_to_one_child_before_run() -> None:
+def test_reference_pending_simulation_and_evidence_bind_to_one_child_before_run() -> (
+    None
+):
     controller = _controller()
     assert controller.createStudy("reference-ecology")
     parent = _active(controller)
@@ -139,9 +143,7 @@ def test_reference_pending_simulation_and_evidence_bind_to_one_child_before_run(
     assert isinstance(child, ReferenceStudyRevision)
     assert child.parent_revision_id == parent.revision_id
     assert child.intent.max_speed != parent.intent.max_speed
-    assert (
-        REFERENCE_SPATIAL_EVIDENCE_ID in child.evidence_plan.requested
-    ) != (
+    assert (REFERENCE_SPATIAL_EVIDENCE_ID in child.evidence_plan.requested) != (
         REFERENCE_SPATIAL_EVIDENCE_ID in parent.evidence_plan.requested
     )
     assert parent.to_json() == encoded
@@ -164,7 +166,9 @@ def test_pending_e3_definition_becomes_exact_owner_before_run_plan() -> None:
     assert after.seeds == (101, 202)
     assert after != before
     assert controller.runPlanOpen
-    assert "Pending Experiment edits" in _run(controller).bindingNotice
+    assert "Pending Experiment edits" in cast(
+        str, _run(controller).property("bindingNotice")
+    )
 
 
 def test_invalid_experiment_draft_blocks_run_plan() -> None:
@@ -211,7 +215,9 @@ def test_run_controller_executes_supported_dispatch_away_from_gui_thread(
     assert not run.running
 
 
-def test_controlled_results_use_wb5_and_historical_reopen_is_not_payload_archive() -> None:
+def test_controlled_results_use_wb5_and_historical_reopen_is_not_payload_archive() -> (
+    None
+):
     _app()
     revision = new_controlled_run(revision_id="q3-results")
     result = run_study_revision(revision, run_id="q3-results-run")
@@ -225,7 +231,9 @@ def test_controlled_results_use_wb5_and_historical_reopen_is_not_payload_archive
 
     results.activate_artifact(updated)
     assert not results.hasResult
-    assert "provenance is not a result archive" in results.historicalMessage
+    assert "provenance is not a result archive" in cast(
+        str, results.property("historicalMessage")
+    )
 
 
 def test_results_reject_result_from_different_exact_owner() -> None:

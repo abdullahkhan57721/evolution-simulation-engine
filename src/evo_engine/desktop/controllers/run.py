@@ -91,9 +91,12 @@ class RunController(QObject):
     def runModel(self) -> QObject:  # noqa: N802
         return self._runs
 
+    def is_plan_open(self) -> bool:
+        return self._plan_open
+
     @Property(bool, notify=planChanged)
     def planOpen(self) -> bool:  # noqa: N802
-        return self._plan_open
+        return self.is_plan_open()
 
     @Property(str, notify=planChanged)
     def family(self) -> str:
