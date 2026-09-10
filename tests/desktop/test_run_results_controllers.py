@@ -12,10 +12,7 @@ from PySide6.QtCore import QEventLoop, QThread, QTimer
 from PySide6.QtGui import QGuiApplication
 
 import evo_engine.desktop.controllers.run as run_module
-from evo_engine.desktop.artifacts import (
-    new_controlled_run,
-    serialize_concrete_artifact,
-)
+from evo_engine.desktop.artifacts import new_controlled_run
 from evo_engine.desktop.controllers import (
     ApplicationController,
     EvidenceAuthoringController,
