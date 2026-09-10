@@ -32,6 +32,7 @@ from evo_engine.desktop.controllers import (
     SimulationAuthoringController,
 )
 from evo_engine.desktop.models import EvidenceOptionModel, MeaningListModel
+from evo_engine.experiments.e4_selection import E4EnvironmentSummary
 from evo_engine.experiments.science import ScientificRunProvenance
 from evo_engine.workbench import (
     REFERENCE_SPATIAL_EVIDENCE_ID,
@@ -397,7 +398,9 @@ def test_e4_results_preserve_factor_roles_and_standing_composition(
         definition=definition,
         treatments=(),
         replicate_outcomes=(),
-        environment_summaries=(),
+        environment_summaries=cast(
+            tuple[E4EnvironmentSummary, E4EnvironmentSummary], ()
+        ),
     )
     view = SimpleNamespace(environment_summaries=(), replicates=())
     monkeypatch.setattr(results_module, "result_matches_artifact", lambda *_: True)
