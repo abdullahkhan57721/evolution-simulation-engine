@@ -30,7 +30,9 @@ from evo_engine.workbench.experiment_authoring import (
     environment_run_rows,
     max_speed_run_rows,
 )
-from evo_engine.workbench.reference_ecology import HORIZON_SLOT as REFERENCE_HORIZON_SLOT
+from evo_engine.workbench.reference_ecology import (
+    HORIZON_SLOT as REFERENCE_HORIZON_SLOT,
+)
 from evo_engine.workbench.reference_ecology import SEED_SLOT as REFERENCE_SEED_SLOT
 
 
@@ -120,6 +122,10 @@ class RunController(QObject):
     def executeLabel(self) -> str:  # noqa: N802
         return self._execute_label
 
+    @Property(int, notify=planChanged)
+    def expandedRunCount(self) -> int:  # noqa: N802
+        return self._runs.rowCount()
+
     def is_running(self) -> bool:
         return self._thread is not None
 
@@ -191,7 +197,9 @@ class RunController(QObject):
         return True
 
     @Slot(object, object, object)
-    def _worker_completed(self, source: object, updated: object, result: object) -> None:
+    def _worker_completed(
+        self, source: object, updated: object, result: object
+    ) -> None:
         self.completed.emit(source, updated, result)
         self._set_status("Execution completed; authoritative result returned.")
 
@@ -227,7 +235,8 @@ class RunController(QObject):
                 (
                     MeaningItem(label="Study revision", value=artifact.revision_id),
                     MeaningItem(
-                        label="Seed", value=str(artifact.manifest.explicit_value(SEED_SLOT))
+                        label="Seed",
+                        value=str(artifact.manifest.explicit_value(SEED_SLOT)),
                     ),
                     MeaningItem(
                         label="Horizon",
@@ -237,7 +246,9 @@ class RunController(QObject):
                             )
                         ),
                     ),
-                    MeaningItem(label="Manifest digest", value=artifact.manifest.digest),
+                    MeaningItem(
+                        label="Manifest digest", value=artifact.manifest.digest
+                    ),
                 )
             )
             self._execute_label = "Run Study"
@@ -249,7 +260,9 @@ class RunController(QObject):
                     MeaningItem(label="Study revision", value=artifact.revision_id),
                     MeaningItem(
                         label="Seed",
-                        value=str(artifact.manifest.explicit_value(REFERENCE_SEED_SLOT)),
+                        value=str(
+                            artifact.manifest.explicit_value(REFERENCE_SEED_SLOT)
+                        ),
                     ),
                     MeaningItem(
                         label="Horizon",
@@ -257,7 +270,9 @@ class RunController(QObject):
                             artifact.manifest.explicit_value(REFERENCE_HORIZON_SLOT)
                         ),
                     ),
-                    MeaningItem(label="Manifest digest", value=artifact.manifest.digest),
+                    MeaningItem(
+                        label="Manifest digest", value=artifact.manifest.digest
+                    ),
                 )
             )
             self._execute_label = "Run Study"
@@ -269,7 +284,9 @@ class RunController(QObject):
                 (
                     MeaningItem(label="Factor", value="Maximum speed"),
                     MeaningItem(label="Levels", value=_integers(artifact.levels)),
-                    MeaningItem(label="Replicate seeds", value=_integers(artifact.seeds)),
+                    MeaningItem(
+                        label="Replicate seeds", value=_integers(artifact.seeds)
+                    ),
                     MeaningItem(label="Total simulations", value=str(len(rows))),
                 )
             )
@@ -295,13 +312,16 @@ class RunController(QObject):
                         label="Control", value=_humanize(artifact.control_environment)
                     ),
                     MeaningItem(
-                        label="Treatment", value=_humanize(artifact.treatment_environment)
+                        label="Treatment",
+                        value=_humanize(artifact.treatment_environment),
                     ),
                     MeaningItem(
                         label="Standing focal composition",
                         value=_integers(artifact.focal_speeds),
                     ),
-                    MeaningItem(label="Replicate seeds", value=_integers(artifact.seeds)),
+                    MeaningItem(
+                        label="Replicate seeds", value=_integers(artifact.seeds)
+                    ),
                     MeaningItem(label="Total simulations", value=str(len(rows))),
                 )
             )
@@ -322,13 +342,19 @@ class RunController(QObject):
 
         if isinstance(artifact, B3StudyRevision):
             counts = b3_case_counts(artifact)
-            validated = artifact.scenario_identity or "none — B3-derived sensitivity Study"
+            validated = (
+                artifact.scenario_identity or "none — B3-derived sensitivity Study"
+            )
             self._summary.set_items(
                 (
                     MeaningItem(label="Study revision", value=artifact.revision_id),
-                    MeaningItem(label="Scenario origin", value=artifact.scenario_origin),
+                    MeaningItem(
+                        label="Scenario origin", value=artifact.scenario_origin
+                    ),
                     MeaningItem(label="Validated scenario", value=validated),
-                    MeaningItem(label="Manifest digest", value=artifact.manifest.digest),
+                    MeaningItem(
+                        label="Manifest digest", value=artifact.manifest.digest
+                    ),
                     MeaningItem(
                         label="Primary confirmation pairs",
                         value=str(counts.confirmation_pairs),

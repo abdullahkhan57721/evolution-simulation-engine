@@ -101,7 +101,7 @@ ScrollView {
 
         SurfacePanel {
             theme: root.theme
-            visible: root.run.runModel.rowCount() > 0
+            visible: root.run.expandedRunCount > 0
             Layout.fillWidth: true
             implicitHeight: Math.min(430, runColumn.implicitHeight + root.theme.space4 * 2)
             ColumnLayout {

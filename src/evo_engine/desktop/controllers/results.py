@@ -125,7 +125,9 @@ class ResultsController(QObject):
         self._artifact = artifact
         self._result = result
         self._historical_message = ""
-        if isinstance(artifact, StudyRevision) and isinstance(result, WorkbenchRunResult):
+        if isinstance(artifact, StudyRevision) and isinstance(
+            result, WorkbenchRunResult
+        ):
             self._bind_controlled(artifact, result)
         elif isinstance(artifact, ReferenceStudyRevision) and isinstance(
             result, ReferenceRunResult
@@ -135,9 +137,9 @@ class ResultsController(QObject):
             result, MaxSpeedSweepResult
         ):
             self._bind_e3(result)
-        elif isinstance(artifact, EnvironmentSelectionComparisonDefinition) and isinstance(
-            result, EnvironmentSelectionComparisonResult
-        ):
+        elif isinstance(
+            artifact, EnvironmentSelectionComparisonDefinition
+        ) and isinstance(result, EnvironmentSelectionComparisonResult):
             self._bind_e4(result)
         elif isinstance(artifact, B3StudyRevision) and isinstance(
             result, B3CuratedRunResult
@@ -158,7 +160,9 @@ class ResultsController(QObject):
         population = view.population_observations
         overview: list[MeaningItem] = [
             MeaningItem(label="Run ID", value=view.provenance.run_id),
-            MeaningItem(label="Study revision", value=view.provenance.study_revision_id),
+            MeaningItem(
+                label="Study revision", value=view.provenance.study_revision_id
+            ),
             MeaningItem(
                 label="Population evidence",
                 value=_availability_text(view.population_availability),
@@ -210,7 +214,9 @@ class ResultsController(QObject):
                     ),
                     MeaningItem(
                         label="Mean realized distance / applied movement",
-                        value=_number(value.mean_realized_distance_per_applied_movement),
+                        value=_number(
+                            value.mean_realized_distance_per_applied_movement
+                        ),
                     ),
                     MeaningItem(
                         label="Total locomotion energy",
@@ -243,7 +249,10 @@ class ResultsController(QObject):
             (
                 MeaningItem(label="Run ID", value=view.provenance.run_id),
                 MeaningItem(label="Final population", value=final_population),
-                *(MeaningItem(label=label, value=_availability_text(value)) for label, value in availabilities),
+                *(
+                    MeaningItem(label=label, value=_availability_text(value))
+                    for label, value in availabilities
+                ),
             )
         )
         self._explore.set_items(
@@ -252,7 +261,9 @@ class ResultsController(QObject):
                     label="Population observations",
                     value=str(len(view.population_observations)),
                 ),
-                MeaningItem(label="Committed events", value=str(len(view.applied_events))),
+                MeaningItem(
+                    label="Committed events", value=str(len(view.applied_events))
+                ),
                 MeaningItem(
                     label="Pedigree records", value=str(len(view.pedigree_records))
                 ),
@@ -416,10 +427,12 @@ class ResultsController(QObject):
                 MeaningItem(label="Scenario origin", value=view.scenario_origin),
                 MeaningItem(
                     label="Validated scenario",
-                    value=view.scenario_identity or "none — B3-derived sensitivity Study",
+                    value=view.scenario_identity
+                    or "none — B3-derived sensitivity Study",
                 ),
                 MeaningItem(
-                    label="Primary confirmation pairs", value=str(len(view.confirmation))
+                    label="Primary confirmation pairs",
+                    value=str(len(view.confirmation)),
                 ),
                 MeaningItem(
                     label="Radius-sensitivity runs",

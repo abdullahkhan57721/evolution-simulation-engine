@@ -454,6 +454,44 @@ class ReferenceStudyController(QObject):
     def clear_result_state(self) -> None:
         self._clear_result_state()
 
+    def accept_run_result(
+        self, revision: ReferenceStudyRevision, result: ReferenceRunResult
+    ) -> None:
+        """Attach an already-executed exact Reference result and prepare recorded world state."""
+        if not isinstance(revision, ReferenceStudyRevision):
+            raise TypeError("revision must be a ReferenceStudyRevision.")
+        if not isinstance(result, ReferenceRunResult):
+            raise TypeError("result must be a ReferenceRunResult.")
+        if (
+            result.provenance.study_revision_id != revision.revision_id
+            or result.provenance.manifest_digest != revision.manifest.digest
+        ):
+            raise ValueError(
+                "Reference result provenance does not match the supplied revision."
+            )
+        if not any(run.run_id == result.provenance.run_id for run in revision.runs):
+            raise ValueError(
+                "Reference revision must already retain the completed run provenance."
+            )
+        self._revision = revision
+        self._draft_intent = revision.intent
+        self._normalization_notice = False
+        self._result = result
+        view = inspect_reference_study_results(revision, result)
+        if view.spatial_observations:
+            self._prepare_world(step_index=view.spatial_observations[-1].step_index)
+        else:
+            self._presentation = None
+            self._organisms.set_items(())
+            self._resources.set_items(())
+            self.worldChanged.emit()
+        self.activeChanged.emit()
+        self.draftChanged.emit()
+        self.resultsChanged.emit()
+        self._set_status(
+            f"Run {result.provenance.run_id} complete; Results use recorded evidence."
+        )
+
     @Slot(result=bool)
     def saveChildRevision(self) -> bool:  # noqa: N802
         if (
