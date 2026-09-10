@@ -1,0 +1,44 @@
+name: Q3 one-shot test fixture fix
+
+on:
+  push:
+    branches:
+      - q3/native-execution-results
+    paths:
+      - .github/workflows/q3-test-fixture-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: q3/native-execution-results
+          fetch-depth: 0
+      - name: Apply typed E4 fixture fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("tests/desktop/test_run_results_controllers.py")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace(
+              "from evo_engine.desktop.models import EvidenceOptionModel, MeaningListModel\nfrom evo_engine.experiments.science import ScientificRunProvenance\n",
+              "from evo_engine.desktop.models import EvidenceOptionModel, MeaningListModel\nfrom evo_engine.experiments.e4_selection import E4EnvironmentSummary\nfrom evo_engine.experiments.science import ScientificRunProvenance\n",
+          )
+          text = text.replace(
+              "        environment_summaries=(),\n    )\n    view = SimpleNamespace(environment_summaries=(), replicates=())\n",
+              "        environment_summaries=cast(\n            tuple[E4EnvironmentSummary, E4EnvironmentSummary], ()\n        ),\n    )\n    view = SimpleNamespace(environment_summaries=(), replicates=())\n",
+          )
+          path.write_text(text, encoding="utf-8")
+          PY
+      - name: Remove helper and commit
+        run: |
+          rm .github/workflows/q3-test-fixture-fix.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Q3: type mocked E4 Results fixture"
+          git push origin HEAD:q3/native-execution-results
