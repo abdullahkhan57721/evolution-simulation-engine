@@ -1,0 +1,224 @@
+name: Q3 integration helper
+
+on:
+  push:
+    branches: [q3/native-execution-results]
+    paths:
+      - ".github/workflows/q3-integration-helper.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: q3/native-execution-results
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Apply Q3 controller and QML integration
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              if old not in text:
+                  raise SystemExit(f"anchor not found in {path}: {old[:80]!r}")
+              p.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          # Python-only authoring accessors used by the application ownership binder.
+          replace(
+              "src/evo_engine/desktop/controllers/simulation.py",
+              '''    def is_controlled_draft_dirty(self) -> bool:\n        return (\n            isinstance(self._artifact, StudyRevision)\n            and self._controlled_draft is not None\n            and self._controlled_draft != self._artifact.intent\n        )\n\n''',
+              '''    def is_controlled_draft_dirty(self) -> bool:\n        return (\n            isinstance(self._artifact, StudyRevision)\n            and self._controlled_draft is not None\n            and self._controlled_draft != self._artifact.intent\n        )\n\n    def controlled_draft_intent(self) -> ControlledLocomotionIntent | None:\n        """Return transient controlled intent for exact application-level Run binding."""\n        return self._controlled_draft\n\n''',
+          )
+          replace(
+              "src/evo_engine/desktop/controllers/evidence.py",
+              '''    @Property(bool, notify=draftChanged)\n    def draftDirty(self) -> bool:  # noqa: N802\n        return self.is_draft_dirty()\n\n''',
+              '''    def draft_plan(self) -> EvidencePlan | ReferenceEvidencePlan | None:\n        """Return the concrete transient evidence plan for application Run binding."""\n        artifact = self._artifact\n        if isinstance(artifact, (StudyRevision, ReferenceStudyRevision)):\n            return make_editable_evidence_plan(artifact, self._requested)\n        return None\n\n    @Property(bool, notify=draftChanged)\n    def draftDirty(self) -> bool:  # noqa: N802\n        return self.is_draft_dirty()\n\n''',
+          )
+          replace(
+              "src/evo_engine/desktop/controllers/experiment.py",
+              '''    @Property(str, notify=draftChanged)\n    def validationMessage(self) -> str:  # noqa: N802\n        return self._error\n\n''',
+              '''    @Property(str, notify=draftChanged)\n    def validationMessage(self) -> str:  # noqa: N802\n        return self._error\n\n    def definition_for_run(\n        self,\n    ) -> MaxSpeedSweepDefinition | EnvironmentSelectionComparisonDefinition | None:\n        """Return the exact valid experiment definition represented by current draft state."""\n        if self._error:\n            return None\n        return self._working_definition()\n\n    def has_invalid_draft(self) -> bool:\n        return bool(self._error)\n\n''',
+          )
+
+          # Reference retains family-specific Results/world preparation while generic Run owns execution.
+          replace(
+              "src/evo_engine/desktop/controllers/reference.py",
+              '''    def clear_result_state(self) -> None:\n        self._clear_result_state()\n\n''',
+              '''    def clear_result_state(self) -> None:\n        self._clear_result_state()\n\n    def accept_run_result(\n        self, revision: ReferenceStudyRevision, result: ReferenceRunResult\n    ) -> None:\n        """Attach an already-executed exact Reference result and prepare recorded world state."""\n        if not isinstance(revision, ReferenceStudyRevision):\n            raise TypeError("revision must be a ReferenceStudyRevision.")\n        if not isinstance(result, ReferenceRunResult):\n            raise TypeError("result must be a ReferenceRunResult.")\n        if (\n            result.provenance.study_revision_id != revision.revision_id\n            or result.provenance.manifest_digest != revision.manifest.digest\n        ):\n            raise ValueError("Reference result provenance does not match the supplied revision.")\n        if not any(run.run_id == result.provenance.run_id for run in revision.runs):\n            raise ValueError("Reference revision must already retain the completed run provenance.")\n        self._revision = revision\n        self._draft_intent = revision.intent\n        self._normalization_notice = False\n        self._result = result\n        view = inspect_reference_study_results(revision, result)\n        if view.spatial_observations:\n            self._prepare_world(step_index=view.spatial_observations[-1].step_index)\n        else:\n            self._presentation = None\n            self._organisms.set_items(())\n            self._resources.set_items(())\n            self.worldChanged.emit()\n        self.activeChanged.emit()\n        self.draftChanged.emit()\n        self.resultsChanged.emit()\n        self._set_status(\n            f"Run {result.provenance.run_id} complete; Results use recorded evidence."\n        )\n\n''',
+          )
+
+          # Run controller convenience property for QML.
+          replace(
+              "src/evo_engine/desktop/controllers/run.py",
+              '''    @Property(str, notify=planChanged)\n    def executeLabel(self) -> str:  # noqa: N802\n        return self._execute_label\n\n''',
+              '''    @Property(str, notify=planChanged)\n    def executeLabel(self) -> str:  # noqa: N802\n        return self._execute_label\n\n    @Property(int, notify=planChanged)\n    def expandedRunCount(self) -> int:  # noqa: N802\n        return self._runs.rowCount()\n\n''',
+          )
+
+          # Controller exports.
+          replace(
+              "src/evo_engine/desktop/controllers/__init__.py",
+              '''from evo_engine.desktop.controllers.reference import ReferenceStudyController\nfrom evo_engine.desktop.controllers.simulation import SimulationAuthoringController\n''',
+              '''from evo_engine.desktop.controllers.reference import ReferenceStudyController\nfrom evo_engine.desktop.controllers.results import ResultsController\nfrom evo_engine.desktop.controllers.run import RunController\nfrom evo_engine.desktop.controllers.simulation import SimulationAuthoringController\n''',
+          )
+          replace(
+              "src/evo_engine/desktop/controllers/__init__.py",
+              '''    "ReferenceStudyController",\n    "SimulationAuthoringController",\n''',
+              '''    "ReferenceStudyController",\n    "ResultsController",\n    "RunController",\n    "SimulationAuthoringController",\n''',
+          )
+
+          app = "src/evo_engine/desktop/controllers/application.py"
+          replace(
+              app,
+              '''from evo_engine.desktop.controllers.reference import ReferenceStudyController\nfrom evo_engine.desktop.controllers.simulation import SimulationAuthoringController\nfrom evo_engine.workbench.controlled_locomotion import IncompatibleManifestError\nfrom evo_engine.workbench.reference_study import (\n    ReferenceRunResult,\n    ReferenceStudyRevision,\n)\n''',
+              '''from evo_engine.desktop.controllers.reference import ReferenceStudyController\nfrom evo_engine.desktop.controllers.results import ResultsController\nfrom evo_engine.desktop.controllers.run import RunController\nfrom evo_engine.desktop.controllers.simulation import SimulationAuthoringController\nfrom evo_engine.workbench import (\n    B3StudyRevision,\n    EnvironmentSelectionComparisonDefinition,\n    EvidencePlan,\n    MaxSpeedSweepDefinition,\n    ReferenceEvidencePlan,\n    ReferenceRunResult,\n    ReferenceStudyRevision,\n    StudyRevision,\n    WorkbenchNotReadyError,\n    assess_readiness,\n    assess_reference_readiness,\n    fork_reference_study_revision,\n    fork_study_revision,\n)\nfrom evo_engine.workbench.controlled_locomotion import IncompatibleManifestError\nfrom evo_engine.workbench.simulation_authoring import normalize_reference_draft\n''',
+          )
+          replace(
+              app,
+              '''        self._result: object | None = None\n        self._run_plan_open = False\n        self._presentation_owner = ""\n''',
+              '''        self._result: object | None = None\n        self._presentation_owner = ""\n''',
+          )
+          replace(
+              app,
+              '''        self._evidence = EvidenceAuthoringController(self)\n        self._experiment = ExperimentAuthoringController(self)\n\n''',
+              '''        self._evidence = EvidenceAuthoringController(self)\n        self._experiment = ExperimentAuthoringController(self)\n        self._run = RunController(self)\n        self._results = ResultsController(self)\n\n''',
+          )
+          replace(
+              app,
+              '''        self._reference.runCompleted.connect(self._on_reference_run_completed)\n        self._reference.runningChanged.connect(self.artifactChanged.emit)\n''',
+              '''        self._run.completed.connect(self._on_run_completed)\n        self._run.failed.connect(self._on_run_failed)\n        self._run.runningChanged.connect(self.artifactChanged.emit)\n        self._run.planChanged.connect(self.runPlanChanged.emit)\n''',
+          )
+          replace(
+              app,
+              '''    @Property(QObject, constant=True)\n    def experimentController(self) -> QObject:  # noqa: N802\n        return self._experiment\n\n''',
+              '''    @Property(QObject, constant=True)\n    def experimentController(self) -> QObject:  # noqa: N802\n        return self._experiment\n\n    @Property(QObject, constant=True)\n    def runController(self) -> QObject:  # noqa: N802\n        return self._run\n\n    @Property(QObject, constant=True)\n    def resultsController(self) -> QObject:  # noqa: N802\n        return self._results\n\n''',
+          )
+          replace(
+              app,
+              '''    def can_run(self) -> bool:\n        """Return whether retained native Reference execution owns exact saved science."""\n        if not isinstance(self._artifact, ReferenceStudyRevision):\n            return False\n        return (\n            artifact_readiness(self._artifact).state == "ready"\n            and not self._reference.is_draft_dirty()\n            and not self._evidence.is_draft_dirty()\n            and not self._reference.is_running()\n        )\n''',
+              '''    def can_run(self) -> bool:\n        """Return whether current transient science can bind to one ready exact owner."""\n        if self._artifact is None or self.running:\n            return False\n        artifact = self._artifact\n        if isinstance(artifact, StudyRevision):\n            intent = self._simulation.controlled_draft_intent() or artifact.intent\n            plan = self._evidence.draft_plan()\n            return isinstance(plan, EvidencePlan) and assess_readiness(intent, plan).state == "ready"\n        if isinstance(artifact, ReferenceStudyRevision):\n            intent = normalize_reference_draft(\n                self._reference.draft_intent() or artifact.intent\n            )\n            plan = self._evidence.draft_plan()\n            return (\n                isinstance(plan, ReferenceEvidencePlan)\n                and assess_reference_readiness(intent, plan).state == "ready"\n            )\n        if isinstance(\n            artifact,\n            (MaxSpeedSweepDefinition, EnvironmentSelectionComparisonDefinition),\n        ):\n            return (\n                not self._experiment.has_invalid_draft()\n                and self._experiment.definition_for_run() is not None\n            )\n        if isinstance(artifact, B3StudyRevision):\n            return artifact_readiness(artifact).state == "ready"\n        return False\n''',
+          )
+          replace(
+              app,
+              '''    @Property(bool, notify=artifactChanged)\n    def running(self) -> bool:\n        return self._reference.is_running()\n''',
+              '''    @Property(bool, notify=artifactChanged)\n    def running(self) -> bool:\n        return self._run.is_running() or self._reference.is_running()\n''',
+          )
+          replace(
+              app,
+              '''    @Property(bool, notify=runPlanChanged)\n    def runPlanOpen(self) -> bool:  # noqa: N802\n        return self._run_plan_open\n''',
+              '''    @Property(bool, notify=runPlanChanged)\n    def runPlanOpen(self) -> bool:  # noqa: N802\n        return self._run.planOpen\n''',
+          )
+          replace(
+              app,
+              '''    @Slot()\n    def runStudy(self) -> None:  # noqa: N802\n        if not isinstance(self._artifact, ReferenceStudyRevision):\n            self._set_status(\n                "Native execution for this Study family arrives in the "\n                "execution/Results milestone.",\n                tone="neutral",\n            )\n            return\n        if not self.can_run():\n            self._set_status(\n                "Save Simulation and Evidence drafts and keep the exact Reference Study "\n                "scientifically ready before Run.",\n                tone="warning",\n            )\n            return\n        self._run_plan_open = False\n        self.runPlanChanged.emit()\n        self._reference.runStudy()\n''',
+              '''    @Slot()\n    def runStudy(self) -> None:  # noqa: N802\n        if not self.can_run() or self._artifact is None:\n            self._set_status(\n                "Current scientific draft cannot be bound to a ready exact Run owner.",\n                tone="warning",\n            )\n            return\n        try:\n            artifact, notice = self._bind_pending_scientific_state_for_run()\n        except (TypeError, ValueError, WorkbenchNotReadyError) as exc:\n            self._set_status(f"Run is blocked: {exc}", tone="warning")\n            return\n        self._run.open_plan(artifact, binding_notice=notice)\n        self._set_status("Review the exact Run Plan before execution.", tone="neutral")\n''',
+          )
+          replace(
+              app,
+              '''        self._result = result\n        self._set_presentation_owner(result_owner_token(self._artifact, result) or "")\n        self.resultChanged.emit()\n        return True\n''',
+              '''        self._result = result\n        if not self._results.bind_result(self._artifact, result):\n            self._result = None\n            self._set_status("Result could not be presented for this exact owner.", tone="error")\n            return False\n        self._set_presentation_owner(result_owner_token(self._artifact, result) or "")\n        self.resultChanged.emit()\n        return True\n''',
+          )
+          replace(
+              app,
+              '''    def set_run_plan_open(self, value: bool) -> None:\n        if type(value) is not bool:\n            raise TypeError("value must be a bool.")\n        if value == self._run_plan_open:\n            return\n        self._run_plan_open = value\n        self.runPlanChanged.emit()\n\n''',
+              '''    def set_run_plan_open(self, value: bool) -> None:\n        """Compatibility hook for controller tests; RunController owns plan state."""\n        if type(value) is not bool:\n            raise TypeError("value must be a bool.")\n        if not value:\n            self._run.clear_plan()\n            return\n        if self._artifact is not None:\n            self._run.open_plan(self._artifact)\n\n''',
+          )
+          replace(
+              app,
+              '''        self._clear_result_and_presentation()\n        self._run_plan_open = False\n        self.runPlanChanged.emit()\n        self._artifact = artifact\n''',
+              '''        self._clear_result_and_presentation()\n        self._run.clear_plan()\n        self._artifact = artifact\n''',
+          )
+          replace(
+              app,
+              '''        self._simulation.activate_artifact(artifact, diff_parent=diff_parent)\n        self._evidence.activate_artifact(artifact)\n        self._experiment.activate_artifact(artifact)\n        self._set_route("study")\n''',
+              '''        self._simulation.activate_artifact(artifact, diff_parent=diff_parent)\n        self._evidence.activate_artifact(artifact)\n        self._experiment.activate_artifact(artifact)\n        self._results.activate_artifact(artifact)\n        self._set_route("study")\n''',
+          )
+          replace(
+              app,
+              '''        self._artifact = None\n        self._result = None\n        self._run_plan_open = False\n        self._section = STUDY_SECTIONS[0]\n''',
+              '''        self._artifact = None\n        self._result = None\n        self._run.clear_plan()\n        self._results.clear()\n        self._section = STUDY_SECTIONS[0]\n''',
+          )
+          replace(
+              app,
+              '''    @Slot()\n    def _on_scientific_draft_changed(self) -> None:\n        self._result = None\n        self._run_plan_open = False\n        self.resultChanged.emit()\n        self.runPlanChanged.emit()\n        self._set_presentation_owner("")\n        self.artifactChanged.emit()\n''',
+              '''    @Slot()\n    def _on_scientific_draft_changed(self) -> None:\n        self._result = None\n        self._run.clear_plan()\n        if self._artifact is not None:\n            self._results.activate_artifact(self._artifact)\n        self.resultChanged.emit()\n        self._set_presentation_owner("")\n        self.artifactChanged.emit()\n''',
+          )
+
+          # Insert exact pre-run binding and generic completion before the retained legacy Reference callback.
+          marker = '''    @Slot(object, object)\n    def _on_reference_run_completed(self, revision: object, result: object) -> None:\n'''
+          insertion = '''    def _bind_pending_scientific_state_for_run(\n        self,\n    ) -> tuple[ConcreteWorkbenchArtifact, str | None]:\n        artifact = self._artifact\n        if artifact is None:\n            raise ValueError("No active Study is available for Run.")\n        if isinstance(artifact, StudyRevision):\n            intent = self._simulation.controlled_draft_intent() or artifact.intent\n            plan = self._evidence.draft_plan()\n            if not isinstance(plan, EvidencePlan):\n                raise TypeError("Controlled Study requires EvidencePlan.")\n            readiness = assess_readiness(intent, plan)\n            if readiness.state != "ready":\n                raise WorkbenchNotReadyError(readiness)\n            if intent == artifact.intent and plan == artifact.evidence_plan:\n                return artifact, None\n            child = fork_study_revision(\n                artifact,\n                revision_id=_new_revision_id("controlled-run"),\n                max_speed=cast(int, intent.max_speed),\n                resource_geography=cast(str, intent.resource_geography),\n                seed=cast(int, intent.seed),\n                evidence_plan=plan,\n            )\n            self._activate_artifact(child, file_path=None, reset_section=False)\n            return (\n                child,\n                f"Pending Simulation/Evidence edits were bound atomically to immutable "\n                f"revision {child.revision_id} before Run.",\n            )\n        if isinstance(artifact, ReferenceStudyRevision):\n            intent = normalize_reference_draft(\n                self._reference.draft_intent() or artifact.intent\n            )\n            plan = self._evidence.draft_plan()\n            if not isinstance(plan, ReferenceEvidencePlan):\n                raise TypeError("Reference Study requires ReferenceEvidencePlan.")\n            readiness = assess_reference_readiness(intent, plan)\n            if readiness.state != "ready":\n                raise WorkbenchNotReadyError(readiness)\n            if intent == artifact.intent and plan == artifact.evidence_plan:\n                return artifact, None\n            child = fork_reference_study_revision(\n                artifact,\n                revision_id=_new_revision_id("reference-run"),\n                intent=intent,\n                evidence_plan=plan,\n            )\n            self._activate_artifact(child, file_path=None, reset_section=False)\n            return (\n                child,\n                f"Pending Simulation/Evidence edits were bound atomically to immutable "\n                f"revision {child.revision_id} before Run.",\n            )\n        if isinstance(\n            artifact,\n            (MaxSpeedSweepDefinition, EnvironmentSelectionComparisonDefinition),\n        ):\n            candidate = self._experiment.definition_for_run()\n            if candidate is None:\n                raise ValueError("Experiment draft is invalid or unavailable.")\n            if candidate == artifact:\n                return artifact, None\n            self._activate_artifact(candidate, file_path=None, reset_section=False)\n            return (\n                candidate,\n                "Pending Experiment edits were bound to this exact immutable experiment "\n                "definition before Run.",\n            )\n        if isinstance(artifact, B3StudyRevision):\n            return artifact, None\n        raise TypeError("Unsupported Workbench artifact for Run binding.")\n\n    @Slot(object, object, object)\n    def _on_run_completed(\n        self, source: object, updated: object, result: object\n    ) -> None:\n        if (\n            not is_concrete_artifact(source)\n            or not is_concrete_artifact(updated)\n            or self._artifact != source\n            or not result_matches_artifact(updated, result)\n        ):\n            self._set_status(\n                "Completed result is stale or does not match the exact active scientific owner.",\n                tone="error",\n            )\n            return\n        self._artifact = updated\n        if isinstance(updated, ReferenceStudyRevision) and isinstance(\n            result, ReferenceRunResult\n        ):\n            self._reference.accept_run_result(updated, result)\n        self._simulation.activate_artifact(updated)\n        self._evidence.activate_artifact(updated)\n        self._experiment.activate_artifact(updated)\n        self._result = result\n        if not self._results.bind_result(updated, result):\n            self._result = None\n            self._set_status("Result presentation rejected the completed owner.", tone="error")\n            return\n        self._set_presentation_owner(result_owner_token(updated, result) or "")\n        self.artifactChanged.emit()\n        self.resultChanged.emit()\n        if self._section != "Results":\n            self._section = "Results"\n            self.sectionChanged.emit()\n        self._set_status(\n            "Execution complete; Results are bound to the exact active scientific owner.",\n            tone="success",\n        )\n\n    @Slot(object, str)\n    def _on_run_failed(self, source: object, message: str) -> None:\n        if self._artifact == source:\n            self._set_status(f"Run failed: {message}", tone="error")\n\n'''
+          replace(app, marker, insertion + marker)
+          replace(
+              app,
+              '''    def _require_idle(self) -> bool:\n        if self._reference.is_running():\n            self._set_status(\n                "A Reference run is active; wait for it to finish.", tone="warning"\n            )\n            return False\n        return True\n''',
+              '''    def _require_idle(self) -> bool:\n        if self._run.is_running() or self._reference.is_running():\n            self._set_status(\n                "A scientific run is active; wait for it to finish.", tone="warning"\n            )\n            return False\n        return True\n''',
+          )
+
+          # QML: expose Q3 controllers, use exact Run Plan popup, and route Results to Q3 view.
+          qml = "src/evo_engine/desktop/qml/Main.qml"
+          replace(
+              qml,
+              '''    readonly property var experiment: applicationController.experimentController\n\n''',
+              '''    readonly property var experiment: applicationController.experimentController\n    readonly property var run: applicationController.runController\n    readonly property var results: applicationController.resultsController\n\n''',
+          )
+          replace(
+              qml,
+              '''    header: Rectangle {\n''',
+              '''    Popup {\n        id: runPlanPopup\n        modal: true\n        focus: true\n        closePolicy: Popup.NoAutoClose\n        visible: root.run.planOpen\n        width: Math.min(root.width - theme.space4 * 2, 920)\n        height: Math.min(root.height - theme.space4 * 2, 720)\n        x: Math.round((root.width - width) / 2)\n        y: Math.round((root.height - height) / 2)\n        background: Rectangle {\n            color: theme.canvas\n            radius: theme.radius\n            border.color: theme.border\n        }\n        contentItem: RunPlanView {\n            theme: theme\n            run: root.run\n        }\n    }\n\n    header: Rectangle {\n''',
+          )
+          replace(
+              qml,
+              '''                            ToolTip.text: root.app.artifactKind === "reference-ecology"\n                                ? "Save any Reference draft before running."\n                                : "Native execution for this family arrives in a later Q milestone."\n''',
+              '''                            ToolTip.text: "Resolve any blocked scientific draft before opening the exact Run Plan."\n''',
+          )
+          replace(
+              qml,
+              '''                    id: sectionLoader\n                    Layout.fillWidth: true\n''',
+              '''                    id: sectionLoader\n                    enabled: !root.app.running\n                    Layout.fillWidth: true\n''',
+          )
+          p = Path(qml)
+          text = p.read_text(encoding="utf-8")
+          start = text.index("    Component {\n        id: resultsSection\n")
+          end = text.index("    Component {\n        id: presentationSection\n", start)
+          replacement = '''    Component {\n        id: resultsSection\n        ResultsView {\n            width: sectionLoader.width\n            height: sectionLoader.height\n            theme: theme\n            app: root.app\n            results: root.results\n            reference: root.reference\n        }\n    }\n\n'''
+          p.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
+
+          # QML no longer calls rowCount directly.
+          replace(
+              "src/evo_engine/desktop/qml/RunPlanView.qml",
+              '''            visible: root.run.runModel.rowCount() > 0\n''',
+              '''            visible: root.run.expandedRunCount > 0\n''',
+          )
+          PY
+
+          python -m pip install --quiet ruff==0.16.6
+          ruff check --fix \
+            src/evo_engine/desktop/controllers \
+            src/evo_engine/workbench/execution.py \
+            src/evo_engine/ui/run_execution.py
+          ruff format \
+            src/evo_engine/desktop/controllers \
+            src/evo_engine/workbench/execution.py \
+            src/evo_engine/ui/run_execution.py
+          python -m compileall -q \
+            src/evo_engine/desktop/controllers \
+            src/evo_engine/workbench/execution.py \
+            src/evo_engine/ui/run_execution.py
+      - name: Commit integration and remove helper
+        shell: bash
+        run: |
+          rm .github/workflows/q3-integration-helper.yml
+          git config user.name "Abdullah Khan"
+          git config user.email "137455050+abdullahkhan57721@users.noreply.github.com"
+          git add -A
+          git commit -m "Q3: integrate exact Run ownership and Results controllers"
+          git push origin HEAD:q3/native-execution-results
