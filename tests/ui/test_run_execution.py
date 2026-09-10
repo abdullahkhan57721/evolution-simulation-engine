@@ -109,7 +109,9 @@ def test_e3_and_e4_execution_delegate_to_existing_experiment_runners(
         return e4_result
 
     monkeypatch.setattr(workbench_execution, "run_max_speed_sweep", fake_e3)
-    monkeypatch.setattr(workbench_execution, "run_environment_selection_comparison", fake_e4)
+    monkeypatch.setattr(
+        workbench_execution, "run_environment_selection_comparison", fake_e4
+    )
 
     updated_e3, returned_e3 = execute_artifact(e3)
     updated_e4, returned_e4 = execute_artifact(e4)
