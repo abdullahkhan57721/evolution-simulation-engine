@@ -19,6 +19,8 @@ ApplicationWindow {
     readonly property var simulation: applicationController.simulationController
     readonly property var evidence: applicationController.evidenceController
     readonly property var experiment: applicationController.experimentController
+    readonly property var run: applicationController.runController
+    readonly property var results: applicationController.resultsController
 
     WorkbenchTheme { id: theme }
 
@@ -93,6 +95,27 @@ ApplicationWindow {
         defaultSuffix: "json"
         nameFilters: ["Workbench Study (*.json)"]
         onAccepted: root.app.saveStudy(selectedFile.toString())
+    }
+
+    Popup {
+        id: runPlanPopup
+        modal: true
+        focus: true
+        closePolicy: Popup.NoAutoClose
+        visible: root.run.planOpen
+        width: Math.min(root.width - theme.space4 * 2, 920)
+        height: Math.min(root.height - theme.space4 * 2, 720)
+        x: Math.round((root.width - width) / 2)
+        y: Math.round((root.height - height) / 2)
+        background: Rectangle {
+            color: theme.canvas
+            radius: theme.radius
+            border.color: theme.border
+        }
+        contentItem: RunPlanView {
+            theme: theme
+            run: root.run
+        }
     }
 
     header: Rectangle {
@@ -553,9 +576,7 @@ ApplicationWindow {
                             enabled: root.app.canRun
                             onClicked: root.app.runStudy()
                             ToolTip.visible: hovered && !enabled
-                            ToolTip.text: root.app.artifactKind === "reference-ecology"
-                                ? "Save any Reference draft before running."
-                                : "Native execution for this family arrives in a later Q milestone."
+                            ToolTip.text: "Resolve any blocked scientific draft before opening the exact Run Plan."
                         }
                     }
                 }
@@ -572,6 +593,7 @@ ApplicationWindow {
 
                 Loader {
                     id: sectionLoader
+                    enabled: !root.app.running
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     sourceComponent: root.app.studySection === "Simulation"
@@ -638,122 +660,13 @@ ApplicationWindow {
 
     Component {
         id: resultsSection
-        ScrollView {
-            contentWidth: availableWidth
-            ColumnLayout {
-                width: sectionLoader.width
-                spacing: theme.space3
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "Study / Results"
-                    title: "Results"
-                    description: "Q1 binds only current-session results that existing Workbench/WB5 ownership semantics accept for the active scientific artifact."
-                    Layout.fillWidth: true
-                }
-
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: resultsContent.implicitHeight + theme.space4 * 2
-                    ColumnLayout {
-                        id: resultsContent
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space3
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Label {
-                                text: root.app.hasResult ? "Current authoritative result" : "No current-session result"
-                                color: theme.text
-                                font.pixelSize: 17
-                                font.weight: Font.DemiBold
-                                Layout.fillWidth: true
-                            }
-                            StatusBadge {
-                                theme: theme
-                                text: root.app.hasResult ? "OWNER MATCHED" : "NO SESSION RESULT"
-                                tone: root.app.hasResult ? "success" : "neutral"
-                            }
-                        }
-                        Label {
-                            text: root.app.artifactKind === "reference-ecology" && root.reference.hasResult
-                                ? "Final population: " + root.reference.finalPopulation
-                                : root.app.hasResult
-                                    ? "The result is bound to this exact active scientific owner. Family-specific Results parity arrives later."
-                                    : "Saved run references may remain in the artifact, but Q1 does not reconstruct or rerun historical result payloads."
-                            color: theme.mutedText
-                            wrapMode: Text.Wrap
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
-
-                SurfacePanel {
-                    theme: theme
-                    visible: root.app.artifactKind === "reference-ecology" && root.reference.hasWorld
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 390
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: theme.space3
-                        spacing: theme.space2
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Label { text: "Recorded world"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold; Layout.fillWidth: true }
-                            StatusBadge { theme: theme; text: "COMMITTED STEP " + root.reference.worldStep; tone: "neutral" }
-                        }
-                        Rectangle {
-                            id: resultsWorldCanvas
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            color: theme.canvasRaised
-                            radius: theme.radius
-                            border.color: theme.border
-                            clip: true
-
-                            Repeater {
-                                model: root.reference.resourceModel
-                                delegate: Rectangle {
-                                    width: Math.max(3, Math.min(10, 2 + amount / 4))
-                                    height: width
-                                    radius: width / 2
-                                    color: theme.resource
-                                    opacity: 0.55
-                                    x: (worldX + 0.5) / Math.max(1, root.reference.worldWidth) * resultsWorldCanvas.width - width / 2
-                                    y: (worldY + 0.5) / Math.max(1, root.reference.worldHeight) * resultsWorldCanvas.height - height / 2
-                                }
-                            }
-                            Repeater {
-                                model: root.reference.organismModel
-                                delegate: Rectangle {
-                                    width: markerSize
-                                    height: markerSize
-                                    radius: width / 2
-                                    color: selected ? theme.selected : theme.organism
-                                    border.width: selected ? 3 : 1
-                                    border.color: selected ? theme.warning : theme.text
-                                    x: (worldX + 0.5) / Math.max(1, root.reference.worldWidth) * resultsWorldCanvas.width - width / 2
-                                    y: (worldY + 0.5) / Math.max(1, root.reference.worldHeight) * resultsWorldCanvas.height - height / 2
-                                    ToolTip.visible: hover.hovered
-                                    ToolTip.text: "Organism " + organismId + " · mass " + bodyMass + " · energy " + energy
-                                    HoverHandler { id: hover }
-                                    TapHandler { onTapped: root.reference.selectOrganism(organismId) }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                DiagnosticBanner {
-                    theme: theme
-                    visible: root.app.artifactKind === "reference-ecology" && root.reference.hasResult && !root.reference.hasWorld
-                    tone: "neutral"
-                    title: "No recorded spatial replay in this exact result"
-                    message: "Q1 does not reconstruct unrecorded world state. A Reference result can render natively only when its exact EvidencePlan recorded spatial evidence."
-                    Layout.fillWidth: true
-                }
-            }
+        ResultsView {
+            width: sectionLoader.width
+            height: sectionLoader.height
+            theme: theme
+            app: root.app
+            results: root.results
+            reference: root.reference
         }
     }
 

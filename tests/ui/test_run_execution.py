@@ -1,4 +1,4 @@
-"""Focused WU3 tests for concrete run routing and immutable provenance attachment."""
+"""Focused WU3/Q3 tests for concrete run routing and provenance attachment."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from typing import TypeAlias
 
 import pytest
 
-import evo_engine.ui.run_execution as run_execution
-from evo_engine.ui.run_execution import execute_artifact
+import evo_engine.workbench.execution as workbench_execution
+from evo_engine.ui import run_execution as ui_execution
 from evo_engine.ui.study_shell import (
     new_b3_flagship,
     new_controlled_run,
@@ -23,6 +23,7 @@ from evo_engine.workbench import (
     StudyRevision,
     WorkbenchRunProvenance,
 )
+from evo_engine.workbench.execution import execute_artifact
 
 RevisionOwnedArtifact: TypeAlias = (
     StudyRevision | ReferenceStudyRevision | B3StudyRevision
@@ -41,6 +42,14 @@ def _provenance(
         evidence_ids=revision.evidence_plan.requested,
         evidence_references=(),
         result_references=(),
+    )
+
+
+def test_streamlit_execution_module_is_only_a_compatibility_facade() -> None:
+    assert ui_execution.execute_artifact is workbench_execution.execute_artifact
+    assert (
+        ui_execution.is_authoritative_run_result
+        is workbench_execution.is_authoritative_run_result
     )
 
 
@@ -69,7 +78,7 @@ def test_revision_owned_execution_attaches_authoritative_run_provenance(
         calls.append(value)
         return result
 
-    monkeypatch.setattr(run_execution, runner_name, fake_runner)
+    monkeypatch.setattr(workbench_execution, runner_name, fake_runner)
 
     updated, returned = execute_artifact(revision)
 
@@ -99,8 +108,10 @@ def test_e3_and_e4_execution_delegate_to_existing_experiment_runners(
         calls.append(("e4", value))
         return e4_result
 
-    monkeypatch.setattr(run_execution, "run_max_speed_sweep", fake_e3)
-    monkeypatch.setattr(run_execution, "run_environment_selection_comparison", fake_e4)
+    monkeypatch.setattr(workbench_execution, "run_max_speed_sweep", fake_e3)
+    monkeypatch.setattr(
+        workbench_execution, "run_environment_selection_comparison", fake_e4
+    )
 
     updated_e3, returned_e3 = execute_artifact(e3)
     updated_e4, returned_e4 = execute_artifact(e4)
@@ -121,7 +132,7 @@ def test_execution_failure_does_not_mutate_saved_revision(
     def fail(_: object) -> object:
         raise RuntimeError("authoritative preflight rejected resolved configuration")
 
-    monkeypatch.setattr(run_execution, "run_study_revision", fail)
+    monkeypatch.setattr(workbench_execution, "run_study_revision", fail)
 
     with pytest.raises(RuntimeError, match="authoritative preflight"):
         execute_artifact(revision)

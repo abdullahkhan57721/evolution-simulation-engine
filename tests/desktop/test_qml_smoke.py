@@ -39,11 +39,37 @@ def test_qml_shell_survives_all_five_native_authoring_families_offscreen() -> No
         assert controller.route == "study"
         assert controller.artifactKind == kind
 
-        for section in ("Simulation", "Evidence", "Experiment"):
+        for section in (
+            "Simulation",
+            "Evidence",
+            "Experiment",
+            "Results",
+            "Presentation",
+        ):
             assert controller.selectSection(section)
             app.processEvents()
             assert controller.studySection == section
             assert engine.rootObjects()
+
+
+def test_qml_run_plan_popup_and_results_surface_load_offscreen() -> None:
+    app = QGuiApplication.instance() or QGuiApplication([])
+    engine, controller = create_engine()
+    assert controller.createStudy("controlled-run")
+
+    controller.runStudy()
+    app.processEvents()
+
+    assert controller.runPlanOpen
+    assert engine.rootObjects()
+
+    controller.set_run_plan_open(False)
+    assert controller.selectSection("Results")
+    app.processEvents()
+
+    assert not controller.runPlanOpen
+    assert controller.studySection == "Results"
+    assert engine.rootObjects()
 
 
 def test_qml_authoring_navigation_does_not_mutate_exact_artifact() -> None:
@@ -54,7 +80,14 @@ def test_qml_authoring_navigation_does_not_mutate_exact_artifact() -> None:
     assert isinstance(artifact, ReferenceStudyRevision)
     before = artifact.to_json()
 
-    for section in ("Simulation", "Evidence", "Experiment", "Simulation"):
+    for section in (
+        "Simulation",
+        "Evidence",
+        "Experiment",
+        "Results",
+        "Presentation",
+        "Simulation",
+    ):
         assert controller.selectSection(section)
         app.processEvents()
 

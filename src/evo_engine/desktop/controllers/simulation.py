@@ -282,6 +282,10 @@ class SimulationAuthoringController(QObject):
             and self._controlled_draft != self._artifact.intent
         )
 
+    def controlled_draft_intent(self) -> ControlledLocomotionIntent | None:
+        """Return transient controlled intent for exact application-level Run binding."""
+        return self._controlled_draft
+
     def set_controlled_max_speed(self, value: int) -> None:
         if self._controlled_draft is None or type(value) is not int:
             return

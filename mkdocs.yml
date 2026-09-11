@@ -44,6 +44,7 @@ nav:
       - Evolution Experiment Workbench: evolution_experiment_workbench.md
       - Workbench UI: workbench_ui.md
       - Native Desktop Workbench: desktop_workbench.md
+      - Q3 Native Execution and Results: q3_native_execution_results.md
       - Workbench Architecture Review: workbench_architecture_review.md
       - WB4 Bounded Reference Ecology: wb4_bounded_reference_ecology.md
       - WB5 Results and Presentation: wb5_results_presentation.md

@@ -2,10 +2,11 @@
 
 Q0 establishes **PySide6 + Qt Quick/QML** as the primary product frontend architecture
 for the Evolution Experiment Workbench. Q1 establishes the persistent native Study
-shell and concrete routing; Q2 completes the currently supported pre-execution
-Simulation/Evidence/Experiment authoring surface. The Streamlit WU1–WU5 application
-remains a reference frontend during migration; it does not become a second scientific
-model.
+shell and concrete routing; Q2 completes the supported pre-execution
+Simulation/Evidence/Experiment authoring surface; Q3 completes native Run planning,
+five-family execution, and authoritative Results breadth. The Streamlit WU1–WU5
+application remains a reference frontend during migration; it does not become a
+second scientific model.
 
 ## Dependency direction
 
@@ -339,37 +340,77 @@ contracts, not persistence or validation schemas. QML authoring is split into
 `ExperimentAuthoringView.qml`, with `SemanticDiffView.qml` as the one reusable diff
 presentation primitive earned by multiple concrete families.
 
-## Q3 execution / Results handoff
+## Q3 native execution and Results
 
-The following Q1/Q2 seams are intended to remain stable for the next native front:
+Q3 completes the first native `Run → Results` breadth across all five supported
+concrete Study families without creating a common scientific result hierarchy.
 
-- `ApplicationController` routing, exact concrete artifact ownership, file ownership,
-  and stale result/Run Plan/presentation reset semantics;
-- exact loader/serializer dispatch in `evo_engine.desktop.artifacts`;
-- family-specific authoring controllers rather than a universal desktop scientific
-  model;
-- transient scientific drafts that cannot be executed as if they were saved science;
-- existing immutable revision/fork or concrete experiment-definition replacement
-  semantics for authoring commits;
-- curated scalar Qt properties and read-only item-model rows at the QML boundary;
-- the retained narrow Reference worker thread as evidence that synchronous Workbench
-  runners must not block the GUI thread; and
-- WB5 exact result-owner association as the authority for binding Results.
+`ApplicationController` binds pending scientific state to one exact immutable owner
+before Run Plan review. Controlled and Reference Simulation/Evidence drafts therefore
+produce one child revision containing the complete pending scientific state rather
+than a chain of intermediate revisions. Pending E3/E4 experiment edits become the
+exact immutable experiment definition. B3 remains its exact curated revision.
 
-Q3 should add execution and Results family-by-family over the five existing concrete
-Workbench runners and inspectors. Missing evidence remains unavailable rather than
-reconstructed, and heterogeneous controlled/E3/E4/B3/Reference outputs should gain
-only the concrete Qt result models their native consumers require.
+`RunController` owns only transient native execution coordination:
 
-The following remain intentionally unsettled and must not be inferred from Q2:
+```text
+exact active scientific owner
+        ↓
+reviewable Run Plan
+        ↓
+QThread worker
+        ↓
+frontend-neutral Workbench execution dispatcher
+        ↓
+existing concrete runner
+        ↓
+authoritative result + provenance
+```
 
-- a universal Study class or common persisted schema;
-- generic authoring metadata/forms;
-- a generic experiment/result/statistics hierarchy;
-- a generic background-job/cancellation framework;
-- cross-family presentation models;
-- native release/signing/update architecture;
-- removal of the Streamlit reference frontend.
+The Workbench execution dispatcher is shared by Streamlit and Qt only because the
+second real frontend earned that extraction. It still dispatches explicitly to the
+five existing concrete runners. The Qt adapter adds no generic queue, cancellation,
+progress, multiprocessing, or background-job protocol.
+
+Completion is accepted only while the same exact scientific owner remains active and
+the existing WB5 association rules accept the returned result. Scientific edits,
+owner replacement, or Home navigation invalidate stale Run Plans, Results, and
+presentation ownership.
+
+`ResultsController` is intentionally family-dispatched. Controlled, Reference, E3,
+E4, and B3 Results all use the familiar `Overview / Explore / Analysis / Provenance`
+product rhythm while preserving their different scientific structures:
+
+- controlled Results expose recorded population plus existing E1 locomotion
+  measurements only when their evidence exists;
+- Reference Results expose independent availability for population, committed events,
+  pedigree, genetics, and spatial replay;
+- E3 preserves maximum speed as factor plus factor-level, seed, treatment, and
+  manifest identity;
+- E4 preserves resource geography as factor while keeping control/treatment role,
+  seed, standing focal composition, and founder-order counterbalance distinct;
+- B3 preserves scenario origin versus validated scenario identity and keeps primary
+  confirmation, radius sensitivity, and founder counterbalance separate.
+
+Missing evidence stays visibly unavailable and requires a new run with an appropriate
+EvidencePlan. Native Reference world rendering remains contingent on actual recorded
+spatial observations. Persisted run provenance remains a reference to a historical
+run, not a persisted observations/result archive, so reopened Studies never
+reconstruct or implicitly rerun historical Results.
+
+### Q4 Presentation handoff
+
+Q4 should now broaden native Presentation from the exact current-session evidence and
+result ownership settled by Q3. Begin with the existing renderer-neutral Reference
+world path and canonical B3 matched-presentation/cinematic contracts. Preserve
+committed-step semantics, science-owned encodings, matched-arm identity, and
+presentation-only interaction state.
+
+Do not infer a universal scene/camera/replay model, generic chart framework, or
+cross-family presentation schema from Q3. Shared presentation helpers should be
+promoted only when multiple concrete native consumers demonstrate the same
+responsibility. Accessibility, visual completion, installer/signing/update work, and
+the final Streamlit parity/removal decision remain later product-hardening work.
 
 ## References
 
@@ -383,3 +424,4 @@ The following remain intentionally unsettled and must not be inferred from Q2:
 - GitHub Issue #197 / PR #198
 - GitHub Issue #201 / PR #202
 - GitHub Issue #203 / PR #204
+- GitHub Issue #205 / PR #206

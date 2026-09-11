@@ -89,6 +89,17 @@ class ExperimentAuthoringController(QObject):
     def validationMessage(self) -> str:  # noqa: N802
         return self._error
 
+    def definition_for_run(
+        self,
+    ) -> MaxSpeedSweepDefinition | EnvironmentSelectionComparisonDefinition | None:
+        """Return the exact valid experiment definition represented by current draft state."""
+        if self._error:
+            return None
+        return self._working_definition()
+
+    def has_invalid_draft(self) -> bool:
+        return bool(self._error)
+
     @Property(str, notify=draftChanged)
     def replicateSeedsText(self) -> str:  # noqa: N802
         definition = self._working_definition()

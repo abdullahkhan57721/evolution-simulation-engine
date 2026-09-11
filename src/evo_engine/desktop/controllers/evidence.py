@@ -64,6 +64,13 @@ class EvidenceAuthoringController(QObject):
             and self._requested != artifact.evidence_plan.requested
         )
 
+    def draft_plan(self) -> EvidencePlan | ReferenceEvidencePlan | None:
+        """Return the concrete transient evidence plan for application Run binding."""
+        artifact = self._artifact
+        if isinstance(artifact, (StudyRevision, ReferenceStudyRevision)):
+            return make_editable_evidence_plan(artifact, self._requested)
+        return None
+
     @Property(bool, notify=draftChanged)
     def draftDirty(self) -> bool:  # noqa: N802
         return self.is_draft_dirty()

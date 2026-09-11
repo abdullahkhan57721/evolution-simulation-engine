@@ -21,7 +21,10 @@ from evo_engine.workbench.reference_ecology import (
     ReferenceEvidencePlan,
     default_reference_ecology_intent,
 )
-from evo_engine.workbench.reference_study import create_reference_study_revision
+from evo_engine.workbench.reference_study import (
+    create_reference_study_revision,
+    run_reference_study_revision,
+)
 from evo_engine.workbench.results import inspect_reference_study_results
 
 
@@ -44,6 +47,22 @@ def _compact_reference_revision():
         evidence_plan=ReferenceEvidencePlan(
             requested=(POPULATION_EVIDENCE_ID, SPATIAL_EVIDENCE_ID)
         ),
+    )
+
+
+def _compact_reference_without_spatial():
+    intent = attrs.evolve(
+        default_reference_ecology_intent(),
+        width=12,
+        height=12,
+        founder_population=8,
+        horizon=12,
+        seed=1730,
+    )
+    return create_reference_study_revision(
+        revision_id="reference-q3-no-spatial",
+        intent=intent,
+        evidence_plan=ReferenceEvidencePlan(requested=(POPULATION_EVIDENCE_ID,)),
     )
 
 
@@ -132,3 +151,18 @@ def test_worker_run_surfaces_authoritative_result_and_world_frame() -> None:
     resource_model = cast(WorldResourceModel, controller.resourceModel)
     assert organism_model.rowCount() == len(controller._presentation.frame.organisms)
     assert resource_model.rowCount() == len(controller._presentation.frame.resources)
+
+
+def test_reference_result_without_spatial_evidence_does_not_invent_world() -> None:
+    _app()
+    revision = _compact_reference_without_spatial()
+    result = run_reference_study_revision(revision, run_id="q3-no-spatial")
+    completed = revision.with_run(result.provenance)
+    controller = ReferenceStudyController()
+    controller.activate_revision(completed)
+
+    controller.accept_run_result(completed, result)
+
+    assert controller.hasResult
+    assert not controller.hasWorld
+    assert controller._presentation is None
