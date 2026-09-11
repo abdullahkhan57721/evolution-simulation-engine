@@ -183,6 +183,28 @@ def _measure(
     }
 
 
+def _measure_with_setup(
+    app: QGuiApplication,
+    setup: Callable[[], None],
+    action: Callable[[], None],
+    *,
+    repetitions: int = 3,
+) -> dict[str, float]:
+    samples_ms: list[float] = []
+    for _ in range(repetitions):
+        setup()
+        app.processEvents()
+        started = time.perf_counter()
+        action()
+        app.processEvents()
+        samples_ms.append((time.perf_counter() - started) * 1000)
+    return {
+        "min_ms": round(min(samples_ms), 3),
+        "mean_ms": round(sum(samples_ms) / len(samples_ms), 3),
+        "max_ms": round(max(samples_ms), 3),
+    }
+
+
 def _save_window(window: QQuickWindow, path: Path) -> None:
     image = window.grabWindow()
     if image.isNull() or not image.save(str(path)):
@@ -351,9 +373,11 @@ def run_probe(output_dir: Path) -> dict[str, Any]:
     measurements["labels_toggle_256"] = _measure(app, presentation.toggleLabels)
     measurements["trails_toggle_256"] = _measure(app, presentation.toggleTrails)
 
-    presentation.seekStepPosition(0)
-    app.processEvents()
-    measurements["adjacent_playback_step_256"] = _measure(app, presentation.nextStep)
+    measurements["adjacent_playback_step_256"] = _measure_with_setup(
+        app,
+        lambda: presentation.seekStepPosition(0),
+        presentation.nextStep,
+    )
 
     resize_sizes = [(1200, 760), (1600, 980), (1440, 900)]
     resize_index = 0
