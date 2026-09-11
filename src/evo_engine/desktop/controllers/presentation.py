@@ -399,7 +399,9 @@ class PresentationController(QObject):
         ):
             self._bind_reference(artifact, result)
             return
-        if isinstance(artifact, B3StudyRevision) and isinstance(result, B3CuratedRunResult):
+        if isinstance(artifact, B3StudyRevision) and isinstance(
+            result, B3CuratedRunResult
+        ):
             self._bind_b3(artifact, result)
             return
         self._clear(
@@ -432,7 +434,9 @@ class PresentationController(QObject):
         if not same_binding:
             self._selected_id = None
         self._available = True
-        self._message = "Reference replay uses only committed recorded spatial evidence."
+        self._message = (
+            "Reference replay uses only committed recorded spatial evidence."
+        )
         self._remediation = ""
         self._b3_seeds = ()
         self._b3_seed_position = 0
@@ -469,7 +473,9 @@ class PresentationController(QObject):
 
     def _set_b3_steps(self, *, reset_position: bool) -> None:
         pair = self._current_b3_pair()
-        control_steps = available_step_indices(pair.control_evidence.spatial_observations)
+        control_steps = available_step_indices(
+            pair.control_evidence.spatial_observations
+        )
         treatment_steps = set(
             available_step_indices(pair.treatment_evidence.spatial_observations)
         )
@@ -488,7 +494,9 @@ class PresentationController(QObject):
             raise RuntimeError("No exact B3 presentation owner is bound.")
         seed = self._b3_seeds[self._b3_seed_position]
         view = inspect_b3_results(self._artifact, self._result)
-        pair = next((item for item in view.confirmation if item.summary.seed == seed), None)
+        pair = next(
+            (item for item in view.confirmation if item.summary.seed == seed), None
+        )
         if pair is None:
             raise KeyError(f"No B3 confirmation replicate for seed {seed}.")
         return pair
@@ -572,9 +580,13 @@ class PresentationController(QObject):
         ):
             raise ValueError("B3 matched arms must use identical world bounds.")
         if control.focal_encoding != treatment.focal_encoding:
-            raise ValueError("B3 matched arms must use one science-owned focal encoding.")
+            raise ValueError(
+                "B3 matched arms must use one science-owned focal encoding."
+            )
         control_same = _same_organism_ids(self._control_organisms.items(), control)
-        treatment_same = _same_organism_ids(self._treatment_organisms.items(), treatment)
+        treatment_same = _same_organism_ids(
+            self._treatment_organisms.items(), treatment
+        )
         self._set_transition(animate and control_same and treatment_same)
         self._world_width = control.world_width
         self._world_height = control.world_height
@@ -599,7 +611,9 @@ class PresentationController(QObject):
     def _set_encoding(self, frame: WorldPresentationFrame) -> None:
         encoding = frame.focal_encoding
         if encoding is None:
-            self._legend_label = "Body mass sets marker size; selection uses an outline."
+            self._legend_label = (
+                "Body mass sets marker size; selection uses an outline."
+            )
             self._legend_lower = 0
             self._legend_upper = 0
             return
@@ -628,9 +642,10 @@ class PresentationController(QObject):
             self._control_inspector_title = "No organism selected"
             self._control_inspector_body = "Select a control organism."
         else:
-            self._control_inspector_title, self._control_inspector_body = _inspector_text(
-                control_selected
-            )
+            (
+                self._control_inspector_title,
+                self._control_inspector_body,
+            ) = _inspector_text(control_selected)
         if treatment_selected is None:
             self._treatment_selected_id = None
             self._treatment_inspector_title = "No organism selected"
@@ -696,9 +711,9 @@ class PresentationController(QObject):
 def _same_organism_ids(
     current: Sequence[OrganismPrimitive], frame: WorldPresentationFrame
 ) -> bool:
-    return bool(frame.organisms) and tuple(item.organism_id for item in current) == tuple(
-        item.organism_id for item in frame.organisms
-    )
+    return bool(frame.organisms) and tuple(
+        item.organism_id for item in current
+    ) == tuple(item.organism_id for item in frame.organisms)
 
 
 def _inspector_text(organism: OrganismPrimitive) -> tuple[str, str]:
