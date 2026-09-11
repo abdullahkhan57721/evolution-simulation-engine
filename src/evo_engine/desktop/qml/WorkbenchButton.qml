@@ -5,6 +5,7 @@ Button {
     id: control
     property var theme
     property bool primary: false
+    property bool selected: false
 
     implicitHeight: 40
     leftPadding: theme ? theme.space3 : 16
@@ -13,6 +14,7 @@ Button {
 
     Accessible.name: text
     Accessible.role: Accessible.Button
+    Accessible.checked: selected
     Accessible.description: enabled ? "" : "Unavailable in the current Workbench state."
 
     contentItem: Label {
@@ -37,7 +39,7 @@ Button {
                 ? (control.primary
                     ? (control.theme ? control.theme.accentStrong : "#249be8")
                     : (control.theme ? control.theme.surfaceRaised : "#1c2940"))
-                : control.hovered || control.activeFocus
+                : control.hovered || control.activeFocus || control.selected
                     ? (control.primary
                         ? (control.theme ? control.theme.accent : "#55b8ff")
                         : (control.theme ? control.theme.surfaceRaised : "#1c2940"))
@@ -47,6 +49,8 @@ Button {
         border.width: control.activeFocus ? 2 : (control.primary ? 0 : 1)
         border.color: control.activeFocus
             ? (control.theme ? control.theme.focus : "#ffd166")
-            : (control.theme ? control.theme.border : "#2a3a55")
+            : control.selected
+                ? (control.theme ? control.theme.accent : "#55b8ff")
+                : (control.theme ? control.theme.border : "#2a3a55")
     }
 }
