@@ -12,7 +12,12 @@ from evo_engine.desktop.models.authoring import (
     SemanticDiffItem,
     SemanticDiffModel,
 )
-from evo_engine.desktop.models.world import WorldOrganismModel, WorldResourceModel
+from evo_engine.desktop.models.world import (
+    WorldCarcassModel,
+    WorldOrganismModel,
+    WorldResourceModel,
+    WorldTrailModel,
+)
 
 __all__ = [
     "EvidenceItem",
@@ -25,6 +30,8 @@ __all__ = [
     "MeaningListModel",
     "SemanticDiffItem",
     "SemanticDiffModel",
+    "WorldCarcassModel",
     "WorldOrganismModel",
     "WorldResourceModel",
+    "WorldTrailModel",
 ]
