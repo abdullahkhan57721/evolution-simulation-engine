@@ -91,8 +91,8 @@ Item {
             }
             Flow {
                 Layout.fillWidth: true
+                Layout.preferredHeight: childrenRect.height
                 spacing: root.theme.space1
-                implicitHeight: childrenRect.height
                 StatusBadge {
                     theme: root.theme
                     text: "STEP " + root.committedStep
