@@ -26,31 +26,22 @@ Item {
     property int transitionDuration: 300
     property string inspectorTitle: "No organism selected"
     property string inspectorBody: "Select an organism to inspect committed values."
+    property real coordinatePadding: 30
 
     signal organismSelected(int organismId)
-
-    function horizontalPosition(worldX, markerSize) {
-        if (worldWidth <= 1)
-            return Math.max(0, (worldCanvas.width - markerSize) / 2)
-        return (worldX / (worldWidth - 1)) * Math.max(0, worldCanvas.width - markerSize)
-    }
-
-    function verticalPosition(worldY, markerSize) {
-        if (worldHeight <= 1)
-            return Math.max(0, (worldCanvas.height - markerSize) / 2)
-        return (worldY / (worldHeight - 1)) * Math.max(0, worldCanvas.height - markerSize)
-    }
 
     function pointX(worldX) {
         if (worldWidth <= 1)
             return worldCanvas.width / 2
-        return (worldX / (worldWidth - 1)) * worldCanvas.width
+        var padding = Math.min(root.coordinatePadding, worldCanvas.width / 2)
+        return padding + (worldX / (worldWidth - 1)) * Math.max(0, worldCanvas.width - 2 * padding)
     }
 
     function pointY(worldY) {
         if (worldHeight <= 1)
             return worldCanvas.height / 2
-        return (worldY / (worldHeight - 1)) * worldCanvas.height
+        var padding = Math.min(root.coordinatePadding, worldCanvas.height / 2)
+        return padding + (worldY / (worldHeight - 1)) * Math.max(0, worldCanvas.height - 2 * padding)
     }
 
     function traitColor(normalized) {
@@ -228,8 +219,8 @@ Item {
 
                         width: markerSize + 10
                         height: markerSize + (root.labelsVisible ? 24 : 10)
-                        x: root.horizontalPosition(worldX, width)
-                        y: root.verticalPosition(worldY, height)
+                        x: root.pointX(worldX) - width / 2
+                        y: root.pointY(worldY) - markerSize / 2
                         opacity: root.focusMode && !selected ? 0.2 : 1.0
 
                         Behavior on x {
