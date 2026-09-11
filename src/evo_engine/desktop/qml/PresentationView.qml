@@ -59,9 +59,10 @@ Item {
                         anchors.margins: root.theme.space3
                         spacing: root.theme.space2
 
-                        RowLayout {
+                        Flow {
                             Layout.fillWidth: true
                             spacing: root.theme.space2
+                            implicitHeight: childrenRect.height
 
                             StatusBadge {
                                 theme: root.theme
@@ -73,23 +74,32 @@ Item {
                                 text: root.presentation.family === "b3" ? "MATCHED B3" : "REFERENCE REPLAY"
                                 tone: "neutral"
                             }
-                            Item { Layout.fillWidth: true }
                             WorkbenchButton {
                                 theme: root.theme
-                                text: root.presentation.labelsVisible ? "Labels on" : "Labels off"
+                                selected: root.presentation.labelsVisible
+                                text: root.presentation.labelsVisible ? "Labels: on" : "Labels: off"
                                 onClicked: root.presentation.toggleLabels()
                             }
                             WorkbenchButton {
                                 theme: root.theme
-                                text: root.presentation.trailsVisible ? "Trails on" : "Trails off"
+                                selected: root.presentation.trailsVisible
+                                text: root.presentation.trailsVisible ? "Trails: on" : "Trails: off"
                                 onClicked: root.presentation.toggleTrails()
                             }
                             WorkbenchButton {
                                 theme: root.theme
-                                primary: root.presentation.focusMode
-                                text: root.presentation.focusMode ? "Exit Focus" : "Focus Mode"
+                                selected: root.presentation.focusMode
+                                text: root.presentation.focusMode ? "Focus: on" : "Focus: off"
                                 onClicked: root.presentation.toggleFocusMode()
                             }
+                        }
+
+                        Label {
+                            Layout.fillWidth: true
+                            text: "Standard replay starts with labels and trails hidden for readability. These controls only change presentation detail; every organism and committed value remains present."
+                            color: root.theme.subtleText
+                            font.pixelSize: root.theme.textSmall
+                            wrapMode: Text.Wrap
                         }
 
                         RowLayout {
@@ -97,12 +107,14 @@ Item {
                             spacing: root.theme.space2
 
                             WorkbenchButton {
+                                objectName: "presentationPrevious"
                                 theme: root.theme
                                 text: "Previous"
                                 enabled: root.presentation.canPrevious
                                 onClicked: root.presentation.previousStep()
                             }
                             WorkbenchButton {
+                                objectName: "presentationPlayPause"
                                 theme: root.theme
                                 primary: true
                                 text: root.presentation.playing ? "Pause" : "Play"
@@ -110,49 +122,60 @@ Item {
                                 onClicked: root.presentation.togglePlayback()
                             }
                             WorkbenchButton {
+                                objectName: "presentationNext"
                                 theme: root.theme
                                 text: "Next"
                                 enabled: root.presentation.canNext
                                 onClicked: root.presentation.nextStep()
                             }
-
-                            Slider {
-                                id: timeline
-                                Layout.fillWidth: true
-                                from: 0
-                                to: Math.max(0, root.presentation.stepCount - 1)
-                                stepSize: 1
-                                snapMode: Slider.SnapAlways
-                                value: root.presentation.stepPosition
-                                enabled: root.presentation.stepCount > 1
-                                onMoved: root.presentation.seekStepPosition(Math.round(value))
-                                ToolTip.visible: hovered
-                                ToolTip.text: "Exact committed frame position " + Math.round(value)
-                            }
-
+                            Item { Layout.fillWidth: true }
                             Label {
-                                text: (root.presentation.stepPosition + 1) + " / " + root.presentation.stepCount
-                                color: root.theme.mutedText
-                                font.pixelSize: root.theme.textSmall
-                            }
-
-                            Label {
-                                text: "Speed"
+                                text: "Playback speed"
                                 color: root.theme.subtleText
                                 font.pixelSize: root.theme.textSmall
                             }
                             ComboBox {
                                 id: speedChoice
+                                objectName: "presentationSpeed"
+                                activeFocusOnTab: true
                                 model: ["0.5×", "1×", "2×", "4×"]
                                 currentIndex: root.presentation.playbackSpeed === 0.5
                                     ? 0
                                     : root.presentation.playbackSpeed === 1.0
                                         ? 1
                                         : root.presentation.playbackSpeed === 2.0 ? 2 : 3
+                                Accessible.name: "Playback speed"
                                 onActivated: {
                                     var speeds = [0.5, 1.0, 2.0, 4.0]
                                     root.presentation.setPlaybackSpeed(speeds[currentIndex])
                                 }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: root.theme.space2
+                            Slider {
+                                id: timeline
+                                objectName: "presentationTimeline"
+                                Layout.fillWidth: true
+                                activeFocusOnTab: true
+                                from: 0
+                                to: Math.max(0, root.presentation.stepCount - 1)
+                                stepSize: 1
+                                snapMode: Slider.SnapAlways
+                                value: root.presentation.stepPosition
+                                enabled: root.presentation.stepCount > 1
+                                Accessible.name: "Committed-step timeline"
+                                Accessible.description: "Select an exact recorded committed frame."
+                                onMoved: root.presentation.seekStepPosition(Math.round(value))
+                                ToolTip.visible: hovered
+                                ToolTip.text: "Exact committed frame position " + Math.round(value)
+                            }
+                            Label {
+                                text: (root.presentation.stepPosition + 1) + " / " + root.presentation.stepCount
+                                color: root.theme.mutedText
+                                font.pixelSize: root.theme.textSmall
                             }
                         }
                     }
@@ -172,7 +195,7 @@ Item {
                     visible: root.presentation.family === "b3"
                     Layout.fillWidth: true
                     implicitHeight: seedControls.implicitHeight + root.theme.space2 * 2
-                    RowLayout {
+                    ColumnLayout {
                         id: seedControls
                         anchors.fill: parent
                         anchors.margins: root.theme.space2
@@ -190,17 +213,23 @@ Item {
                             Layout.fillWidth: true
                             wrapMode: Text.Wrap
                         }
-                        WorkbenchButton {
-                            theme: root.theme
-                            text: "Previous seed"
-                            enabled: root.presentation.canPreviousSeed
-                            onClicked: root.presentation.previousB3Seed()
-                        }
-                        WorkbenchButton {
-                            theme: root.theme
-                            text: "Next seed"
-                            enabled: root.presentation.canNextSeed
-                            onClicked: root.presentation.nextB3Seed()
+                        RowLayout {
+                            Layout.fillWidth: true
+                            WorkbenchButton {
+                                objectName: "presentationPreviousSeed"
+                                theme: root.theme
+                                text: "Previous seed"
+                                enabled: root.presentation.canPreviousSeed
+                                onClicked: root.presentation.previousB3Seed()
+                            }
+                            WorkbenchButton {
+                                objectName: "presentationNextSeed"
+                                theme: root.theme
+                                text: "Next seed"
+                                enabled: root.presentation.canNextSeed
+                                onClicked: root.presentation.nextB3Seed()
+                            }
+                            Item { Layout.fillWidth: true }
                         }
                     }
                 }
@@ -208,7 +237,7 @@ Item {
                 ScientificWorld {
                     visible: root.presentation.family === "reference"
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Math.max(540, root.height - 230)
+                    Layout.preferredHeight: Math.max(500, root.height - 250)
                     theme: root.theme
                     title: "Reference Ecology"
                     subtitle: "Recorded spatial evidence · exact committed step"
@@ -235,12 +264,13 @@ Item {
                 RowLayout {
                     visible: root.presentation.family === "b3"
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Math.max(530, root.height - 245)
+                    Layout.preferredHeight: Math.max(500, root.height - 270)
                     spacing: root.theme.space3
 
                     ScientificWorld {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.minimumWidth: 340
                         theme: root.theme
                         title: "Control"
                         subtitle: "Uniform environment · seed " + root.presentation.b3Seed
@@ -267,6 +297,7 @@ Item {
                     ScientificWorld {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
+                        Layout.minimumWidth: 340
                         theme: root.theme
                         title: "Treatment"
                         subtitle: "Compact-patch environment · seed " + root.presentation.b3Seed
