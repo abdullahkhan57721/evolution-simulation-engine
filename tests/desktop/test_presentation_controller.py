@@ -171,9 +171,7 @@ def _bind_reference_owner(
 
     def build_frame(*_args, step_index: int, selected_organism_id=None, **_kwargs):
         calls.append((step_index, selected_organism_id))
-        return SimpleNamespace(
-            frame=_frame(step_index, selected=selected_organism_id)
-        )
+        return SimpleNamespace(frame=_frame(step_index, selected=selected_organism_id))
 
     monkeypatch.setattr(
         presentation_module,
@@ -186,7 +184,8 @@ def _bind_reference_owner(
     return calls
 
 
-def test_world_models_project_only_presentation_values_and_discontinuities_reset() -> None:
+def test_world_models_project_only_presentation_values_and_discontinuities_reset(
+) -> None:
     _app()
     first = _frame(0)
     second = _frame(1)
@@ -230,7 +229,10 @@ def test_reference_exact_seek_and_view_state_never_change_committed_values(
     presentation.setPlaybackSpeed(4.0)
 
     assert presentation.committedStep == 2
-    assert cast(WorldOrganismModel, presentation.organismModel).items() == committed_before
+    assert (
+        cast(WorldOrganismModel, presentation.organismModel).items()
+        == committed_before
+    )
 
     presentation.seekStepPosition(0)
     assert presentation.committedStep == 0
@@ -283,7 +285,10 @@ def test_animation_is_eligible_only_for_identity_stable_adjacent_frames(
     presentation.nextStep()
     assert presentation.committedStep == 1
     assert presentation.transitionAnimated
-    assert cast(WorldOrganismModel, presentation.organismModel).items() == _frame(1).organisms
+    assert (
+        cast(WorldOrganismModel, presentation.organismModel).items()
+        == _frame(1).organisms
+    )
 
     presentation.nextStep()
     assert presentation.committedStep == 2
