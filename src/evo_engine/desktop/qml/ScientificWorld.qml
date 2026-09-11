@@ -166,7 +166,7 @@ Item {
                             rotation: -45
                             color: root.theme.warning
                         }
-                        ToolTip.visible: carcassMouse.containsMouse
+                        ToolTip.visible: carcassMouse.hovered
                         ToolTip.text: "Carcass " + carcassId + " · " + resourceUnits + " resource units"
                         HoverHandler { id: carcassMouse }
                     }
