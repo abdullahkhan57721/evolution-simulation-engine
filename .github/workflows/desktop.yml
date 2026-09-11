@@ -10,6 +10,7 @@ on:
       - "src/evo_engine/ui/workbench.py"
       - "tests/desktop/**"
       - "tests/architecture/test_desktop_dependency_boundary.py"
+      - "scripts/q4_renderer_probe.py"
       - "requirements-desktop.txt"
       - "requirements-ui.txt"
       - "MANIFEST.in"
@@ -24,6 +25,7 @@ on:
       - "src/evo_engine/ui/workbench.py"
       - "tests/desktop/**"
       - "tests/architecture/test_desktop_dependency_boundary.py"
+      - "scripts/q4_renderer_probe.py"
       - "requirements-desktop.txt"
       - "requirements-ui.txt"
       - "MANIFEST.in"
@@ -68,6 +70,14 @@ jobs:
             tests/ui/test_wu5_world_explorer.py
       - name: Source launch smoke
         run: python -m evo_engine.desktop.main --smoke-test
+      - name: Q4 renderer measurements and visual proof
+        run: python scripts/q4_renderer_probe.py --output-dir q4-renderer-proof
+      - name: Upload Q4 renderer proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: q4-renderer-proof
+          path: q4-renderer-proof/
+          if-no-files-found: error
       - name: Build standalone desktop artifact
         run: pyside6-deploy src/evo_engine/desktop/main.py --force --name EvolutionExperimentWorkbench
       - name: Packaged artifact launch smoke
