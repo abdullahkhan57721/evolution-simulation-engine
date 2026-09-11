@@ -7,6 +7,9 @@ Rectangle {
     property string text: ""
     property string tone: "neutral"
 
+    Accessible.name: badge.text
+    Accessible.role: Accessible.StaticText
+
     implicitWidth: label.implicitWidth + 20
     implicitHeight: 26
     radius: height / 2
