@@ -43,8 +43,8 @@ ScrollView {
                 FieldLabel { theme: root.theme; text: "FACTOR LEVELS" }
                 Flow {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: childrenRect.height
                     spacing: root.theme.space2
-                    implicitHeight: childrenRect.height
                     Repeater {
                         model: root.experiment.factorLevelModel
                         delegate: CheckBox {
