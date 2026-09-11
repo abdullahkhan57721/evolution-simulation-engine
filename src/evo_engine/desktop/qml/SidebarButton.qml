@@ -9,6 +9,12 @@ Button {
     implicitHeight: 42
     leftPadding: theme ? theme.space3 : 16
     rightPadding: theme ? theme.space3 : 16
+    activeFocusOnTab: true
+
+    Accessible.name: text
+    Accessible.role: Accessible.Button
+    Accessible.selected: selected
+    Accessible.description: selected ? "Current Study section." : "Open this Study section."
 
     contentItem: Label {
         text: control.text
@@ -25,10 +31,12 @@ Button {
         radius: control.theme ? control.theme.radiusSmall : 7
         color: control.selected
             ? Qt.rgba(0.33, 0.72, 1.0, 0.12)
-            : control.hovered
+            : control.hovered || control.activeFocus
                 ? (control.theme ? control.theme.surfaceRaised : "#1c2940")
                 : "transparent"
-        border.width: control.selected ? 1 : 0
-        border.color: control.theme ? control.theme.accent : "#55b8ff"
+        border.width: control.activeFocus ? 2 : (control.selected ? 1 : 0)
+        border.color: control.activeFocus
+            ? (control.theme ? control.theme.focus : "#ffd166")
+            : (control.theme ? control.theme.accent : "#55b8ff")
     }
 }
