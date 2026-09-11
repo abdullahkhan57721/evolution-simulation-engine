@@ -7,8 +7,8 @@ ApplicationWindow {
     id: root
     width: 1280
     height: 820
-    minimumWidth: 980
-    minimumHeight: 680
+    minimumWidth: 1024
+    minimumHeight: 700
     visible: true
     title: applicationController.hasStudy
         ? applicationController.studyTitle + " — Evolution Experiment Workbench"
@@ -21,6 +21,7 @@ ApplicationWindow {
     readonly property var experiment: applicationController.experimentController
     readonly property var run: applicationController.runController
     readonly property var results: applicationController.resultsController
+    readonly property var presentation: presentationController
 
     WorkbenchTheme { id: theme }
 
@@ -64,6 +65,7 @@ ApplicationWindow {
     }
 
     menuBar: MenuBar {
+        Accessible.name: "Application menu"
         Menu {
             title: "File"
             MenuItem { action: newAction }
@@ -99,6 +101,7 @@ ApplicationWindow {
 
     Popup {
         id: runPlanPopup
+        objectName: "runPlanPopup"
         modal: true
         focus: true
         closePolicy: Popup.NoAutoClose
@@ -107,6 +110,7 @@ ApplicationWindow {
         height: Math.min(root.height - theme.space4 * 2, 720)
         x: Math.round((root.width - width) / 2)
         y: Math.round((root.height - height) / 2)
+        Accessible.name: "Exact Run Plan"
         background: Rectangle {
             color: theme.canvas
             radius: theme.radius
@@ -116,6 +120,10 @@ ApplicationWindow {
             theme: theme
             run: root.run
         }
+        onOpened: Qt.callLater(function() {
+            if (contentItem)
+                contentItem.forceActiveFocus(Qt.TabFocusReason)
+        })
     }
 
     header: Rectangle {
@@ -134,6 +142,7 @@ ApplicationWindow {
                 height: 28
                 radius: 8
                 color: theme.accent
+                Accessible.ignored: true
                 Label {
                     anchors.centerIn: parent
                     text: "E"
@@ -150,6 +159,8 @@ ApplicationWindow {
                     color: theme.text
                     font.pixelSize: 16
                     font.weight: Font.DemiBold
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
                 }
                 Label {
                     text: root.app.route === "study"
@@ -161,6 +172,8 @@ ApplicationWindow {
                                 : "Computational evolutionary-biology laboratory"
                     color: theme.mutedText
                     font.pixelSize: theme.textSmall
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
                 }
             }
             StatusBadge {
@@ -180,7 +193,9 @@ ApplicationWindow {
 
     Loader {
         id: routeLoader
+        objectName: "routeLoader"
         anchors.fill: parent
+        focus: true
         sourceComponent: root.app.route === "study"
             ? studyRoute
             : root.app.route === "new"
@@ -188,239 +203,284 @@ ApplicationWindow {
                 : root.app.route === "open"
                     ? openRoute
                     : homeRoute
+        onLoaded: Qt.callLater(function() {
+            if (item)
+                item.forceActiveFocus(Qt.TabFocusReason)
+        })
     }
 
     Component {
         id: homeRoute
-        ScrollView {
-            contentWidth: availableWidth
-            clip: true
+        FocusScope {
+            id: homeScope
+            objectName: "homeRoute"
 
-            ColumnLayout {
-                width: Math.max(760, routeLoader.width - theme.space5 * 2)
-                x: Math.max(theme.space5, (routeLoader.width - width) / 2)
-                spacing: theme.space4
+            ScrollView {
+                anchors.fill: parent
+                contentWidth: availableWidth
+                clip: true
 
-                Item { Layout.preferredHeight: theme.space3 }
+                ColumnLayout {
+                    width: Math.min(1180, Math.max(0, homeScope.width - theme.space5 * 2))
+                    x: Math.max(theme.space5, Math.round((homeScope.width - width) / 2))
+                    spacing: theme.space4
 
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "Native Workbench"
-                    title: "Build, run, inspect, and present reproducible evolutionary studies."
-                    description: "Scientific meaning stays in the existing Workbench. The desktop shell owns navigation, exact files, and transient application state."
-                    Layout.fillWidth: true
-                }
+                    Item { Layout.preferredHeight: theme.space3 }
 
-                RowLayout {
-                    spacing: theme.space3
-                    WorkbenchButton {
+                    SectionHeader {
                         theme: theme
-                        primary: true
-                        text: "New Study"
-                        onClicked: root.app.showNewStudy()
-                    }
-                    WorkbenchButton {
-                        theme: theme
-                        text: "Open Study…"
-                        onClicked: {
-                            root.app.showOpenStudy()
-                            openDialog.open()
-                        }
-                    }
-                }
-
-                Label {
-                    text: "SUPPORTED STUDY FAMILIES"
-                    color: theme.subtleText
-                    font.pixelSize: theme.textSmall
-                    font.weight: Font.DemiBold
-                    font.letterSpacing: 0.7
-                }
-
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: routeLoader.width >= 1080 ? 3 : 1
-                    columnSpacing: theme.space3
-                    rowSpacing: theme.space3
-
-                    SurfacePanel {
-                        theme: theme
+                        eyebrow: "Native Workbench"
+                        title: "Build, run, inspect, and present reproducible evolutionary studies."
+                        description: "Scientific meaning stays in the existing Workbench. The desktop shell owns navigation, exact files, and transient application state."
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 150
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: theme.space3
-                            spacing: theme.space2
-                            StatusBadge { theme: theme; text: "CURATED"; tone: "neutral" }
-                            Label { text: "B3 Flagship"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
-                            Label { text: "Canonical confirmed radius-1 selection study."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            Item { Layout.fillHeight: true }
-                        }
                     }
-                    SurfacePanel {
-                        theme: theme
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 150
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: theme.space3
-                            spacing: theme.space2
-                            StatusBadge { theme: theme; text: "CONTROLLED"; tone: "neutral" }
-                            Label { text: "Locomotion experiments"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
-                            Label { text: "Single run · max-speed sweep · environment comparison."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            Item { Layout.fillHeight: true }
-                        }
-                    }
-                    SurfacePanel {
-                        theme: theme
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 150
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: theme.space3
-                            spacing: theme.space2
-                            StatusBadge { theme: theme; text: "CUSTOM"; tone: "neutral" }
-                            Label { text: "Reference Ecology"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
-                            Label { text: "Bounded Workbench-supported ecological composition."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            Item { Layout.fillHeight: true }
-                        }
-                    }
-                }
 
-                DiagnosticBanner {
-                    theme: theme
-                    tone: root.app.statusTone
-                    title: "Application status"
-                    message: root.app.status
-                    visible: root.app.status.length > 0
-                    Layout.fillWidth: true
+                    RowLayout {
+                        spacing: theme.space3
+                        WorkbenchButton {
+                            id: homeNewButton
+                            objectName: "homeNewStudy"
+                            theme: theme
+                            primary: true
+                            text: "New Study"
+                            KeyNavigation.right: homeOpenButton
+                            KeyNavigation.tab: homeOpenButton
+                            onClicked: root.app.showNewStudy()
+                        }
+                        WorkbenchButton {
+                            id: homeOpenButton
+                            objectName: "homeOpenStudy"
+                            theme: theme
+                            text: "Open Study…"
+                            KeyNavigation.left: homeNewButton
+                            onClicked: {
+                                root.app.showOpenStudy()
+                                openDialog.open()
+                            }
+                        }
+                    }
+
+                    Label {
+                        text: "SUPPORTED STUDY FAMILIES"
+                        color: theme.subtleText
+                        font.pixelSize: theme.textSmall
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 0.7
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: homeScope.width >= 1080 ? 3 : 1
+                        columnSpacing: theme.space3
+                        rowSpacing: theme.space3
+
+                        SurfacePanel {
+                            theme: theme
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 150
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: theme.space3
+                                spacing: theme.space2
+                                StatusBadge { theme: theme; text: "CURATED"; tone: "neutral" }
+                                Label { text: "B3 Flagship"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
+                                Label { text: "Canonical confirmed radius-1 selection study."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                                Item { Layout.fillHeight: true }
+                            }
+                        }
+                        SurfacePanel {
+                            theme: theme
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 150
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: theme.space3
+                                spacing: theme.space2
+                                StatusBadge { theme: theme; text: "CONTROLLED"; tone: "neutral" }
+                                Label { text: "Locomotion experiments"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
+                                Label { text: "Single run · max-speed sweep · environment comparison."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                                Item { Layout.fillHeight: true }
+                            }
+                        }
+                        SurfacePanel {
+                            theme: theme
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 150
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: theme.space3
+                                spacing: theme.space2
+                                StatusBadge { theme: theme; text: "CUSTOM"; tone: "neutral" }
+                                Label { text: "Reference Ecology"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
+                                Label { text: "Bounded Workbench-supported ecological composition."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                                Item { Layout.fillHeight: true }
+                            }
+                        }
+                    }
+
+                    DiagnosticBanner {
+                        theme: theme
+                        tone: root.app.statusTone
+                        title: "Application status"
+                        message: root.app.status
+                        visible: root.app.status.length > 0
+                        Layout.fillWidth: true
+                    }
+                    Item { Layout.preferredHeight: theme.space3 }
                 }
             }
+
+            Component.onCompleted: homeNewButton.forceActiveFocus(Qt.TabFocusReason)
         }
     }
 
     Component {
         id: newRoute
-        ScrollView {
-            contentWidth: availableWidth
-            clip: true
-            ColumnLayout {
-                width: Math.max(760, routeLoader.width - theme.space5 * 2)
-                x: Math.max(theme.space5, (routeLoader.width - width) / 2)
-                spacing: theme.space4
+        FocusScope {
+            id: newScope
+            objectName: "newRoute"
 
-                Item { Layout.preferredHeight: theme.space3 }
-                RowLayout {
-                    Layout.fillWidth: true
-                    WorkbenchButton { theme: theme; text: "← Home"; onClicked: root.app.goHome() }
-                    Item { Layout.fillWidth: true }
-                }
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "New Study"
-                    title: "Choose a supported scientific workflow"
-                    description: "Each choice creates an existing concrete Workbench artifact. Q1 does not wrap them in a universal Study format."
-                    Layout.fillWidth: true
-                }
+            ScrollView {
+                anchors.fill: parent
+                contentWidth: availableWidth
+                clip: true
 
-                Label { text: "CURATED"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold }
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: b3NewContent.implicitHeight + theme.space4 * 2
+                ColumnLayout {
+                    width: Math.min(1180, Math.max(0, newScope.width - theme.space5 * 2))
+                    x: Math.max(theme.space5, Math.round((newScope.width - width) / 2))
+                    spacing: theme.space4
+
+                    Item { Layout.preferredHeight: theme.space3 }
                     RowLayout {
-                        id: b3NewContent
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space3
-                        ColumnLayout {
+                        Layout.fillWidth: true
+                        WorkbenchButton {
+                            id: newHomeButton
+                            theme: theme
+                            text: "← Home"
+                            onClicked: root.app.goHome()
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+                    SectionHeader {
+                        theme: theme
+                        eyebrow: "New Study"
+                        title: "Choose a supported scientific workflow"
+                        description: "Each choice creates an existing concrete Workbench artifact. The desktop layer does not wrap them in a universal Study format."
+                        Layout.fillWidth: true
+                    }
+
+                    Label { text: "CURATED"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold }
+                    SurfacePanel {
+                        theme: theme
+                        Layout.fillWidth: true
+                        implicitHeight: b3NewContent.implicitHeight + theme.space4 * 2
+                        RowLayout {
+                            id: b3NewContent
+                            anchors.fill: parent
+                            anchors.margins: theme.space4
+                            spacing: theme.space3
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Label { text: "B3 Flagship"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
+                                Label { text: "Start from the canonical validated radius-1 B3 scientific definition."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                            }
+                            WorkbenchButton {
+                                id: b3StartButton
+                                objectName: "newB3Study"
+                                theme: theme
+                                primary: true
+                                text: "Start"
+                                onClicked: root.app.createStudy("b3-flagship")
+                            }
+                        }
+                    }
+
+                    Label { text: "CONTROLLED"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold }
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: newScope.width >= 1120 ? 3 : 1
+                        columnSpacing: theme.space3
+                        rowSpacing: theme.space3
+
+                        SurfacePanel {
+                            theme: theme
                             Layout.fillWidth: true
-                            Label { text: "B3 Flagship"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
-                            Label { text: "Start from the canonical validated radius-1 B3 scientific definition."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                            implicitHeight: 170
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: theme.space3
+                                spacing: theme.space2
+                                Label { text: "Single controlled run"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
+                                Label { text: "One bounded controlled-locomotion Study revision."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                                Item { Layout.fillHeight: true }
+                                WorkbenchButton { theme: theme; text: "Start controlled run"; Layout.fillWidth: true; onClicked: root.app.createStudy("controlled-run") }
+                            }
                         }
-                        WorkbenchButton { theme: theme; primary: true; text: "Start"; onClicked: root.app.createStudy("b3-flagship") }
-                    }
-                }
-
-                Label { text: "CONTROLLED"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold }
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: routeLoader.width >= 1120 ? 3 : 1
-                    columnSpacing: theme.space3
-                    rowSpacing: theme.space3
-
-                    SurfacePanel {
-                        theme: theme
-                        Layout.fillWidth: true
-                        implicitHeight: 170
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: theme.space3
-                            spacing: theme.space2
-                            Label { text: "Single controlled run"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                            Label { text: "One bounded controlled-locomotion Study revision."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            Item { Layout.fillHeight: true }
-                            WorkbenchButton { theme: theme; text: "Start controlled run"; Layout.fillWidth: true; onClicked: root.app.createStudy("controlled-run") }
-                        }
-                    }
-                    SurfacePanel {
-                        theme: theme
-                        Layout.fillWidth: true
-                        implicitHeight: 170
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: theme.space3
-                            spacing: theme.space2
-                            Label { text: "Max-speed sweep"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                            Label { text: "Existing E3-pattern maximum-speed factor sweep."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            Item { Layout.fillHeight: true }
-                            WorkbenchButton { theme: theme; text: "Start max-speed sweep"; Layout.fillWidth: true; onClicked: root.app.createStudy("max-speed-sweep") }
-                        }
-                    }
-                    SurfacePanel {
-                        theme: theme
-                        Layout.fillWidth: true
-                        implicitHeight: 170
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: theme.space3
-                            spacing: theme.space2
-                            Label { text: "Environment comparison"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                            Label { text: "Existing E4 matched environment-selection comparison."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
-                            Item { Layout.fillHeight: true }
-                            WorkbenchButton { theme: theme; text: "Start environment comparison"; Layout.fillWidth: true; onClicked: root.app.createStudy("environment-selection-comparison") }
-                        }
-                    }
-                }
-
-                Label { text: "CUSTOM"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold }
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: referenceNewContent.implicitHeight + theme.space4 * 2
-                    RowLayout {
-                        id: referenceNewContent
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space3
-                        ColumnLayout {
+                        SurfacePanel {
+                            theme: theme
                             Layout.fillWidth: true
-                            Label { text: "Reference Ecology"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
-                            Label { text: "Start the bounded WB4 recipe. Extension/internal engine capabilities remain outside ordinary authoring."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                            implicitHeight: 170
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: theme.space3
+                                spacing: theme.space2
+                                Label { text: "Max-speed sweep"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
+                                Label { text: "Existing E3-pattern maximum-speed factor sweep."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                                Item { Layout.fillHeight: true }
+                                WorkbenchButton { theme: theme; text: "Start max-speed sweep"; Layout.fillWidth: true; onClicked: root.app.createStudy("max-speed-sweep") }
+                            }
                         }
-                        WorkbenchButton { theme: theme; primary: true; text: "Start"; onClicked: root.app.createStudy("reference-ecology") }
+                        SurfacePanel {
+                            theme: theme
+                            Layout.fillWidth: true
+                            implicitHeight: 170
+                            ColumnLayout {
+                                anchors.fill: parent
+                                anchors.margins: theme.space3
+                                spacing: theme.space2
+                                Label { text: "Environment comparison"; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
+                                Label { text: "Existing E4 matched environment-selection comparison."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                                Item { Layout.fillHeight: true }
+                                WorkbenchButton { theme: theme; text: "Start environment comparison"; Layout.fillWidth: true; onClicked: root.app.createStudy("environment-selection-comparison") }
+                            }
+                        }
                     }
+
+                    Label { text: "CUSTOM"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold }
+                    SurfacePanel {
+                        theme: theme
+                        Layout.fillWidth: true
+                        implicitHeight: referenceNewContent.implicitHeight + theme.space4 * 2
+                        RowLayout {
+                            id: referenceNewContent
+                            anchors.fill: parent
+                            anchors.margins: theme.space4
+                            spacing: theme.space3
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Label { text: "Reference Ecology"; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
+                                Label { text: "Start the bounded WB4 recipe. Extension/internal engine capabilities remain outside ordinary authoring."; color: theme.mutedText; wrapMode: Text.Wrap; Layout.fillWidth: true }
+                            }
+                            WorkbenchButton { theme: theme; primary: true; text: "Start"; onClicked: root.app.createStudy("reference-ecology") }
+                        }
+                    }
+                    Item { Layout.preferredHeight: theme.space3 }
                 }
             }
+
+            Component.onCompleted: b3StartButton.forceActiveFocus(Qt.TabFocusReason)
         }
     }
 
     Component {
         id: openRoute
-        Item {
+        FocusScope {
+            id: openScope
+            objectName: "openRoute"
+
             ColumnLayout {
                 anchors.centerIn: parent
-                width: Math.min(680, parent.width - theme.space5 * 2)
+                width: Math.min(680, Math.max(0, parent.width - theme.space5 * 2))
                 spacing: theme.space3
 
                 WorkbenchButton { theme: theme; text: "← Home"; onClicked: root.app.goHome() }
@@ -441,6 +501,8 @@ ApplicationWindow {
                             Layout.fillWidth: true
                         }
                         WorkbenchButton {
+                            id: chooseOpenButton
+                            objectName: "chooseOpenStudyFile"
                             theme: theme
                             primary: true
                             text: "Choose JSON file…"
@@ -459,72 +521,141 @@ ApplicationWindow {
                     Layout.fillWidth: true
                 }
             }
+
+            Component.onCompleted: chooseOpenButton.forceActiveFocus(Qt.TabFocusReason)
         }
     }
 
     Component {
         id: studyRoute
-        RowLayout {
-            anchors.fill: parent
-            anchors.margins: theme.space3
-            spacing: theme.space3
+        FocusScope {
+            id: studyScope
+            objectName: "studyRoute"
 
-            SurfacePanel {
-                theme: theme
-                Layout.preferredWidth: 218
-                Layout.fillHeight: true
-                ColumnLayout {
-                    anchors.fill: parent
-                    anchors.margins: theme.space3
-                    spacing: theme.space2
-
-                    WorkbenchButton {
-                        theme: theme
-                        text: "← Home"
-                        enabled: !root.app.running
-                        Layout.fillWidth: true
-                        onClicked: root.app.goHome()
-                    }
-                    Item { Layout.preferredHeight: theme.space2 }
-                    Label { text: "STUDY"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold; font.letterSpacing: 0.7 }
-                    SidebarButton { theme: theme; text: "Simulation"; selected: root.app.studySection === "Simulation"; Layout.fillWidth: true; onClicked: root.app.selectSection("Simulation") }
-                    SidebarButton { theme: theme; text: "Evidence"; selected: root.app.studySection === "Evidence"; Layout.fillWidth: true; onClicked: root.app.selectSection("Evidence") }
-                    SidebarButton { theme: theme; text: "Experiment"; selected: root.app.studySection === "Experiment"; Layout.fillWidth: true; onClicked: root.app.selectSection("Experiment") }
-                    SidebarButton { theme: theme; text: "Results"; selected: root.app.studySection === "Results"; Layout.fillWidth: true; onClicked: root.app.selectSection("Results") }
-                    SidebarButton { theme: theme; text: "Presentation"; selected: root.app.studySection === "Presentation"; Layout.fillWidth: true; onClicked: root.app.selectSection("Presentation") }
-                    Item { Layout.fillHeight: true }
-                    Label {
-                        text: root.app.fileLocation.length > 0 ? "Saved file\n" + root.app.fileLocation : "No file location yet"
-                        color: theme.subtleText
-                        font.pixelSize: theme.textSmall
-                        wrapMode: Text.Wrap
-                        Layout.fillWidth: true
-                    }
-                }
-            }
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            RowLayout {
+                anchors.fill: parent
+                anchors.margins: theme.space3
                 spacing: theme.space3
 
                 SurfacePanel {
                     theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: studyHeaderContent.implicitHeight + theme.space3 * 2
-                    RowLayout {
-                        id: studyHeaderContent
+                    Layout.preferredWidth: studyScope.width >= 1180 ? 218 : 188
+                    Layout.minimumWidth: 178
+                    Layout.maximumWidth: 218
+                    Layout.fillHeight: true
+                    ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: theme.space3
-                        spacing: theme.space3
+                        spacing: theme.space2
 
-                        ColumnLayout {
+                        WorkbenchButton {
+                            id: studyHomeButton
+                            theme: theme
+                            text: "← Home"
+                            enabled: !root.app.running
                             Layout.fillWidth: true
-                            spacing: theme.space1
-                            Label { text: root.app.studyTitle; color: theme.text; font.pixelSize: theme.textTitle; font.weight: Font.DemiBold }
-                            Label { text: root.app.studyTypeLabel; color: theme.mutedText; font.pixelSize: theme.textSmall }
-                            RowLayout {
+                            onClicked: root.app.goHome()
+                        }
+                        Item { Layout.preferredHeight: theme.space2 }
+                        Label { text: "STUDY"; color: theme.subtleText; font.pixelSize: theme.textSmall; font.weight: Font.DemiBold; font.letterSpacing: 0.7 }
+                        SidebarButton {
+                            id: simulationNav
+                            objectName: "sectionSimulation"
+                            theme: theme
+                            text: "Simulation"
+                            selected: root.app.studySection === "Simulation"
+                            Layout.fillWidth: true
+                            KeyNavigation.down: evidenceNav
+                            onClicked: root.app.selectSection("Simulation")
+                        }
+                        SidebarButton {
+                            id: evidenceNav
+                            objectName: "sectionEvidence"
+                            theme: theme
+                            text: "Evidence"
+                            selected: root.app.studySection === "Evidence"
+                            Layout.fillWidth: true
+                            KeyNavigation.up: simulationNav
+                            KeyNavigation.down: experimentNav
+                            onClicked: root.app.selectSection("Evidence")
+                        }
+                        SidebarButton {
+                            id: experimentNav
+                            objectName: "sectionExperiment"
+                            theme: theme
+                            text: "Experiment"
+                            selected: root.app.studySection === "Experiment"
+                            Layout.fillWidth: true
+                            KeyNavigation.up: evidenceNav
+                            KeyNavigation.down: resultsNav
+                            onClicked: root.app.selectSection("Experiment")
+                        }
+                        SidebarButton {
+                            id: resultsNav
+                            objectName: "sectionResults"
+                            theme: theme
+                            text: "Results"
+                            selected: root.app.studySection === "Results"
+                            Layout.fillWidth: true
+                            KeyNavigation.up: experimentNav
+                            KeyNavigation.down: presentationNav
+                            onClicked: root.app.selectSection("Results")
+                        }
+                        SidebarButton {
+                            id: presentationNav
+                            objectName: "sectionPresentation"
+                            theme: theme
+                            text: "Presentation"
+                            selected: root.app.studySection === "Presentation"
+                            Layout.fillWidth: true
+                            KeyNavigation.up: resultsNav
+                            onClicked: root.app.selectSection("Presentation")
+                        }
+                        Item { Layout.fillHeight: true }
+                        Label {
+                            text: root.app.fileLocation.length > 0 ? "Saved file\n" + root.app.fileLocation : "No file location yet"
+                            color: theme.subtleText
+                            font.pixelSize: theme.textSmall
+                            wrapMode: Text.WrapAnywhere
+                            Layout.fillWidth: true
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    spacing: theme.space3
+
+                    SurfacePanel {
+                        theme: theme
+                        Layout.fillWidth: true
+                        implicitHeight: studyHeaderContent.implicitHeight + theme.space3 * 2
+                        ColumnLayout {
+                            id: studyHeaderContent
+                            anchors.fill: parent
+                            anchors.margins: theme.space3
+                            spacing: theme.space2
+
+                            Label {
+                                text: root.app.studyTitle
+                                color: theme.text
+                                font.pixelSize: theme.textTitle
+                                font.weight: Font.DemiBold
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                            Label {
+                                text: root.app.studyTypeLabel
+                                color: theme.mutedText
+                                font.pixelSize: theme.textSmall
+                                wrapMode: Text.Wrap
+                                Layout.fillWidth: true
+                            }
+                            Flow {
+                                Layout.fillWidth: true
                                 spacing: theme.space2
+                                implicitHeight: childrenRect.height
                                 StatusBadge {
                                     theme: theme
                                     visible: root.app.revisionId.length > 0
@@ -543,82 +674,102 @@ ApplicationWindow {
                                     tone: "success"
                                 }
                             }
-                        }
 
-                        WorkbenchButton {
-                            theme: theme
-                            text: "Fork"
-                            visible: root.app.canFork
-                            enabled: root.app.canFork && !root.app.running
-                            onClicked: root.app.forkStudy()
-                        }
-                        WorkbenchButton {
-                            theme: theme
-                            text: root.app.hasFileLocation ? "Save" : "Save As…"
-                            enabled: !root.app.running
-                            onClicked: {
-                                if (root.app.hasFileLocation)
-                                    root.app.saveToCurrentLocation()
-                                else
-                                    saveDialog.open()
+                            GridLayout {
+                                Layout.fillWidth: true
+                                columns: studyScope.width >= 1220 ? 4 : 2
+                                columnSpacing: theme.space2
+                                rowSpacing: theme.space2
+                                WorkbenchButton {
+                                    theme: theme
+                                    text: "Fork"
+                                    visible: root.app.canFork
+                                    enabled: root.app.canFork && !root.app.running
+                                    Layout.fillWidth: true
+                                    onClicked: root.app.forkStudy()
+                                }
+                                WorkbenchButton {
+                                    theme: theme
+                                    text: root.app.hasFileLocation ? "Save" : "Save As…"
+                                    enabled: !root.app.running
+                                    Layout.fillWidth: true
+                                    onClicked: {
+                                        if (root.app.hasFileLocation)
+                                            root.app.saveToCurrentLocation()
+                                        else
+                                            saveDialog.open()
+                                    }
+                                }
+                                WorkbenchButton {
+                                    theme: theme
+                                    text: "Save As…"
+                                    enabled: !root.app.running
+                                    Layout.fillWidth: true
+                                    onClicked: saveDialog.open()
+                                }
+                                WorkbenchButton {
+                                    id: runStudyButton
+                                    objectName: "runStudy"
+                                    theme: theme
+                                    primary: true
+                                    text: root.app.running ? "Running…" : "Run"
+                                    enabled: root.app.canRun
+                                    Layout.fillWidth: true
+                                    onClicked: root.app.runStudy()
+                                    ToolTip.visible: hovered && !enabled
+                                    ToolTip.text: "Resolve any blocked scientific draft before opening the exact Run Plan."
+                                }
                             }
                         }
-                        WorkbenchButton {
-                            theme: theme
-                            text: "Save As…"
-                            enabled: !root.app.running
-                            onClicked: saveDialog.open()
-                        }
-                        WorkbenchButton {
-                            theme: theme
-                            primary: true
-                            text: root.app.running ? "Running…" : "Run"
-                            enabled: root.app.canRun
-                            onClicked: root.app.runStudy()
-                            ToolTip.visible: hovered && !enabled
-                            ToolTip.text: "Resolve any blocked scientific draft before opening the exact Run Plan."
-                        }
                     }
-                }
 
-                DiagnosticBanner {
-                    theme: theme
-                    visible: root.app.diagnosticMessage.length > 0
-                    tone: "error"
-                    title: "Exact reproduction unavailable"
-                    message: root.app.diagnosticMessage
-                    remediation: root.app.diagnosticRemediation
-                    Layout.fillWidth: true
-                }
+                    DiagnosticBanner {
+                        theme: theme
+                        visible: root.app.diagnosticMessage.length > 0
+                        tone: "error"
+                        title: "Exact reproduction unavailable"
+                        message: root.app.diagnosticMessage
+                        remediation: root.app.diagnosticRemediation
+                        Layout.fillWidth: true
+                    }
 
-                Loader {
-                    id: sectionLoader
-                    enabled: !root.app.running
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    sourceComponent: root.app.studySection === "Simulation"
-                        ? simulationSection
-                        : root.app.studySection === "Evidence"
-                            ? evidenceSection
-                            : root.app.studySection === "Experiment"
-                                ? experimentSection
-                                : root.app.studySection === "Results"
-                                    ? resultsSection
-                                    : presentationSection
-                }
+                    Loader {
+                        id: sectionLoader
+                        objectName: "sectionLoader"
+                        enabled: !root.app.running
+                        focus: true
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        sourceComponent: root.app.studySection === "Simulation"
+                            ? simulationSection
+                            : root.app.studySection === "Evidence"
+                                ? evidenceSection
+                                : root.app.studySection === "Experiment"
+                                    ? experimentSection
+                                    : root.app.studySection === "Results"
+                                        ? resultsSection
+                                        : presentationSection
+                        onLoaded: Qt.callLater(function() {
+                            if (item)
+                                item.forceActiveFocus(Qt.TabFocusReason)
+                        })
+                    }
 
-                Label {
-                    Layout.fillWidth: true
-                    text: root.app.status
-                    color: root.app.statusTone === "error"
-                        ? theme.danger
-                        : root.app.statusTone === "warning"
-                            ? theme.warning
-                            : root.app.statusTone === "success"
-                                ? theme.success
-                                : theme.mutedText
-                    font.pixelSize: theme.textSmall
-                    wrapMode: Text.Wrap
+                    Label {
+                        Layout.fillWidth: true
+                        text: root.app.status
+                        color: root.app.statusTone === "error"
+                            ? theme.danger
+                            : root.app.statusTone === "warning"
+                                ? theme.warning
+                                : root.app.statusTone === "success"
+                                    ? theme.success
+                                    : theme.mutedText
+                        font.pixelSize: theme.textSmall
+                        wrapMode: Text.Wrap
+                        Accessible.name: root.app.status
+                        Accessible.role: Accessible.StaticText
+                    }
                 }
             }
         }
@@ -627,8 +778,6 @@ ApplicationWindow {
     Component {
         id: simulationSection
         SimulationAuthoringView {
-            width: sectionLoader.width
-            height: sectionLoader.height
             theme: theme
             app: root.app
             reference: root.reference
@@ -639,8 +788,6 @@ ApplicationWindow {
     Component {
         id: evidenceSection
         EvidenceAuthoringView {
-            width: sectionLoader.width
-            height: sectionLoader.height
             theme: theme
             app: root.app
             evidence: root.evidence
@@ -650,8 +797,6 @@ ApplicationWindow {
     Component {
         id: experimentSection
         ExperimentAuthoringView {
-            width: sectionLoader.width
-            height: sectionLoader.height
             theme: theme
             app: root.app
             experiment: root.experiment
@@ -661,8 +806,6 @@ ApplicationWindow {
     Component {
         id: resultsSection
         ResultsView {
-            width: sectionLoader.width
-            height: sectionLoader.height
             theme: theme
             app: root.app
             results: root.results
@@ -672,43 +815,10 @@ ApplicationWindow {
 
     Component {
         id: presentationSection
-        ScrollView {
-            contentWidth: availableWidth
-            ColumnLayout {
-                width: sectionLoader.width
-                spacing: theme.space3
-                SectionHeader {
-                    theme: theme
-                    eyebrow: "Study / Presentation"
-                    title: "Presentation"
-                    description: "Presentation remains downstream of exact recorded evidence. Q1 establishes ownership/reset semantics; broader world exploration and B3 presentation parity arrive later."
-                    Layout.fillWidth: true
-                }
-                SurfacePanel {
-                    theme: theme
-                    Layout.fillWidth: true
-                    implicitHeight: 190
-                    ColumnLayout {
-                        anchors.fill: parent
-                        anchors.margins: theme.space4
-                        spacing: theme.space2
-                        StatusBadge {
-                            theme: theme
-                            text: root.app.presentationOwner.length > 0 ? "EXACT RESULT OWNER" : "NO PRESENTATION OWNER"
-                            tone: root.app.presentationOwner.length > 0 ? "success" : "neutral"
-                        }
-                        Label { text: "Presentation state epoch " + root.app.presentationEpoch; color: theme.text; font.pixelSize: 17; font.weight: Font.DemiBold }
-                        Label {
-                            text: root.app.presentationOwner.length > 0
-                                ? "Presentation state is scoped to the exact active revision / manifest / run owner. Changing scientific ownership resets it."
-                                : "No exact current-session result is bound for presentation. Historical references alone are never converted into replay data."
-                            color: theme.mutedText
-                            wrapMode: Text.Wrap
-                            Layout.fillWidth: true
-                        }
-                    }
-                }
-            }
+        PresentationView {
+            theme: theme
+            app: root.app
+            presentation: root.presentation
         }
     }
 }
