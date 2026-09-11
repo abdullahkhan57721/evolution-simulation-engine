@@ -316,7 +316,7 @@ def test_reference_missing_spatial_evidence_preserves_remediation(
     presentation = PresentationController(app)
 
     assert not presentation.available
-    assert REFERENCE_SPATIAL_EVIDENCE_ID in presentation.message
+    assert REFERENCE_SPATIAL_EVIDENCE_ID in cast(str, presentation.message)
     assert presentation.remediation
     assert cast(WorldOrganismModel, presentation.organismModel).items() == ()
 
@@ -387,7 +387,7 @@ def test_b3_uses_one_seed_common_step_fixed_encoding_and_arm_local_selection(
     assert presentation.legendLabel == "Maximum speed"
     assert presentation.legendLower == 1
     assert presentation.legendUpper == 9
-    assert "does not imply RNG lockstep" in presentation.matchedLanguage
+    assert "does not imply RNG lockstep" in cast(str, presentation.matchedLanguage)
     assert calls[-2:] == [("control", 17, 1, None), ("treatment", 17, 1, None)]
 
     presentation.selectControlOrganism(1)
