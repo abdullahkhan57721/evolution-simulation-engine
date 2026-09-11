@@ -41,8 +41,8 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -73,7 +73,7 @@ jobs:
       - name: Q4 renderer measurements and visual proof
         run: python scripts/q4_renderer_probe.py --output-dir q4-renderer-proof
       - name: Upload Q4 renderer proof
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: q4-renderer-proof
           path: q4-renderer-proof/
@@ -92,7 +92,7 @@ jobs:
           QT_QPA_PLATFORM=offscreen "$artifact" --smoke-test
           echo "artifact=$artifact" >> "$GITHUB_OUTPUT"
       - name: Upload standalone proof
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: q0-linux-desktop-proof
           path: ${{ steps.packaged.outputs.artifact }}
