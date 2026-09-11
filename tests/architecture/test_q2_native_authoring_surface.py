@@ -11,13 +11,13 @@ def _text(name: str) -> str:
 
 
 def test_q2_shell_routes_scientific_authoring_through_thin_controllers() -> None:
-    main = _text("Main.qml")
-    assert main.count("applicationController.simulationController") == 1
-    assert main.count("applicationController.evidenceController") == 1
-    assert main.count("applicationController.experimentController") == 1
-    assert "SimulationAuthoringView" in main
-    assert "EvidenceAuthoringView" in main
-    assert "ExperimentAuthoringView" in main
+    shell = _text("WorkbenchShell.qml")
+    assert shell.count("applicationController.simulationController") == 1
+    assert shell.count("applicationController.evidenceController") == 1
+    assert shell.count("applicationController.experimentController") == 1
+    assert "SimulationAuthoringView" in shell
+    assert "EvidenceAuthoringView" in shell
+    assert "ExperimentAuthoringView" in shell
 
 
 def test_q2_reference_surface_exposes_supported_disclosure_without_extension_controls() -> (

@@ -10,14 +10,16 @@ from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from evo_engine.desktop.controllers import ApplicationController
+from evo_engine.desktop.controllers import ApplicationController, PresentationController
 
 
 def create_engine() -> tuple[QQmlApplicationEngine, ApplicationController]:
     """Create and load the QML engine with the native application controller."""
     engine = QQmlApplicationEngine()
     controller = ApplicationController()
+    presentation = PresentationController(controller)
     engine.rootContext().setContextProperty("applicationController", controller)
+    engine.rootContext().setContextProperty("presentationController", presentation)
     qml_path = Path(__file__).resolve().parent / "qml" / "Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     if not engine.rootObjects():
