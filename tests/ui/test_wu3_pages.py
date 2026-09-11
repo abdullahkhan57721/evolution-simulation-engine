@@ -15,6 +15,7 @@ import evo_engine.ui.experiment_page as experiment_page
 import evo_engine.ui.run_binding as run_binding
 import evo_engine.ui.run_execution as run_execution
 import evo_engine.ui.run_page as run_page
+import evo_engine.workbench.execution as workbench_execution
 from evo_engine.ui.study_shell import (
     new_b3_flagship,
     new_controlled_run,
@@ -71,8 +72,8 @@ class _FakeStreamlit:
     def error(self, value: object, **_: Any) -> None:
         self._record("error", value)
 
-    def markdown(self, value: object, **_: Any) -> None:
-        self._record("markdown", value)
+    def success(self, value: object, **_: Any) -> None:
+        self._record("success", value)
 
     def code(self, value: object, **_: Any) -> None:
         self._record("code", value)
@@ -80,8 +81,14 @@ class _FakeStreamlit:
     def divider(self) -> None:
         self._record("divider")
 
+    def metric(self, label: object, value: object, **_: Any) -> None:
+        self._record("metric", f"{label}: {value}")
+
+    def table(self, value: object, **_: Any) -> None:
+        self._record("table", value)
+
     def dataframe(self, value: object, **_: Any) -> None:
-        self._record("dataframe", len(cast(Any, value)))
+        self._record("dataframe", value)
 
     def checkbox(self, label: str, *, value: bool = False, **_: Any) -> bool:
         self._record("checkbox", label)
@@ -94,358 +101,324 @@ class _FakeStreamlit:
     def multiselect(
         self,
         label: str,
-        _options: object,
+        options: list[int] | tuple[int, ...],
         *,
-        default: list[int],
+        default: list[int] | tuple[int, ...] | None = None,
         **_: Any,
     ) -> list[int]:
         self._record("multiselect", label)
-        return self.multiselect_values.get(label, default)
+        if label in self.multiselect_values:
+            return self.multiselect_values[label]
+        return list(default or options)
 
-    def text_input(self, label: str, *, value: str, **_: Any) -> str:
+    def text_input(self, label: str, *, value: str = "", **_: Any) -> str:
         self._record("text_input", label)
         return self.text_input_values.get(label, value)
 
-    def columns(self, spec: int | tuple[int, ...]) -> tuple[_Context, ...]:
-        count = spec if isinstance(spec, int) else len(spec)
+    def columns(self, count: int, **_: Any) -> tuple[_Context, ...]:
         return tuple(_Context() for _ in range(count))
 
-    def expander(self, label: str, **_: Any) -> _Context:
-        self._record("expander", label)
+    def expander(self, *_: Any, **__: Any) -> _Context:
         return _Context()
 
 
-def _messages(fake: _FakeStreamlit, kind: str) -> list[str]:
-    return [value for call_kind, value in fake.calls if call_kind == kind]
+@pytest.fixture
+def fake(monkeypatch: pytest.MonkeyPatch) -> _FakeStreamlit:
+    fake = _FakeStreamlit()
+    for module in (evidence_page, experiment_page, run_page, run_binding):
+        monkeypatch.setattr(module, "st", fake)
+    return fake
 
 
-def test_evidence_page_edits_controlled_revision_and_clears_state(
-    monkeypatch: pytest.MonkeyPatch,
+def test_evidence_page_edits_reference_plan_and_saves_child(fake: _FakeStreamlit) -> None:
+    revision = new_reference_ecology(revision_id="reference-evidence")
+    initial_requested = revision.evidence_plan.requested
+    option = evidence_authoring.evidence_options(revision)[-1]
+    assert option.evidence_id == SPATIAL_EVIDENCE_ID
+    fake.checkbox_values[option.label] = False
+    fake.button_values.add("Save Evidence as child revision")
+
+    updated = evidence_page.render_evidence_page(revision)
+
+    assert updated is not None
+    assert updated.parent_revision_id == revision.revision_id
+    assert updated.evidence_plan.requested != initial_requested
+    assert SPATIAL_EVIDENCE_ID not in updated.evidence_plan.requested
+
+
+def test_evidence_page_reports_locked_experiment_evidence(fake: _FakeStreamlit) -> None:
+    definition = new_max_speed_sweep()
+
+    assert evidence_page.render_evidence_page(definition) is None
+
+    assert any(
+        kind == "info" and "locked" in value.lower() for kind, value in fake.calls
+    )
+
+
+def test_evidence_page_reports_required_missing_evidence(fake: _FakeStreamlit) -> None:
+    revision = new_controlled_run(revision_id="controlled-evidence")
+    fake.session_state["wu2_evidence_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_evidence_draft_plan"] = EvidencePlan(requested=())
+
+    assert evidence_page.render_evidence_page(revision) is None
+
+    assert any(
+        kind == "warning" and "requires" in value.lower() for kind, value in fake.calls
+    )
+
+
+def test_experiment_page_max_speed_sweep_persists_valid_pending_definition(
+    fake: _FakeStreamlit,
 ) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(evidence_page, "st", fake)
-    parent = new_controlled_run(revision_id="controlled-parent")
-    fake.checkbox_values["Committed events"] = False
-    fake.button_values.add("Save Evidence as new revision")
-
-    child = evidence_page.render_evidence_page(
-        parent,
-        new_revision_id=lambda prefix: f"{prefix}-child",
-    )
-
-    assert child is not None
-    assert child.parent_revision_id == parent.revision_id
-    assert child.evidence_plan.requested == (parent.evidence_plan.requested[0],)
-    assert evidence_page.pending_evidence_plan(parent) is not None
-    fake.session_state["wu3_evidence_extra"] = object()
-    evidence_page.clear_evidence_authoring_state()
-    assert not any(str(key).startswith("wu3_evidence_") for key in fake.session_state)
-
-
-def test_evidence_page_reference_advisory_and_locked_families(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(evidence_page, "st", fake)
-    reference = new_reference_ecology(revision_id="reference-parent")
-    fake.checkbox_values["Spatial history"] = True
-    fake.button_values.add("Save Evidence as new revision")
-
-    child = evidence_page.render_evidence_page(
-        reference,
-        new_revision_id=lambda prefix: f"{prefix}-child",
-    )
-
-    assert child is not None
-    assert SPATIAL_EVIDENCE_ID in child.evidence_plan.requested
-    advisories = evidence_authoring.evidence_advisories_for_artifact(child)
-    assert len(advisories) == 1
-    assert advisories[0].message in _messages(fake, "warning")
-
-    for artifact in (
-        new_b3_flagship(revision_id="b3-locked"),
-        new_max_speed_sweep(),
-        new_environment_selection_comparison(),
-    ):
-        evidence_page.render_evidence_page(
-            artifact,
-            new_revision_id=lambda prefix: f"{prefix}-unused",
-        )
-    assert _messages(fake, "checkbox")
-
-
-def test_evidence_authoring_rejects_wrong_concrete_types() -> None:
-    controlled = new_controlled_run(revision_id="controlled")
-    reference = new_reference_ecology(revision_id="reference")
-
-    with pytest.raises(TypeError, match="revision-backed"):
-        evidence_authoring.make_editable_evidence_plan(
-            cast(Any, new_max_speed_sweep()),
-            (),
-        )
-    with pytest.raises(TypeError, match="Unsupported artifact"):
-        evidence_authoring.evidence_options(cast(Any, object()))
-    with pytest.raises(TypeError, match="Reference Ecology advisories"):
-        evidence_authoring.evidence_advisories_for_artifact(
-            reference,
-            plan=cast(Any, EvidencePlan()),
-        )
-    assert evidence_authoring.evidence_advisories_for_artifact(controlled) == ()
-
-
-def test_experiment_page_renders_nonexperiment_and_b3_modes(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(experiment_page, "st", fake)
-
-    assert (
-        experiment_page.render_experiment_page(new_controlled_run(revision_id="single"))
-        is None
-    )
-    assert (
-        experiment_page.render_experiment_page(
-            new_reference_ecology(revision_id="reference")
-        )
-        is None
-    )
-    assert (
-        experiment_page.render_experiment_page(new_b3_flagship(revision_id="b3"))
-        is None
-    )
-    assert any("frozen" in message.lower() for message in _messages(fake, "info"))
-
-
-def test_experiment_page_applies_e3_and_e4_definitions(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(experiment_page, "st", fake)
-    e3 = new_max_speed_sweep()
-    fake.multiselect_values["Maximum-speed levels"] = [1, 3, 5]
-    fake.text_input_values["Replicate seeds"] = "17, 29"
-    fake.button_values.add("Apply experiment design")
-
-    e3_candidate = experiment_page.render_experiment_page(e3)
-
-    assert e3_candidate is not None
-    assert e3_candidate.levels == (1, 3, 5)
-    assert e3_candidate.seeds == (17, 29)
-    assert experiment_page.pending_experiment_definition(e3) == e3_candidate
-
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(experiment_page, "st", fake)
-    e4 = new_environment_selection_comparison()
+    definition = new_max_speed_sweep()
+    fake.multiselect_values["Maximum speed levels"] = [1, 4]
     fake.text_input_values["Replicate seeds"] = "101, 202"
-    fake.button_values.add("Apply experiment design")
 
-    e4_candidate = experiment_page.render_experiment_page(e4)
+    experiment_page.render_experiment_page(definition)
 
-    assert e4_candidate is not None
-    assert e4_candidate.seeds == (101, 202)
-    assert experiment_page.pending_experiment_definition(e4) == e4_candidate
+    pending = experiment_page.pending_experiment_definition(definition)
+    assert pending is not None
+    assert pending.levels == (1, 4)
+    assert pending.seeds == (101, 202)
+    assert experiment_page.pending_experiment_error(definition) is None
 
 
-def test_experiment_page_invalid_draft_is_owned_and_clearable(
-    monkeypatch: pytest.MonkeyPatch,
+def test_experiment_page_environment_selection_rejects_invalid_seed_input(
+    fake: _FakeStreamlit,
 ) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(experiment_page, "st", fake)
-    e3 = new_max_speed_sweep()
-    fake.text_input_values["Replicate seeds"] = "17,,29"
+    definition = new_environment_selection_comparison()
+    fake.text_input_values["Replicate seeds"] = "not-an-int"
 
-    assert experiment_page.render_experiment_page(e3) is None
-    assert experiment_page.pending_experiment_definition(e3) is None
-    assert experiment_page.pending_experiment_error(e3) is not None
-    assert _messages(fake, "error")
+    experiment_page.render_experiment_page(definition)
 
-    fake.session_state["wu3_experiment_extra"] = object()
-    experiment_page.clear_experiment_authoring_state()
-    assert not any(str(key).startswith("wu3_experiment_") for key in fake.session_state)
+    assert experiment_page.pending_experiment_definition(definition) is None
+    assert experiment_page.pending_experiment_error(definition) is not None
 
 
-def test_experiment_authoring_parser_and_type_guards() -> None:
-    assert experiment_authoring.parse_integer_sequence("", name="Seeds") == ()
-    assert experiment_authoring.parse_integer_sequence("1, 2", name="Seeds") == (1, 2)
-    with pytest.raises(TypeError, match="string"):
-        experiment_authoring.parse_integer_sequence(cast(Any, 1), name="Seeds")
-    with pytest.raises(TypeError, match="non-empty"):
-        experiment_authoring.parse_integer_sequence("1", name="")
-    with pytest.raises(ValueError, match="empty value"):
-        experiment_authoring.parse_integer_sequence("1,,2", name="Seeds")
-    with pytest.raises(ValueError, match="not an integer"):
-        experiment_authoring.parse_integer_sequence("one", name="Seeds")
-    with pytest.raises(TypeError, match="MaxSpeedSweepDefinition"):
-        experiment_authoring.update_max_speed_sweep(
-            cast(Any, object()),
-            levels=(1,),
-            seeds=(1,),
-        )
-    with pytest.raises(TypeError, match="EnvironmentSelectionComparisonDefinition"):
-        experiment_authoring.update_environment_selection_comparison(
-            cast(Any, object()),
-            seeds=(1,),
-        )
-    with pytest.raises(TypeError, match="B3StudyRevision"):
-        experiment_authoring.b3_case_counts(cast(Any, object()))
+def test_experiment_page_b3_is_read_only_design(fake: _FakeStreamlit) -> None:
+    revision = new_b3_flagship(revision_id="b3-experiment")
+
+    experiment_page.render_experiment_page(revision)
+
+    assert any(
+        kind == "info" and "frozen" in value.lower() for kind, value in fake.calls
+    )
 
 
-def test_run_plan_renders_every_supported_concrete_family(
-    monkeypatch: pytest.MonkeyPatch,
+def test_pending_experiment_definition_ignores_another_owner(fake: _FakeStreamlit) -> None:
+    first = new_max_speed_sweep()
+    second = attrs.evolve(first, seeds=(999,))
+    fake.session_state["wu3_experiment_owner"] = experiment_page._owner_value(first)
+    fake.session_state["wu3_experiment_candidate"] = second
+
+    assert experiment_page.pending_experiment_definition(second) is None
+    assert experiment_page.pending_experiment_error(second) is None
+
+
+def test_run_plan_controlled_and_reference_surface_binding_notice(
+    fake: _FakeStreamlit,
 ) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(run_page, "st", fake)
+    controlled = new_controlled_run(revision_id="controlled-plan")
     reference = new_reference_ecology(revision_id="reference-plan")
-    reference_with_spatial = evidence_authoring.save_evidence_child(
+
+    run_page.render_run_plan(
+        controlled,
+        readiness=run_binding.effective_readiness(controlled),
+        binding_notice="controlled binding",
+    )
+    run_page.render_run_plan(
         reference,
-        requested=(*reference.evidence_plan.requested, SPATIAL_EVIDENCE_ID),
-        revision_id="reference-spatial",
+        readiness=run_binding.effective_readiness(reference),
+        binding_notice="reference binding",
     )
-    expected_advisories = evidence_authoring.evidence_advisories_for_artifact(
-        reference_with_spatial
+
+    values = [value for _, value in fake.calls]
+    assert any("controlled binding" in value for value in values)
+    assert any("reference binding" in value for value in values)
+
+
+def test_run_plan_experiment_and_b3_surfaces_design(fake: _FakeStreamlit) -> None:
+    sweep = new_max_speed_sweep()
+    environment = new_environment_selection_comparison()
+    b3 = new_b3_flagship(revision_id="b3-plan")
+
+    run_page.render_run_plan(
+        sweep,
+        readiness=run_binding.effective_readiness(sweep),
+        binding_notice=None,
     )
-    assert len(expected_advisories) == 1
-
-    for artifact in (
-        new_controlled_run(revision_id="controlled-plan"),
-        reference_with_spatial,
-        new_b3_flagship(revision_id="b3-plan"),
-        new_max_speed_sweep(),
-        new_environment_selection_comparison(),
-    ):
-        assert (
-            run_page.render_run_plan(artifact, binding_notice="Bound exact draft")
-            is None
-        )
-
-    assert len(_messages(fake, "subheader")) == 5
-    assert _messages(fake, "dataframe")
-    assert expected_advisories[0].message in _messages(fake, "warning")
-
-
-def test_run_plan_cancel_run_and_unsupported_actions(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    artifact = new_controlled_run(revision_id="controlled-actions")
-    fake = _FakeStreamlit()
-    fake.button_values.add("Cancel Run Plan")
-    monkeypatch.setattr(run_page, "st", fake)
-    assert run_page.render_run_plan(artifact) == "cancel"
-
-    fake = _FakeStreamlit()
-    fake.button_values.add("Run Study")
-    monkeypatch.setattr(run_page, "st", fake)
-    assert run_page.render_run_plan(artifact) == "run"
-
-    with pytest.raises(TypeError, match="Unsupported Workbench artifact"):
-        run_page.render_run_plan(cast(Any, object()))
-
-
-def test_run_binding_revision_experiment_and_b3_paths(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(run_binding, "st", fake)
-    monkeypatch.setattr(run_binding, "pending_evidence_plan", lambda _: None)
-    controlled = new_controlled_run(revision_id="controlled-bind")
-
-    unchanged, notice = run_binding.bind_pending_scientific_state(
-        controlled,
-        new_revision_id=lambda prefix: f"{prefix}-child",
+    run_page.render_run_plan(
+        environment,
+        readiness=run_binding.effective_readiness(environment),
+        binding_notice=None,
     )
-    assert unchanged is controlled
-    assert notice is None
-
-    fake.session_state["wu2_simulation_draft_revision_id"] = controlled.revision_id
-    fake.session_state["wu2_simulation_draft_intent"] = attrs.evolve(
-        controlled.intent,
-        seed=cast(int, controlled.intent.seed) + 1,
-    )
-    child, notice = run_binding.bind_pending_scientific_state(
-        controlled,
-        new_revision_id=lambda prefix: f"{prefix}-child",
-    )
-    assert child is not controlled
-    assert notice is not None
-
-    e3 = new_max_speed_sweep()
-    candidate = experiment_authoring.update_max_speed_sweep(
-        e3,
-        levels=(1, 3),
-        seeds=(7,),
-    )
-    monkeypatch.setattr(run_binding, "pending_experiment_error", lambda _: None)
-    monkeypatch.setattr(
-        run_binding, "pending_experiment_definition", lambda _: candidate
-    )
-    bound_e3, notice = run_binding.bind_pending_scientific_state(
-        e3,
-        new_revision_id=lambda prefix: prefix,
-    )
-    assert bound_e3 == candidate
-    assert notice is not None
-
-    b3 = new_b3_flagship(revision_id="b3-bind")
-    assert run_binding.bind_pending_scientific_state(
+    run_page.render_run_plan(
         b3,
-        new_revision_id=lambda prefix: prefix,
-    ) == (b3, None)
+        readiness=run_binding.effective_readiness(b3),
+        binding_notice=None,
+    )
+
+    values = [value for _, value in fake.calls]
+    assert any("Maximum speed" in value for value in values)
+    assert any("Resource geography" in value for value in values)
+    assert any("Matched comparison" in value for value in values)
 
 
-def test_run_binding_reference_blocked_error_and_readiness_paths(
-    monkeypatch: pytest.MonkeyPatch,
+def test_run_plan_reports_not_ready_diagnostic(fake: _FakeStreamlit) -> None:
+    revision = new_controlled_run(revision_id="controlled-not-ready")
+    fake.session_state["wu2_evidence_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_evidence_draft_plan"] = EvidencePlan(requested=())
+
+    readiness = run_binding.effective_readiness(revision)
+    run_page.render_run_plan(revision, readiness=readiness, binding_notice=None)
+
+    assert not readiness.is_ready
+    assert any(kind == "warning" for kind, _ in fake.calls)
+
+
+def test_run_plan_renders_reference_advisories(fake: _FakeStreamlit) -> None:
+    revision = new_reference_ecology(revision_id="reference-advisory")
+    fake.session_state["wu2_evidence_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_evidence_draft_plan"] = EvidencePlan(
+        requested=("population",)
+    )
+
+    run_page.render_run_plan(
+        revision,
+        readiness=run_binding.effective_readiness(revision),
+        binding_notice=None,
+    )
+
+    assert any(
+        kind == "info" and "advisory" in value.lower() for kind, value in fake.calls
+    )
+
+
+def test_bind_pending_scientific_state_combines_controlled_drafts(
+    fake: _FakeStreamlit,
 ) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(run_binding, "st", fake)
-    monkeypatch.setattr(run_binding, "pending_evidence_plan", lambda _: None)
-    reference = new_reference_ecology(revision_id="reference-bind")
-    fake.session_state["wu2_simulation_draft_revision_id"] = reference.revision_id
-    fake.session_state["wu2_simulation_draft_intent"] = attrs.evolve(
-        reference.intent,
-        seed=cast(int, reference.intent.seed) + 1,
-    )
+    revision = new_controlled_run(revision_id="controlled-bind")
+    simulation_intent = attrs.evolve(revision.intent, max_speed=7)
+    evidence_plan = EvidencePlan(requested=("population",))
+    fake.session_state["wu2_simulation_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_simulation_draft_intent"] = simulation_intent
+    fake.session_state["wu2_evidence_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_evidence_draft_plan"] = evidence_plan
 
-    child, notice = run_binding.bind_pending_scientific_state(
-        reference,
-        new_revision_id=lambda prefix: f"{prefix}-child",
-    )
-    assert child is not reference
+    bound, notice = run_binding.bind_pending_scientific_state(revision)
+
+    assert bound.revision_id != revision.revision_id
+    assert bound.parent_revision_id == revision.revision_id
+    assert bound.intent.max_speed == 7
+    assert bound.evidence_plan == evidence_plan
     assert notice is not None
-
-    controlled = new_controlled_run(revision_id="blocked")
-    fake.session_state["wu2_simulation_draft_revision_id"] = controlled.revision_id
-    fake.session_state["wu2_simulation_draft_intent"] = ControlledLocomotionIntent()
-    with pytest.raises(WorkbenchNotReadyError):
-        run_binding.bind_pending_scientific_state(
-            controlled,
-            new_revision_id=lambda prefix: prefix,
-        )
-
-    e4 = new_environment_selection_comparison()
-    monkeypatch.setattr(run_binding, "pending_experiment_error", lambda _: "bad seeds")
-    with pytest.raises(ValueError, match="bad seeds"):
-        run_binding.bind_pending_scientific_state(
-            e4,
-            new_revision_id=lambda prefix: prefix,
-        )
-
-    for artifact in (
-        controlled,
-        reference,
-        new_b3_flagship(revision_id="b3-ready"),
-        new_max_speed_sweep(),
-        e4,
-    ):
-        run_binding.effective_readiness(artifact)
-    with pytest.raises(TypeError, match="Unsupported Workbench artifact"):
-        run_binding.effective_readiness(cast(Any, object()))
+    assert "Simulation" in notice and "Evidence" in notice
 
 
-def test_run_binding_private_pending_intent_ownership(
-    monkeypatch: pytest.MonkeyPatch,
+def test_bind_pending_scientific_state_combines_reference_drafts(
+    fake: _FakeStreamlit,
 ) -> None:
-    fake = _FakeStreamlit()
-    monkeypatch.setattr(run_binding, "st", fake)
+    revision = new_reference_ecology(revision_id="reference-bind")
+    simulation_intent = attrs.evolve(revision.intent, max_speed=4)
+    evidence_plan = EvidencePlan(requested=("population",))
+    fake.session_state["wu2_simulation_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_simulation_draft_intent"] = simulation_intent
+    fake.session_state["wu2_evidence_draft_revision_id"] = revision.revision_id
+    fake.session_state["wu2_evidence_draft_plan"] = evidence_plan
+
+    bound, notice = run_binding.bind_pending_scientific_state(revision)
+
+    assert bound.revision_id != revision.revision_id
+    assert bound.parent_revision_id == revision.revision_id
+    assert bound.intent.max_speed == 4
+    assert bound.evidence_plan == evidence_plan
+    assert notice is not None
+    assert "Simulation" in notice and "Evidence" in notice
+
+
+def test_bind_pending_scientific_state_uses_pending_experiment_definition(
+    fake: _FakeStreamlit,
+) -> None:
+    definition = new_max_speed_sweep()
+    pending = attrs.evolve(definition, seeds=(101, 202))
+    fake.session_state["wu3_experiment_owner"] = experiment_page._owner_value(definition)
+    fake.session_state["wu3_experiment_candidate"] = pending
+
+    bound, notice = run_binding.bind_pending_scientific_state(definition)
+
+    assert bound == pending
+    assert notice is not None
+    assert "Experiment" in notice
+
+
+def test_bind_pending_scientific_state_blocks_invalid_experiment_draft(
+    fake: _FakeStreamlit,
+) -> None:
+    definition = new_max_speed_sweep()
+    fake.session_state["wu3_experiment_owner"] = experiment_page._owner_value(definition)
+    fake.session_state["wu3_experiment_invalid"] = "invalid pending experiment"
+
+    with pytest.raises(WorkbenchNotReadyError, match="invalid pending experiment"):
+        run_binding.bind_pending_scientific_state(definition)
+
+
+def test_effective_readiness_respects_pending_experiment_definition(
+    fake: _FakeStreamlit,
+) -> None:
+    definition = new_max_speed_sweep()
+    fake.session_state["wu3_experiment_owner"] = experiment_page._owner_value(definition)
+    fake.session_state["wu3_experiment_invalid"] = "invalid pending experiment"
+
+    readiness = run_binding.effective_readiness(definition)
+
+    assert not readiness.is_ready
+    assert readiness.blocking_diagnostics[0].message == "invalid pending experiment"
+
+
+def test_evidence_authoring_helpers_preserve_locked_experiment_plans() -> None:
+    definition = new_max_speed_sweep()
+
+    assert evidence_authoring.make_editable_evidence_plan(definition) is None
+    assert evidence_authoring.requested_evidence_ids(definition) == (
+        definition.evidence_plan.requested
+    )
+    assert evidence_authoring.evidence_advisories_for_artifact(definition) == ()
+
+
+def test_experiment_authoring_helpers_cover_design_rows_and_parsers() -> None:
+    sweep = new_max_speed_sweep()
+    environment = new_environment_selection_comparison()
+
+    updated_sweep = experiment_authoring.update_max_speed_sweep(
+        sweep,
+        levels=(1, 4),
+        seeds=(101, 202),
+    )
+    assert updated_sweep.levels == (1, 4)
+    assert updated_sweep.seeds == (101, 202)
+    assert experiment_authoring.max_speed_run_rows(updated_sweep)
+
+    updated_environment = experiment_authoring.update_environment_selection_comparison(
+        environment,
+        seeds=(101, 202),
+    )
+    assert updated_environment.seeds == (101, 202)
+    assert experiment_authoring.environment_run_rows(updated_environment)
+    assert experiment_authoring.e4_counterbalance_label(updated_environment)
+    assert experiment_authoring.b3_case_counts(new_b3_flagship())
+    assert experiment_authoring.parse_integer_sequence("1, 2, 3", field="Seeds") == (
+        1,
+        2,
+        3,
+    )
+    with pytest.raises(ValueError, match="at least one integer"):
+        experiment_authoring.parse_integer_sequence("", field="Seeds")
+    with pytest.raises(ValueError, match="integers"):
+        experiment_authoring.parse_integer_sequence("one", field="Seeds")
+
+
+def test_run_binding_private_pending_helpers_validate_owner(fake: _FakeStreamlit) -> None:
     controlled = new_controlled_run(revision_id="controlled-private")
     reference = new_reference_ecology(revision_id="reference-private")
 
@@ -498,17 +471,17 @@ def test_run_execution_result_helpers_cover_all_owned_result_shapes(
             )
             self.treatments = (1, 2, 3, 4)
 
-    monkeypatch.setattr(run_execution, "WorkbenchRunResult", RevisionResult)
-    monkeypatch.setattr(run_execution, "ReferenceRunResult", ReferenceResult)
-    monkeypatch.setattr(run_execution, "B3CuratedRunResult", B3Result)
-    monkeypatch.setattr(run_execution, "MaxSpeedSweepResult", ExperimentResult)
+    monkeypatch.setattr(workbench_execution, "WorkbenchRunResult", RevisionResult)
+    monkeypatch.setattr(workbench_execution, "ReferenceRunResult", ReferenceResult)
+    monkeypatch.setattr(workbench_execution, "B3CuratedRunResult", B3Result)
+    monkeypatch.setattr(workbench_execution, "MaxSpeedSweepResult", ExperimentResult)
     monkeypatch.setattr(
-        run_execution,
+        workbench_execution,
         "EnvironmentSelectionComparisonResult",
         ExperimentResult,
     )
     monkeypatch.setattr(
-        run_execution,
+        workbench_execution,
         "_RESULT_TYPES",
         (RevisionResult, ReferenceResult, B3Result, ExperimentResult),
     )
