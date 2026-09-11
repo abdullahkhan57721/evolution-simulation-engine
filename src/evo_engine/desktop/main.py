@@ -13,12 +13,8 @@ from PySide6.QtQml import QQmlApplicationEngine
 from evo_engine.desktop.controllers import ApplicationController, PresentationController
 
 
-def create_engine() -> tuple[
-    QQmlApplicationEngine,
-    ApplicationController,
-    PresentationController,
-]:
-    """Create and load the QML engine with native application/presentation state."""
+def create_engine() -> tuple[QQmlApplicationEngine, ApplicationController]:
+    """Create and load the QML engine with the native application controller."""
     engine = QQmlApplicationEngine()
     controller = ApplicationController()
     presentation = PresentationController(controller)
@@ -28,7 +24,7 @@ def create_engine() -> tuple[
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     if not engine.rootObjects():
         raise RuntimeError(f"Failed to load desktop QML from {qml_path}.")
-    return engine, controller, presentation
+    return engine, controller
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,11 +37,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args, qt_args = parser.parse_known_args(argv)
     app = QGuiApplication([sys.argv[0], *qt_args])
-    engine, controller, presentation = create_engine()
+    engine, controller = create_engine()
     # Keep Python-owned objects alive for the full QML engine lifetime.
     app.setProperty("q1Engine", engine)
     app.setProperty("q1ApplicationController", controller)
-    app.setProperty("q4PresentationController", presentation)
     if args.smoke_test:
         QTimer.singleShot(250, app.quit)
     return app.exec()
