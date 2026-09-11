@@ -221,6 +221,8 @@ def test_reference_exact_seek_and_view_state_never_change_committed_values(
     assert presentation.available
     assert presentation.family == "reference"
     assert presentation.committedStep == 2
+    assert not presentation.labelsVisible
+    assert not presentation.trailsVisible
     assert calls[-1] == (2, None)
     committed_before = cast(WorldOrganismModel, presentation.organismModel).items()
 
@@ -229,6 +231,8 @@ def test_reference_exact_seek_and_view_state_never_change_committed_values(
     presentation.toggleFocusMode()
     presentation.setPlaybackSpeed(4.0)
 
+    assert presentation.labelsVisible
+    assert presentation.trailsVisible
     assert presentation.committedStep == 2
     assert (
         cast(WorldOrganismModel, presentation.organismModel).items() == committed_before
@@ -422,8 +426,8 @@ def test_presentation_resets_view_state_when_exact_owner_changes(
     app._presentation_owner = "q4-reference-owner-next"
     app.presentationChanged.emit()
 
-    assert presentation.labelsVisible
-    assert presentation.trailsVisible
+    assert not presentation.labelsVisible
+    assert not presentation.trailsVisible
     assert not presentation.focusMode
     assert presentation.playbackSpeed == 1.0
     assert "No organism selected" == presentation.inspectorTitle
