@@ -15,6 +15,7 @@ import evo_engine.ui.experiment_page as experiment_page
 import evo_engine.ui.run_binding as run_binding
 import evo_engine.ui.run_execution as run_execution
 import evo_engine.ui.run_page as run_page
+import evo_engine.workbench.execution as workbench_execution
 from evo_engine.ui.study_shell import (
     new_b3_flagship,
     new_controlled_run,
@@ -498,17 +499,17 @@ def test_run_execution_result_helpers_cover_all_owned_result_shapes(
             )
             self.treatments = (1, 2, 3, 4)
 
-    monkeypatch.setattr(run_execution, "WorkbenchRunResult", RevisionResult)
-    monkeypatch.setattr(run_execution, "ReferenceRunResult", ReferenceResult)
-    monkeypatch.setattr(run_execution, "B3CuratedRunResult", B3Result)
-    monkeypatch.setattr(run_execution, "MaxSpeedSweepResult", ExperimentResult)
+    monkeypatch.setattr(workbench_execution, "WorkbenchRunResult", RevisionResult)
+    monkeypatch.setattr(workbench_execution, "ReferenceRunResult", ReferenceResult)
+    monkeypatch.setattr(workbench_execution, "B3CuratedRunResult", B3Result)
+    monkeypatch.setattr(workbench_execution, "MaxSpeedSweepResult", ExperimentResult)
     monkeypatch.setattr(
-        run_execution,
+        workbench_execution,
         "EnvironmentSelectionComparisonResult",
         ExperimentResult,
     )
     monkeypatch.setattr(
-        run_execution,
+        workbench_execution,
         "_RESULT_TYPES",
         (RevisionResult, ReferenceResult, B3Result, ExperimentResult),
     )
