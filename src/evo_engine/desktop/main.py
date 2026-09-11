@@ -10,19 +10,25 @@ from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from evo_engine.desktop.controllers import ApplicationController
+from evo_engine.desktop.controllers import ApplicationController, PresentationController
 
 
-def create_engine() -> tuple[QQmlApplicationEngine, ApplicationController]:
-    """Create and load the QML engine with the native application controller."""
+def create_engine() -> tuple[
+    QQmlApplicationEngine,
+    ApplicationController,
+    PresentationController,
+]:
+    """Create and load the QML engine with native application/presentation state."""
     engine = QQmlApplicationEngine()
     controller = ApplicationController()
+    presentation = PresentationController(controller)
     engine.rootContext().setContextProperty("applicationController", controller)
+    engine.rootContext().setContextProperty("presentationController", presentation)
     qml_path = Path(__file__).resolve().parent / "qml" / "Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     if not engine.rootObjects():
         raise RuntimeError(f"Failed to load desktop QML from {qml_path}.")
-    return engine, controller
+    return engine, controller, presentation
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -35,10 +41,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     args, qt_args = parser.parse_known_args(argv)
     app = QGuiApplication([sys.argv[0], *qt_args])
-    engine, controller = create_engine()
+    engine, controller, presentation = create_engine()
     # Keep Python-owned objects alive for the full QML engine lifetime.
     app.setProperty("q1Engine", engine)
     app.setProperty("q1ApplicationController", controller)
+    app.setProperty("q4PresentationController", presentation)
     if args.smoke_test:
         QTimer.singleShot(250, app.quit)
     return app.exec()
