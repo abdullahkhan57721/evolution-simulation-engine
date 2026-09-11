@@ -419,28 +419,64 @@ two real consumers; it remains an explicit five-family dispatcher rather than a 
 or workflow framework. Results remain heterogeneous by design rather than being
 flattened into a universal statistics/result model.
 
-### Q4 — native Presentation breadth
+### Q4 — native Presentation breadth (completed)
 
-Q4 should extend Presentation from recorded evidence now that native Run and Results
-ownership are settled. Start with broader Reference world exploration and canonical
-B3 matched replay plus the existing cinematic handoff. Reuse existing renderer-neutral
-scientific encoding and presentation adapters; do not infer a universal scene,
-camera, playback, or chart schema.
+Q4 makes `WorldPresentationFrame` the authoritative native interactive scientific
+world contract for Reference Ecology and canonical B3 without introducing another
+replay model. The native path is:
 
-Q4 must preserve exact Study/run/treatment/replicate identity, committed-step
-semantics, shared science-owned trait scales, and the fact that matched B3 arms are
-independent stochastic executions after treatment-driven divergence. Presentation
-interaction state remains downstream and cannot change scientific identity.
+```text
+committed evidence
+        ↓
+existing Workbench presentation adapters
+        ↓
+WorldPresentationFrame
+        ↓
+PresentationController + explicit Qt item models
+        ↓
+Qt Quick / QML scientific world
+```
+
+Reference Ecology now has native bounds, organisms, resources, carcasses, movement
+trails, focal trait encoding when present, selection, labels, scientific legend,
+inspector, committed-step timeline, previous/next, play/pause, playback speed, and
+Focus Mode. Missing spatial evidence retains Workbench availability/remediation and
+is never reconstructed.
+
+Canonical B3 now has side-by-side matched replay with one authoritative confirmation
+seed, one common committed step, independently constructed control/treatment frames,
+arm-local selection, and one shared science-owned fixed `max_speed` encoding. The UI
+keeps matched/blocked language explicit and does not imply RNG lockstep after
+biological divergence.
+
+Exact committed frames remain evidence. Smooth motion between adjacent stable
+organism identities is display-only; non-adjacent seeks, owner changes, and organism
+appearance/disappearance snap to authoritative frames. Renderer controls cannot
+alter scientific identity or committed values.
+
+Q4 also establishes representative offscreen renderer evidence for common Reference
+loads, labels, trails, adjacent playback, resize, and paired B3 views before any
+optimization decision. No C++/OpenGL/shader/custom-scene-graph backend was justified.
+See `docs/q4_native_presentation.md` for the durable native Presentation and Q5
+handoff boundary.
 
 ### Later native product direction
 
-After sufficient Presentation breadth, apply accessibility, visual completion,
-packaging/release hardening, and an explicit Streamlit parity/removal decision to the
-native application. Signing, notarization, installers, auto-update, and a broader
-platform release matrix should be added from concrete distribution requirements, not
-predeclared as a generic application framework.
+With native shell, authoring, execution, Results, and the first full scientific-world
+Presentation breadth established, the next product work should be **hardening and
+integration**, not another architecture reset:
 
-The Q-series does **not** authorize:
+1. accessibility and keyboard/focus semantics;
+2. visual/layout completion, including dense-view defaults for labels/trails without
+   changing scientific encodings;
+3. end-to-end native workflow polish and error-state consistency;
+4. packaging/release hardening;
+5. an explicit Streamlit parity/removal decision once native parity is sufficient.
+
+Signing, notarization, installers, auto-update, and a broader platform release matrix
+should still be added only from concrete distribution requirements. Native 3D/C++
+rendering remains evidence-driven rather than a presumed next step.
+
 The Q-series does **not** authorize:
 
 - a universal Study schema;
