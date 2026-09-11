@@ -163,6 +163,9 @@ def _frame(
                 focal_trait_normalized=0.5 if encoding is not None else None,
             ),
         ),
+        resources=(),
+        carcasses=(),
+        trails=(),
         selected_organism_id=selected,
         focal_encoding=encoding,
     )
@@ -354,7 +357,7 @@ def test_e3_authoring_run_plan_execution_and_results_are_one_product_flow(
     assert exact.seeds == (101, 202)
     assert exact != before
     assert controller.runPlanOpen
-    assert _run(controller).expandedRunCount > 0
+    assert cast(int, _run(controller).property("expandedRunCount")) > 0
 
     def execute_e3(
         artifact: ConcreteWorkbenchArtifact,
@@ -390,5 +393,5 @@ def test_blocked_e4_draft_stays_blocked_with_actionable_native_state() -> None:
     app.processEvents()
     assert not controller.runPlanOpen
     assert controller.statusTone == "warning"
-    assert "cannot be bound" in controller.status
+    assert "cannot be bound" in cast(str, controller.property("status"))
     assert warnings == []
