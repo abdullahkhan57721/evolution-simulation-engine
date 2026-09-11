@@ -184,8 +184,9 @@ def _bind_reference_owner(
     return calls
 
 
-def test_world_models_project_only_presentation_values_and_discontinuities_reset(
-) -> None:
+def test_world_models_project_only_presentation_values_and_discontinuities_reset() -> (
+    None
+):
     _app()
     first = _frame(0)
     second = _frame(1)
@@ -230,8 +231,7 @@ def test_reference_exact_seek_and_view_state_never_change_committed_values(
 
     assert presentation.committedStep == 2
     assert (
-        cast(WorldOrganismModel, presentation.organismModel).items()
-        == committed_before
+        cast(WorldOrganismModel, presentation.organismModel).items() == committed_before
     )
 
     presentation.seekStepPosition(0)
