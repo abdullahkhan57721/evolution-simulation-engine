@@ -13,14 +13,14 @@ from evo_engine.desktop.models import (
     WorldResourceModel,
     WorldTrailModel,
 )
+from evo_engine.presentation.workbench import (
+    build_b3_workbench_world_presentation,
+    build_reference_workbench_world_presentation,
+)
 from evo_engine.presentation.world import (
     OrganismPrimitive,
     WorldPresentationFrame,
     available_step_indices,
-)
-from evo_engine.presentation.workbench import (
-    build_b3_workbench_world_presentation,
-    build_reference_workbench_world_presentation,
 )
 from evo_engine.workbench import (
     B3CuratedRunResult,
@@ -299,12 +299,12 @@ class PresentationController(QObject):
 
     @Slot()
     def previousStep(self) -> None:  # noqa: N802
-        if self.canPrevious:
+        if self._available and self._position > 0:
             self._set_position(self._position - 1, animate=True)
 
     @Slot()
     def nextStep(self) -> None:  # noqa: N802
-        if self.canNext:
+        if self._available and self._position + 1 < len(self._steps):
             self._set_position(self._position + 1, animate=True)
 
     @Slot()
@@ -314,7 +314,7 @@ class PresentationController(QObject):
         if self._playing:
             self._playing = False
         else:
-            if not self.canNext and self._steps:
+            if self._position + 1 >= len(self._steps) and self._steps:
                 self._set_position(0, animate=False)
             self._playing = True
         self.viewChanged.emit()
@@ -323,7 +323,7 @@ class PresentationController(QObject):
     def advancePlayback(self) -> None:  # noqa: N802
         if not self._playing:
             return
-        if not self.canNext:
+        if self._position + 1 >= len(self._steps):
             self._playing = False
             self.viewChanged.emit()
             return
@@ -375,12 +375,12 @@ class PresentationController(QObject):
 
     @Slot()
     def previousB3Seed(self) -> None:  # noqa: N802
-        if self._family == "b3" and self.canPreviousSeed:
+        if self._family == "b3" and self._b3_seed_position > 0:
             self._select_b3_seed(self._b3_seed_position - 1)
 
     @Slot()
     def nextB3Seed(self) -> None:  # noqa: N802
-        if self._family == "b3" and self.canNextSeed:
+        if self._family == "b3" and self._b3_seed_position + 1 < len(self._b3_seeds):
             self._select_b3_seed(self._b3_seed_position + 1)
 
     @Slot()
@@ -426,8 +426,11 @@ class PresentationController(QObject):
         self._result = result
         self._family = "reference"
         self._steps = steps
-        self._position = min(self._position, len(steps) - 1) if same_binding else len(steps) - 1
-        self._selected_id = self._selected_id if same_binding else None
+        self._position = (
+            min(self._position, len(steps) - 1) if same_binding else len(steps) - 1
+        )
+        if not same_binding:
+            self._selected_id = None
         self._available = True
         self._message = "Reference replay uses only committed recorded spatial evidence."
         self._remediation = ""
@@ -458,10 +461,9 @@ class PresentationController(QObject):
         self._b3_seed_position = (
             min(self._b3_seed_position, len(seeds) - 1) if same_binding else 0
         )
-        self._control_selected_id = self._control_selected_id if same_binding else None
-        self._treatment_selected_id = (
-            self._treatment_selected_id if same_binding else None
-        )
+        if not same_binding:
+            self._control_selected_id = None
+            self._treatment_selected_id = None
         self._set_b3_steps(reset_position=not same_binding)
         self._rebuild_current(preserve_rows=False, animate=False)
 
@@ -520,22 +522,19 @@ class PresentationController(QObject):
             self._result, ReferenceRunResult
         ):
             return
-        presentation = build_reference_workbench_world_presentation(
+        frame = build_reference_workbench_world_presentation(
             self._artifact,
             self._result,
             step_index=self._steps[self._position],
             selected_organism_id=self._selected_id,
-        )
-        frame = presentation.frame
-        can_animate = animate and _same_organism_ids(self._organisms.items(), frame)
-        self._set_transition(can_animate)
+        ).frame
+        same_ids = _same_organism_ids(self._organisms.items(), frame)
+        self._set_transition(animate and same_ids)
         self._world_width = frame.world_width
         self._world_height = frame.world_height
         self._organisms.set_items(
             frame.organisms,
-            preserve_delegates=preserve_rows and _same_organism_ids(
-                self._organisms.items(), frame
-            ),
+            preserve_delegates=preserve_rows and same_ids,
         )
         self._resources.set_items(frame.resources)
         self._carcasses.set_items(frame.carcasses)
@@ -567,14 +566,16 @@ class PresentationController(QObject):
             step_index=step,
             selected_organism_id=self._treatment_selected_id,
         ).frame
-        if control.world_width != treatment.world_width or control.world_height != treatment.world_height:
+        if (
+            control.world_width != treatment.world_width
+            or control.world_height != treatment.world_height
+        ):
             raise ValueError("B3 matched arms must use identical world bounds.")
         if control.focal_encoding != treatment.focal_encoding:
             raise ValueError("B3 matched arms must use one science-owned focal encoding.")
         control_same = _same_organism_ids(self._control_organisms.items(), control)
         treatment_same = _same_organism_ids(self._treatment_organisms.items(), treatment)
-        can_animate = animate and control_same and treatment_same
-        self._set_transition(can_animate)
+        self._set_transition(animate and control_same and treatment_same)
         self._world_width = control.world_width
         self._world_height = control.world_height
         self._control_organisms.set_items(
