@@ -378,7 +378,9 @@ def test_e3_results_preserve_factor_identity_without_generic_statistics(
     )
     view = SimpleNamespace(treatment_summaries=(), replicates=())
     monkeypatch.setattr(results_module, "result_matches_artifact", lambda *_: True)
-    monkeypatch.setattr(results_module, "inspect_max_speed_sweep_results", lambda _: view)
+    monkeypatch.setattr(
+        results_module, "inspect_max_speed_sweep_results", lambda _: view
+    )
     results = ResultsController()
 
     assert results.bind_result(definition, result)
@@ -454,7 +456,9 @@ def test_b3_results_preserve_scenario_identity_and_curated_result_families(
     validated = next(item for item in overview if item.label == "Validated scenario")
     assert scenario_origin.value == revision.scenario_origin
     assert validated.value == revision.scenario_identity
-    assert cast(str, results.property("analysisTitle")) == "Sensitivity and counterbalance"
+    assert (
+        cast(str, results.property("analysisTitle")) == "Sensitivity and counterbalance"
+    )
 
 
 def test_results_reject_result_from_different_exact_owner() -> None:
