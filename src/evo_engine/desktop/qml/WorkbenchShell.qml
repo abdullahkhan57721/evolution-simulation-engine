@@ -654,8 +654,8 @@ ApplicationWindow {
                             }
                             Flow {
                                 Layout.fillWidth: true
+                                Layout.preferredHeight: childrenRect.height
                                 spacing: theme.space2
-                                implicitHeight: childrenRect.height
                                 StatusBadge {
                                     theme: theme
                                     visible: root.app.revisionId.length > 0
