@@ -61,8 +61,8 @@ Item {
 
                         Flow {
                             Layout.fillWidth: true
+                            Layout.preferredHeight: childrenRect.height
                             spacing: root.theme.space2
-                            implicitHeight: childrenRect.height
 
                             StatusBadge {
                                 theme: root.theme
