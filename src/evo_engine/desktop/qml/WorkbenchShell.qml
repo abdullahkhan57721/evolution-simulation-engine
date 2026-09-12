@@ -110,7 +110,6 @@ ApplicationWindow {
         height: Math.min(root.height - theme.space4 * 2, 720)
         x: Math.round((root.width - width) / 2)
         y: Math.round((root.height - height) / 2)
-        Accessible.name: "Exact Run Plan"
         background: Rectangle {
             color: theme.canvas
             radius: theme.radius
@@ -119,6 +118,7 @@ ApplicationWindow {
         contentItem: RunPlanView {
             theme: theme
             run: root.run
+            Accessible.name: "Exact Run Plan"
         }
         onOpened: Qt.callLater(function() {
             if (contentItem)
