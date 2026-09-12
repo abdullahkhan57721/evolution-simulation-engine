@@ -232,8 +232,8 @@ def test_reference_product_path_reaches_owned_results_and_committed_presentation
     monkeypatch.setattr(
         presentation_module,
         "build_reference_workbench_world_presentation",
-        lambda *_args, step_index, selected_organism_id=None, **_kwargs: SimpleNamespace(
-            frame=_frame(step_index, selected=selected_organism_id)
+        lambda *_args, step_index, selected_organism_id=None, **_kwargs: (
+            SimpleNamespace(frame=_frame(step_index, selected=selected_organism_id))
         ),
     )
 
