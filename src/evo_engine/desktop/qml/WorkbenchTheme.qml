@@ -12,6 +12,7 @@ QtObject {
     readonly property color accent: "#55b8ff"
     readonly property color accentStrong: "#249be8"
     readonly property color accentText: "#04131f"
+    readonly property color focus: "#ffffff"
     readonly property color success: "#55d69e"
     readonly property color warning: "#ffc766"
     readonly property color danger: "#ff7d8c"

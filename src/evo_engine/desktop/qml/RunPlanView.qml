@@ -7,6 +7,11 @@ ScrollView {
     required property var theme
     required property var run
     contentWidth: availableWidth
+    focus: true
+
+    function focusInitialControl() {
+        cancelButton.forceActiveFocus(Qt.TabFocusReason)
+    }
 
     ColumnLayout {
         width: root.availableWidth
@@ -152,12 +157,16 @@ ScrollView {
             Layout.bottomMargin: root.theme.space4
             Item { Layout.fillWidth: true }
             WorkbenchButton {
+                id: cancelButton
+                objectName: "runPlanCancel"
                 theme: root.theme
                 text: "Cancel"
                 enabled: !root.run.running
                 onClicked: root.run.cancelPlan()
             }
             WorkbenchButton {
+                id: executeButton
+                objectName: "runPlanExecute"
                 theme: root.theme
                 primary: true
                 text: root.run.executeLabel

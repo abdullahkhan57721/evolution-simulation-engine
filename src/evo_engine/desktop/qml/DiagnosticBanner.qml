@@ -10,6 +10,11 @@ Rectangle {
     property string message: ""
     property string remediation: ""
 
+    Accessible.name: banner.title
+        + (banner.message.length > 0 ? ". " + banner.message : "")
+        + (banner.remediation.length > 0 ? ". " + banner.remediation : "")
+    Accessible.role: Accessible.StaticText
+
     implicitHeight: content.implicitHeight + 28
     radius: theme ? theme.radiusSmall : 7
     color: tone === "error"

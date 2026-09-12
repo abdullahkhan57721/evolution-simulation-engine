@@ -19,8 +19,8 @@ Item {
     property string legendLabel: ""
     property int legendLower: 0
     property int legendUpper: 0
-    property bool labelsVisible: true
-    property bool trailsVisible: true
+    property bool labelsVisible: false
+    property bool trailsVisible: false
     property bool focusMode: false
     property bool animatePositions: false
     property int transitionDuration: 300
@@ -46,10 +46,8 @@ Item {
 
     function traitColor(normalized) {
         if (normalized === null || normalized === undefined)
-            return theme.organism
+            return root.theme.organism
         var n = Math.max(0.0, Math.min(1.0, Number(normalized)))
-        // Blue → pale cyan → warm gold changes both hue and luminance, while
-        // numeric labels/legend preserve the scientific value independently.
         if (n < 0.5) {
             var local = n * 2.0
             return Qt.rgba(
@@ -72,34 +70,39 @@ Item {
         anchors.fill: parent
         spacing: root.theme.space2
 
-        RowLayout {
+        ColumnLayout {
             Layout.fillWidth: true
-            spacing: root.theme.space2
+            spacing: root.theme.space1
 
-            ColumnLayout {
+            Label {
+                text: root.title
+                color: root.theme.text
+                font.pixelSize: 16
+                font.weight: Font.DemiBold
+                wrapMode: Text.Wrap
                 Layout.fillWidth: true
-                spacing: 1
-                Label {
-                    text: root.title
-                    color: root.theme.text
-                    font.pixelSize: 16
-                    font.weight: Font.DemiBold
-                }
-                Label {
-                    text: root.subtitle
-                    color: root.theme.mutedText
-                    font.pixelSize: root.theme.textSmall
-                }
             }
-            StatusBadge {
-                theme: root.theme
-                text: "STEP " + root.committedStep
-                tone: "neutral"
+            Label {
+                text: root.subtitle
+                color: root.theme.mutedText
+                font.pixelSize: root.theme.textSmall
+                wrapMode: Text.Wrap
+                Layout.fillWidth: true
             }
-            StatusBadge {
-                theme: root.theme
-                text: root.worldWidth + " × " + root.worldHeight
-                tone: "neutral"
+            Flow {
+                Layout.fillWidth: true
+                Layout.preferredHeight: childrenRect.height
+                spacing: root.theme.space1
+                StatusBadge {
+                    theme: root.theme
+                    text: "STEP " + root.committedStep
+                    tone: "neutral"
+                }
+                StatusBadge {
+                    theme: root.theme
+                    text: root.worldWidth + " × " + root.worldHeight
+                    tone: "neutral"
+                }
             }
         }
 
@@ -121,6 +124,9 @@ Item {
                 border.color: "#263a57"
                 border.width: 1
                 clip: true
+                Accessible.name: root.title + ", committed step " + root.committedStep
+                Accessible.description: "Recorded scientific world. Tab to organisms and press Enter or Space to inspect committed values."
+                Accessible.role: Accessible.Pane
 
                 Repeater {
                     model: root.resourceModel
@@ -137,12 +143,15 @@ Item {
                         opacity: root.focusMode ? 0.18 : 0.62
                         border.color: "#d7f4b7"
                         border.width: 1
+                        Accessible.name: "Resource, amount " + amount
+                        Accessible.role: Accessible.Graphic
                     }
                 }
 
                 Repeater {
                     model: root.carcassModel
                     delegate: Item {
+                        id: carcassDelegate
                         required property int carcassId
                         required property real worldX
                         required property real worldY
@@ -152,6 +161,8 @@ Item {
                         x: root.pointX(worldX) - width / 2
                         y: root.pointY(worldY) - height / 2
                         opacity: root.focusMode ? 0.24 : 0.85
+                        Accessible.name: "Carcass " + carcassId + ", " + resourceUnits + " resource units"
+                        Accessible.role: Accessible.Graphic
                         Rectangle {
                             anchors.centerIn: parent
                             width: parent.width
@@ -167,7 +178,7 @@ Item {
                             color: root.theme.warning
                         }
                         ToolTip.visible: carcassMouse.hovered
-                        ToolTip.text: "Carcass " + carcassId + " · " + resourceUnits + " resource units"
+                        ToolTip.text: "Carcass " + carcassDelegate.carcassId + " · " + carcassDelegate.resourceUnits + " resource units"
                         HoverHandler { id: carcassMouse }
                     }
                 }
@@ -180,6 +191,8 @@ Item {
                         required property var points
                         anchors.fill: parent
                         opacity: root.focusMode ? 0.2 : 0.48
+                        Accessible.name: "Recent committed trail for organism " + organismId
+                        Accessible.role: Accessible.Graphic
 
                         onPointsChanged: requestPaint()
                         onWidthChanged: requestPaint()
@@ -217,11 +230,22 @@ Item {
                         required property var focalTraitValue
                         required property var focalTraitNormalized
 
-                        width: markerSize + 10
-                        height: markerSize + (root.labelsVisible ? 24 : 10)
+                        width: markerSize + 16
+                        height: markerSize + (root.labelsVisible ? 24 : 16)
                         x: root.pointX(worldX) - width / 2
                         y: root.pointY(worldY) - markerSize / 2
-                        opacity: root.focusMode && !selected ? 0.2 : 1.0
+                        opacity: root.focusMode && !selected && !activeFocus ? 0.2 : 1.0
+                        activeFocusOnTab: true
+                        Accessible.name: "Organism " + organismId
+                        Accessible.description: "Age " + age + ", energy " + energy + ", body mass " + bodyMass + ", mating type " + matingType
+                            + (focalTraitValue === null || focalTraitValue === undefined ? "" : ", focal trait " + focalTraitValue)
+                            + (selected ? ". Selected for inspection." : ".")
+                        Accessible.role: Accessible.Button
+                        Accessible.selected: selected
+                        Accessible.onPressAction: root.organismSelected(organismId)
+                        Keys.onReturnPressed: root.organismSelected(organismId)
+                        Keys.onEnterPressed: root.organismSelected(organismId)
+                        Keys.onSpacePressed: root.organismSelected(organismId)
 
                         Behavior on x {
                             enabled: root.animatePositions
@@ -239,6 +263,18 @@ Item {
                         }
 
                         Rectangle {
+                            anchors.horizontalCenter: marker.horizontalCenter
+                            anchors.verticalCenter: marker.verticalCenter
+                            width: marker.width + 15
+                            height: width
+                            radius: width / 2
+                            color: "transparent"
+                            border.color: root.theme.focus
+                            border.width: organismDelegate.activeFocus ? 2 : 0
+                            visible: organismDelegate.activeFocus
+                        }
+
+                        Rectangle {
                             id: selectionHalo
                             anchors.horizontalCenter: marker.horizontalCenter
                             anchors.verticalCenter: marker.verticalCenter
@@ -247,25 +283,25 @@ Item {
                             radius: width / 2
                             color: "transparent"
                             border.color: root.theme.selected
-                            border.width: selected ? 3 : 0
-                            visible: selected
+                            border.width: organismDelegate.selected ? 3 : 0
+                            visible: organismDelegate.selected
                         }
 
                         Rectangle {
                             id: marker
-                            width: markerSize
-                            height: markerSize
+                            width: organismDelegate.markerSize
+                            height: organismDelegate.markerSize
                             radius: width / 2
                             anchors.top: parent.top
                             anchors.horizontalCenter: parent.horizontalCenter
-                            color: root.traitColor(focalTraitNormalized)
-                            border.color: selected ? "#fff4c2" : "#d9e7f7"
-                            border.width: selected ? 2 : 1
+                            color: root.traitColor(organismDelegate.focalTraitNormalized)
+                            border.color: organismDelegate.selected ? "#fff4c2" : "#d9e7f7"
+                            border.width: organismDelegate.selected ? 2 : 1
 
                             Label {
                                 anchors.centerIn: parent
-                                visible: focalTraitValue !== null && focalTraitValue !== undefined && marker.width >= 18
-                                text: focalTraitValue === null || focalTraitValue === undefined ? "" : focalTraitValue
+                                visible: organismDelegate.focalTraitValue !== null && organismDelegate.focalTraitValue !== undefined && marker.width >= 18
+                                text: organismDelegate.focalTraitValue === null || organismDelegate.focalTraitValue === undefined ? "" : organismDelegate.focalTraitValue
                                 color: "#06121e"
                                 font.pixelSize: Math.max(8, Math.min(11, marker.width * 0.45))
                                 font.weight: Font.Bold
@@ -277,17 +313,17 @@ Item {
                             anchors.topMargin: 3
                             anchors.horizontalCenter: marker.horizontalCenter
                             visible: root.labelsVisible
-                            text: "#" + organismId
-                            color: selected ? root.theme.selected : root.theme.mutedText
+                            text: "#" + organismDelegate.organismId
+                            color: organismDelegate.selected ? root.theme.selected : root.theme.mutedText
                             font.pixelSize: 10
                         }
 
                         TapHandler {
-                            onTapped: root.organismSelected(organismId)
+                            onTapped: root.organismSelected(organismDelegate.organismId)
                         }
                         HoverHandler { id: organismHover }
                         ToolTip.visible: organismHover.hovered
-                        ToolTip.text: "Organism " + organismId + " · age " + age + " · energy " + energy
+                        ToolTip.text: "Organism " + organismDelegate.organismId + " · age " + organismDelegate.age + " · energy " + organismDelegate.energy
                     }
                 }
 
@@ -303,9 +339,11 @@ Item {
             }
         }
 
-        RowLayout {
+        GridLayout {
             Layout.fillWidth: true
-            spacing: root.theme.space3
+            columns: root.width >= 520 ? 2 : 1
+            columnSpacing: root.theme.space3
+            rowSpacing: root.theme.space2
 
             SurfacePanel {
                 theme: root.theme
@@ -341,9 +379,11 @@ Item {
                         Label { text: root.legendUpper; color: root.theme.mutedText; font.pixelSize: 10 }
                     }
                     Label {
-                        text: "Selection = gold outline/halo · trails = recent committed positions"
+                        text: "Selection = gold outline/halo and inspector text · trails = recent committed positions"
                         color: root.theme.subtleText
                         font.pixelSize: 10
+                        wrapMode: Text.Wrap
+                        Layout.fillWidth: true
                     }
                 }
             }
@@ -352,6 +392,8 @@ Item {
                 theme: root.theme
                 Layout.fillWidth: true
                 Layout.preferredHeight: inspectorContent.implicitHeight + root.theme.space2 * 2
+                Accessible.name: root.inspectorTitle + ". " + root.inspectorBody
+                Accessible.role: Accessible.StaticText
                 ColumnLayout {
                     id: inspectorContent
                     anchors.fill: parent
