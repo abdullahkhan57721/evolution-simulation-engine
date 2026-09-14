@@ -84,8 +84,8 @@ class PresentationController(QObject):
         self._b3_seed_position = 0
         self._playing = False
         self._playback_speed = 1.0
-        self._labels_visible = True
-        self._trails_visible = True
+        self._labels_visible = False
+        self._trails_visible = False
         self._focus_mode = False
         self._transition_animated = False
 
@@ -663,8 +663,8 @@ class PresentationController(QObject):
     def _reset_view_state(self) -> None:
         self._playing = False
         self._playback_speed = 1.0
-        self._labels_visible = True
-        self._trails_visible = True
+        self._labels_visible = False
+        self._trails_visible = False
         self._focus_mode = False
         self._transition_animated = False
         self._selected_id = None

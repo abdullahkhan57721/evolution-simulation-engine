@@ -69,7 +69,7 @@ ScrollView {
             theme: root.theme
             visible: root.app.artifactKind === "reference-ecology" && root.reference.hasWorld
             Layout.fillWidth: true
-            Layout.preferredHeight: 390
+            Layout.preferredHeight: Math.max(340, Math.min(430, root.height * 0.55))
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: root.theme.space3
@@ -88,6 +88,13 @@ ScrollView {
                         text: "COMMITTED STEP " + root.reference.worldStep
                         tone: "neutral"
                     }
+                }
+                Label {
+                    Layout.fillWidth: true
+                    text: "Organisms can be selected by pointer or keyboard. Selection is also exposed through accessible state and is never communicated by fill color alone."
+                    color: root.theme.subtleText
+                    font.pixelSize: root.theme.textSmall
+                    wrapMode: Text.Wrap
                 }
                 Rectangle {
                     id: worldCanvas
@@ -111,11 +118,14 @@ ScrollView {
                             opacity: 0.55
                             x: (worldX + 0.5) / Math.max(1, root.reference.worldWidth) * worldCanvas.width - width / 2
                             y: (worldY + 0.5) / Math.max(1, root.reference.worldHeight) * worldCanvas.height - height / 2
+                            Accessible.name: "Resource amount " + amount
+                            Accessible.role: Accessible.Graphic
                         }
                     }
                     Repeater {
                         model: root.reference.organismModel
                         delegate: Rectangle {
+                            id: organismMarker
                             required property int organismId
                             required property real worldX
                             required property real worldY
@@ -127,10 +137,19 @@ ScrollView {
                             height: markerSize
                             radius: width / 2
                             color: selected ? root.theme.selected : root.theme.organism
-                            border.width: selected ? 3 : 1
-                            border.color: selected ? root.theme.warning : root.theme.text
+                            border.width: activeFocus ? 3 : (selected ? 3 : 1)
+                            border.color: activeFocus ? root.theme.focus : (selected ? root.theme.warning : root.theme.text)
                             x: (worldX + 0.5) / Math.max(1, root.reference.worldWidth) * worldCanvas.width - width / 2
                             y: (worldY + 0.5) / Math.max(1, root.reference.worldHeight) * worldCanvas.height - height / 2
+                            activeFocusOnTab: true
+                            Accessible.name: "Organism " + organismId
+                            Accessible.description: "Body mass " + bodyMass + ", energy " + energy + (selected ? ". Selected." : ".")
+                            Accessible.role: Accessible.Button
+                            Accessible.selected: selected
+                            Accessible.onPressAction: root.reference.selectOrganism(organismId)
+                            Keys.onReturnPressed: root.reference.selectOrganism(organismId)
+                            Keys.onEnterPressed: root.reference.selectOrganism(organismId)
+                            Keys.onSpacePressed: root.reference.selectOrganism(organismId)
                             ToolTip.visible: hover.hovered
                             ToolTip.text: "Organism " + organismId + " · mass " + bodyMass + " · energy " + energy
                             HoverHandler { id: hover }
