@@ -56,10 +56,11 @@ def test_missing_manim_has_actionable_render_error(
 
 
 def test_production_packages_do_not_depend_on_cinematic() -> None:
-    """Test cinematic remains downstream except at the explicit WU5 UI composition root."""
+    """Test cinematic remains downstream except at explicit product composition roots."""
     package_root = Path("src/evo_engine")
     allowed_consumers = {
         package_root / "ui" / "presentation_page.py",
+        package_root / "desktop" / "controllers" / "cinematic.py",
     }
     violations: list[str] = []
 
