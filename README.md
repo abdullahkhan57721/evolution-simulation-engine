@@ -129,7 +129,7 @@ two equal-weight radius-1 patches
 centered at (2, 5) and (9, 5)
 ```
 
-Both arms use 20 balanced homozygous `max_speed = 1 / 4` founders, initial high-speed
+Both arms use 20 balanced homozygous `max_speed = 1` / `4` founders, initial high-speed
 allele frequency `0.50`, 32 renewable deposits per timestep, 6 units per deposit,
 shared `max_intake_rate = 8`, mutation disabled, predation isolated through the
 frozen attack/defense background, mating radius `3`, and 50 committed timesteps.
