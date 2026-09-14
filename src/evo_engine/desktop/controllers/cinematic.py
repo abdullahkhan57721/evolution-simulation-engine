@@ -83,7 +83,7 @@ class CinematicController(QObject):
         renderer: _B3Renderer = render_b3_flagship_cinematic,
         thread_pool: QThreadPool | None = None,
     ) -> None:
-        super().__init__(parent)
+        super().__init__(parent or application)
         self._application = application
         self._renderer = renderer
         self._thread_pool = thread_pool or QThreadPool.globalInstance()
