@@ -54,7 +54,7 @@ class _B3RenderTask(QRunnable):
         self._renderer = renderer
         self._plan = plan
         self._destination = destination
-        self._quality = quality
+        self._quality: AnimationQuality = quality
 
     @Slot()
     def run(self) -> None:
@@ -62,7 +62,7 @@ class _B3RenderTask(QRunnable):
             rendered = self._renderer(
                 self._plan,
                 self._destination,
-                quality=self._quality,
+                quality=cast(AnimationQuality, self._quality),
             )
         except (OSError, RuntimeError, TypeError, ValueError) as exc:
             self.signals.failed.emit(str(exc))
