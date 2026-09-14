@@ -39,7 +39,7 @@ jobs:
             --output outputs/e7-validation/e7-discovery.json
       - name: Upload E7 discovery evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e7-discovery-${{ github.run_id }}
           path: outputs/e7-validation/e7-discovery.json
@@ -62,7 +62,7 @@ jobs:
             --output outputs/e7-validation/e7-confirmation.json
       - name: Upload E7 confirmation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e7-confirmation-${{ github.run_id }}
           path: outputs/e7-validation/e7-confirmation.json
