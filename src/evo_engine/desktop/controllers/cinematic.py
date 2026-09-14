@@ -127,8 +127,10 @@ class CinematicController(QObject):
     @Slot()
     def refresh(self) -> None:
         """Re-evaluate story eligibility from the exact active scientific owner."""
-        artifact = self._application.active_artifact()
-        result = self._application.active_result()
+        # ApplicationController is the sibling desktop orchestration boundary. These
+        # values stay Python-only; no domain objects are exposed to QML.
+        artifact = self._application._artifact
+        result = self._application._result
         plan: B3FlagshipDirectorPlan | None = None
         available = False
 
