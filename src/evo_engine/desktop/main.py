@@ -10,20 +10,30 @@ from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from evo_engine.desktop.controllers import ApplicationController, PresentationController
+from evo_engine.desktop.controllers import (
+    ApplicationController,
+    CinematicController,
+    PresentationController,
+)
 
 
 def create_engine() -> tuple[QQmlApplicationEngine, ApplicationController]:
-    """Create and load the QML engine with the native application controller."""
+    """Create and load the QML engine with the native application controllers."""
     engine = QQmlApplicationEngine()
     controller = ApplicationController()
     presentation = PresentationController(controller)
+    cinematic = CinematicController(controller)
     engine.rootContext().setContextProperty("applicationController", controller)
     engine.rootContext().setContextProperty("presentationController", presentation)
+    engine.rootContext().setContextProperty("cinematicController", cinematic)
     qml_path = Path(__file__).resolve().parent / "qml" / "Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     if not engine.rootObjects():
         raise RuntimeError(f"Failed to load desktop QML from {qml_path}.")
+    # QQmlContext does not transfer Python ownership. Keep sibling controllers alive
+    # beside the root application controller for the engine lifetime.
+    engine.setProperty("q5PresentationController", presentation)
+    engine.setProperty("q5CinematicController", cinematic)
     return engine, controller
 
 

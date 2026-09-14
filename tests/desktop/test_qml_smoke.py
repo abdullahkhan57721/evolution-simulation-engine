@@ -14,7 +14,11 @@ from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
 import evo_engine.desktop.main as desktop_main
-from evo_engine.desktop.controllers import ApplicationController, PresentationController
+from evo_engine.desktop.controllers import (
+    ApplicationController,
+    CinematicController,
+    PresentationController,
+)
 from evo_engine.desktop.main import create_engine
 from evo_engine.workbench import ReferenceStudyRevision
 
@@ -31,6 +35,7 @@ def _strict_engine() -> tuple[
     engine = QQmlApplicationEngine()
     controller = ApplicationController()
     presentation = PresentationController(controller)
+    cinematic = CinematicController(controller)
     warnings: list[str] = []
 
     def collect(errors) -> None:
@@ -39,6 +44,10 @@ def _strict_engine() -> tuple[
     engine.warnings.connect(collect)
     engine.rootContext().setContextProperty("applicationController", controller)
     engine.rootContext().setContextProperty("presentationController", presentation)
+    engine.rootContext().setContextProperty("cinematicController", cinematic)
+    # QQmlContext does not transfer Python ownership.
+    engine.setProperty("q5StrictPresentationController", presentation)
+    engine.setProperty("q5StrictCinematicController", cinematic)
     qml_path = Path(desktop_main.__file__).resolve().parent / "qml" / "Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     return engine, controller, warnings

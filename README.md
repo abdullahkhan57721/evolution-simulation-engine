@@ -1,33 +1,36 @@
 # Evolution Simulation Engine
 
-Evolution Simulation Engine is a Python 3.12 simulation system for studying
-heritable change in evolving populations without making biological assumptions
-part of the execution kernel. A frozen domain-neutral transactional kernel sits
-below general-evolution contracts, compositional biological models, spatial
-ecology, reproducible experiments, and independent interactive/cinematic
-presentation paths.
+Evolution Simulation Engine is a Python 3.12 simulation and scientific-workbench
+project for studying heritable change in evolving populations without making
+biological assumptions part of the execution kernel. A frozen domain-neutral
+transactional kernel sits below general-evolution contracts, compositional biological
+models, spatial ecology, reproducible experiments, committed scientific evidence, and
+independent interactive/cinematic presentation.
 
-The reference ecology and flagship scenarios are software/modeling demonstrations,
+The Reference Ecology and flagship scenarios are software/modeling demonstrations,
 not empirically calibrated predictions about real populations.
 
 ## What the project demonstrates
 
-- a frozen domain-neutral transactional simulation kernel with deterministic
-  seeded RNG;
+- a frozen domain-neutral transactional simulation kernel with deterministic seeded
+  RNG;
 - a general-evolution layer demonstrated independently of biological organisms;
 - compositional genetics, inheritance, development, energetics, behavior, feeding,
   predation, reproduction, and spatial ecology;
-- explicit chromosome-copy structure, pairing, recombination, and segregation
-  responsibilities without treating simple diploidy as universal architecture;
-- arity-neutral reproduction orchestration that separates participants, investors,
+- explicit chromosome-copy, pairing, recombination, and segregation responsibilities
+  without treating simple diploidy as universal architecture;
+- arity-neutral reproduction orchestration separating participants, investors,
   genetic contributors, and offspring-production sources;
 - committed population, spatial, genetic, pedigree/lifetime, and causal event
   evidence;
 - exact checkpoint/resume and reproducible multi-seed experiments;
-- JSON/CSV experiment export;
-- an adaptive Streamlit/Plotly exploration path over completed immutable evidence;
-- a deterministic Manim cinematic path, including a B3-specific explanatory
-  flagship director, over the same evidence boundary;
+- a bounded Evolution Experiment Workbench with exact Study persistence, immutable
+  fork lineage, Evidence Plans, controlled experiments, Results, and Presentation;
+- a native PySide6 + Qt Quick/QML desktop product with off-GUI scientific execution,
+  native scientific-world replay, keyboard/accessibility hardening, and standalone
+  packaging proof;
+- a deterministic B3 Manim cinematic path over the same validated scientific
+  handoff;
 - architecture, typing, testing, documentation, complexity, and CI guardrails.
 
 ## Quick start
@@ -40,7 +43,7 @@ venv/bin/python -m pip install --upgrade pip
 venv/bin/python -m pip install -e ".[dev,docs]"
 ```
 
-Run the core examples:
+Run core examples:
 
 ```bash
 venv/bin/python examples/basic_aging_simulation.py
@@ -53,16 +56,71 @@ Run the complete local quality gate:
 ./scripts/check_all --no-pause
 ```
 
+## Native Evolution Experiment Workbench
+
+PySide6 + Qt Quick/QML is the product frontend. Install the pinned desktop runtime:
+
+```bash
+venv/bin/python -m pip install -r requirements-desktop.txt
+```
+
+Launch the Workbench:
+
+```bash
+venv/bin/python -m evo_engine.desktop.main
+```
+
+The product flow is:
+
+```text
+New/Open Study
+      ↓
+Simulation → Evidence → Experiment
+      ↓
+Run Plan → Run
+      ↓
+Results → Interactive World → Presentation
+      ↓
+Save / Save As / Fork / Reproduce
+```
+
+Current concrete product families are controlled single-run Studies, E3 max-speed
+sweeps, E4 environment-selection comparisons, canonical/derived B3, and bounded
+Reference Ecology. The UI delegates exact scientific ownership to existing Workbench
+artifacts/runners/inspectors rather than defining a Qt-specific Study or analysis
+schema.
+
+Native presentation includes committed-step world replay for Reference Ecology and a
+matched side-by-side B3 replay using the renderer-neutral `WorldPresentationFrame`
+contract. Playback, selection, labels, trails, Focus Mode, interpolation, and other
+view choices never alter scientific identity.
+
+Canonical B3 can also prepare the existing validated scientific cinematic handoff.
+Scientific story eligibility is reported separately from optional Manim renderer
+availability, and expensive rendering is dispatched off the GUI thread. A B3-derived
+radius-2 fork cannot inherit canonical headline-cinematic eligibility.
+
+See [Desktop Workbench](docs/desktop_workbench.md) and
+[Q5 Frontend Parity](docs/development/q5_frontend_parity.md).
+
+### Streamlit status
+
+The former WU1–WU5 Streamlit/Plotly Workbench is **deprecated**. Its source remains
+temporarily as frozen regression/reference material while native release auditing is
+completed; it is no longer a product surface and receives no new feature work.
+Future product milestones do not owe it parity.
+
+Physical Streamlit/Plotly removal should happen as one bounded maintenance change
+after the requested human native desktop/accessibility audit confirms the replacement
+product and any remaining compatibility value is deliberately migrated or discarded.
+
 ## Confirmed scientific flagship — environment-dependent selection
 
-The current scientific flagship asks:
+The B3 flagship asks whether compact spatial resource geography changes selection on
+existing heritable `max_speed` standing variation relative to a matched uniform
+resource environment in the richer Reference Ecology.
 
-> Does compact spatial resource geography change selection on existing heritable
-> `max_speed` standing variation relative to a matched uniform-resource
-> environment in the current richer reference ecology?
-
-The canonical matched comparison keeps the ordinary sexual reference ecology and
-changes only renewable-resource placement:
+The canonical comparison changes only renewable-resource placement:
 
 ```text
 uniform placement
@@ -71,14 +129,12 @@ two equal-weight radius-1 patches
 centered at (2, 5) and (9, 5)
 ```
 
-Both arms use 20 balanced homozygous `max_speed = 1` / `4` founders, initial
-high-speed allele frequency `0.50`, 32 renewable deposits per timestep, 6 units per
-deposit, shared `max_intake_rate = 8`, mutation disabled, predation isolated
-through the frozen attack/defense background, mating radius `3`, and 50 committed
-timesteps.
+Both arms use 20 balanced homozygous `max_speed = 1` / `4` founders, initial high-speed
+allele frequency `0.50`, 32 renewable deposits per timestep, 6 units per deposit,
+shared `max_intake_rate = 8`, mutation disabled, predation isolated through the
+frozen attack/defense background, mating radius `3`, and 50 committed timesteps.
 
-Discovery and confirmation use disjoint seeds. The frozen independent confirmation
-set is:
+The frozen independent confirmation seeds are:
 
 ```text
 5, 17, 29, 43, 61, 79, 97, 113
@@ -91,10 +147,9 @@ At the predeclared step-30 readout:
 - mean paired compact-minus-uniform effect: **+0.2843**;
 - compact exceeded matched uniform in **8/8** confirmation seeds.
 
-Founder realized reproductive contribution supports the mechanism in aggregate,
-and predeclared founder-label counterbalancing plus a radius-2 geometry sensitivity
-provide bounded falsification checks. The representative storytelling seed is
-**5**, chosen by a predeclared median-effect/legible-episode rule rather than visual
+Founder reproductive contribution, founder-label counterbalancing, and a radius-2
+geometry sensitivity support and bound the interpretation. Representative seed 5 was
+chosen by a predeclared median-effect/legible-episode rule rather than visual
 convenience.
 
 Run the frozen confirmation:
@@ -103,56 +158,18 @@ Run the frozen confirmation:
 venv/bin/python scripts/b3_confirmation.py
 ```
 
-See [Confirmed Flagship Evolution Demo](docs/flagship_evolution_demo.md) for the
-full frozen design, all primary per-seed results, scientific storyboard,
-representative committed episodes, and claim/nonclaim boundary.
+See [Confirmed Flagship Evolution Demo](docs/flagship_evolution_demo.md) for the full
+design, primary per-seed results, representative committed episodes, and
+claim/nonclaim boundary.
 
 ### Supported claim
 
-Under this tested reference-ecology configuration, compact radius-1 resource
-geography favors the high-speed strategy relative to matched uniform controls,
-while uniform favors the lower-speed strategy in aggregate.
+Under this tested Reference Ecology configuration, compact radius-1 resource
+geography favors the high-speed strategy relative to matched uniform controls, while
+uniform favors the lower-speed strategy in aggregate.
 
 This does **not** establish universal optimal speed, generic effects of all patchy
 environments, isolated locomotion-cost causality, or empirical species calibration.
-
-## Earlier v0.1 max-intake demonstration
-
-The original balanced-standing-variation `max_intake_rate` scenario remains a
-secondary historical regression/integration example. Its helpers and current
-presentation entry points are retained for compatibility with the v0.1 portfolio
-surface.
-
-The B3 cinematic path now consumes the confirmed scientific handoff directly. The
-interactive B3 matched-comparison continuation should do the same rather than
-infer B3 treatment/control meaning from the older max-intake example.
-
-## Interactive Streamlit / Plotly application
-
-Install the optional UI dependencies:
-
-```bash
-venv/bin/python -m pip install -r requirements-ui.txt
-```
-
-Launch the dashboard:
-
-```bash
-venv/bin/python -m streamlit run src/evo_engine/ui/app.py
-```
-
-The application separates a full-window configuration experience from a completed
-world-centered simulation workspace. It provides committed-step playback,
-selection/inspection, environmental layers, focal-trait visualization from
-committed selective trait evidence, evolutionary/genetic analytics, life-history
-views, experiment comparison, and export.
-
-The UI never owns a mutable live engine/world after execution. Presentation values
-remain downstream of committed simulation evidence.
-
-The generic/science-aware foundation is ready for the dedicated B3 matched
-comparison; renderer-specific B3 layout and interaction remain presentation work,
-not part of the B3 scientific contract.
 
 ## Deterministic cinematic presentation
 
@@ -185,51 +202,38 @@ venv/bin/python examples/render_b3_flagship_cinematic.py \
   --output outputs/b3-director-smoke.mp4
 ```
 
-The simulation completes before Manim renders. The cinematic layer consumes
-committed spatial/population/focal-trait evidence and authoritative committed event
-telemetry through renderer-owned preparation values. The B3 director then consumes
-the frozen scientific handoff to control scene order, camera focus, temporal
-compression, matched comparison, evidence charts, and conclusion timing.
-Interpolation, camera, timing, and choreography never feed back into simulation
-semantics.
+Simulation completes before Manim rendering. The director consumes the frozen
+scientific handoff and authoritative committed evidence. Interpolation, camera,
+timing, quality, output format, and choreography never feed back into simulation
+semantics. Representative seed 5 is illustrative; independent multi-seed confirmation
+remains the robustness evidence.
 
-The B3 film keeps organism fill on the fixed `max_speed` scale `1..4`, body size on
-authoritative body mass, and focus on a separate halo/camera channel. Representative
-seed 5 is illustrative; independent confirmation remains run-level robustness
-evidence. The render command also writes a deterministic scalar manifest beside the
-video.
-
-See [B3 Flagship Cinematic](docs/cinematic_flagship.md) for the full reproduction,
-scientific-boundary, CI, and manual-review contract.
+See [B3 Flagship Cinematic](docs/cinematic_flagship.md).
 
 ## Reproducible experiments and evidence
 
-The project treats committed evidence and reproducibility as architectural
-concerns rather than presentation conveniences.
-
-B3 specifically separates:
+The project treats committed evidence and reproducibility as architecture rather than
+presentation convenience:
 
 ```text
-configured treatment context
+configured scientific context
         ↓
 committed state + committed events
         ↓
-scenario-specific scientific summaries
+scenario-specific measurements
         ↓
-matched multi-seed confirmation
+replicate/treatment summaries
         ↓
-renderer-neutral scientific handoff
+renderer-neutral scientific meaning
         ↓
 interactive / cinematic presentation
 ```
 
 Renewable-generation provenance comes from committed `ResourceGeneration` events.
-Total committed world resources come from spatial state and can also include
-resources returned through decomposition; those two meanings are deliberately not
-conflated.
-
-The ordinary experiment/export layer also supports deterministic replicate runs,
-metadata, JSON, and CSV export for reusable scenarios.
+Total committed world resources come from spatial state and may also include returned
+resources; those meanings are deliberately not conflated. The experiment/export layer
+supports deterministic replicate runs plus metadata/JSON/CSV export for reusable
+scenarios.
 
 ## Architecture
 
@@ -237,20 +241,15 @@ The intended dependency direction is:
 
 ```text
 validation / context / generic foundations
-                    |
-                    v
+                    ↓
              simulation kernel
-                    |
-                    v
+                    ↓
          general evolution abstractions
-                    |
-                    v
+                    ↓
       biological/domain specializations
-                    |
-                    v
+                    ↓
         processes and resolvers
-                    |
-                    v
+                    ↓
        presets / experiments / interfaces
 ```
 
@@ -266,41 +265,36 @@ propose all
 → apply accepted events
 ```
 
-Each step operates on transactional working state and transactional RNG. Only a
-fully successful step becomes authoritative. New modeled behavior normally belongs
-above the kernel unless a genuine generic deficiency is demonstrated.
+Each step operates on transactional working state and transactional RNG. Only a fully
+successful step becomes authoritative. New modeled behavior normally belongs above
+the kernel unless a genuine generic deficiency is demonstrated.
 
 ### General evolution and biological specialization
 
 The general layer models transmissible state, expression, variation, propagation,
-linkage/co-transmission, production, admission/departure, and entity
-access/reference without assuming DNA or organisms. Biological inheritance
-specializes those contracts with genomes, genetic architecture, chromosome
-transmission, development, and reproduction.
-
-Shared reproduction is not universally one-parent or two-parent. Current simple
-clonal and biparental sexual behavior are concrete policies over more general
-orchestration contracts.
+linkage/co-transmission, production, admission/departure, and entity access/reference
+without assuming DNA or organisms. Biological inheritance specializes those
+contracts with genomes, genetic architecture, chromosome transmission, development,
+and reproduction. Current clonal and biparental behavior are concrete policies over
+more general orchestration contracts.
 
 ### Observation and presentation
 
 ```text
 simulation/domain layers
-        |
-        v
+        ↓
 committed scientific evidence
-        |
-        v
-scenario-specific scientific meaning
-        |
-        +-------------------------+
-        |                         |
-        v                         v
-Streamlit / Plotly             Manim
-interactive exploration       cinematic explanation
+        ↓
+renderer-neutral scientific meaning
+        ↓
+   +---------+----------+
+   |                    |
+   v                    v
+Qt Quick native       Manim
+interactive product   cinematic explanation
 ```
 
-Both presentation paths consume immutable completed evidence. Neither is a second
+Both presentation media consume immutable completed evidence. Neither is a second
 simulation architecture.
 
 ## Documentation
@@ -310,6 +304,8 @@ Start with:
 - [Current Project State](docs/development/current_state.md)
 - [Architectural Roadmap](docs/development/roadmap.md)
 - [Architecture Overview](docs/architecture/index.md)
+- [Desktop Workbench](docs/desktop_workbench.md)
+- [Q5 Frontend Parity](docs/development/q5_frontend_parity.md)
 - [Scientific Visualization Architecture](docs/architecture/scientific_visualization.md)
 - [Kernel Contract](docs/kernel_contract.md)
 - [General Evolution Framework](docs/general_evolution_framework.md)
