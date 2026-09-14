@@ -14,8 +14,7 @@ When anything here disagrees with the repository, use this order:
 5. this orientation snapshot;
 6. conversation history.
 
-Do not store volatile commit SHAs, CI state, detailed ticket progress, or full PR
-history here.
+Do not store volatile commit SHAs, CI state, or detailed ticket progress here.
 
 ## Architectural baseline
 
@@ -48,315 +47,134 @@ committed state / committed events
         ↓
 pure scientific measurement
         ↓
-replicate outcome
-        ↓
-treatment comparison
+replicate outcome / treatment comparison
         ↓
 renderer-neutral scientific meaning
         ↓
 interactive / cinematic presentation
 ```
 
-Presentation interpolation, camera behavior, layout, and renderer state are never
-scientific evidence.
+Presentation interpolation, camera behavior, layout, renderer settings, and desktop
+preferences are never scientific evidence or scientific identity.
 
-## Settled modeled/scientific capabilities
+## Settled modeled and scientific capabilities
 
-The general-evolution layer remains domain-neutral. Biological specialization owns
-concrete genetics, inheritance, development, life history, growth, energetics,
-feeding, movement, predation, reproduction, spatial ecology, and biological world
-state above those contracts.
+Biological specialization owns concrete genetics, inheritance, development, life
+history, growth, energetics, feeding, movement, predation, reproduction, spatial
+ecology, and biological world state above domain-neutral contracts.
 
 Reproduction distinguishes participants, investors, genetic contributors, and
 production sources. Chromosome transmission separates copy structure, pairing,
-recombination, segregation, and gamete formation. Current simple Mendelian/diploid
-policies remain concrete policies rather than universal architecture rules.
+recombination, segregation, and gamete formation. Current Mendelian/diploid policies
+remain concrete policies rather than universal architecture rules.
 
-B1 added immutable spatial renewable-resource placement policies. B2 established
-`max_speed` as a real inherited benefit/cost axis in the richer reference ecology.
-B3 independently confirmed a bounded environment-dependent selection story with
-mechanism, counterbalance, sensitivity, and representative-run evidence. None of
-these changes introduced a kernel-owned scalar fitness abstraction.
+Committed evidence is first-class: population and spatial observations, selected
+individual trait records, allele/genotype composition, pedigree/life-history data,
+causal event/effect telemetry, deterministic seeded execution, checkpoint/resume,
+and reproducible multi-seed experiments are established capabilities.
 
-Committed evidence is first-class. Existing evidence includes population and
-spatial observations, selected individual genetic-trait records, allele/genotype
-composition, pedigree/life-history evidence, causal event/effect telemetry,
-deterministic seeded execution, checkpoint/resume, and reproducible multi-seed
-experiment export.
+### Controlled science: E1–E7
 
-## Controlled experimental-evolution sequence
-
-E1–E7 form a completed first causal proof sequence separate from the richer B3
-flagship:
+E1–E7 form the completed first controlled experimental-evolution sequence:
 
 ```text
-E1 measurement semantics and reproducibility
-        ↓
-E2 minimal controlled locomotion mechanics
-        ↓
-E3 monomorphic ecological-performance landscape
-        ↓
-E4 selection on standing inherited variation
-        ↓
-E5 finite-population drift and weak selection
-        ↓
-E6 rare-lineage invasion and candidate stability
-        ↓
-E7 focal mutation, adaptation, and convergence
+E1 measurement/reproducibility
+ → E2 controlled locomotion
+ → E3 performance landscape
+ → E4 selection on standing variation
+ → E5 finite-population drift/weak selection
+ → E6 rare-lineage invasion/candidate stability
+ → E7 mutation-driven accessibility
 ```
 
-The durable experiment semantics are:
+A run/seed is the current experimental replicate; organisms inside a run are dependent
+observations. Event step `t` aligns with committed state `t + 1`. Extinction,
+censoring, discovery/confirmation roles, and representative storytelling remain
+explicit. Scientific measurements consume committed evidence, and no universal
+statistics DSL or kernel-owned scalar fitness abstraction exists.
 
-- one simulation run/seed is the current experimental replicate;
-- organisms within a run are dependent observations, not extra replicates;
-- event step `t` aligns to committed state `t + 1`;
-- denominators, extinction, right-censoring, discovery/confirmation roles, and
-  representative storytelling remain explicit;
-- pure scientific measurements consume committed evidence;
-- experiment-specific integrity checks remain concrete;
-- no universal metric registry, statistics DSL, or simulation dependency on
-  analysis code exists.
+E7's frozen confirmation is a meaningful negative result: the tested high-mutation
+configuration does **not** show cross-start convergence. Do not retune or lengthen E7
+post hoc to manufacture the expected story. Any follow-up requires a new scientific
+identity and predeclared design.
 
-E3 independently confirmed a speed-3 performance region in its separated-resource
-corridor while the local-resource arm remains speed-neutral. E4 confirmed selection
-on equal standing variation toward speed 3 in that corridor, with full focal
-composition and counterbalanced founder-ID assignment. E5 demonstrated
-finite-population stochasticity and weak-selection reversals without manufacturing
-fixation. E6 added exact resident-state/RNG forking and matched rare-lineage
-admission, supporting speed 3 as a bounded candidate invasion-stable strategy
-against reciprocal speed 4 rather than a formal ESS.
+### Confirmed B3 flagship
 
-E7 added only a narrow optional focal mutation-policy seam to controlled locomotion;
-existing E2–E6 callers remain mutation-off by default. Its frozen high-mutation,
-full-distribution confirmation **does not show cross-start convergence**. Starts 1
-and 7 remain strongly separated from the reference region while start 3 stays
-bounded inside speeds 2..4. The mechanism evidence shows why: speed-6/8 descendants
-from the high start do not reproduce within the horizon, so repeated first-step
-mutation does not propagate toward lower speeds; the low start can reproduce through
-speed 2 toward speed 3 but also accumulates substantial mass at the legal speed-0
-boundary. E7 therefore bounds the E3–E6 story: favorable performance, selection,
-and invasion when a strategy is already present do not guarantee mutation-driven
-accessibility from distant starting states.
+B3 is the richer integrated reference-ecology flagship. It compares matched uniform
+renewable resources with compact radius-1 patches under balanced inherited
+`max_speed = 1 / 4` standing variation. Independent confirmation, mechanism evidence,
+founder-label counterbalancing, and a radius-2 sensitivity bound the claim.
+Representative seed 5 and its committed episodes are selected by B3 science, not a
+renderer.
 
-See `docs/e7_mutation_driven_adaptation.md` for the frozen assay, confirmation
-criteria, mechanism evidence, and bounded nonclaims.
+Scenario origin and validated identity are distinct. The radius-2 sensitivity fork
+keeps B3 origin but loses canonical radius-1 identity and cannot inherit the canonical
+headline cinematic handoff.
 
-## Confirmed B3 flagship
+## Evolution Experiment Workbench
 
-B3 remains the richer integrated reference-ecology flagship. It compares matched
-uniform renewable-resource placement against compact radius-1 patches using
-balanced homozygous `max_speed = 1 / 4` standing variation, ordinary sexual
-inheritance, mutation off, and a fixed horizon.
-
-Independent confirmation shows the compact treatment exceeds matched uniform
-control at the predeclared step-30 focal readout across the frozen confirmation
-seeds. Founder reproductive contribution, founder-label counterbalancing, and
-radius-2 geometry sensitivity support and bound the interpretation. Representative
-seed 5 and its real committed mechanism episodes are selected by B3 science, not
-presentation code.
-
-Scenario origin and validated scenario identity remain distinct. The radius-2
-sensitivity fork keeps B3 origin but loses canonical radius-1 validated identity and
-cannot automatically inherit the original B3 representative/headline cinematic
-handoff.
-
-## Evolution Experiment Workbench — stable foundation
-
-WB1–WB6 now establish and review the complete first Workbench architecture:
+WB1–WB6 establish the first stable Workbench architecture:
 
 ```text
-semantic Study / curated scenario / concrete experiment definition
+semantic intent / curated scenario / concrete experiment definition
         ↓
-bounded recipe or experiment-pattern resolution
+bounded resolution
         ↓
 immutable manifest / treatment specification
         ↓
-existing typed or scenario-specific composition
-        ↓
-authoritative lower scientific/biological validation and preflight
+existing typed/scenario composition + lower validation
         ↓
 frozen kernel
         ↓
-committed evidence and existing scientific results
+committed evidence + authoritative scientific results
         ↓
-Study-facing result navigation
+Study-facing Results
         ↓
 downstream presentation
 ```
 
-### Durable Workbench contracts
+Durable contracts include:
 
-- editable semantic intent is separate from immutable resolved manifest meaning;
-- stable scientific IDs do not depend on Python paths or object identity;
-- exact save/load uses the stored manifest rather than re-resolving current defaults;
-- incompatible exact reproduction fails explicitly rather than migrating silently;
-- mutable recorder/spec/runtime objects are reconstructed fresh;
+- editable intent is separate from resolved immutable scientific meaning;
+- stable scientific IDs do not depend on Python paths/object identity;
+- exact load uses stored manifests rather than current defaults;
+- incompatible exact reproduction fails explicitly rather than silently migrating;
+- mutable runtime/recorder/spec objects are reconstructed fresh;
 - EvidencePlan remains separate from simulation intent;
-- runs retain exact revision, manifest digest, EvidencePlan, and scientific
-  provenance;
-- forks create new immutable revisions and preserve parent history;
+- runs retain exact revision/manifest/evidence/provenance identity;
+- forks create immutable children with lineage;
 - scenario origin is distinct from validated scenario identity;
 - factor, treatment, counterbalance/blocking, replicate, and measurement remain
-  separate concepts;
-- Results navigation does not recalculate authoritative science;
-- missing evidence makes an analysis unavailable rather than inferable;
+  distinct concepts;
+- missing evidence makes analysis/presentation unavailable rather than inferable;
 - scientific encodings remain renderer-neutral;
-- presentation settings do not alter scientific manifests.
+- presentation choices never alter scientific manifests.
 
-### WB1–WB5 product capabilities
+`Study / Simulation / Evidence / Experiment / Results / Presentation` is a product
+navigation model, not a required universal class hierarchy. `Run` is an action.
+Workbench diagnostics remain bounded and do not replace lower generic, biological,
+genetic, or simulation preflight.
 
-WB1 provides bounded controlled-locomotion authoring over the characterized E3
-surface. WB2 provides canonical B3 exact reproduction plus one explicit radius-2
-scientific fork. WB3 provides concrete E3 max-speed sweep and E4 matched-environment
-experiment definitions. WB4 provides the first richer bounded reference-ecology
-custom Study with explicit Guided/Advanced/Expert/Extension support metadata and
-recipe-local applicability/normalization. WB5 adds Study-facing Results navigation
-and downstream V2/V3 presentation adapters without creating duplicate science or a
-universal result/presentation framework.
+The official support envelope remains deliberately narrower than engine capability:
 
-The WD2 labels `Study / Simulation / Evidence / Experiment / Results /
-Presentation` remain a product/navigation model rather than a required class
-hierarchy. `Run` remains an action.
+```text
+engine-valid ≠ Workbench-supported ≠ Guided ≠ experiment factor levels
+```
 
-### WB6 architecture review and diagnostics
+Controlled locomotion, canonical/derived B3, E3, E4, and bounded Reference Ecology are
+the current concrete Workbench families. Reference Ecology has Guided and Advanced
+supported authoring; Expert is intentionally empty and Extension/Internal remains
+non-product composition capability.
 
-WB6 confirms the Workbench foundation is stable enough for incremental future
-growth. It found no need to alter `SimulationSpec`, `BiologicalSimulationSpec`,
-`GeneticArchitecture`, the kernel, experiment science, or presentation ownership.
+## Native desktop Workbench: Q0–Q5
 
-One shared abstraction is now genuinely earned: a small Workbench-owned diagnostic
-value carrying stable code, severity, optional semantic slot/context, concise
-message, and optional remediation. It is used only for Workbench-owned support
-facts demonstrated by WB1–WB5:
-
-- incomplete/unsupported authoring choices;
-- irrelevant conditional values normalized away by WB4;
-- exact saved-manifest reproduction incompatibility;
-- B3 validated-scenario identity loss;
-- unavailable analysis/presentation because required evidence was not recorded.
-
-`WorkbenchReadiness` remains small: Draft, Blocked, or Ready. Readiness diagnostics
-are blocking errors. Warnings/advisories such as irrelevant-state notices,
-scenario-identity loss, and high-volume spatial evidence remain distinct.
-
-Lower-layer diagnostics remain authoritative. `DependencyReport` already exposes
-structured missing requirements and requiring-component provenance;
-`SimulationSpecValidator` owns generic preflight, `BiologicalSimulationSpec` owns
-biological preflight, and `GeneticArchitecture` owns genetic coherence. WB6 does
-not add a second non-raising lower preflight API or parse arbitrary lower exception
-prose into Workbench codes.
-
-See `docs/workbench_architecture_review.md` for the complete post-WB6 architecture
-review.
-
-## Workbench application shell and scientific execution
-
-WU1 integrates the settled Workbench into the Streamlit application without adding
-another scientific schema. The application enters through Home, then opens a
-persistent Study shell with `Simulation / Evidence / Experiment / Results /
-Presentation`; `Run` is an action rather than a sixth page.
-
-New Study exposes only current supported concrete families: canonical radius-1 B3,
-controlled single-run/max-speed-sweep/environment-selection workflows, and bounded
-Reference Ecology. Open/Save dispatches directly through the concrete Workbench
-format and pattern identities and each owning `from_json()` / `to_json()` contract.
-The UI does not re-resolve stored intent, migrate unknown formats, wrap artifacts in
-a universal Study envelope, or reconstruct unavailable historical result payloads.
-
-WU2 fills the Simulation section without adding another authoring framework.
-Controlled-locomotion Studies edit only their existing semantic slots. Reference
-Ecology uses the current WB4 Guided/Advanced metadata, applicability, readiness, and
-normalization contracts; Guided and Advanced are disclosure levels over the same
-intent, Expert remains empty, and Extension/internal capability is not editable.
-The page distinguishes explicit selections from derived and frozen recipe meaning.
-
-Saved scientific revisions remain immutable. UI draft state is transient; saving an
-edit calls the existing concrete fork API and creates a child revision with parent
-lineage. The UI renders the existing controlled/reference/B3 semantic-diff contracts
-rather than a new diff engine. Canonical B3 remains read-only except for the explicit
-supported radius-2 sensitivity fork, which preserves B3 origin while losing validated
-radius-1 identity.
-
-WU3 completes the first end-to-end scientific execution path through the same shell.
-Evidence is first-class: controlled/reference plans use their existing concrete
-EvidencePlan types and immutable fork APIs, Reference Ecology surfaces its existing
-non-blocking advisories, and frozen/experiment-required B3/E3/E4 evidence stays
-locked. Experiment authoring remains concrete: E3 edits only max-speed levels and
-replicate seeds, E4 keeps its resource-geography factor, control/treatment roles,
-standing focal composition, and counterbalance fixed while editing supported seeds,
-and B3 remains curated/read-only. Displayed run matrices and B3 case counts come from
-the authoritative Workbench expansion/compilation functions rather than UI-owned
-design logic.
-
-Readiness continues to come from the existing Workbench contracts. `Run` opens a
-reviewable Run Plan derived from the exact current artifact before synchronous
-execution. Revision-backed pending Simulation/Evidence edits receive one immutable
-child revision before execution; E3/E4 keep their existing immutable experiment-value
-ownership rather than gaining invented revision lineage. Execution delegates only to
-the five existing concrete Workbench runners. Successful revision-owned runs attach
-returned provenance with existing `.with_run(...)` semantics, while authoritative
-result objects remain session-owned for downstream Results work. Compile/preflight
-failure leaves the saved artifact unchanged and is surfaced without fabricated
-Workbench diagnostics.
-
-WU4 makes Results a substantial scientific workspace while preserving WB5 as the
-association/navigation authority. Controlled, Reference Ecology, E3, E4, and B3 all
-use the product rhythm `Overview / Explore / Analysis / Provenance`, but each keeps
-its own scientific navigation rather than being flattened into a universal result or
-replicate model. The UI copies existing observations, replicate outcomes, and
-experiment summaries into charts/tables; it does not own new estimators.
-
-Controlled Results expose population history and existing E1 locomotion measurement
-behind exact evidence availability. Reference Ecology independently exposes
-population, committed events, pedigree/life history, genetic composition, and
-committed spatial frames. E3 preserves maximum speed as factor and exact
-factor/seed/treatment/manifest identity while passing through existing
-`E3TreatmentSummary` values. E4 preserves resource geography as factor while keeping
-arm, seed, standing composition, and founder-order counterbalance distinct and
-passing through existing `E4EnvironmentSummary` values. B3 keeps primary
-confirmation, radius sensitivity, and founder-label counterbalance separate while
-showing scenario origin separately from validated canonical identity and surfacing
-only the existing cinematic-handoff availability.
-
-Missing evidence is explicit and cannot be reconstructed: obtaining an unavailable
-analysis requires a new run with an appropriate EvidencePlan. Session Results that
-no longer match the active scientific owner are rejected. Reopened saved revisions
-may retain historical provenance references without carrying the scientific result
-payload; the UI shows those references and never regenerates or reruns them
-implicitly.
-
-WU5 completes the first concrete Presentation integration without inventing a new
-replay or scene framework. Reference Ecology routes exact recorded spatial evidence
-through the existing Workbench presentation adapter into `WorldPresentationFrame`
-and the retained Plotly renderer, with committed-step navigation, playback,
-organism inspection, and renderer-only visibility/trail/label controls. Focus Mode
-is presentation state only. Presentation session state is owned by the exact
-revision/manifest-digest/run tuple and is reset rather than reused across scientific
-owners; historical provenance references alone never become replay data.
-
-B3 Presentation keeps the matched scientific design visible. Control and treatment
-are built independently from the same authoritative confirmation seed and committed
-step, use one shared science-owned `max_speed` encoding, and never assume that
-matched arms remain RNG-identical after treatment-driven divergence. Canonical
-validated B3 can hand off to the existing B3-specific director and optional Manim
-renderer; representative seed, scientific episodes, comparison structure, and
-bounded conclusion remain science/director-owned rather than UI-authored. See
-`docs/workbench_ui.md`.
-
-## Native desktop Workbench architecture
-
-Q0 established that PySide6 + Qt Quick/QML can consume the settled Workbench
-directly. Q1 turned that technology proof into the persistent native product shell,
-Q2 completed the pre-execution Simulation/Evidence/Experiment authoring surface, Q3
-completed native Run planning, five-family execution, and authoritative Results
-breadth, and Q4 completes the first full native scientific-world Presentation surface
-for Reference Ecology and canonical matched B3. Scientific authority remains in the
-existing Workbench artifacts. The durable dependency boundary is:
+PySide6 + Qt Quick/QML is the primary product architecture. Scientific authority
+remains in Workbench/domain layers:
 
 ```text
 Qt Quick / QML
         ↓
-PySide6 QObject controllers + Qt item models
+PySide6 QObject controllers + explicit Qt item models
         ↓
 existing Workbench/application semantics
         ↓
@@ -367,149 +185,58 @@ biology
 frozen kernel
 ```
 
-The Q1 application structure is now concrete:
+Q0 proved the technology/deployment boundary. Q1 established Home/New/Open plus the
+persistent five-section Study shell and exact concrete routing. Q2 completed supported
+Simulation/Evidence/Experiment authoring. Q3 completed reviewable Run Plans,
+five-family off-GUI-thread execution, and authoritative family-specific Results. Q4
+made `WorldPresentationFrame` the native interactive scientific-world contract for
+Reference Ecology and canonical matched B3.
+
+Q5 hardens those settled seams rather than redesigning them. The native product now
+owns responsive desktop composition, accessibility/focus semantics, native commands,
+end-to-end workflow polish, and the B3 cinematic handoff. Cinematic science remains:
 
 ```text
-HOME
-├── New Study
-└── Open Study
-
-STUDY
-├── Simulation
-├── Evidence
-├── Experiment
-├── Results
-└── Presentation
-
-Run = action
+B3 revision + authoritative result
+        ↓
+prepare_b3_workbench_cinematic()
+        ↓
+existing B3 director plan
+        ↓
+optional renderer
 ```
 
-`ApplicationController` owns only transient routing, active-artifact, section,
-current-session exact result ownership, reviewable Run Plan coordination,
-presentation-owner/reset, file, and status state. It explicitly routes the five existing supported concrete artifacts:
-controlled single run, E3 max-speed sweep, E4 environment-selection comparison,
-canonical/derived B3, and bounded Reference Ecology. Open/Save delegates to each
-artifact's existing exact `from_json()` / `to_json()` semantics. No Qt Study schema,
-wrapper persistence format, silent migration, historical rerun, or scientific
-analysis layer was introduced.
+Scientific story eligibility is distinct from optional Manim availability. Expensive
+rendering runs outside the Qt GUI thread. Quality, output format/location, replay,
+focus, labels, trails, and other view state are presentation-only. A radius-2 B3 fork
+cannot claim canonical headline-cinematic eligibility.
 
-Application ownership is atomic. Return Home clears the active scientific/session
-context. New Study may preserve the current exact owner while a replacement is being
-chosen, and invoking Open from an active Study leaves the Study route and owner in
-place while the native file dialog is open. Failed, unknown, or exact-incompatible
-Open therefore leaves the current Study usable. A successful New/Open replacement,
-supported fork, or immutable Reference child commit clears stale result, Run Plan,
-and presentation state before establishing the new exact owner.
+Native application commands cover New, Open, Save, Save As, Run, Home/back, Focus
+Mode, and committed-step playback. Exact scientific ownership remains atomic: owner
+replacement clears stale result/run-plan/presentation state, while navigation alone
+cannot mutate science.
 
-Q2 fills the native Simulation, Evidence, and Experiment sections without
-introducing another scientific schema. `SimulationAuthoringController` owns
-controlled-locomotion draft semantics plus read-only E3/E4/B3 Simulation meaning,
-while `ReferenceStudyController` now owns the bounded WB4 Guided/Advanced Reference
-draft, applicability reconciliation, immutable child commit, and the retained Q0
-worker-thread run/result/world vertical. `EvidenceAuthoringController` owns only
-transient controlled/reference evidence-plan selection and immutable child commits;
-B3/E3/E4 evidence remains locked by the existing scientific designs.
-`ExperimentAuthoringController` edits only the existing E3 levels/seeds and E4 seeds,
-and displays authoritative Workbench expansion rows; B3 stays curated/read-only and
-controlled/reference Studies remain explicit single-run workflows.
+### Frontend decision
 
-Q3 adds sibling `RunController` and `ResultsController` seams rather than turning
-`ApplicationController` into a scientific workflow object. Pending controlled and
-Reference Simulation/Evidence drafts are bound atomically to one immutable child
-revision before Run Plan review; pending E3/E4 edits bind to their exact immutable
-experiment definitions. A frontend-neutral Workbench dispatcher invokes only the
-five existing concrete runners, while one narrow Qt worker keeps all five synchronous
-execution paths off the GUI thread.
+Q5 completes the WU1–WU5 parity review. **The native Qt application is the sole
+product frontend. The sophisticated Streamlit Workbench is deprecated.** Existing
+`evo_engine.ui` code is temporarily retained as frozen regression/reference material;
+it receives no new product features and future milestones do not owe it parity.
+Physical removal should follow a human native release audit and an explicit check that
+remaining compatibility value can be discarded.
 
-Completed results are accepted only when existing exact-owner/WB5 association rules
-still match the active science. Native Results remain family-specific: controlled
-population/locomotion, Reference evidence availability, E3 factor/seed/treatment/
-manifest identity, E4 factor/role/standing-composition/counterbalance identity, and
-B3 scenario/confirmation/sensitivity/counterbalance identity remain distinct. Missing
-evidence stays unavailable; reopened historical run provenance is never treated as a
-persisted observations archive or implicit rerun source. Reference world rendering
-still requires recorded spatial evidence.
-
-Q4 adds a sibling `PresentationController` plus explicit Qt item models for
-organisms, resources, carcasses, and movement trails. It projects only existing
-`WorldPresentationFrame` values into QML. Exact committed-step seeking always rebuilds
-the authoritative frame; visual interpolation is permitted only for identity-stable
-organisms across adjacent committed frames, while births/deaths, owner replacement,
-and non-adjacent seeks snap rather than invent evidence. Labels, trails, selection,
-Focus Mode, playback speed, and transition timing remain view state only.
-
-Reference Ecology now has a native world with bounds, organisms, resources,
-carcasses, trails, labels, legend, inspector, timeline, previous/next, playback,
-speed, and Focus Mode. Canonical B3 now has matched side-by-side native replay with
-one authoritative confirmation seed, one common committed step, independently built
-arm frames, arm-local selection, and the same science-owned fixed `max_speed`
-encoding in both arms. The UI explicitly states that matched/blocked design does not
-imply RNG lockstep after biological divergence. Missing spatial evidence remains
-unavailable with existing Workbench remediation rather than being reconstructed.
-
-The QML boundary remains intentionally curated: scalar properties, signals, slots,
-and Qt item-model roles cross into QML while concrete Workbench/domain objects remain
-private Python state. Python controller-to-controller logic uses ordinary typed
-helpers rather than treating Qt `Property` descriptors as runtime values. Q3 adapts
-all five existing synchronous Workbench runners through one narrow `QThread`
-execution seam; no generic job/cancellation framework has been earned.
-
-The renderer-neutral Workbench world adapter remains shared from
-`evo_engine.presentation`; QML renders `WorldPresentationFrame` primitives rather
-than reconstructing spatial evidence or consuming Plotly as a scientific contract.
-Q4's repeatable offscreen proof measures representative Reference and paired-B3
-loads, labels, trails, playback, and resize behavior before any renderer
-optimization. No C++/OpenGL/shader/custom-scene-graph path has been justified.
-PySide6 remains an optional desktop dependency. The dedicated desktop validation
-surface owns Qt-specific typing, QML load/startup, compatibility, renderer proof,
-standalone build, and packaged-launch checks.
-
-Streamlit remains the WU1–WU5 reference frontend during migration and a semantic
-compatibility oracle. It is no longer the primary product-development surface. See
-`docs/desktop_workbench.md`, `docs/q4_native_presentation.md`, and ADR 0010.
-
-## Official Workbench support envelope
-
-The distinction remains:
-
-```text
-engine-valid
-    ≠ Workbench-supported
-    ≠ Guided
-    ≠ experiment factor levels
-```
-
-Controlled locomotion remains bounded to `max_speed` 1..10, the two characterized
-E3 geographies, explicit seed, and its concrete evidence streams. Canonical B3 is a
-curated exact-reproduction workflow; radius-2 remains a specific supported
-sensitivity fork rather than generic authoring.
-
-WB4 remains the explicit tiered recipe:
-
-- **Guided:** world/founder/run settings, founder performance/sensing values,
-  supported exploration movement, and uniform/two-patch geography;
-- **Advanced:** Gaussian spread when applicable, renewable resource quantity and
-  cadence, two-patch geometry, mutation controls, and recombination probability;
-- **Expert:** intentionally empty;
-- **Extension/internal:** arbitrary resource/policy graphs, extra traits/tradeoffs,
-  genetics/expression/ploidy, inheritance, reproduction, lifecycle, targeted
-  movement, and development/G×E editing.
-
-WU2–WU5 and Q0–Q4 promote no capability merely because the lower engine can
-represent it.
+See `docs/development/q5_frontend_parity.md`, `docs/desktop_workbench.md`,
+`docs/q4_native_presentation.md`, and ADR 0010.
 
 ## Results and presentation boundary
 
-Workbench Results is concrete navigation/presentation over authoritative artifacts
-plus exact association/provenance. It does not calculate E1/E3/E4/B3 science.
+Results navigation is concrete presentation over authoritative artifacts and existing
+scientific measurements; it does not recalculate E1/E3/E4/B3 science. If required
+evidence was not recorded, a new run with the appropriate EvidencePlan is required.
+Historical run references are not a durable observations/result archive and never
+trigger implicit reruns.
 
-If an analysis or presentation requires evidence the run did not record, the
-Workbench exposes structured remediation naming the missing evidence and requiring a
-new run of the same scientific Study revision with an appropriate EvidencePlan. It
-never reconstructs events, genetics, pedigree, or spatial history from weaker
-artifacts.
-
-Presentation stays downstream:
+Presentation remains downstream:
 
 ```text
 model / evidence / experiments
@@ -522,118 +249,64 @@ model / evidence / experiments
 native UI  cinematic
 ```
 
-The shared adapter builds existing `WorldPresentationFrame` values from recorded
-WB4/B3 evidence. WU5 exposes that path through the Streamlit reference frontend; Q4
-now makes the same contract the authoritative native interactive world for Reference
-Ecology and canonical B3 while keeping replay, selection, visibility, trails, labels,
-playback, focus, and interpolation state out of scientific identity. Q1's
-application-level exact result/presentation-owner gate clears stale session results
-and presentation state when scientific ownership changes, and Q3 extends that gate
-across all five native Run/Results paths. Historical run references alone never
-become native replay data. The V3 adapter feeds validated canonical B3 results into
-the existing B3-specific director. Renderer-specific layout, controls, camera,
-timing, materials, charts, and animation remain presentation concerns.
+`WorldPresentationFrame` remains the authoritative renderer-neutral world contract.
+QML receives curated scalar properties/signals/slots/item-model roles rather than
+arbitrary Workbench/domain object graphs. Exact committed frames are evidence;
+adjacent stable-identity interpolation is display-only.
 
 ## Current development front
 
-The Workbench foundation, E1–E7 controlled-science sequence, end-to-end Streamlit
-reference product, and **Q0–Q4 native application sequence** are established.
-PySide6 + Qt Quick/QML remains the primary product architecture without moving
-scientific authority out of Workbench.
+The Workbench foundation, E1–E7 controlled sequence, confirmed B3 flagship,
+WU1–WU5 reference sequence, and Q0–Q5 native product sequence are established.
+Q5 closes the frontend migration decision: Qt is the product; Streamlit is deprecated
+reference code.
 
-Q1 established the persistent native five-section Study shell and exact concrete
-routing/persistence. Q2 completed supported Simulation/Evidence/Experiment authoring.
-Q3 completed the first native `Run → Results` breadth. Q4 completes the first full
-native scientific-world Presentation breadth for Reference Ecology and canonical B3,
-including exact committed-step semantics, display-only interpolation, matched-arm
-identity, native interaction controls, offscreen visual proof, and measurement before
-optimization.
+The next work should be chosen from concrete need rather than continuing UI migration
+by inertia:
 
-The next native product work should harden and integrate these settled seams rather
-than redesign them:
-
-1. **Product hardening and accessibility:** keyboard/focus behavior, accessible
-   contrast/semantics, dense-view presentation defaults, layout/visual completion,
-   and end-to-end native workflow polish.
-2. **Release and migration decision:** packaging/release hardening plus an explicit
-   Streamlit parity/removal decision once native workflow parity is judged sufficient.
-3. **Distribution work when concretely required:** signing, notarization, installers,
-   auto-update, and broader platform release proof should follow real shipping needs.
-
-Future native work must preserve exact owner/provenance, committed-step semantics,
-science-owned encodings, B3 matched-arm scientific identity, and the
-`WorldPresentationFrame → explicit Qt models/properties → QML` boundary. Dense labels
-plus trails can become visually cluttered at deliberately high proof loads; treat that
-as presentation-density/accessibility pressure rather than silently changing
-scientific evidence or encoding semantics.
-
-E7 closes the current E1–E7 causal sequence with a confirmed negative convergence
-result. Do not post-hoc lengthen, enrich, or retune E7 to manufacture convergence.
-A future controlled-science milestone should begin from a new predeclared question
-and new scientific identity. Potential pressure includes evolutionary accessibility
-across longer generational turnover, richer reproduction/resource opportunity,
-richer genetics, or changing ecology, but none of those is automatically the next
-milestone merely because E7 exposed the mechanism.
-
-Longer-term modeled fronts remain richer genetic expression, chromosome
-pairing/recombination, mating systems, development/G×E, and evolutionary ecology.
-A native Rust/C++ execution backend remains evidence-driven future work.
+1. **Human native release audit:** actually exercise keyboard navigation, focus order,
+   OS font scaling, contrast/color-vision legibility, live resize, representative
+   long Results, Reference custom authoring, E3/E4, canonical B3, radius-2 B3, missing
+   evidence, exact save/reopen, paired replay, and a real B3 film when Manim is
+   installed. Automated offscreen CI does not satisfy this gate.
+2. **Distribution only when required:** signing, notarization, installers, auto-update,
+   and broader platform release proof should follow a real shipping requirement.
+3. **New science/modeling only from a new question:** E7 does not imply an automatic
+   E8. Potential fronts include generational accessibility, richer genetics,
+   chromosome pairing/recombination, mating systems, development/G×E, and richer
+   evolutionary ecology.
+4. **Performance/backend work only from evidence:** no C++/OpenGL/shader/custom-scene
+   renderer or Rust/C++ execution backend is justified without profiling and a stable
+   target subset.
 
 ## Known architectural friction
 
-### Concrete persistence remains intentional
+Concrete persistence remains intentional: existing families have different ownership
+responsibilities, and Q0–Q5 did not earn a universal saved Study/Experiment/Results
+root. Workbench diagnostics remain bounded rather than a generic validation system.
+Presentation bundles remain purpose-specific; do not turn the B3 director into a
+camera/storyboard DSL without multiple real consumers.
 
-WB1, WB2, WB3, and WB4 persist different shapes because their responsibilities still
-differ. WB5/WB6, WU1–WU5, and Q0–Q4 still do not reveal enough identical persistence
-or result responsibility to earn a universal saved Study/Experiment/Results root.
-Q1–Q4 reinforce the intended approach by routing, authoring, executing, and
-presenting concrete families directly rather than manufacturing one for Qt.
+The native product is broad and automated validation is substantial, but a real human
+release-quality desktop/accessibility audit is still distinct evidence. Do not turn
+headless QML loading, screenshot proof, or packaged launch smoke into a claim that the
+human audit occurred.
 
-### Broader Workbench diagnostics remain bounded
+The scientific scope remains illustrative: Reference Ecology, B3, and E2–E7 are
+software/modeling demonstrations, not calibrated predictions about real species.
 
-The shared diagnostic value is not a universal validation system. A future UI may
-eventually need aggregate readiness across simulation, evidence, experiment, and
-analysis, but that should be designed from the actual workflow rather than added as
-a speculative state machine.
+## Collaboration and validation
 
-### Presentation bundles remain purpose-specific
-
-The existing UI/cinematic bundles are not universal scientific result or scene
-models. New media should reuse renderer-neutral scientific meaning where it truly
-repeats while keeping renderer mechanics local.
-
-### Native application breadth is functionally broad but not yet hardened
-
-Q1–Q4 establish the native shell, concrete five-family routing, exact persistence,
-supported pre-execution authoring, reviewable Run Plans, five-family off-GUI-thread
-execution, family-specific authoritative Results, and native Reference/B3 scientific
-world Presentation. Accessibility, dense-view polish, end-to-end workflow refinement,
-and release hardening remain application work. This is product-hardening pressure,
-not a reason to broaden Workbench or the kernel.
-
-### Scientific scope remains illustrative
-
-The reference ecology, B3 flagship, and E2–E7 controlled sequence are software and
-modeling demonstrations, not species-calibrated predictive ecological models.
-
-## Collaboration model
-
-Use ChatGPT primarily for architecture, roadmap sequencing, consequential public
-contracts, tightly scoped sequential implementation, and independent PR
-review/merge decisions. Use Codex selectively for execution-heavy work behind
-settled interfaces.
+Use ChatGPT primarily for architecture, roadmap sequencing, consequential contracts,
+tightly scoped sequential implementation, and independent PR review/merge decisions.
+Use Codex selectively for execution-heavy work behind settled interfaces.
 
 For substantial work follow:
 
 ```text
-Issue → branch → implementation → early PR → CI → exact-head review
-      → squash merge → main verification
+Issue → branch → implementation → early PR → focused validation
+      → exact-head CI/review → squash merge → main verification
 ```
 
-Validation is intentionally layered so routine iteration stays cheap without
-weakening the final merge standard. Use focused tests plus `./scripts/fix` in the
-inner loop, `./scripts/check_all --fast --no-pause` at ordinary checkpoints, and the
-complete local/non-draft gate for final candidates. Draft PRs are recovery
-checkpoints and run the shared fast quality job; full coverage, strict docs,
-performance, relevant smoke tests, and frozen scientific confirmations belong to
-final/non-draft validation. See `docs/development/validation_workflow.md`.
+Use `docs/development/validation_workflow.md` for the layered validation policy.
+Repository truth always wins over this summary.
