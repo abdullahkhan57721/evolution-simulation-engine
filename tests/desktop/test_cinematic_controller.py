@@ -14,6 +14,7 @@ from PySide6.QtCore import QThreadPool
 from PySide6.QtGui import QGuiApplication
 
 import evo_engine.desktop.controllers.cinematic as cinematic_module
+from evo_engine.cinematic.api import AnimationQuality
 from evo_engine.cinematic.b3_director import B3FlagshipDirectorPlan
 from evo_engine.desktop.artifacts import (
     fork_supported_artifact,
@@ -68,11 +69,12 @@ def test_story_eligibility_is_distinct_from_renderer_presence(
     monkeypatch.setattr(cinematic_module, "_renderer_available", lambda: False)
 
     cinematic = CinematicController(app)
+    message = cast(str, cinematic.message)
 
     assert cinematic.storyAvailable
     assert not cinematic.rendererAvailable
-    assert "handoff available" in cinematic.message
-    assert "renderer is not installed" in cinematic.message
+    assert "handoff available" in message
+    assert "renderer is not installed" in message
 
 
 def test_radius_two_fork_cannot_claim_canonical_story() -> None:
@@ -83,10 +85,11 @@ def test_radius_two_fork_cannot_claim_canonical_story() -> None:
     _bind_owner(app, fork, _result(fork))
 
     cinematic = CinematicController(app)
+    message = cast(str, cinematic.message)
 
     assert not cinematic.storyAvailable
-    assert "does not inherit" in cinematic.message
-    assert "headline-claim cinematic" in cinematic.message
+    assert "does not inherit" in message
+    assert "headline-claim cinematic" in message
 
 
 def test_render_runs_off_gui_thread_and_never_mutates_scientific_identity(
@@ -111,12 +114,12 @@ def test_render_runs_off_gui_thread_and_never_mutates_scientific_identity(
     renderer_thread_ids: list[int] = []
 
     def renderer(
-        received_plan,
-        output_path,
+        plan: B3FlagshipDirectorPlan,
+        output_path: str | Path,
         *,
-        quality="medium",
+        quality: AnimationQuality = "medium",
     ) -> Path:
-        assert received_plan is plan
+        assert plan is not None
         assert quality == "high"
         renderer_thread_ids.append(threading.get_ident())
         destination = Path(output_path)
@@ -139,7 +142,7 @@ def test_render_runs_off_gui_thread_and_never_mutates_scientific_identity(
     assert renderer_thread_ids[0] != gui_thread_id
     assert not cinematic.rendering
     assert cinematic.hasOutput
-    assert cinematic.outputPath == str(destination)
+    assert cast(str, cinematic.outputPath) == str(destination)
     assert destination.read_bytes() == b"q5-render"
     assert app._artifact is revision
     assert app._result is result
