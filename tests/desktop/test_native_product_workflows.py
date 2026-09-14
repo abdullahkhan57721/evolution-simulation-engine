@@ -18,7 +18,11 @@ import evo_engine.desktop.controllers.presentation as presentation_module
 import evo_engine.desktop.controllers.run as run_module
 import evo_engine.desktop.main as desktop_main
 from evo_engine.desktop.artifacts import ConcreteWorkbenchArtifact
-from evo_engine.desktop.controllers import ApplicationController, PresentationController
+from evo_engine.desktop.controllers import (
+    ApplicationController,
+    CinematicController,
+    PresentationController,
+)
 from evo_engine.desktop.controllers.experiment import ExperimentAuthoringController
 from evo_engine.desktop.controllers.run import RunController
 from evo_engine.experiments.science import ScientificRunProvenance
@@ -52,6 +56,7 @@ def _native_shell() -> tuple[
     engine = QQmlApplicationEngine()
     controller = ApplicationController()
     presentation = PresentationController(controller)
+    cinematic = CinematicController(controller)
     warnings: list[str] = []
 
     def collect(errors) -> None:
@@ -60,6 +65,7 @@ def _native_shell() -> tuple[
     engine.warnings.connect(collect)
     engine.rootContext().setContextProperty("applicationController", controller)
     engine.rootContext().setContextProperty("presentationController", presentation)
+    engine.rootContext().setContextProperty("cinematicController", cinematic)
     qml_path = Path(desktop_main.__file__).resolve().parent / "qml" / "Main.qml"
     engine.load(QUrl.fromLocalFile(str(qml_path)))
     app.processEvents()
