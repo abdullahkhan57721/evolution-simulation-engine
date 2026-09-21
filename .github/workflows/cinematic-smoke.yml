@@ -127,7 +127,7 @@ jobs:
           print(f"Verified B3 director manifest: {b3_manifest_path}")
           PY
       - name: Upload smoke renders
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cinematic-smoke-${{ github.run_id }}
           path: |
@@ -220,7 +220,7 @@ jobs:
           print(f"Verified full B3 manifest: {manifest_path}")
           PY
       - name: Upload full flagship artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: b3-flagship-cinematic-${{ github.event.pull_request.head.sha }}
           path: |
