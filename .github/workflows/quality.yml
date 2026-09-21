@@ -209,7 +209,7 @@ jobs:
             --tracemalloc \
             -o outputs/performance/state-copy-tracemalloc.json
       - name: Upload reference performance artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: reference-performance-${{ github.run_id }}
           path: outputs/performance/
