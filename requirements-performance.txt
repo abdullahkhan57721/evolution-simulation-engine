@@ -1,2 +1,2 @@
 # Optional tooling for statistically stronger microbenchmarks.
-pyperf>=2.10,<3
+pyperf>=2.11.0,<3
